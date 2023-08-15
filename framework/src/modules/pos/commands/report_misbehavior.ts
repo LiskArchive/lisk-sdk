@@ -28,6 +28,7 @@ import {
 	TokenMethod,
 	TokenID,
 	ValidatorsMethod,
+	PunishmentLockingPeriods,
 } from '../types';
 import { getValidatorWeight, getPunishmentPeriod } from '../utils';
 import { ValidationError } from '../../../errors';
@@ -47,6 +48,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 	private _lockingPeriodSelfStaking!: number;
 	private _reportMisbehaviorReward!: bigint;
 	private _reportMisbehaviorLimitBanned!: number;
+	private _punishmentLockingPeriods!: PunishmentLockingPeriods;
 
 	public addDependencies(args: PomCommandDependencies) {
 		this._tokenMethod = args.tokenMethod;
@@ -59,12 +61,14 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 		lockingPeriodSelfStaking: number;
 		reportMisbehaviorReward: bigint;
 		reportMisbehaviorLimitBanned: number;
+		punishmentLockingPeriods: PunishmentLockingPeriods;
 	}) {
 		this._posTokenID = args.posTokenID;
 		this._factorSelfStakes = args.factorSelfStakes;
 		this._lockingPeriodSelfStaking = args.lockingPeriodSelfStaking;
 		this._reportMisbehaviorReward = args.reportMisbehaviorReward;
 		this._reportMisbehaviorLimitBanned = args.reportMisbehaviorLimitBanned;
+		this._punishmentLockingPeriods = args.punishmentLockingPeriods;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -108,6 +112,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 				validatorAddress,
 				validatorAccount.reportMisbehaviorHeights,
 				header.height,
+				this._punishmentLockingPeriods,
 			) > 0
 		) {
 			throw new Error('Validator is already punished.');

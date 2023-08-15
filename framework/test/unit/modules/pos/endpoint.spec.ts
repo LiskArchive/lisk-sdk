@@ -122,9 +122,16 @@ describe('PosModuleEndpoint', () => {
 		posTokenID: '1000000000000002',
 	} as ModuleConfigJSON);
 
+	const punishmentLockingPeriods = {
+		punishmentWindowStaking: config.punishmentWindowStaking,
+		punishmentWindowSelfStaking: config.punishmentWindowSelfStaking,
+		lockingPeriodStaking: config.lockingPeriodStaking,
+		lockingPeriodSelfStaking: config.lockingPeriodSelfStaking,
+	};
+
 	beforeEach(() => {
 		posEndpoint = new PoSEndpoint(pos.stores, pos.offchainStores);
-		const tokenMehthod = {
+		const tokenMethod = {
 			getAvailableBalance: jest.fn(),
 			getLockedAmount: jest.fn(),
 			burn: jest.fn(),
@@ -132,7 +139,7 @@ describe('PosModuleEndpoint', () => {
 			transfer: jest.fn(),
 			unlock: jest.fn(),
 		};
-		posEndpoint.init('pos', config, pos['_internalMethod'], tokenMehthod);
+		posEndpoint.init('pos', config, pos['_internalMethod'], tokenMethod, punishmentLockingPeriods);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		stakerSubStore = pos.stores.get(StakerStore);
 		validatorSubStore = pos.stores.get(ValidatorStore);

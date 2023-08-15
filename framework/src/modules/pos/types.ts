@@ -28,6 +28,7 @@ export interface ModuleConfig {
 	maxNumberPendingUnlocks: number;
 	failSafeMissedBlocks: number;
 	failSafeInactiveWindow: number;
+	punishmentWindowStaking: number;
 	punishmentWindowSelfStaking: number;
 	roundLength: number;
 	minWeightStandby: bigint;
@@ -48,6 +49,13 @@ export interface ModuleConfig {
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
+
+export interface PunishmentLockingPeriods {
+	punishmentWindowStaking: number;
+	punishmentWindowSelfStaking: number;
+	lockingPeriodStaking: number;
+	lockingPeriodSelfStaking: number;
+}
 
 export interface RandomMethod {
 	getRandomBytes(

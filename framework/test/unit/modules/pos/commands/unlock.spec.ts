@@ -105,6 +105,13 @@ describe('UnlockCommand', () => {
 		posTokenID: '00'.repeat(TOKEN_ID_LENGTH),
 	} as ModuleConfigJSON);
 
+	const punishmentLockingPeriods = {
+		punishmentWindowStaking: config.punishmentWindowStaking,
+		punishmentWindowSelfStaking: config.punishmentWindowSelfStaking,
+		lockingPeriodStaking: config.lockingPeriodStaking,
+		lockingPeriodSelfStaking: config.lockingPeriodSelfStaking,
+	};
+
 	beforeEach(() => {
 		unlockCommand = new UnlockCommand(pos.stores, pos.events);
 		mockTokenMethod = {
@@ -118,7 +125,7 @@ describe('UnlockCommand', () => {
 		unlockCommand.addDependencies({
 			tokenMethod: mockTokenMethod,
 		});
-		unlockCommand.init(config);
+		unlockCommand.init({ ...config, punishmentLockingPeriods });
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		validatorSubstore = pos.stores.get(ValidatorStore);
 		stakerSubstore = pos.stores.get(StakerStore);

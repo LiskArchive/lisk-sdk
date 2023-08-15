@@ -14,13 +14,13 @@
 
 import { utils, ed } from '@liskhq/lisk-cryptography';
 import { math } from '@liskhq/lisk-utils';
-import { ModuleConfig, ModuleConfigJSON, UnlockingObject, StakeSharingCoefficient } from './types';
 import {
-	PUNISHMENT_WINDOW_STAKING,
-	PUNISHMENT_WINDOW_SELF_STAKING,
-	LOCKING_PERIOD_SELF_STAKING,
-	LOCKING_PERIOD_STAKING,
-} from './constants';
+	ModuleConfig,
+	ModuleConfigJSON,
+	UnlockingObject,
+	StakeSharingCoefficient,
+	PunishmentLockingPeriods,
+} from './types';
 
 const { q96 } = math;
 
@@ -158,32 +158,51 @@ export const selectStandbyValidators = (
 	return result;
 };
 
-export const isCurrentlyPunished = (height: number, pomHeights: ReadonlyArray<number>): boolean => {
+export const isCurrentlyPunished = (
+	height: number,
+	pomHeights: ReadonlyArray<number>,
+	punishmentWindowSelfStaking: number,
+): boolean => {
 	if (pomHeights.length === 0) {
 		return false;
 	}
 	const lastPomHeight = Math.max(...pomHeights);
-	if (height - lastPomHeight < PUNISHMENT_WINDOW_SELF_STAKING) {
+	if (height - lastPomHeight < punishmentWindowSelfStaking) {
 		return true;
 	}
 
 	return false;
 };
 
-export const getWaitTime = (senderAddress: Buffer, validatorAddress: Buffer): number =>
-	validatorAddress.equals(senderAddress) ? LOCKING_PERIOD_SELF_STAKING : LOCKING_PERIOD_STAKING;
-
-export const getPunishTime = (senderAddress: Buffer, validatorAddress: Buffer): number =>
+export const getWaitTime = (
+	senderAddress: Buffer,
+	validatorAddress: Buffer,
+	punishmentLockingPeriods: PunishmentLockingPeriods,
+): number =>
 	validatorAddress.equals(senderAddress)
-		? PUNISHMENT_WINDOW_SELF_STAKING
-		: PUNISHMENT_WINDOW_STAKING;
+		? punishmentLockingPeriods.lockingPeriodSelfStaking
+		: punishmentLockingPeriods.lockingPeriodStaking;
+
+export const getPunishTime = (
+	senderAddress: Buffer,
+	validatorAddress: Buffer,
+	punishmentLockingPeriods: PunishmentLockingPeriods,
+): number =>
+	validatorAddress.equals(senderAddress)
+		? punishmentLockingPeriods.punishmentWindowSelfStaking
+		: punishmentLockingPeriods.punishmentWindowStaking;
 
 export const hasWaited = (
 	unlockingObject: UnlockingObject,
 	senderAddress: Buffer,
 	height: number,
+	punishmentLockingPeriods: PunishmentLockingPeriods,
 ) => {
-	const delayedAvailability = getWaitTime(senderAddress, unlockingObject.validatorAddress);
+	const delayedAvailability = getWaitTime(
+		senderAddress,
+		unlockingObject.validatorAddress,
+		punishmentLockingPeriods,
+	);
 
 	return !(height - unlockingObject.unstakeHeight < delayedAvailability);
 };
@@ -193,14 +212,23 @@ export const isPunished = (
 	pomHeights: ReadonlyArray<number>,
 	senderAddress: Buffer,
 	height: number,
+	punishmentLockingPeriods: PunishmentLockingPeriods,
 ) => {
 	if (!pomHeights.length) {
 		return false;
 	}
 
 	const lastPomHeight = pomHeights[pomHeights.length - 1];
-	const waitTime = getWaitTime(senderAddress, unlockingObject.validatorAddress);
-	const punishTime = getPunishTime(senderAddress, unlockingObject.validatorAddress);
+	const waitTime = getWaitTime(
+		senderAddress,
+		unlockingObject.validatorAddress,
+		punishmentLockingPeriods,
+	);
+	const punishTime = getPunishTime(
+		senderAddress,
+		unlockingObject.validatorAddress,
+		punishmentLockingPeriods,
+	);
 	return (
 		height - lastPomHeight < punishTime && lastPomHeight < unlockingObject.unstakeHeight + waitTime
 	);
@@ -224,11 +252,7 @@ export const isCertificateGenerated = (options: {
 		options.roundLength,
 	) <= options.maxHeightCertified;
 
-export const getMinPunishedHeight = (
-	senderAddress: Buffer,
-	validatorAddress: Buffer,
-	pomHeights: number[],
-): number => {
+export const getMinPunishedHeight = (pomHeights: number[], punishmentWindow: number): number => {
 	if (pomHeights.length === 0) {
 		return 0;
 	}
@@ -236,9 +260,7 @@ export const getMinPunishedHeight = (
 	const lastPomHeight = Math.max(...pomHeights);
 
 	// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0024.md#update-to-validity-of-unlock-transaction
-	return senderAddress.equals(validatorAddress)
-		? lastPomHeight + PUNISHMENT_WINDOW_SELF_STAKING
-		: lastPomHeight + PUNISHMENT_WINDOW_STAKING;
+	return lastPomHeight + punishmentWindow;
 };
 
 export const getPunishmentPeriod = (
@@ -246,8 +268,12 @@ export const getPunishmentPeriod = (
 	validatorAddress: Buffer,
 	pomHeights: number[],
 	currentHeight: number,
+	punishmentLockingPeriods: PunishmentLockingPeriods,
 ): number => {
-	const minPunishedHeight = getMinPunishedHeight(senderAddress, validatorAddress, pomHeights);
+	const punishmentWindow = senderAddress.equals(validatorAddress)
+		? punishmentLockingPeriods.punishmentWindowSelfStaking
+		: punishmentLockingPeriods.punishmentWindowStaking;
+	const minPunishedHeight = getMinPunishedHeight(pomHeights, punishmentWindow);
 	const remainingBlocks = minPunishedHeight - currentHeight;
 
 	return remainingBlocks < 0 ? 0 : remainingBlocks;

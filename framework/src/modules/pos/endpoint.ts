@@ -41,6 +41,7 @@ import {
 	StakerData,
 	StakerDataJSON,
 	GetExpectedSharedRewardsRequest,
+	PunishmentLockingPeriods,
 } from './types';
 import { getPunishTime, getWaitTime, isCertificateGenerated, calculateStakeRewards } from './utils';
 import { GenesisDataStore } from './stores/genesis';
@@ -62,17 +63,20 @@ export class PoSEndpoint extends BaseEndpoint {
 	private _moduleName!: string;
 	private _tokenMethod!: TokenMethod;
 	private _internalMethod!: InternalMethod;
+	private _punishmentLockingPeriods!: PunishmentLockingPeriods;
 
 	public init(
 		moduleName: string,
 		moduleConfig: ModuleConfig,
 		internalMethod: InternalMethod,
 		tokenMethod: TokenMethod,
+		punishmentLockingPeriods: PunishmentLockingPeriods,
 	) {
 		this._moduleName = moduleName;
 		this._moduleConfig = moduleConfig;
 		this._tokenMethod = tokenMethod;
 		this._internalMethod = internalMethod;
+		this._punishmentLockingPeriods = punishmentLockingPeriods;
 	}
 
 	public async getStaker(ctx: ModuleEndpointContext): Promise<StakerDataJSON> {
@@ -158,6 +162,7 @@ export class PoSEndpoint extends BaseEndpoint {
 			maxNumberPendingUnlocks: this._moduleConfig.maxNumberPendingUnlocks,
 			failSafeMissedBlocks: this._moduleConfig.failSafeMissedBlocks,
 			failSafeInactiveWindow: this._moduleConfig.failSafeInactiveWindow,
+			punishmentWindowStaking: this._moduleConfig.punishmentWindowStaking,
 			punishmentWindowSelfStaking: this._moduleConfig.punishmentWindowSelfStaking,
 			roundLength: this._moduleConfig.roundLength,
 			minWeightStandby: this._moduleConfig.minWeightStandby.toString(),
@@ -382,7 +387,8 @@ export class PoSEndpoint extends BaseEndpoint {
 	): Promise<number> {
 		const validatorSubStore = this.stores.get(ValidatorStore);
 		const validatorAccount = await validatorSubStore.get(ctx, validatorAddress);
-		const waitTime = getWaitTime(callerAddress, validatorAddress) + unstakeHeight;
+		const waitTime =
+			getWaitTime(callerAddress, validatorAddress, this._punishmentLockingPeriods) + unstakeHeight;
 		if (!validatorAccount.reportMisbehaviorHeights.length) {
 			return waitTime;
 		}
@@ -395,8 +401,9 @@ export class PoSEndpoint extends BaseEndpoint {
 			return waitTime;
 		}
 		return Math.max(
-			getPunishTime(callerAddress, validatorAddress) + lastPomHeight,
-			getWaitTime(callerAddress, validatorAddress) + unstakeHeight,
+			getPunishTime(callerAddress, validatorAddress, this._punishmentLockingPeriods) +
+				lastPomHeight,
+			waitTime,
 		);
 	}
 

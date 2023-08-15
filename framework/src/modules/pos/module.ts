@@ -64,6 +64,7 @@ import {
 	ModuleConfigJSON,
 	ModuleConfig,
 	FeeMethod,
+	PunishmentLockingPeriods,
 } from './types';
 import {
 	equalUnlocking,
@@ -271,8 +272,21 @@ export class PoSModule extends BaseModule {
 
 		this._moduleConfig = getModuleConfig(config);
 
+		const punishmentLockingPeriods: PunishmentLockingPeriods = {
+			punishmentWindowStaking: this._moduleConfig.punishmentWindowStaking,
+			punishmentWindowSelfStaking: this._moduleConfig.punishmentWindowSelfStaking,
+			lockingPeriodStaking: this._moduleConfig.lockingPeriodStaking,
+			lockingPeriodSelfStaking: this._moduleConfig.lockingPeriodSelfStaking,
+		};
+
 		this.method.init(this.name, this._moduleConfig, this._internalMethod, this._tokenMethod);
-		this.endpoint.init(this.name, this._moduleConfig, this._internalMethod, this._tokenMethod);
+		this.endpoint.init(
+			this.name,
+			this._moduleConfig,
+			this._internalMethod,
+			this._tokenMethod,
+			punishmentLockingPeriods,
+		);
 
 		this._reportMisbehaviorCommand.init({
 			posTokenID: this._moduleConfig.posTokenID,
@@ -280,6 +294,7 @@ export class PoSModule extends BaseModule {
 			lockingPeriodSelfStaking: this._moduleConfig.lockingPeriodSelfStaking,
 			reportMisbehaviorReward: this._moduleConfig.reportMisbehaviorReward,
 			reportMisbehaviorLimitBanned: this._moduleConfig.reportMisbehaviorLimitBanned,
+			punishmentLockingPeriods,
 		});
 		this._registerValidatorCommand.init({
 			validatorRegistrationFee: this._moduleConfig.validatorRegistrationFee,
@@ -287,6 +302,7 @@ export class PoSModule extends BaseModule {
 		this._unlockCommand.init({
 			posTokenID: this._moduleConfig.posTokenID,
 			roundLength: this._moduleConfig.roundLength,
+			punishmentLockingPeriods,
 		});
 		this._stakeCommand.init({
 			posTokenID: this._moduleConfig.posTokenID,
