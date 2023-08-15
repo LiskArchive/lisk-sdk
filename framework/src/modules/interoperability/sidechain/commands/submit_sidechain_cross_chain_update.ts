@@ -20,69 +20,17 @@ import {
 } from '../../../../state_machine';
 import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_command';
 import { CONTEXT_STORE_KEY_CCM_PROCESSING } from '../../constants';
-import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
-import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { CrossChainUpdateTransactionParams } from '../../types';
-import {
-	emptyActiveValidatorsUpdate,
-	getIDFromCCMBytes,
-	getMainchainID,
-	isInboxUpdateEmpty,
-} from '../../utils';
+import { getIDFromCCMBytes } from '../../utils';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
+
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#sidechaincrosschainupdate
 
 export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdateCommand<SidechainInteroperabilityInternalMethod> {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
-		const { params } = context;
-
-		if (params.certificate.length === 0 && isInboxUpdateEmpty(params.inboxUpdate)) {
-			throw new Error(
-				'A cross-chain update must contain a non-empty certificate and/or a non-empty inbox update.',
-			);
-		}
-
-		if (!params.sendingChainID.equals(getMainchainID(context.chainID))) {
-			throw new Error('Only the mainchain can send a sidechain cross-chain update.');
-		}
-
-		const sendingChainExist = await this.stores
-			.get(ChainAccountStore)
-			.has(context, params.sendingChainID);
-		if (!sendingChainExist) {
-			throw new Error('The mainchain is not registered.');
-		}
-
-		const isLive = await this.internalMethod.isLive(context, params.sendingChainID);
-		if (!isLive) {
-			throw new Error('The sending chain is not live.');
-		}
-
-		const sendingChainAccount = await this.stores
-			.get(ChainAccountStore)
-			.get(context, params.sendingChainID);
-		if (sendingChainAccount.status === ChainStatus.REGISTERED && params.certificate.length === 0) {
-			throw new Error(
-				'Cross-chain updates from chains with status CHAIN_STATUS_REGISTERED must contain a non-empty certificate.',
-			);
-		}
-		if (params.certificate.length > 0) {
-			await this.internalMethod.verifyCertificate(context, params, context.header.timestamp);
-		}
-		const sendingChainValidators = await this.stores
-			.get(ChainValidatorsStore)
-			.get(context, params.sendingChainID);
-		if (
-			!emptyActiveValidatorsUpdate(params.activeValidatorsUpdate) ||
-			params.certificateThreshold !== sendingChainValidators.certificateThreshold
-		) {
-			await this.internalMethod.verifyValidatorsUpdate(context, params);
-		}
-
-		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
-			this.internalMethod.verifyOutboxRootWitness(context, params);
-		}
+		await this.verifyCommon(context, false);
 
 		return {
 			status: VerifyStatus.OK,

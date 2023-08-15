@@ -256,9 +256,9 @@ export const chainAccountToJSON = (chainAccount: ChainAccount) => {
 
 export const verifyLivenessConditionForRegisteredChains = (
 	blockTimestamp: number,
-	certificateBuffer: Buffer,
+	certificateBytes: Buffer,
 ) => {
-	const certificate = codec.decode<Certificate>(certificateSchema, certificateBuffer);
+	const certificate = codec.decode<Certificate>(certificateSchema, certificateBytes);
 	validator.validate(certificateSchema, certificate);
 
 	const limitSecond = LIVENESS_LIMIT / 2;
