@@ -101,6 +101,17 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			};
 		}
 
+		// Check that the CCM indices do not exceed the outbox size. We check only the last one,
+		// as the idxs are sorted in ascending order. As above, the most significant bit of the encoded
+		// index in idxs must be unset to get the position in the tree.
+		const lastPosition = parseInt(idxs[idxs.length - 1].toString(2).slice(1), 2);
+		if (terminatedOutboxAccount.outboxSize <= lastPosition) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Cross-chain message was never in the outbox.'),
+			};
+		}
+
 		// Process basic checks for all CCMs.
 		// Verify general format. Past this point, we can access ccm root properties.
 		for (const crossChainMessage of crossChainMessages) {
