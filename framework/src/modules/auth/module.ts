@@ -168,7 +168,7 @@ export class AuthModule extends BaseModule {
 			await store.set(context, address, authAccount);
 		}
 		if (!objectUtils.bufferArrayUniqueItems(keys)) {
-			throw new Error('Duplicate store key for auth module.');
+			throw new Error('Duplicate address in the for auth module.');
 		}
 	}
 
