@@ -52,3 +52,9 @@ export { StartCommand as BaseStartCommand } from './bootstrapping/commands/start
 export { BaseGenesisBlockCommand } from './bootstrapping/commands/genesis-block/create';
 export { ConsoleCommand } from './bootstrapping/commands/console';
 export { InvokeCommand, ListCommand } from './bootstrapping/commands/endpoint';
+export {
+	MessageEncryptCommand,
+	MessageDecryptCommand,
+	MessageSignCommand,
+	MessageVerifyCommand,
+} from './bootstrapping/commands/message';

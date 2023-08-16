@@ -1,5 +1,4 @@
 /*
- * LiskHQ/lisk-commander
  * Copyright © 2023 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
@@ -14,4 +13,7 @@
  *
  */
 
-export { SignCommand } from '../../bootstrapping/commands/message/sign';
+export { DecryptCommand as MessageDecryptCommand } from './decrypt';
+export { EncryptCommand as MessageEncryptCommand } from './encrypt';
+export { SignCommand as MessageSignCommand } from './sign';
+export { VerifyCommand as MessageVerifyCommand } from './verify';
