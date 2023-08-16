@@ -399,7 +399,7 @@ describe('Test interoperability endpoint', () => {
 		});
 
 		it('should return JSON format result', () => {
-			expect(ccmSchemaResult).toEqual({ ccmSchema });
+			expect(ccmSchemaResult).toEqual({ schema: ccmSchema });
 		});
 	});
 });
