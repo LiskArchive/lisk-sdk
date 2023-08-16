@@ -62,6 +62,10 @@ import { InvalidRMTVerification } from '../../../../../../src/modules/interopera
 describe('MessageRecoveryCommand', () => {
 	const interopModule = new MainchainInteroperabilityModule();
 	const leafPrefix = Buffer.from([0]);
+
+	const appendPrecedingToIndices = (indices: number[], terminatedChainOutboxSize: number) =>
+		indices.map(index => index + 2 ** (Math.ceil(Math.log2(terminatedChainOutboxSize)) + 1));
+
 	const createCommandVerifyContext = (
 		inputTx: Transaction,
 		transactionParams: MessageRecoveryParams,
@@ -186,7 +190,7 @@ describe('MessageRecoveryCommand', () => {
 				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
 					outboxRoot,
 					outboxSize: terminatedChainOutboxSize,
-					partnerChainInboxSize: 1,
+					partnerChainInboxSize: 0,
 				});
 		});
 
@@ -211,7 +215,7 @@ describe('MessageRecoveryCommand', () => {
 				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
 					outboxRoot,
 					outboxSize: terminatedChainOutboxSize,
-					partnerChainInboxSize: 1,
+					partnerChainInboxSize: 0,
 				});
 
 			const result = await command.verify(commandVerifyContext);
@@ -221,7 +225,7 @@ describe('MessageRecoveryCommand', () => {
 		});
 
 		it('should return error if inclusion proof indices and number of ccms do not have the same length', async () => {
-			transactionParams.idxs = [1, 2, 3, 4];
+			transactionParams.idxs = appendPrecedingToIndices([1, 2, 3, 4], terminatedChainOutboxSize);
 			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
 			await interopModule.stores
@@ -229,7 +233,7 @@ describe('MessageRecoveryCommand', () => {
 				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
 					outboxRoot,
 					outboxSize: terminatedChainOutboxSize,
-					partnerChainInboxSize: 1,
+					partnerChainInboxSize: 0,
 				});
 
 			const result = await command.verify(commandVerifyContext);
@@ -241,7 +245,7 @@ describe('MessageRecoveryCommand', () => {
 		});
 
 		it('should return error if cross chain messages indexes are not strictly increasing', async () => {
-			transactionParams.idxs = [2, 1];
+			transactionParams.idxs = appendPrecedingToIndices([2, 1], terminatedChainOutboxSize);
 			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
 			await interopModule.stores
@@ -249,7 +253,7 @@ describe('MessageRecoveryCommand', () => {
 				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
 					outboxRoot,
 					outboxSize: terminatedChainOutboxSize,
-					partnerChainInboxSize: 1,
+					partnerChainInboxSize: 0,
 				});
 
 			const result = await command.verify(commandVerifyContext);
@@ -260,8 +264,29 @@ describe('MessageRecoveryCommand', () => {
 			);
 		});
 
-		it('should return error if cross-chain message is not pending', async () => {
+		it('should return error if idxs = [0]', async () => {
 			transactionParams.idxs = [0];
+			ccms = [ccms[0]];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 0,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Cross-chain message does not have a valid index.`);
+		});
+
+		it('should return error if cross-chain message is not pending', async () => {
+			transactionParams.idxs = appendPrecedingToIndices([0], terminatedChainOutboxSize);
 			ccms = [ccms[0]];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 			transactionParams.crossChainMessages = [...ccmsEncoded];
@@ -281,6 +306,44 @@ describe('MessageRecoveryCommand', () => {
 			expect(result.error?.message).toInclude(`Cross-chain message is not pending.`);
 		});
 
+		it('should return error if ccm indices exceed outbox size', async () => {
+			ccms = [
+				{
+					nonce: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+					sendingChainID: utils.intToBuffer(2, 4),
+					receivingChainID: utils.intToBuffer(3, 4),
+					fee: BigInt(1),
+					status: CCMStatusCode.FAILED_CCM,
+					params: Buffer.alloc(0),
+				},
+			];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			// Choose the index such that the position of the ccm in the outbox tree is at terminatedChainOutboxSize,
+			// i.e. just outside of the tree.
+			transactionParams.idxs = appendPrecedingToIndices(
+				[terminatedChainOutboxSize],
+				terminatedChainOutboxSize,
+			);
+
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 0,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Cross-chain message was never in the outbox.`);
+		});
+
 		it('should return error if ccm.status !== CCMStatusCode.OK', async () => {
 			ccms = [
 				{
@@ -296,7 +359,7 @@ describe('MessageRecoveryCommand', () => {
 			];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 			transactionParams.crossChainMessages = [...ccmsEncoded];
-			transactionParams.idxs = [1];
+			transactionParams.idxs = appendPrecedingToIndices([1], terminatedChainOutboxSize);
 
 			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
@@ -305,7 +368,7 @@ describe('MessageRecoveryCommand', () => {
 				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
 					outboxRoot,
 					outboxSize: terminatedChainOutboxSize,
-					partnerChainInboxSize: 1,
+					partnerChainInboxSize: 0,
 				});
 
 			const result = await command.verify(commandVerifyContext);
@@ -329,7 +392,7 @@ describe('MessageRecoveryCommand', () => {
 			];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 			transactionParams.crossChainMessages = [...ccmsEncoded];
-			transactionParams.idxs = [1];
+			transactionParams.idxs = appendPrecedingToIndices([1], terminatedChainOutboxSize);
 
 			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
@@ -338,7 +401,7 @@ describe('MessageRecoveryCommand', () => {
 				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
 					outboxRoot,
 					outboxSize: terminatedChainOutboxSize,
-					partnerChainInboxSize: 1,
+					partnerChainInboxSize: 0,
 				});
 
 			const result = await command.verify(commandVerifyContext);
@@ -365,7 +428,7 @@ describe('MessageRecoveryCommand', () => {
 			];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 			transactionParams.crossChainMessages = [...ccmsEncoded];
-			transactionParams.idxs = [1];
+			transactionParams.idxs = appendPrecedingToIndices([1], terminatedChainOutboxSize);
 
 			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
 
@@ -374,7 +437,7 @@ describe('MessageRecoveryCommand', () => {
 				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
 					outboxRoot,
 					outboxSize: terminatedChainOutboxSize,
-					partnerChainInboxSize: 1,
+					partnerChainInboxSize: 0,
 				});
 
 			const result = await command.verify(commandVerifyContext);
@@ -401,7 +464,7 @@ describe('MessageRecoveryCommand', () => {
 				.set(createStoreGetter(commandExecuteContext.stateStore as any), chainID, {
 					outboxRoot,
 					outboxSize: terminatedChainOutboxSize,
-					partnerChainInboxSize: 1,
+					partnerChainInboxSize: 0,
 				});
 			jest.spyOn(command, '_applyRecovery' as never);
 			jest.spyOn(command, '_forwardRecovery' as never);
@@ -425,7 +488,7 @@ describe('MessageRecoveryCommand', () => {
 			];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 			transactionParams.crossChainMessages = [...ccmsEncoded];
-			transactionParams.idxs = [1];
+			transactionParams.idxs = appendPrecedingToIndices([1], terminatedChainOutboxSize);
 			transactionParams.chainID = chainID;
 
 			commandExecuteContext = createCommandExecuteContext(transaction, transactionParams);
@@ -435,7 +498,7 @@ describe('MessageRecoveryCommand', () => {
 				.set(createStoreGetter(commandExecuteContext.stateStore as any), chainID, {
 					outboxRoot,
 					outboxSize: terminatedChainOutboxSize,
-					partnerChainInboxSize: 1,
+					partnerChainInboxSize: 0,
 				});
 
 			await expect(command.execute(commandExecuteContext)).rejects.toThrow(

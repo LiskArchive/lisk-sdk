@@ -14,10 +14,10 @@
  *
  */
 import * as inquirer from 'inquirer';
-import { getConfig } from '../../helpers/config';
-import SignCommand from '../../../src/commands/message/sign';
-import * as readerUtils from '../../../src/utils/reader';
-import { Awaited } from '../../types';
+import { getConfig } from '../../../helpers/config';
+import { SignCommand } from '../../../../src/commands/message/sign';
+import * as readerUtils from '../../../../src/utils/reader';
+import { Awaited } from '../../../types';
 
 describe('message:sign', () => {
 	const messageSource = 'file:/message.txt';
