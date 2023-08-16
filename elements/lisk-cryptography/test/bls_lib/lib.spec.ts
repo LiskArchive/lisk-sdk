@@ -120,21 +120,39 @@ describe('bls_lib', () => {
 	});
 
 	describe('blsSign', () => {
-		// Signing with the zero private key is not a use case according to the BLS specifications
 		describe.each(getAllFiles(['eth2_bls_specs/sign', 'bls_specs/sign'], /sign_case_zero_privkey/))(
 			'%s',
 			({ path }) => {
-				it('should generate valid signature', () => {
-					const {
-						input: { privkey, message },
-						output,
-					} = loadSpecFile<EthSignSpec>(path);
-					const signature = blsSign(hexToBuffer(privkey), hexToBuffer(message));
+				const {
+					input: { privkey, message },
+					output,
+				} = loadSpecFile<EthSignSpec>(path);
 
-					expect(signature.toString('hex')).toEqual(hexToBuffer(output).toString('hex'));
-				});
+				if (privkey !== `0x${'00'.repeat(32)}`) {
+					it('should generate valid signature if private key is non zero', () => {
+						const signature = blsSign(hexToBuffer(privkey), hexToBuffer(message));
+						expect(signature.toString('hex')).toEqual(hexToBuffer(output).toString('hex'));
+					});
+				}
 			},
 		);
+
+		it('should sign a message with a valid secret key', () => {
+			const sk = Buffer.alloc(32, 1);
+			const message = Buffer.from('hello world');
+
+			const signature = blsSign(sk, message);
+
+			expect(signature).toBeDefined();
+			expect(signature.length).toBeGreaterThan(0);
+		});
+
+		it('should throw an error if the secret key is all zeros', () => {
+			const sk = Buffer.alloc(32, 0);
+			const message = Buffer.from('hello world');
+
+			expect(() => blsSign(sk, message)).toThrow('ZERO_SECRET_KEY');
+		});
 
 		it('should throw an error when given an input buffer with value equal to the curve order', () => {
 			const sk = Buffer.from(curveOrder.slice(2), 'hex');

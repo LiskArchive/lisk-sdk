@@ -82,15 +82,9 @@ export const blsAggregate = (signatures: Buffer[]): Buffer | false => {
 
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.6
 export const blsSign = (sk: Buffer, message: Buffer): Buffer => {
-	// In case of zero private key, it should return particular output regardless of message.
-	// elements/lisk-cryptography/test/protocol_specs/bls_specs/sign/zero_private_key.yml
-	if (timingSafeEqual(sk, Buffer.alloc(32))) {
-		return Buffer.concat([Buffer.from([192]), Buffer.alloc(95)]);
-	}
-
 	const secretKey = SecretKey.fromBytes(sk);
 
-	if (!isSecretKeyNonZeroModEC(secretKey)) {
+	if (timingSafeEqual(sk, Buffer.alloc(32)) || !isSecretKeyNonZeroModEC(secretKey)) {
 		throw new Error('Secret key is not valid.');
 	}
 
