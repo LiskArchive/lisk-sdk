@@ -133,6 +133,12 @@ describe('bls_lib', () => {
 						const signature = blsSign(hexToBuffer(privkey), hexToBuffer(message));
 						expect(signature.toString('hex')).toEqual(hexToBuffer(output).toString('hex'));
 					});
+				} else {
+					it('should throw an error if the private key is all zeros', () => {
+						expect(() => blsSign(hexToBuffer(privkey), hexToBuffer(message))).toThrow(
+							'ZERO_SECRET_KEY',
+						);
+					});
 				}
 			},
 		);
