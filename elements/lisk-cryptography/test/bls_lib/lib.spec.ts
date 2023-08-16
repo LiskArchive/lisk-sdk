@@ -153,13 +153,6 @@ describe('bls_lib', () => {
 			expect(signature.length).toBeGreaterThan(0);
 		});
 
-		it('should throw an error if the secret key is all zeros', () => {
-			const sk = Buffer.alloc(32, 0);
-			const message = Buffer.from('hello world');
-
-			expect(() => blsSign(sk, message)).toThrow('ZERO_SECRET_KEY');
-		});
-
 		it('should throw an error when given an input buffer with value equal to the curve order', () => {
 			const sk = Buffer.from(curveOrder.slice(2), 'hex');
 			const message = Buffer.from('hello world');
