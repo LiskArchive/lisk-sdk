@@ -63,13 +63,8 @@ describe('MessageRecoveryCommand', () => {
 	const interopModule = new MainchainInteroperabilityModule();
 	const leafPrefix = Buffer.from([0]);
 
-	// Choose the index such that the position of the ccm in the outbox tree is at terminatedChainOutboxSize,
-	// i.e. just outside of the tree. Note that a 1 has to be prepended to the binary representation of the index, which is done by adding 2**indexLength.
-	// See https://github.com/LiskHQ/lips/blob/main/proposals/lip-0031.md#proof-serialization.
-	const appendPrecedingToIndices = (indices: number[], terminatedChainOutboxSize: number) => {
-		const mostSignificantBit = 2 ** (Math.ceil(Math.log2(terminatedChainOutboxSize)) + 1);
-		return indices.map(index => index + mostSignificantBit);
-	};
+	const appendPrecedingToIndices = (indices: number[], terminatedChainOutboxSize: number) =>
+		indices.map(index => index + 2 ** (Math.ceil(Math.log2(terminatedChainOutboxSize)) + 1));
 
 	const createCommandVerifyContext = (
 		inputTx: Transaction,
@@ -326,6 +321,8 @@ describe('MessageRecoveryCommand', () => {
 			];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 			transactionParams.crossChainMessages = [...ccmsEncoded];
+			// Choose the index such that the position of the ccm in the outbox tree is at terminatedChainOutboxSize,
+			// i.e. just outside of the tree.
 			transactionParams.idxs = appendPrecedingToIndices(
 				[terminatedChainOutboxSize],
 				terminatedChainOutboxSize,

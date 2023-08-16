@@ -92,8 +92,8 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			}
 		}
 
-		// as the idxs are sorted in ascending order. Note that one must unset the most significant
-		// bit of an encoded index in idxs in order to get the position in the tree.
+		// Encoded indices equal to zero are also not valid here as they represent non-existing
+		// entries. It's sufficient to check only the first one due the ascending order.
 		// See https://github.com/LiskHQ/lips/blob/main/proposals/lip-0031.md#proof-serialization.
 		if (idxs[0] === 0) {
 			return {
@@ -102,6 +102,10 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			};
 		}
 
+		// Check that the CCMs are still pending. We can check only the first one,
+		// as the idxs are sorted in ascending order. Note that one must unset the most significant
+		// bit a of an encoded index in idxs in order to get the position in the tree.
+		// See https://github.com/LiskHQ/lips/blob/main/proposals/lip-0031.md#proof-serialization.
 		const firstPosition = parseInt(idxs[0].toString(2).slice(1), 2);
 		if (firstPosition < terminatedOutboxAccount.partnerChainInboxSize) {
 			return {
