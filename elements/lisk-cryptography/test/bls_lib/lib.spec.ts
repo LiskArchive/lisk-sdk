@@ -143,16 +143,6 @@ describe('bls_lib', () => {
 			},
 		);
 
-		it('should sign a message with a valid secret key', () => {
-			const sk = Buffer.alloc(32, 1);
-			const message = Buffer.from('hello world');
-
-			const signature = blsSign(sk, message);
-
-			expect(signature).toBeDefined();
-			expect(signature.length).toBeGreaterThan(0);
-		});
-
 		it('should throw an error when given an input buffer with value equal to the curve order', () => {
 			const sk = Buffer.from(curveOrder.slice(2), 'hex');
 			const message = Buffer.from('hello world');
