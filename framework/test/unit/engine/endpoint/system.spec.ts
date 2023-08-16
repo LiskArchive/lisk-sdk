@@ -26,7 +26,6 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { SystemEndpoint } from '../../../../src/engine/endpoint/system';
 import { createFakeBlockHeader } from '../../../../src/testing';
 import { nodeOptions } from '../../../fixtures';
-import { ccmSchema } from '../../../../src';
 
 describe('system endpoint', () => {
 	let endpoint: SystemEndpoint;
@@ -119,7 +118,6 @@ describe('system endpoint', () => {
 				transaction: transactionSchema,
 				event: eventSchema,
 				standardEvent: standardEventDataSchema,
-				ccm: ccmSchema,
 			});
 		});
 	});

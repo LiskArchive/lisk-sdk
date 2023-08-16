@@ -26,7 +26,6 @@ import { Consensus } from '../consensus';
 import { Generator } from '../generator';
 import { RequestContext } from '../rpc/rpc_server';
 import { defaultMetrics } from '../metrics/metrics';
-import { ccmSchema } from '../../modules/interoperability';
 
 interface EndpointArgs {
 	abi: ABI;
@@ -96,7 +95,6 @@ export class SystemEndpoint {
 			transaction: transactionSchema,
 			event: eventSchema,
 			standardEvent: standardEventDataSchema,
-			ccm: ccmSchema,
 		};
 	}
 

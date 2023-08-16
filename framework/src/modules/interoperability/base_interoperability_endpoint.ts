@@ -36,6 +36,7 @@ import { ChannelDataStore } from './stores/channel_data';
 import { OwnChainAccountStore } from './stores/own_chain_account';
 import { EMPTY_BYTES } from './constants';
 import {
+	ccmSchema,
 	getChainAccountRequestSchema,
 	getChainValidatorsRequestSchema,
 	getChannelRequestSchema,
@@ -151,6 +152,13 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 				bftWeight: v.bftWeight.toString(),
 			})),
 			certificateThreshold: validators.certificateThreshold.toString(),
+		};
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async getCCMSchema(_context: ModuleEndpointContext): Promise<Record<string, unknown>> {
+		return {
+			ccmSchema,
 		};
 	}
 
