@@ -19,8 +19,6 @@ import { UnlockCommand, CommandExecuteContext, PoSModule } from '../../../../../
 import {
 	defaultConfig,
 	EMPTY_KEY,
-	PUNISHMENT_WINDOW_SELF_STAKING,
-	PUNISHMENT_WINDOW_STAKING,
 	TOKEN_ID_LENGTH,
 } from '../../../../../src/modules/pos/constants';
 import {
@@ -261,7 +259,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when non self-staked punished account waits ${PUNISHMENT_WINDOW_STAKING} blocks and unstakeHeight + ${config.lockingPeriodStaking} blocks since last pomHeight`, () => {
+	describe(`when non self-staked punished account waits ${config.punishmentWindowStaking} blocks and unstakeHeight + ${config.lockingPeriodStaking} blocks since last pomHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -271,7 +269,7 @@ describe('UnlockCommand', () => {
 			await validatorSubstore.set(createStoreGetter(stateStore), validator1.address, {
 				...defaultValidatorInfo,
 				name: 'punishedstaker1',
-				reportMisbehaviorHeights: [blockHeight - PUNISHMENT_WINDOW_STAKING],
+				reportMisbehaviorHeights: [blockHeight - config.punishmentWindowStaking],
 			});
 			// This covers scenario: has not waited pomHeight + 260,000 blocks but waited unstakeHeight + 2000 blocks and pomHeight is more than unstakeHeight + 2000 blocks
 			await validatorSubstore.set(createStoreGetter(stateStore), validator2.address, {
@@ -288,7 +286,7 @@ describe('UnlockCommand', () => {
 			await validatorSubstore.set(createStoreGetter(stateStore), validator4.address, {
 				...defaultValidatorInfo,
 				name: 'punishedstaker4',
-				reportMisbehaviorHeights: [blockHeight - PUNISHMENT_WINDOW_STAKING],
+				reportMisbehaviorHeights: [blockHeight - config.punishmentWindowStaking],
 			});
 			unlockableObject = {
 				validatorAddress: validator1.address,
@@ -366,7 +364,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when self-staked punished account waits ${PUNISHMENT_WINDOW_SELF_STAKING} blocks and waits unstakeHeight + ${config.lockingPeriodSelfStaking} blocks since pomHeight`, () => {
+	describe(`when self-staked punished account waits ${config.punishmentWindowSelfStaking} blocks and waits unstakeHeight + ${config.lockingPeriodSelfStaking} blocks since pomHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
@@ -376,7 +374,7 @@ describe('UnlockCommand', () => {
 			await validatorSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				...defaultValidatorInfo,
 				name: 'punishedselfstaker',
-				reportMisbehaviorHeights: [blockHeight - PUNISHMENT_WINDOW_SELF_STAKING],
+				reportMisbehaviorHeights: [blockHeight - config.punishmentWindowSelfStaking],
 			});
 			unlockableObject = {
 				validatorAddress: transaction.senderAddress,
@@ -427,7 +425,7 @@ describe('UnlockCommand', () => {
 		});
 	});
 
-	describe(`when self-staked punished account does not wait ${PUNISHMENT_WINDOW_SELF_STAKING} blocks and waits unstakeHeight + ${config.lockingPeriodSelfStaking} blocks since pomHeight`, () => {
+	describe(`when self-staked punished account does not wait ${config.punishmentWindowSelfStaking} blocks and waits unstakeHeight + ${config.lockingPeriodSelfStaking} blocks since pomHeight`, () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,

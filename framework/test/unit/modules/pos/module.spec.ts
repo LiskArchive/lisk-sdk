@@ -50,7 +50,6 @@ import { createStoreGetter } from '../../../../src/testing/utils';
 import {
 	CHAIN_ID_LENGTH,
 	TOKEN_ID_LENGTH,
-	WEIGHT_SCALE_FACTOR,
 	defaultConfig,
 } from '../../../../src/modules/pos/constants';
 import { EligibleValidatorsStore } from '../../../../src/modules/pos/stores/eligible_validators';
@@ -1318,7 +1317,9 @@ describe('PoS module', () => {
 				const notFromInitValidators = result.filter(
 					v => initValidators.findIndex(address => v.address.equals(address)) === -1,
 				);
-				expect(notFromInitValidators.every(v => v.weight <= WEIGHT_SCALE_FACTOR)).toBeTrue();
+				expect(
+					notFromInitValidators.every(v => v.weight <= BigInt(defaultConfig.weightScaleFactor)),
+				).toBeTrue();
 			});
 		});
 
@@ -1399,7 +1400,9 @@ describe('PoS module', () => {
 				const notFromInitValidators = result.filter(
 					v => initValidators.findIndex(address => v.address.equals(address)) === -1,
 				);
-				expect(notFromInitValidators.every(v => v.weight <= WEIGHT_SCALE_FACTOR)).toBeTrue();
+				expect(
+					notFromInitValidators.every(v => v.weight <= BigInt(defaultConfig.weightScaleFactor)),
+				).toBeTrue();
 			});
 		});
 

@@ -19,7 +19,6 @@ import { validator } from '@liskhq/lisk-validator';
 import { StakeCommand, VerifyStatus, PoSModule } from '../../../../../src';
 import {
 	defaultConfig,
-	MAX_NUMBER_PENDING_UNLOCKS,
 	MODULE_NAME_POS,
 	PoSEventResult,
 	TOKEN_ID_LENGTH,
@@ -1549,7 +1548,7 @@ describe('StakeCommand', () => {
 
 					// Assert
 					await expect(command.execute(context)).rejects.toThrow(
-						`Pending unlocks cannot exceed ${MAX_NUMBER_PENDING_UNLOCKS.toString()}.`,
+						`Pending unlocks cannot exceed ${defaultConfig.maxNumberPendingUnlocks}.`,
 					);
 
 					checkEventResult(

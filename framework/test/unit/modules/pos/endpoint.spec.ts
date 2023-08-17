@@ -15,13 +15,7 @@
 import { address as cryptoAddress, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { math } from '@liskhq/lisk-utils';
-import {
-	defaultConfig,
-	EMPTY_KEY,
-	PUNISHMENT_WINDOW_STAKING,
-	LOCKING_PERIOD_SELF_STAKING,
-	LOCKING_PERIOD_STAKING,
-} from '../../../../src/modules/pos/constants';
+import { defaultConfig, EMPTY_KEY } from '../../../../src/modules/pos/constants';
 import { PoSEndpoint } from '../../../../src/modules/pos/endpoint';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
@@ -426,7 +420,8 @@ describe('PosModuleEndpoint', () => {
 						),
 						amount: pendingUnlocks[0].amount.toString(),
 						unlockable: true,
-						expectedUnlockableHeight: pendingUnlocks[0].unstakeHeight + LOCKING_PERIOD_SELF_STAKING,
+						expectedUnlockableHeight:
+							pendingUnlocks[0].unstakeHeight + config.lockingPeriodSelfStaking,
 					},
 					{
 						...pendingUnlocks[1],
@@ -435,7 +430,7 @@ describe('PosModuleEndpoint', () => {
 						),
 						amount: pendingUnlocks[1].amount.toString(),
 						unlockable: false,
-						expectedUnlockableHeight: pendingUnlocks[1].unstakeHeight + LOCKING_PERIOD_STAKING,
+						expectedUnlockableHeight: pendingUnlocks[1].unstakeHeight + config.lockingPeriodStaking,
 					},
 					{
 						...pendingUnlocks[2],
@@ -444,7 +439,7 @@ describe('PosModuleEndpoint', () => {
 						),
 						amount: pendingUnlocks[2].amount.toString(),
 						unlockable: false,
-						expectedUnlockableHeight: pomHeight + PUNISHMENT_WINDOW_STAKING,
+						expectedUnlockableHeight: pomHeight + config.punishmentWindowStaking,
 					},
 				],
 			});
