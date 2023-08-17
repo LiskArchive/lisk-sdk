@@ -264,8 +264,29 @@ describe('MessageRecoveryCommand', () => {
 			);
 		});
 
-		it('should return error if idxs[0] <= 1', async () => {
+		it('should return error if idxs[0] === 0', async () => {
 			transactionParams.idxs = [0];
+			ccms = [ccms[0]];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 0,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Cross-chain message does not have a valid index.`);
+		});
+
+		it('should return error if idxs[0] <= 1', async () => {
+			transactionParams.idxs = [1];
 			ccms = [ccms[0]];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 			transactionParams.crossChainMessages = [...ccmsEncoded];
