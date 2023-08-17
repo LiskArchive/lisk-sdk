@@ -264,7 +264,7 @@ describe('MessageRecoveryCommand', () => {
 			);
 		});
 
-		it('should return error if idxs = [0]', async () => {
+		it('should return error if idxs[0] <= 1', async () => {
 			transactionParams.idxs = [0];
 			ccms = [ccms[0]];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
