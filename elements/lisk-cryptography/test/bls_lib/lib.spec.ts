@@ -259,7 +259,7 @@ describe('bls_lib', () => {
 			});
 		});
 
-		it('should throw an error when given an input buffer with value equal to the curve order', () => {
+		it('should throw an error when given an input buffer with value equal to the group order', () => {
 			const sk = Buffer.from(curveOrder.slice(2), 'hex');
 
 			expect(() => {
