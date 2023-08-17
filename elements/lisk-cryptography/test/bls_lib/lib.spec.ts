@@ -265,6 +265,14 @@ describe('bls_lib', () => {
 					blsPopProve(sk);
 				}).toThrow('Secret key is not valid.');
 			});
+
+			it('should throw an error when a secret key is zero', () => {
+				const sk = Buffer.alloc(32, 0);
+
+				expect(() => {
+					blsPopProve(sk);
+				}).toThrow('ZERO_SECRET_KEY');
+			});
 		});
 
 		describe('blsPopVerify', () => {
