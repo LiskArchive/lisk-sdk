@@ -120,7 +120,7 @@ describe('bls_lib', () => {
 	});
 
 	describe('blsSign', () => {
-		describe.each(getAllFiles(['eth2_bls_specs/sign', 'bls_specs/sign'], /sign_case_zero_privkey/))(
+		describe.each(getAllFiles(['eth2_bls_specs/sign', 'bls_specs/sign']))(
 			'%s',
 			({ path }) => {
 				const {
