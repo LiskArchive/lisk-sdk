@@ -13,8 +13,6 @@
  *
  */
 
-import { timingSafeEqual } from 'crypto';
-
 import {
 	aggregateSignatures,
 	aggregateVerify,
@@ -45,9 +43,31 @@ export const blsKeyValidate = (pk: Buffer): boolean => {
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
 export const blsKeyGen = (ikm: Buffer): Buffer => Buffer.from(SecretKey.fromKeygen(ikm).toBytes());
 
+// check that the secret key generated is non-zero modulo the group order.
+export const isSecretKeyNonZeroModOrder = (secretKey: SecretKey): boolean => {
+	// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-pairing-friendly-curves-10#section-4.2.1
+	const groupOrder = '0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001';
+
+	const skBigInt = BigInt(`0x${Buffer.from(secretKey.toBytes()).toString('hex')}`);
+
+	// check if secret key is non-zero modulo the order of the elliptic curve.
+	if (skBigInt % BigInt(groupOrder) === BigInt(0)) {
+		return false;
+	}
+
+	return true;
+};
+
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.4
-export const blsSkToPk = (sk: Buffer): Buffer =>
-	Buffer.from(SecretKey.fromBytes(sk).toPublicKey().toBytes());
+export const blsSkToPk = (sk: Buffer): Buffer => {
+	const secretKey = SecretKey.fromBytes(sk);
+
+	if (!isSecretKeyNonZeroModOrder(secretKey)) {
+		throw new Error('Secret key is not valid.');
+	}
+
+	return Buffer.from(secretKey.toPublicKey().toBytes());
+};
 
 // https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-2.8
 export const blsAggregate = (signatures: Buffer[]): Buffer | false => {
@@ -60,13 +80,13 @@ export const blsAggregate = (signatures: Buffer[]): Buffer | false => {
 
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.6
 export const blsSign = (sk: Buffer, message: Buffer): Buffer => {
-	// In case of zero private key, it should return particular output regardless of message.
-	// elements/lisk-cryptography/test/protocol_specs/bls_specs/sign/zero_private_key.yml
-	if (timingSafeEqual(sk, Buffer.alloc(32))) {
-		return Buffer.concat([Buffer.from([192]), Buffer.alloc(95)]);
+	const secretKey = SecretKey.fromBytes(sk);
+
+	if (!isSecretKeyNonZeroModOrder(secretKey)) {
+		throw new Error('Secret key is not valid.');
 	}
 
-	return Buffer.from(SecretKey.fromBytes(sk).sign(message).toBytes());
+	return Buffer.from(secretKey.sign(message).toBytes());
 };
 
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.7
@@ -123,8 +143,14 @@ export const blsPopProve = (sk: Buffer): Buffer => {
 	const message = blsSkToPk(sk);
 	const sig = new blst.P2();
 
+	const secretKey = SecretKey.fromBytes(sk);
+
+	if (!isSecretKeyNonZeroModOrder(secretKey)) {
+		throw new Error('Secret key is not valid.');
+	}
+
 	return Buffer.from(
-		new Signature(sig.hash_to(message, DST_POP).sign_with(SecretKey.fromBytes(sk).value)).toBytes(),
+		new Signature(sig.hash_to(message, DST_POP).sign_with(secretKey.value)).toBytes(),
 	);
 };
 
