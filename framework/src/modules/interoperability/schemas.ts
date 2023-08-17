@@ -634,8 +634,12 @@ export const getTerminatedStateAccountRequestSchema = getChainAccountRequestSche
 export const getTerminatedOutboxAccountRequestSchema = getChainAccountRequestSchema;
 
 export const getCCMSchemaResponseSchema = {
-	...ccmSchema,
 	$id: '/modules/interoperability/endpoint/getCCMSchemaResponseSchema',
+	type: 'object',
+	required: ['schema'],
+	properties: {
+		schema: { ...ccmSchema },
+	},
 };
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#genesis-assets-schema

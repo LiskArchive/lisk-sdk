@@ -156,7 +156,9 @@ export abstract class BaseInteroperabilityEndpoint extends BaseEndpoint {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getCCMSchema(_context: ModuleEndpointContext): Promise<Record<string, unknown>> {
+	public async getCCMSchema(
+		_context: ModuleEndpointContext,
+	): Promise<{ schema: Record<string, unknown> }> {
 		return {
 			schema: ccmSchema,
 		};
