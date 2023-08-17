@@ -29,6 +29,7 @@ import {
 	getTerminatedStateAccountRequestSchema,
 	getMainchainIDRequestSchema,
 	getMainchainIDResponseSchema,
+	getCCMSchemaResponseSchema,
 } from '../schemas';
 import { allChainAccountsSchema, chainDataSchema, ChainStatus } from '../stores/chain_account';
 import { channelSchema } from '../stores/channel_data';
@@ -178,6 +179,10 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 					name: this.endpoint.getMainchainID.name,
 					request: getMainchainIDRequestSchema,
 					response: getMainchainIDResponseSchema,
+				},
+				{
+					name: this.endpoint.getCCMSchema.name,
+					response: getCCMSchemaResponseSchema,
 				},
 			],
 			assets: [
