@@ -92,10 +92,10 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			}
 		}
 
-		// Encoded indices equal to zero are also not valid here as they represent non-existing
-		// entries. It's sufficient to check only the first one due the ascending order.
+		// Ensure that there are at least two bits, i.e. the value must be larger than 1.
+		// It's sufficient to check only the first one due the ascending order.
 		// See https://github.com/LiskHQ/lips/blob/main/proposals/lip-0031.md#proof-serialization.
-		if (idxs[0] === 0) {
+		if (idxs[0] <= 1) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Cross-chain message does not have a valid index.'),
