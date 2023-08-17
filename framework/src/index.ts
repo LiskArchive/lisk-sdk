@@ -182,3 +182,4 @@ export {
 	CHAIN_ID_LENGTH,
 } from './modules/interoperability/constants';
 export { Proof, QueryProof, ProveResponse, Validator as BFTValidator } from './abi/abi';
+export { areDistinctHeadersContradicting } from './engine/bft';
