@@ -256,9 +256,9 @@ export const chainAccountToJSON = (chainAccount: ChainAccount) => {
 
 export const verifyLivenessConditionForRegisteredChains = (
 	blockTimestamp: number,
-	certificateBuffer: Buffer,
+	certificateBytes: Buffer,
 ) => {
-	const certificate = codec.decode<Certificate>(certificateSchema, certificateBuffer);
+	const certificate = codec.decode<Certificate>(certificateSchema, certificateBytes);
 	validator.validate(certificateSchema, certificate);
 
 	const limitSecond = LIVENESS_LIMIT / 2;
@@ -276,7 +276,7 @@ export const getMainchainID = (chainID: Buffer): Buffer => {
 };
 
 // TODO: Update to use Token method after merging development
-export const getMainchainTokenID = (chainID: Buffer): Buffer => {
+export const getTokenIDLSK = (chainID: Buffer): Buffer => {
 	const networkID = chainID.slice(0, 1);
 	// 3 bytes for remaining chainID bytes
 	return Buffer.concat([networkID, Buffer.alloc(7, 0)]);

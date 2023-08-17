@@ -16,7 +16,6 @@ import { codec } from '@liskhq/lisk-codec';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
-	NotFoundError,
 	VerificationResult,
 	VerifyStatus,
 } from '../../../../state_machine';
@@ -35,10 +34,12 @@ import {
 } from '../../events/ccm_processed';
 import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
 import { ChainAccount, ChainAccountStore, ChainStatus } from '../../stores/chain_account';
-import { ChainValidatorsStore } from '../../stores/chain_validators';
-import { CrossChainMessageContext, CrossChainUpdateTransactionParams } from '../../types';
 import {
-	emptyActiveValidatorsUpdate,
+	CrossChainMessageContext,
+	CrossChainUpdateTransactionParams,
+	BeforeCCMForwardingContext,
+} from '../../types';
+import {
 	getEncodedCCMAndID,
 	getMainchainID,
 	isInboxUpdateEmpty,
@@ -47,42 +48,21 @@ import {
 } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#commands
 export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
 		const { params } = context;
 
-		if (params.certificate.length === 0 && isInboxUpdateEmpty(params.inboxUpdate)) {
-			throw new Error(
-				'A cross-chain update must contain a non-empty certificate and/or a non-empty inbox update.',
-			);
-		}
-
-		const isLive = await this.internalMethod.isLive(
-			context,
-			params.sendingChainID,
-			context.header.timestamp,
-		);
-		if (!isLive) {
-			throw new Error('The sending chain is not live.');
-		}
-
-		const sendingChainAccount = await this.stores
-			.get(ChainAccountStore)
-			.get(context, params.sendingChainID);
-
-		if (sendingChainAccount.status === ChainStatus.REGISTERED && params.certificate.length === 0) {
-			throw new Error(
-				'Cross-chain updates from chains with status CHAIN_STATUS_REGISTERED must contain a non-empty certificate.',
-			);
-		}
-
-		if (params.certificate.length > 0) {
-			await this.internalMethod.verifyCertificate(context, params, context.header.timestamp);
-		}
+		await this.verifyCommon(context, true);
 
 		// Liveness condition is only checked on the mainchain for the first CCU with a non-empty inbox update.
+		// after `verifyCommon`,`sendingChainAccount` is not `undefined`
+		const sendingChainAccount = (await this.stores
+			.get(ChainAccountStore)
+			.getOrUndefined(context, params.sendingChainID)) as ChainAccount;
+
 		if (
 			sendingChainAccount.status === ChainStatus.REGISTERED &&
 			!isInboxUpdateEmpty(params.inboxUpdate)
@@ -91,20 +71,6 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 				context.header.timestamp,
 				context.params.certificate,
 			);
-		}
-
-		const sendingChainValidators = await this.stores
-			.get(ChainValidatorsStore)
-			.get(context, params.sendingChainID);
-		if (
-			!emptyActiveValidatorsUpdate(params.activeValidatorsUpdate) ||
-			params.certificateThreshold !== sendingChainValidators.certificateThreshold
-		) {
-			await this.internalMethod.verifyValidatorsUpdate(context, params);
-		}
-
-		if (!isInboxUpdateEmpty(params.inboxUpdate)) {
-			this.internalMethod.verifyOutboxRootWitness(context, params);
 		}
 
 		return {
@@ -156,69 +122,13 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 		await this.afterExecuteCommon(context);
 	}
 
-	private async _forward(context: CrossChainMessageContext): Promise<void> {
+	private async _beforeCrossChainMessageForwarding(
+		context: BeforeCCMForwardingContext,
+		eventSnapshotID: number,
+		stateSnapshotID: number,
+	): Promise<boolean> {
 		const { ccm, logger } = context;
-		const { ccmID, encodedCCM } = getEncodedCCMAndID(ccm);
-
-		const valid = await this.verifyCCM(context, ccmID);
-		if (!valid) {
-			return;
-		}
-		let receivingChainAccount: ChainAccount;
-		try {
-			receivingChainAccount = await this.stores
-				.get(ChainAccountStore)
-				.get(context, ccm.receivingChainID);
-			if (receivingChainAccount.status === ChainStatus.REGISTERED) {
-				await this.bounce(
-					context,
-					encodedCCM.length,
-					CCMStatusCode.CHANNEL_UNAVAILABLE,
-					CCMProcessedCode.CHANNEL_UNAVAILABLE,
-				);
-				return;
-			}
-		} catch (error) {
-			if (error instanceof NotFoundError) {
-				await this.bounce(
-					context,
-					encodedCCM.length,
-					CCMStatusCode.CHANNEL_UNAVAILABLE,
-					CCMProcessedCode.CHANNEL_UNAVAILABLE,
-				);
-				return;
-			}
-			throw error;
-		}
-		const isLive = await this.internalMethod.isLive(
-			context,
-			ccm.receivingChainID,
-			context.header.timestamp,
-		);
-		if (!isLive) {
-			await this.internalMethod.terminateChainInternal(context, ccm.receivingChainID);
-			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-				code: CCMProcessedCode.CHANNEL_UNAVAILABLE,
-				result: CCMProcessedResult.DISCARDED,
-				ccm,
-			});
-			await this.internalMethod.sendInternal(
-				context,
-				EMPTY_FEE_ADDRESS,
-				MODULE_NAME_INTEROPERABILITY,
-				CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
-				ccm.sendingChainID,
-				BigInt(0),
-				CCMStatusCode.OK,
-				codec.encode(sidechainTerminatedCCMParamsSchema, {
-					chainID: ccm.receivingChainID,
-					stateRoot: receivingChainAccount.lastCertificate.stateRoot,
-				}),
-			);
-			return;
-		}
-		const stateSnapshotID = context.stateStore.createSnapshot();
-		const eventSnapshotID = context.eventQueue.createSnapshot();
+		const { ccmID } = getEncodedCCMAndID(ccm);
 
 		try {
 			for (const [module, method] of this.interoperableCCMethods.entries()) {
@@ -237,23 +147,116 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 		} catch (error) {
 			context.eventQueue.restoreSnapshot(eventSnapshotID);
 			context.stateStore.restoreSnapshot(stateSnapshotID);
+
 			logger.info(
 				{ err: error as Error, moduleName: ccm.module, commandName: ccm.crossChainCommand },
 				'Fail to execute beforeCrossChainMessageForwarding.',
 			);
+
 			await this.internalMethod.terminateChainInternal(context, ccm.sendingChainID);
+
 			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
 				code: CCMProcessedCode.INVALID_CCM_BEFORE_CCC_FORWARDING_EXCEPTION,
 				result: CCMProcessedResult.DISCARDED,
 				ccm,
 			});
+
+			return false;
+		}
+
+		return true;
+	}
+
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0049.md#forward
+	private async _forward(context: CrossChainMessageContext): Promise<void> {
+		const { ccm } = context;
+		const { ccmID, encodedCCM } = getEncodedCCMAndID(ccm);
+
+		if (!(await this.verifyCCM(context, ccmID))) {
 			return;
 		}
-		await this.internalMethod.addToOutbox(context, ccm.receivingChainID, ccm);
-		this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
-			code: CCMProcessedCode.SUCCESS,
-			result: CCMProcessedResult.FORWARDED,
-			ccm,
-		});
+
+		let ccmFailed = false;
+
+		const chainAccountStore = this.stores.get(ChainAccountStore);
+		const receivingChainAccount = await chainAccountStore.getOrUndefined(
+			context,
+			ccm.receivingChainID,
+		);
+
+		// do not continue, if
+		// the chain account does not exist
+		// the chain has REGISTERED status
+		if (!receivingChainAccount || receivingChainAccount.status === ChainStatus.REGISTERED) {
+			ccmFailed = true;
+		} else {
+			// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0043.md#sidechain-registration-process
+			// Liveness condition is only applicable to ACTIVE status chains
+			const live = await this.internalMethod.isLive(
+				context,
+				ccm.receivingChainID,
+				context.header.timestamp,
+			);
+			if (!live) {
+				ccmFailed = true;
+
+				/**
+				 * If the receiving chain is active, it means it violated the liveness condition, and we terminate it.
+				 * If the receiving chain is already terminated, terminateChain does nothing.
+				 */
+				await this.internalMethod.terminateChainInternal(context, ccm.receivingChainID);
+
+				/**
+				 * A sidechain terminated message is returned to the sending chain
+				 * to inform them that the receiving chain is terminated.
+				 */
+				await this.internalMethod.sendInternal(
+					context,
+					EMPTY_FEE_ADDRESS,
+					MODULE_NAME_INTEROPERABILITY,
+					CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
+					ccm.sendingChainID,
+					BigInt(0),
+					CCMStatusCode.OK,
+					codec.encode(sidechainTerminatedCCMParamsSchema, {
+						chainID: ccm.receivingChainID,
+						stateRoot: receivingChainAccount?.lastCertificate.stateRoot,
+					}),
+				);
+			}
+		}
+
+		// create a state snapshot
+		const stateSnapshotID = context.stateStore.createSnapshot();
+		const eventSnapshotID = context.eventQueue.createSnapshot();
+
+		if (
+			!(await this._beforeCrossChainMessageForwarding(
+				{ ...context, ccmFailed } as BeforeCCMForwardingContext,
+				eventSnapshotID,
+				stateSnapshotID,
+			))
+		) {
+			return;
+		}
+
+		// since the codes are same in all cases, let's use them directly here
+		if (ccmFailed) {
+			await this.bounce(
+				context,
+				encodedCCM.length,
+				CCMStatusCode.CHANNEL_UNAVAILABLE,
+				CCMProcessedCode.CHANNEL_UNAVAILABLE,
+			);
+		} else {
+			await this.internalMethod.addToOutbox(context, ccm.receivingChainID, ccm);
+
+			// Emit CCM forwarded event.
+			this.events.get(CcmProcessedEvent).log(context, ccm.sendingChainID, ccm.receivingChainID, {
+				code: CCMProcessedCode.SUCCESS,
+				result: CCMProcessedResult.FORWARDED,
+				ccm,
+			});
+		}
 	}
 }
