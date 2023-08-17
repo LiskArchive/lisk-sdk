@@ -75,7 +75,7 @@ describe('bls_lib', () => {
 			expect(isSecretKeyNonZeroModEC(secretKey)).toBe(true);
 		});
 
-		it('should return false for a secret key that is a multiple of the order of the elliptic curve', () => {
+		it('should return false for a secret key that is a multiple of the order of the group', () => {
 			const secretKey = SecretKey.fromBytes(
 				Buffer.from('73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001', 'hex'),
 			);
