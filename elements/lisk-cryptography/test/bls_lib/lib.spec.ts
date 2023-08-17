@@ -14,7 +14,7 @@
  */
 
 import { ErrorBLST, SecretKey } from '@chainsafe/blst';
-import { isSecretKeyNonZeroModEC } from '../../src/bls_lib/lib';
+import { isSecretKeyNonZeroModOrder } from '../../src/bls_lib/lib';
 import {
 	blsAggregate,
 	blsAggregateVerify,
@@ -60,26 +60,25 @@ interface EthFastAggrVerifySpec {
 }
 
 describe('bls_lib', () => {
-	const curveOrder = '0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001';
+	const groupOrder = '0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001';
 
-	describe('isSecretKeyNonZeroModEC', () => {
+	describe('isSecretKeyNonZeroModOrder', () => {
 		it('should return true when given a valid secret key', () => {
 			const secretKey = SecretKey.fromBytes(Buffer.alloc(32, 1));
-			expect(isSecretKeyNonZeroModEC(secretKey)).toBe(true);
+			expect(isSecretKeyNonZeroModOrder(secretKey)).toBe(true);
 		});
 
-		it('should return true when given a non-zero modulo secret key', () => {
-			const secretKey = SecretKey.fromBytes(
-				Buffer.from('0000000000000000000000000000000000000000000000000000000000000001', 'hex'),
+		it('should throw error when given a zero secret key', () => {
+			expect(() => isSecretKeyNonZeroModOrder(SecretKey.fromBytes(Buffer.alloc(32, 0)))).toThrow(
+				'ZERO_SECRET_KEY',
 			);
-			expect(isSecretKeyNonZeroModEC(secretKey)).toBe(true);
 		});
 
-		it('should return false for a secret key that is a multiple of the order of the elliptic curve', () => {
+		it('should return false for a secret key that is a multiple of the order of the group', () => {
 			const secretKey = SecretKey.fromBytes(
 				Buffer.from('73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001', 'hex'),
 			);
-			expect(isSecretKeyNonZeroModEC(secretKey)).toBe(false);
+			expect(isSecretKeyNonZeroModOrder(secretKey)).toBe(false);
 		});
 	});
 
@@ -102,8 +101,8 @@ describe('bls_lib', () => {
 			expect(pk.length).toBeGreaterThan(0);
 		});
 
-		it('should throw an error when given an input buffer with value equal to the curve order', () => {
-			const sk = Buffer.from(curveOrder.slice(2), 'hex');
+		it('should throw an error when given an input buffer with value equal to the group order', () => {
+			const sk = Buffer.from(groupOrder.slice(2), 'hex');
 
 			expect(() => blsSkToPk(sk)).toThrow('Secret key is not valid.');
 		});
@@ -120,31 +119,28 @@ describe('bls_lib', () => {
 	});
 
 	describe('blsSign', () => {
-		describe.each(getAllFiles(['eth2_bls_specs/sign', 'bls_specs/sign'], /sign_case_zero_privkey/))(
-			'%s',
-			({ path }) => {
-				const {
-					input: { privkey, message },
-					output,
-				} = loadSpecFile<EthSignSpec>(path);
+		describe.each(getAllFiles(['eth2_bls_specs/sign', 'bls_specs/sign']))('%s', ({ path }) => {
+			const {
+				input: { privkey, message },
+				output,
+			} = loadSpecFile<EthSignSpec>(path);
 
-				if (privkey !== `0x${'00'.repeat(32)}`) {
-					it('should generate valid signature if private key is non zero', () => {
-						const signature = blsSign(hexToBuffer(privkey), hexToBuffer(message));
-						expect(signature.toString('hex')).toEqual(hexToBuffer(output).toString('hex'));
-					});
-				} else {
-					it('should throw an error if the private key is all zeros', () => {
-						expect(() => blsSign(hexToBuffer(privkey), hexToBuffer(message))).toThrow(
-							'ZERO_SECRET_KEY',
-						);
-					});
-				}
-			},
-		);
+			if (privkey !== `0x${'00'.repeat(32)}`) {
+				it('should generate valid signature if private key is non zero', () => {
+					const signature = blsSign(hexToBuffer(privkey), hexToBuffer(message));
+					expect(signature.toString('hex')).toEqual(hexToBuffer(output).toString('hex'));
+				});
+			} else {
+				it('should throw an error if the private key is all zeros', () => {
+					expect(() => blsSign(hexToBuffer(privkey), hexToBuffer(message))).toThrow(
+						'ZERO_SECRET_KEY',
+					);
+				});
+			}
+		});
 
-		it('should throw an error when given an input buffer with value equal to the curve order', () => {
-			const sk = Buffer.from(curveOrder.slice(2), 'hex');
+		it('should throw an error when given an input buffer with value equal to the group order', () => {
+			const sk = Buffer.from(groupOrder.slice(2), 'hex');
 			const message = Buffer.from('hello world');
 
 			expect(() => blsSign(sk, message)).toThrow('Secret key is not valid.');
@@ -156,10 +152,7 @@ describe('bls_lib', () => {
 				'e7db4ea6533afa906673b0101343b00aa77b4805fffcb7fdfffffffe00000002',
 				'hex',
 			);
-			const message = Buffer.from(
-				'abababababababababababababababababababababababababababababababab',
-				'hex',
-			);
+			const message = Buffer.from('hello world', 'hex');
 
 			expect(() => blsSign(sk, message)).toThrow('Secret key is not valid.');
 		});
@@ -259,8 +252,8 @@ describe('bls_lib', () => {
 			});
 		});
 
-		it('should throw an error when given an input buffer with value equal to the curve order', () => {
-			const sk = Buffer.from(curveOrder.slice(2), 'hex');
+		it('should throw an error when given an input buffer with value equal to the group order', () => {
+			const sk = Buffer.from(groupOrder.slice(2), 'hex');
 
 			expect(() => {
 				blsPopProve(sk);

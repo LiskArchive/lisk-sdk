@@ -13,8 +13,6 @@
  *
  */
 
-import { timingSafeEqual } from 'crypto';
-
 import {
 	aggregateSignatures,
 	aggregateVerify,
@@ -45,15 +43,15 @@ export const blsKeyValidate = (pk: Buffer): boolean => {
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
 export const blsKeyGen = (ikm: Buffer): Buffer => Buffer.from(SecretKey.fromKeygen(ikm).toBytes());
 
-// check that the secret key generated is non-zero modulo the order of the elliptic curve.
-export const isSecretKeyNonZeroModEC = (secretKey: SecretKey): boolean => {
+// check that the secret key generated is non-zero modulo the group order.
+export const isSecretKeyNonZeroModOrder = (secretKey: SecretKey): boolean => {
 	// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-pairing-friendly-curves-10#section-4.2.1
-	const curveOrder = '0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001';
+	const groupOrder = '0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001';
 
 	const skBigInt = BigInt(`0x${Buffer.from(secretKey.toBytes()).toString('hex')}`);
 
 	// check if secret key is non-zero modulo the order of the elliptic curve.
-	if (skBigInt % BigInt(curveOrder) === BigInt(0)) {
+	if (skBigInt % BigInt(groupOrder) === BigInt(0)) {
 		return false;
 	}
 
@@ -64,7 +62,7 @@ export const isSecretKeyNonZeroModEC = (secretKey: SecretKey): boolean => {
 export const blsSkToPk = (sk: Buffer): Buffer => {
 	const secretKey = SecretKey.fromBytes(sk);
 
-	if (!isSecretKeyNonZeroModEC(secretKey)) {
+	if (!isSecretKeyNonZeroModOrder(secretKey)) {
 		throw new Error('Secret key is not valid.');
 	}
 
@@ -84,7 +82,7 @@ export const blsAggregate = (signatures: Buffer[]): Buffer | false => {
 export const blsSign = (sk: Buffer, message: Buffer): Buffer => {
 	const secretKey = SecretKey.fromBytes(sk);
 
-	if (timingSafeEqual(sk, Buffer.alloc(32)) || !isSecretKeyNonZeroModEC(secretKey)) {
+	if (!isSecretKeyNonZeroModOrder(secretKey)) {
 		throw new Error('Secret key is not valid.');
 	}
 
@@ -147,7 +145,7 @@ export const blsPopProve = (sk: Buffer): Buffer => {
 
 	const secretKey = SecretKey.fromBytes(sk);
 
-	if (!isSecretKeyNonZeroModEC(secretKey)) {
+	if (!isSecretKeyNonZeroModOrder(secretKey)) {
 		throw new Error('Secret key is not valid.');
 	}
 
