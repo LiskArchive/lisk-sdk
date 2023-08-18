@@ -88,7 +88,7 @@ describe('method client ipc mode', () => {
 			// Act
 			const block = await client.block.getByHeight(1);
 			// Assert
-			expect(block.header.height).toEqual(1);
+			expect(block.header.height).toBe(1);
 		});
 
 		it('should throw an error when action fails due to missing argument', async () => {
@@ -110,7 +110,7 @@ describe('method client ipc mode', () => {
 		});
 
 		it('should return a list of registered actions', async () => {
-			const actions = await await client.invoke('app_getRegisteredActions');
+			const actions = await await client.invoke('app_getRegisteredEndpoints');
 			expect(actions).toBeArray();
 			expect(actions).toContain('app_getConnectedPeers');
 			expect(actions).toContain('pos_getAllValidators');
