@@ -68,22 +68,6 @@ describe('bls_lib', () => {
 			expect(isNotMultipleOfGroupOrder(sk)).toBe(true);
 		});
 
-		it('should return true if sk is 3*groupOrder', () => {
-			const sk = Buffer.from(
-				'15bc8f5f97cd877d899ad88181ce5880ffb38ec08fffb13fcfffffffd00000003',
-				'hex',
-			);
-			expect(isNotMultipleOfGroupOrder(sk)).toBe(true);
-		});
-
-		it('should return true when the buffer is not a multiple of the group order and 32 bytes long', () => {
-			const sk = Buffer.from(
-				'0000000000000000000000000000000000000000000000000000000000000000',
-				'hex',
-			);
-			expect(isNotMultipleOfGroupOrder(sk)).toBe(true);
-		});
-
 		it('should return true when the buffer is not a multiple of the group order that is 32 bytes long', () => {
 			const sk = Buffer.from(
 				'0000000000000000000000000000000000000000000000000000000000000001',
@@ -92,23 +76,7 @@ describe('bls_lib', () => {
 			expect(isNotMultipleOfGroupOrder(sk)).toBe(true);
 		});
 
-		it('should return true when the buffer is a multiple of the group order but not 32 bytes long', () => {
-			const sk = Buffer.from(
-				'73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000002',
-				'hex',
-			);
-			expect(isNotMultipleOfGroupOrder(sk)).toBe(true);
-		});
-
 		it('should return false when the buffer is equal to the group order', () => {
-			const sk = Buffer.from(
-				'73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001',
-				'hex',
-			);
-			expect(isNotMultipleOfGroupOrder(sk)).toBe(false);
-		});
-
-		it('should return false if sk is equal to groupOrder', () => {
 			const sk = Buffer.from(
 				'73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001',
 				'hex',
@@ -160,6 +128,30 @@ describe('bls_lib', () => {
 				blsSkToPk(sk);
 			}).toThrow();
 		});
+
+		it('should throw error when sk is equal to the group order', () => {
+			const sk = Buffer.from(
+				'73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001',
+				'hex',
+			);
+			expect(() => blsSkToPk(sk)).toThrow('Secret key is not valid.');
+		});
+
+		it('should throw error if sk is equal to 2 times the group order', () => {
+			const sk = Buffer.from(
+				'e7db4ea6533afa906673b0101343b00aa77b4805fffcb7fdfffffffe00000002',
+				'hex',
+			);
+			expect(() => blsSkToPk(sk)).toThrow('Secret key is not valid.');
+		});
+
+		it('should pass if sk is equal to 3 times the group order', () => {
+			const sk = Buffer.from(
+				'15bc8f5f97cd877d899ad88181ce5880ffb38ec08fffb13fcfffffffd00000003',
+				'hex',
+			);
+			expect(() => blsSkToPk(sk)).not.toThrow();
+		});
 	});
 
 	describe('blsSign', () => {
@@ -189,6 +181,30 @@ describe('bls_lib', () => {
 			expect(() => {
 				blsSign(sk, Buffer.alloc(32, 1));
 			}).toThrow();
+		});
+
+		it('should throw error when sk is equal to the group order', () => {
+			const sk = Buffer.from(
+				'73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001',
+				'hex',
+			);
+			expect(() => blsSign(sk, Buffer.alloc(32, 1))).toThrow('Secret key is not valid.');
+		});
+
+		it('should throw error if sk is equal to 2 times the group order', () => {
+			const sk = Buffer.from(
+				'e7db4ea6533afa906673b0101343b00aa77b4805fffcb7fdfffffffe00000002',
+				'hex',
+			);
+			expect(() => blsSign(sk, Buffer.alloc(32, 1))).toThrow('Secret key is not valid.');
+		});
+
+		it('should pass if sk is equal to 3 times the group order', () => {
+			const sk = Buffer.from(
+				'15bc8f5f97cd877d899ad88181ce5880ffb38ec08fffb13fcfffffffd00000003',
+				'hex',
+			);
+			expect(() => blsSign(sk, Buffer.alloc(32, 1))).not.toThrow();
 		});
 	});
 
@@ -300,6 +316,30 @@ describe('bls_lib', () => {
 			expect(() => {
 				blsPopProve(sk);
 			}).toThrow();
+		});
+
+		it('should throw error when sk is equal to the group order', () => {
+			const sk = Buffer.from(
+				'73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001',
+				'hex',
+			);
+			expect(() => blsPopProve(sk)).toThrow('Secret key is not valid.');
+		});
+
+		it('should throw error if sk is equal to 2 times the group order', () => {
+			const sk = Buffer.from(
+				'e7db4ea6533afa906673b0101343b00aa77b4805fffcb7fdfffffffe00000002',
+				'hex',
+			);
+			expect(() => blsPopProve(sk)).toThrow('Secret key is not valid.');
+		});
+
+		it('should pass if sk is equal to 3 times the group order', () => {
+			const sk = Buffer.from(
+				'15bc8f5f97cd877d899ad88181ce5880ffb38ec08fffb13fcfffffffd00000003',
+				'hex',
+			);
+			expect(() => blsPopProve(sk)).not.toThrow();
 		});
 	});
 

@@ -65,12 +65,22 @@ export const isNotMultipleOfGroupOrder = (sk: Buffer): boolean => {
 		'hex',
 	);
 
-	return !(timingSafeEqual(sk, groupOrder) || timingSafeEqual(sk, groupOrderDouble));
+	if (timingSafeEqual(sk, groupOrder)) {
+		return false;
+	}
+
+	if (timingSafeEqual(sk, groupOrderDouble)) {
+		return false;
+	}
+
+	return true;
 };
 
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.4
 export const blsSkToPk = (sk: Buffer): Buffer => {
-	isNotMultipleOfGroupOrder(sk);
+	if (!isNotMultipleOfGroupOrder(sk)) {
+		throw new Error('Secret key is not valid.');
+	}
 
 	const secretKey = SecretKey.fromBytes(sk);
 
@@ -88,7 +98,9 @@ export const blsAggregate = (signatures: Buffer[]): Buffer | false => {
 
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.6
 export const blsSign = (sk: Buffer, message: Buffer): Buffer => {
-	isNotMultipleOfGroupOrder(sk);
+	if (!isNotMultipleOfGroupOrder(sk)) {
+		throw new Error('Secret key is not valid.');
+	}
 
 	const secretKey = SecretKey.fromBytes(sk);
 
@@ -149,7 +161,9 @@ export const blsPopProve = (sk: Buffer): Buffer => {
 	const message = blsSkToPk(sk);
 	const sig = new blst.P2();
 
-	isNotMultipleOfGroupOrder(sk);
+	if (!isNotMultipleOfGroupOrder(sk)) {
+		throw new Error('Secret key is not valid.');
+	}
 
 	const secretKey = SecretKey.fromBytes(sk);
 
