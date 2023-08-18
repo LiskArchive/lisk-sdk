@@ -109,7 +109,7 @@ describe('method client ipc mode', () => {
 			);
 		});
 
-		it('should return a list of registered actions', async () => {
+		it('should return a list of registered endpoints', async () => {
 			const actions = await await client.invoke('app_getRegisteredEndpoints');
 			expect(actions).toBeArray();
 			expect(actions).toContain('app_getConnectedPeers');
