@@ -45,7 +45,7 @@ import {
 } from './types';
 import { getPunishTime, getWaitTime, isCertificateGenerated, calculateStakeRewards } from './utils';
 import { GenesisDataStore } from './stores/genesis';
-import { EMPTY_KEY, PUNISHMENT_WINDOW_SELF_STAKING } from './constants';
+import { EMPTY_KEY } from './constants';
 import { EligibleValidator, EligibleValidatorsStore } from './stores/eligible_validators';
 import {
 	getClaimableRewardsRequestSchema,
@@ -409,7 +409,7 @@ export class PoSEndpoint extends BaseEndpoint {
 
 	private _calculatePunishmentPeriods(
 		pomHeights: number[],
-		period = PUNISHMENT_WINDOW_SELF_STAKING,
+		period = this._punishmentLockingPeriods.punishmentWindowSelfStaking,
 	) {
 		const result: punishmentPeriod[] = [];
 
