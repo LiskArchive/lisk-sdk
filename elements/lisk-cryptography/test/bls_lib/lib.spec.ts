@@ -13,7 +13,7 @@
  *
  */
 
-import { isNotMultipleOfGroupOrder } from '../../src/bls_lib/lib';
+import { isMultipleOfGroupOrder } from '../../src/bls_lib/lib';
 import {
 	blsAggregate,
 	blsAggregateVerify,
@@ -59,13 +59,13 @@ interface EthFastAggrVerifySpec {
 }
 
 describe('bls_lib', () => {
-	describe('isNotMultipleOfGroupOrder', () => {
+	describe('isMultipleOfGroupOrder', () => {
 		it('should return true if sk is not equal to groupOrder or groupOrderDouble', () => {
 			const sk = Buffer.from(
 				'73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000003',
 				'hex',
 			);
-			expect(isNotMultipleOfGroupOrder(sk)).toBe(true);
+			expect(isMultipleOfGroupOrder(sk)).toBe(true);
 		});
 
 		it('should return true when the buffer is not a multiple of the group order that is 32 bytes long', () => {
@@ -73,7 +73,7 @@ describe('bls_lib', () => {
 				'0000000000000000000000000000000000000000000000000000000000000001',
 				'hex',
 			);
-			expect(isNotMultipleOfGroupOrder(sk)).toBe(true);
+			expect(isMultipleOfGroupOrder(sk)).toBe(true);
 		});
 
 		it('should return false when the buffer is equal to the group order', () => {
@@ -81,7 +81,7 @@ describe('bls_lib', () => {
 				'73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001',
 				'hex',
 			);
-			expect(isNotMultipleOfGroupOrder(sk)).toBe(false);
+			expect(isMultipleOfGroupOrder(sk)).toBe(false);
 		});
 
 		it('should return false if sk is equal to 2 times the group order', () => {
@@ -89,7 +89,7 @@ describe('bls_lib', () => {
 				'e7db4ea6533afa906673b0101343b00aa77b4805fffcb7fdfffffffe00000002',
 				'hex',
 			);
-			expect(isNotMultipleOfGroupOrder(sk)).toBe(false);
+			expect(isMultipleOfGroupOrder(sk)).toBe(false);
 		});
 	});
 
