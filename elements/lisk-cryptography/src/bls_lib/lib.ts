@@ -27,6 +27,7 @@ import {
 
 // eslint-disable-next-line camelcase, import/no-extraneous-dependencies
 import { blst, BLST_ERROR, P1_Affine, P2_Affine } from '@chainsafe/blst/dist/bindings';
+import { timingSafeEqual } from 'crypto';
 
 const DST_POP = 'BLS_POP_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_';
 
@@ -43,15 +44,32 @@ export const blsKeyValidate = (pk: Buffer): boolean => {
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
 export const blsKeyGen = (ikm: Buffer): Buffer => Buffer.from(SecretKey.fromKeygen(ikm).toBytes());
 
-// check that the secret key generated is non-zero modulo the group order.
-export const isSecretKeyNonZeroModOrder = (secretKey: SecretKey): boolean => {
-	// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-pairing-friendly-curves-10#section-4.2.1
-	const groupOrder = '0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001';
+// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-pairing-friendly-curves-10#section-4.2.1
+// r: 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001;
+const groupOrder = Buffer.from(
+	'73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001',
+	'hex',
+);
 
-	const skBigInt = BigInt(`0x${Buffer.from(secretKey.toBytes()).toString('hex')}`);
+// 2 * r (group order)
+const groupOrderDouble = Buffer.from(
+	'e7db4ea6533afa906673b0101343b00aa77b4805fffcb7fdfffffffe00000002',
+	'hex',
+);
 
-	// check if secret key is non-zero modulo the order of the elliptic curve.
-	if (skBigInt % BigInt(groupOrder) === BigInt(0)) {
+/**
+ * The function checks if a given buffer `sk` is not a multiple of the group order that fits into 32 bytes except for zero.
+ * The only multiples of the group order `r` that fit into 32 bytes are `0`, `r` and `2*r`.
+ *
+ * @param {Buffer} sk - The parameter `sk` is a Buffer that represents a secret key.
+ * @returns a boolean value.
+ */
+export const isMultipleOfGroupOrder = (sk: Buffer): boolean => {
+	if (timingSafeEqual(sk, groupOrder)) {
+		return false;
+	}
+
+	if (timingSafeEqual(sk, groupOrderDouble)) {
 		return false;
 	}
 
@@ -60,11 +78,11 @@ export const isSecretKeyNonZeroModOrder = (secretKey: SecretKey): boolean => {
 
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.4
 export const blsSkToPk = (sk: Buffer): Buffer => {
-	const secretKey = SecretKey.fromBytes(sk);
-
-	if (!isSecretKeyNonZeroModOrder(secretKey)) {
+	if (!isMultipleOfGroupOrder(sk)) {
 		throw new Error('Secret key is not valid.');
 	}
+
+	const secretKey = SecretKey.fromBytes(sk);
 
 	return Buffer.from(secretKey.toPublicKey().toBytes());
 };
@@ -80,11 +98,11 @@ export const blsAggregate = (signatures: Buffer[]): Buffer | false => {
 
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.6
 export const blsSign = (sk: Buffer, message: Buffer): Buffer => {
-	const secretKey = SecretKey.fromBytes(sk);
-
-	if (!isSecretKeyNonZeroModOrder(secretKey)) {
+	if (!isMultipleOfGroupOrder(sk)) {
 		throw new Error('Secret key is not valid.');
 	}
+
+	const secretKey = SecretKey.fromBytes(sk);
 
 	return Buffer.from(secretKey.sign(message).toBytes());
 };
@@ -143,11 +161,11 @@ export const blsPopProve = (sk: Buffer): Buffer => {
 	const message = blsSkToPk(sk);
 	const sig = new blst.P2();
 
-	const secretKey = SecretKey.fromBytes(sk);
-
-	if (!isSecretKeyNonZeroModOrder(secretKey)) {
+	if (!isMultipleOfGroupOrder(sk)) {
 		throw new Error('Secret key is not valid.');
 	}
+
+	const secretKey = SecretKey.fromBytes(sk);
 
 	return Buffer.from(
 		new Signature(sig.hash_to(message, DST_POP).sign_with(secretKey.value)).toBytes(),
