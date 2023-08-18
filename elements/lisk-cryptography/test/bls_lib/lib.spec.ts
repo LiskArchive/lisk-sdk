@@ -84,7 +84,7 @@ describe('bls_lib', () => {
 			expect(isNotMultipleOfGroupOrder(sk)).toBe(true);
 		});
 
-		it('should return true when the buffer is not a multiple of the group order and not 32 bytes long', () => {
+		it('should return true when the buffer is not a multiple of the group order that is 32 bytes long', () => {
 			const sk = Buffer.from(
 				'0000000000000000000000000000000000000000000000000000000000000001',
 				'hex',
@@ -100,7 +100,7 @@ describe('bls_lib', () => {
 			expect(isNotMultipleOfGroupOrder(sk)).toBe(true);
 		});
 
-		it('should return false when the buffer is a multiple of the group order and 32 bytes long', () => {
+		it('should return false when the buffer is equal to the group order', () => {
 			const sk = Buffer.from(
 				'73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001',
 				'hex',
@@ -116,7 +116,7 @@ describe('bls_lib', () => {
 			expect(isNotMultipleOfGroupOrder(sk)).toBe(false);
 		});
 
-		it('should return false if sk is equal to groupOrderDouble', () => {
+		it('should return false if sk is equal to 2 times the group order', () => {
 			const sk = Buffer.from(
 				'e7db4ea6533afa906673b0101343b00aa77b4805fffcb7fdfffffffe00000002',
 				'hex',

@@ -45,7 +45,8 @@ export const blsKeyValidate = (pk: Buffer): boolean => {
 export const blsKeyGen = (ikm: Buffer): Buffer => Buffer.from(SecretKey.fromKeygen(ikm).toBytes());
 
 /**
- * The function checks if a given buffer `sk` is not a multiple of the group order and 32 bytes long.
+ * The function checks if a given buffer `sk` is not a multiple of the group order that fits into 32 bytes,
+ * except for zero. The only multiples of the group order `r` that fit into 32 bytes are `0`, `r` and `2*r`.
  *
  * @param {Buffer} sk - The parameter `sk` is a Buffer that represents a secret key.
  * @returns a boolean value.
