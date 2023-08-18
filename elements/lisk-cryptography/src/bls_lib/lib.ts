@@ -51,7 +51,7 @@ export const blsKeyGen = (ikm: Buffer): Buffer => Buffer.from(SecretKey.fromKeyg
  * @param {Buffer} sk - The parameter `sk` is a Buffer that represents a secret key.
  * @returns a boolean value.
  */
-export const isNotMultipleOfGroupOrder = (sk: Buffer): boolean => {
+export const isMultipleOfGroupOrder = (sk: Buffer): boolean => {
 	/// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-pairing-friendly-curves-10#section-4.2.1
 	// r: 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001;
 	const groupOrder = Buffer.from(
@@ -78,7 +78,7 @@ export const isNotMultipleOfGroupOrder = (sk: Buffer): boolean => {
 
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.4
 export const blsSkToPk = (sk: Buffer): Buffer => {
-	if (!isNotMultipleOfGroupOrder(sk)) {
+	if (!isMultipleOfGroupOrder(sk)) {
 		throw new Error('Secret key is not valid.');
 	}
 
@@ -98,7 +98,7 @@ export const blsAggregate = (signatures: Buffer[]): Buffer | false => {
 
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.6
 export const blsSign = (sk: Buffer, message: Buffer): Buffer => {
-	if (!isNotMultipleOfGroupOrder(sk)) {
+	if (!isMultipleOfGroupOrder(sk)) {
 		throw new Error('Secret key is not valid.');
 	}
 
@@ -161,7 +161,7 @@ export const blsPopProve = (sk: Buffer): Buffer => {
 	const message = blsSkToPk(sk);
 	const sig = new blst.P2();
 
-	if (!isNotMultipleOfGroupOrder(sk)) {
+	if (!isMultipleOfGroupOrder(sk)) {
 		throw new Error('Secret key is not valid.');
 	}
 
