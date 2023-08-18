@@ -391,8 +391,11 @@ export class Application {
 
 	private _rootEndpoints(): EndpointHandlers {
 		const applicationEndpoint: EndpointHandlers = new Map([
-			// eslint-disable-next-line @typescript-eslint/require-await
-			['getRegisteredActions', async (_: PluginEndpointContext) => this._controller.getEndpoints()],
+			[
+				'getRegisteredEndpoints',
+				// eslint-disable-next-line @typescript-eslint/require-await
+				async (_: PluginEndpointContext) => this._controller.getEndpoints(),
+			],
 			// eslint-disable-next-line @typescript-eslint/require-await
 			['getRegisteredEvents', async (_: PluginEndpointContext) => this._controller.getEvents()],
 		]);
