@@ -157,11 +157,53 @@ describe('Sample Method', () => {
 		});
 	});
 
+	describe('getMinReturnFeePerByte', () => {
+		const minReturnFeePerByte = BigInt(1);
+		beforeEach(() => {
+			sampleInteroperabilityMethod['_getChannelCommon'] = jest
+				.fn()
+				.mockResolvedValue({ minReturnFeePerByte });
+		});
+		it('should return channel minReturnFeePerByte', async () => {
+			const result = await sampleInteroperabilityMethod.getMinReturnFeePerByte(
+				methodContext,
+				chainID,
+			);
+			expect(sampleInteroperabilityMethod['_getChannelCommon']).toHaveBeenCalledWith(
+				expect.anything(),
+				chainID,
+			);
+			expect(result).toBe(minReturnFeePerByte);
+		});
+	});
+
+	describe('getMessageFeeTokenID', () => {
+		const messageFeeTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 1]);
+
+		beforeEach(() => {
+			sampleInteroperabilityMethod['_getChannelCommon'] = jest
+				.fn()
+				.mockResolvedValue({ messageFeeTokenID });
+		});
+		it('should return channel messageFeeTokenID', async () => {
+			const result = await sampleInteroperabilityMethod.getMessageFeeTokenID(
+				methodContext,
+				chainID,
+			);
+			expect(sampleInteroperabilityMethod['_getChannelCommon']).toHaveBeenCalledWith(
+				expect.anything(),
+				chainID,
+			);
+			expect(result).toBe(messageFeeTokenID);
+		});
+	});
+
 	describe('send', () => {
 		const sendingAddress = Buffer.from('lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9');
+		const sendingChainID = Buffer.from('10001000', 'hex');
 		const ownChainAccountSidechain = {
 			name: 'mychain',
-			chainID: Buffer.from('10001000', 'hex'),
+			chainID: sendingChainID,
 			nonce: BigInt(0),
 		};
 
@@ -198,6 +240,22 @@ describe('Sample Method', () => {
 				.spyOn(interopMod.stores.get(OwnChainAccountStore), 'get')
 				.mockResolvedValue(ownChainAccountSidechain);
 			jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(true);
+		});
+
+		it('should throw error when sending chain ID equals receiving chain ID', async () => {
+			// Act & Assert
+			await expect(
+				sampleInteroperabilityMethod.send(
+					methodContext,
+					sendingAddress,
+					ccm.module,
+					ccm.crossChainCommand,
+					sendingChainID,
+					ccm.fee,
+					ccm.params,
+					Date.now(),
+				),
+			).rejects.toThrow('Sending chain cannot be the receiving chain.');
 		});
 
 		it('should throw error and emit event when invalid ccm format', async () => {
