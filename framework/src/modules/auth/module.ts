@@ -49,12 +49,13 @@ export class AuthModule extends BaseModule {
 	public method = new AuthMethod(this.stores, this.events);
 	public endpoint = new AuthEndpoint(this.stores, this.offchainStores);
 	public configSchema = configSchema;
-	public commands = [new RegisterMultisignatureCommand(this.stores, this.events)];
 
 	private readonly _registerMultisignatureCommand = new RegisterMultisignatureCommand(
 		this.stores,
 		this.events,
 	);
+
+	public commands = [this._registerMultisignatureCommand];
 
 	private _moduleConfig!: { maxNumberOfSignatures: number };
 
