@@ -12,10 +12,10 @@ $ npm install --save @liskhq/lisk-framework-report-misbehavior-plugin
 
 ```
 {
-	encryptedPassphrase?: string,
+	encryptedPrivateKey?: string,
 	defaultPassword?: string,
-	dataPath: string,
-	cleanupFrequency?: number,
+	fee?: number,
+	clearBlockHeadersInterval?: number,
 }
 ```
 
