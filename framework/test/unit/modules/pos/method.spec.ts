@@ -24,7 +24,11 @@ import { StakerStore } from '../../../../src/modules/pos/stores/staker';
 import { ValidatorStore } from '../../../../src/modules/pos/stores/validator';
 import { NameStore } from '../../../../src/modules/pos/stores/name';
 import { createStoreGetter } from '../../../../src/testing/utils';
-import { MAX_NUMBER_BYTES_Q96, defaultConfig } from '../../../../src/modules/pos/constants';
+import {
+	MAX_NUMBER_BYTES_Q96,
+	TOKEN_ID_LENGTH,
+	defaultConfig,
+} from '../../../../src/modules/pos/constants';
 import { EligibleValidatorsStore } from '../../../../src/modules/pos/stores/eligible_validators';
 import { getModuleConfig } from '../../../../src/modules/pos/utils';
 import { ModuleConfigJSON } from '../../../../src/modules/pos/types';
@@ -40,7 +44,10 @@ describe('PoSMethod', () => {
 	let nameSubStore: NameStore;
 
 	const moduleName = 'pos';
-	const config = getModuleConfig({ ...defaultConfig, posTokenID: '00000000' } as ModuleConfigJSON);
+	const config = getModuleConfig({
+		...defaultConfig,
+		posTokenID: '00'.repeat(TOKEN_ID_LENGTH),
+	} as ModuleConfigJSON);
 	const tokenMethod: any = { lock: jest.fn() };
 
 	const address = utils.getRandomBytes(20);
