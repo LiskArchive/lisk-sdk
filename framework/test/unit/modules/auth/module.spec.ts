@@ -30,7 +30,8 @@ import {
 	authAccountSchema,
 	AuthAccountStore,
 } from '../../../../src/modules/auth/stores/auth_account';
-import { ADDRESS_LENGTH } from '../../../../src/modules/auth/constants';
+import { ADDRESS_LENGTH, defaultConfig } from '../../../../src/modules/auth/constants';
+import { GenesisConfig } from '../../../../src';
 
 describe('AuthModule', () => {
 	let decodedMultiSignature: any;
@@ -49,8 +50,9 @@ describe('AuthModule', () => {
 	const defaultTestCase = fixtures.testCases[0];
 	const chainID = Buffer.from(defaultTestCase.input.chainID, 'hex');
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		authModule = new AuthModule();
+		await authModule.init({ genesisConfig: {} as GenesisConfig, moduleConfig: defaultConfig });
 		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
 		const id = utils.hash(buffer);
 		decodedBaseTransaction = codec.decode<Transaction>(transactionSchema, buffer);

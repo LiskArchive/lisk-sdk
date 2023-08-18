@@ -159,7 +159,12 @@ export const multisigRegMsgSchema = {
 export const configSchema = {
 	$id: '/auth/config',
 	type: 'object',
-	properties: {},
+	properties: {
+		maxNumberOfSignatures: {
+			type: 'integer',
+			format: 'uint32',
+		},
+	},
 };
 
 export const genesisAuthStoreSchema = {

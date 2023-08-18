@@ -15,7 +15,7 @@
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
 import { validator } from '@liskhq/lisk-validator';
-import { BaseModule, ModuleMetadata } from '../base_module';
+import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import {
 	GenesisBlockExecuteContext,
 	TransactionExecuteContext,
@@ -24,7 +24,7 @@ import {
 	VerifyStatus,
 } from '../../state_machine';
 import { AuthMethod } from './method';
-import { MAX_NUMBER_OF_SIGNATURES, ADDRESS_LENGTH } from './constants';
+import { ADDRESS_LENGTH, defaultConfig } from './constants';
 import { AuthEndpoint } from './endpoint';
 import {
 	addressRequestSchema,
@@ -50,6 +50,13 @@ export class AuthModule extends BaseModule {
 	public endpoint = new AuthEndpoint(this.stores, this.offchainStores);
 	public configSchema = configSchema;
 	public commands = [new RegisterMultisignatureCommand(this.stores, this.events)];
+
+	private readonly _registerMultisignatureCommand = new RegisterMultisignatureCommand(
+		this.stores,
+		this.events,
+	);
+
+	private _moduleConfig!: { maxNumberOfSignatures: number };
 
 	public constructor() {
 		super();
@@ -103,6 +110,19 @@ export class AuthModule extends BaseModule {
 		};
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async init(args: ModuleInitArgs): Promise<void> {
+		const { moduleConfig } = args;
+		const config = objectUtils.mergeDeep({}, defaultConfig, moduleConfig);
+		validator.validate<{ maxNumberOfSignatures: number }>(configSchema, config);
+
+		this._moduleConfig = { maxNumberOfSignatures: config.maxNumberOfSignatures };
+
+		this._registerMultisignatureCommand.init({
+			maxNumberOfSignatures: config.maxNumberOfSignatures,
+		});
+	}
+
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
 		const assetBytes = context.assets.getAsset(this.name);
 		// if there is no asset, do not initialize
@@ -140,9 +160,9 @@ export class AuthModule extends BaseModule {
 				throw new Error('Invalid store value for auth module. OptionalKeys are not unique.');
 			}
 
-			if (mandatoryKeys.length + optionalKeys.length > MAX_NUMBER_OF_SIGNATURES) {
+			if (mandatoryKeys.length + optionalKeys.length > this._moduleConfig.maxNumberOfSignatures) {
 				throw new Error(
-					`The count of Mandatory and Optional keys should be maximum ${MAX_NUMBER_OF_SIGNATURES}.`,
+					`The count of Mandatory and Optional keys should be maximum ${this._moduleConfig.maxNumberOfSignatures}.`,
 				);
 			}
 
