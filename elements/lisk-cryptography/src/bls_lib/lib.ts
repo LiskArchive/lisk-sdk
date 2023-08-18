@@ -44,27 +44,27 @@ export const blsKeyValidate = (pk: Buffer): boolean => {
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
 export const blsKeyGen = (ikm: Buffer): Buffer => Buffer.from(SecretKey.fromKeygen(ikm).toBytes());
 
+// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-pairing-friendly-curves-10#section-4.2.1
+// r: 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001;
+const groupOrder = Buffer.from(
+	'73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001',
+	'hex',
+);
+
+// 2 * r (group order)
+const groupOrderDouble = Buffer.from(
+	'e7db4ea6533afa906673b0101343b00aa77b4805fffcb7fdfffffffe00000002',
+	'hex',
+);
+
 /**
- * The function checks if a given buffer `sk` is not a multiple of the group order that fits into 32 bytes,
- * except for zero. The only multiples of the group order `r` that fit into 32 bytes are `0`, `r` and `2*r`.
+ * The function checks if a given buffer `sk` is not a multiple of the group order that fits into 32 bytes except for zero.
+ * The only multiples of the group order `r` that fit into 32 bytes are `0`, `r` and `2*r`.
  *
  * @param {Buffer} sk - The parameter `sk` is a Buffer that represents a secret key.
  * @returns a boolean value.
  */
 export const isMultipleOfGroupOrder = (sk: Buffer): boolean => {
-	/// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-pairing-friendly-curves-10#section-4.2.1
-	// r: 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001;
-	const groupOrder = Buffer.from(
-		'73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001',
-		'hex',
-	);
-
-	// 2 * r (group order)
-	const groupOrderDouble = Buffer.from(
-		'e7db4ea6533afa906673b0101343b00aa77b4805fffcb7fdfffffffe00000002',
-		'hex',
-	);
-
 	if (timingSafeEqual(sk, groupOrder)) {
 		return false;
 	}
