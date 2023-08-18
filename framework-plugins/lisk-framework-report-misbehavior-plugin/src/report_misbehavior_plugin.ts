@@ -100,7 +100,6 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 					const contradictingBlock = await getContradictingBlockHeader(
 						this._pluginDB,
 						decodedBlockHeader,
-						this.apiClient,
 					);
 					if (contradictingBlock && this._state.privateKey) {
 						const encodedTransaction = await this._createPoMTransaction(
