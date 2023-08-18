@@ -15,7 +15,13 @@
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
-import { cryptography, codec, chain, db as liskDB, BasePlugin } from 'lisk-sdk';
+import {
+	cryptography,
+	codec,
+	chain,
+	db as liskDB,
+	areDistinctHeadersContradicting,
+} from 'lisk-sdk';
 
 const { BlockHeader } = chain;
 const { utils } = cryptography;
@@ -94,9 +100,7 @@ type IteratableStream = NodeJS.ReadableStream & { destroy: (err?: Error) => void
 export const getContradictingBlockHeader = async (
 	db: liskDB.Database,
 	blockHeader: chain.BlockHeader,
-	apiClient: BasePlugin['apiClient'],
 ): Promise<chain.BlockHeader | undefined> => {
-	const header1 = blockHeader.getBytes().toString('hex');
 	const existingHeaders = await new Promise<string[]>((resolve, reject) => {
 		const stream = db.createReadStream({
 			gte: Buffer.concat([blockHeader.generatorAddress, Buffer.alloc(4, 0)]),
@@ -117,13 +121,18 @@ export const getContradictingBlockHeader = async (
 				resolve(results);
 			});
 	});
-	for (const header2 of existingHeaders) {
-		const { valid } = await apiClient.invoke<{ valid: boolean }>('chain_areHeadersContradicting', {
-			header1,
-			header2,
-		});
-		if (valid) {
-			return BlockHeader.fromBytes(Buffer.from(header2, 'hex'));
+
+	for (const headerString of existingHeaders) {
+		const header = BlockHeader.fromBytes(Buffer.from(headerString, 'hex'));
+
+		if (blockHeader.id.equals(header.id)) {
+			continue;
+		}
+
+		const isContradicting = areDistinctHeadersContradicting(header, blockHeader);
+
+		if (isContradicting) {
+			return header;
 		}
 	}
 	return undefined;

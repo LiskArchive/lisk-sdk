@@ -177,13 +177,13 @@ export const genesisAuthStoreSchema = {
 			fieldNumber: 1,
 			items: {
 				type: 'object',
-				required: ['storeKey', 'storeValue'],
+				required: ['address', 'authAccount'],
 				properties: {
-					storeKey: {
+					address: {
 						dataType: 'bytes',
 						fieldNumber: 1,
 					},
-					storeValue: {
+					authAccount: {
 						type: 'object',
 						fieldNumber: 2,
 						required: ['nonce', 'numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
@@ -201,6 +201,8 @@ export const genesisAuthStoreSchema = {
 								fieldNumber: 3,
 								items: {
 									dataType: 'bytes',
+									minLength: ED25519_PUBLIC_KEY_LENGTH,
+									maxLength: ED25519_PUBLIC_KEY_LENGTH,
 								},
 							},
 							optionalKeys: {
@@ -208,6 +210,8 @@ export const genesisAuthStoreSchema = {
 								fieldNumber: 4,
 								items: {
 									dataType: 'bytes',
+									minLength: ED25519_PUBLIC_KEY_LENGTH,
+									maxLength: ED25519_PUBLIC_KEY_LENGTH,
 								},
 							},
 						},

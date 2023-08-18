@@ -53,8 +53,8 @@ export interface SortedMultisignatureGroup {
 
 export interface GenesisAuthStore {
 	authDataSubstore: {
-		storeKey: Buffer;
-		storeValue: AuthAccount;
+		address: Buffer;
+		authAccount: AuthAccount;
 	}[];
 }
 

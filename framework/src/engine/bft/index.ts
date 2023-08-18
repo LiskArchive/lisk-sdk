@@ -14,5 +14,5 @@
 
 export { BFTModule } from './module';
 export type { BFTMethod } from './method';
-export { computeValidatorsHash } from './utils';
+export { computeValidatorsHash, areDistinctHeadersContradicting } from './utils';
 export { BFTParameters } from './schemas';

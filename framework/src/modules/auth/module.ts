@@ -133,15 +133,15 @@ export class AuthModule extends BaseModule {
 		const genesisStore = codec.decode<GenesisAuthStore>(genesisAuthStoreSchema, assetBytes);
 		const store = this.stores.get(AuthAccountStore);
 		const keys = [];
-		for (const { storeKey, storeValue } of genesisStore.authDataSubstore) {
-			if (storeKey.length !== ADDRESS_LENGTH) {
+		for (const { address, authAccount } of genesisStore.authDataSubstore) {
+			if (address.length !== ADDRESS_LENGTH) {
 				throw new Error('Invalid store key length for auth module.');
 			}
-			keys.push(storeKey);
+			keys.push(address);
 
-			validator.validate(authAccountSchema, storeValue);
+			validator.validate(authAccountSchema, authAccount);
 
-			const { mandatoryKeys, optionalKeys, numberOfSignatures } = storeValue;
+			const { mandatoryKeys, optionalKeys, numberOfSignatures } = authAccount;
 
 			if (!objectUtils.isBufferArrayOrdered(mandatoryKeys)) {
 				throw new Error(
@@ -186,10 +186,10 @@ export class AuthModule extends BaseModule {
 				throw new Error('The numberOfSignatures is smaller than the count of Mandatory keys.');
 			}
 
-			await store.set(context, storeKey, storeValue);
+			await store.set(context, address, authAccount);
 		}
 		if (!objectUtils.bufferArrayUniqueItems(keys)) {
-			throw new Error('Duplicate store key for auth module.');
+			throw new Error('Duplicate address in the for auth module.');
 		}
 	}
 

@@ -13,4 +13,4 @@
  */
 
 export { Engine } from './engine';
-export { computeValidatorsHash, BFTParameters } from './bft';
+export { computeValidatorsHash, areDistinctHeadersContradicting, BFTParameters } from './bft';
