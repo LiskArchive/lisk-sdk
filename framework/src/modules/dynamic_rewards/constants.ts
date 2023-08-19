@@ -15,11 +15,14 @@
 import { defaultConfig as rewardDefaultConfig } from '../reward/constants';
 
 export const EMPTY_BYTES = Buffer.alloc(0);
-export const defaultConfig = {
-	...rewardDefaultConfig,
-	factorMinimumRewardActiveValidators: 1000,
-};
+const FACTOR_MINIMUM_REWARD_ACTIVE_VALIDATORS = 1000;
+
 export const DECIMAL_PERCENT_FACTOR = BigInt(10000);
 export const CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD = 'CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD';
 export const CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REDUCTION =
 	'CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REDUCTION';
+
+export const defaultConfig = {
+	...rewardDefaultConfig,
+	factorMinimumRewardActiveValidators: FACTOR_MINIMUM_REWARD_ACTIVE_VALIDATORS,
+};

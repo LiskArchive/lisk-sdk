@@ -28,7 +28,8 @@ export interface ModuleConfig {
 	maxNumberPendingUnlocks: number;
 	failSafeMissedBlocks: number;
 	failSafeInactiveWindow: number;
-	punishmentWindow: number;
+	punishmentWindowStaking: number;
+	punishmentWindowSelfStaking: number;
 	roundLength: number;
 	minWeightStandby: bigint;
 	numberActiveValidators: number;
@@ -39,9 +40,22 @@ export interface ModuleConfig {
 	commissionIncreasePeriod: number;
 	maxCommissionIncreaseRate: number;
 	useInvalidBLSKey: boolean;
+	baseStakeAmount: bigint;
+	lockingPeriodStaking: number;
+	lockingPeriodSelfStaking: number;
+	reportMisbehaviorReward: bigint;
+	reportMisbehaviorLimitBanned: number;
+	weightScaleFactor: bigint;
 }
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
+
+export interface PunishmentLockingPeriods {
+	punishmentWindowStaking: number;
+	punishmentWindowSelfStaking: number;
+	lockingPeriodStaking: number;
+	lockingPeriodSelfStaking: number;
+}
 
 export interface RandomMethod {
 	getRandomBytes(

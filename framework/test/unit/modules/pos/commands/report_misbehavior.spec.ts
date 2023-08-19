@@ -21,9 +21,7 @@ import { ReportMisbehaviorCommand, VerifyStatus, PoSModule } from '../../../../.
 import * as testing from '../../../../../src/testing';
 import {
 	defaultConfig,
-	LOCKING_PERIOD_SELF_STAKING,
 	MODULE_NAME_POS,
-	REPORTING_PUNISHMENT_REWARD,
 	TOKEN_ID_LENGTH,
 } from '../../../../../src/modules/pos/constants';
 import {
@@ -52,7 +50,6 @@ describe('ReportMisbehaviorCommand', () => {
 	let mockTokenMethod: TokenMethod;
 	let mockValidatorsMethod: ValidatorsMethod;
 	const blockHeight = 8760000;
-	const reportPunishmentReward = REPORTING_PUNISHMENT_REWARD;
 	let context: any;
 	let misBehavingValidator: ValidatorAccount;
 	let normalValidator: ValidatorAccount;
@@ -132,7 +129,16 @@ describe('ReportMisbehaviorCommand', () => {
 
 		pomCommand.init({
 			posTokenID: DEFAULT_LOCAL_ID,
-			factorSelfStakes: 10,
+			factorSelfStakes: config.factorSelfStakes,
+			lockingPeriodSelfStaking: config.lockingPeriodSelfStaking,
+			reportMisbehaviorReward: config.reportMisbehaviorReward,
+			reportMisbehaviorLimitBanned: config.reportMisbehaviorLimitBanned,
+			punishmentLockingPeriods: {
+				punishmentWindowStaking: config.punishmentWindowStaking,
+				punishmentWindowSelfStaking: config.punishmentWindowSelfStaking,
+				lockingPeriodStaking: config.lockingPeriodStaking,
+				lockingPeriodSelfStaking: config.lockingPeriodSelfStaking,
+			},
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		transaction = new Transaction({
@@ -292,7 +298,7 @@ describe('ReportMisbehaviorCommand', () => {
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, {
 					...header1,
-					height: LOCKING_PERIOD_SELF_STAKING,
+					height: config.lockingPeriodSelfStaking,
 				}),
 				header2: codec.encode(blockHeaderSchema, { ...header2 }),
 			};
@@ -601,7 +607,7 @@ describe('ReportMisbehaviorCommand', () => {
 		});
 
 		it('should reward the sender with 1 LSK if validator has enough self stake', async () => {
-			const selfStake = reportPunishmentReward + BigInt('10000000000');
+			const selfStake = config.reportMisbehaviorReward + BigInt('10000000000');
 			misBehavingValidator = {
 				name: 'misBehavingValidator',
 				totalStake: BigInt(100000000),
@@ -615,7 +621,7 @@ describe('ReportMisbehaviorCommand', () => {
 				sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 			};
 			const oldWeight = getValidatorWeight(
-				BigInt(10),
+				10,
 				misBehavingValidator.selfStake,
 				misBehavingValidator.totalStake,
 			);
@@ -653,22 +659,24 @@ describe('ReportMisbehaviorCommand', () => {
 				validator1Address,
 				MODULE_NAME_POS,
 				DEFAULT_LOCAL_ID,
-				reportPunishmentReward,
+				config.reportMisbehaviorReward,
 			);
 			expect(pomCommand['_tokenMethod'].transfer).toHaveBeenCalledWith(
 				expect.anything(),
 				validator1Address,
 				context.transaction.senderAddress,
 				DEFAULT_LOCAL_ID,
-				reportPunishmentReward,
+				config.reportMisbehaviorReward,
 			);
 			expect(updatedValidator.selfStake).toEqual(
-				misBehavingValidator.selfStake - reportPunishmentReward,
+				misBehavingValidator.selfStake - config.reportMisbehaviorReward,
 			);
 			expect(updatedValidator.totalStake).toEqual(
-				misBehavingValidator.totalStake - reportPunishmentReward,
+				misBehavingValidator.totalStake - config.reportMisbehaviorReward,
 			);
-			expect(updateStakerData.stakes[0].amount).toEqual(stake.amount - reportPunishmentReward);
+			expect(updateStakerData.stakes[0].amount).toEqual(
+				stake.amount - config.reportMisbehaviorReward,
+			);
 			expect(eligibleValidatorStore['update']).toHaveBeenCalledWith(
 				expect.anything(),
 				validator1Address,
@@ -679,7 +687,7 @@ describe('ReportMisbehaviorCommand', () => {
 
 		it('should not reward the sender if validator has zero self stake', async () => {
 			const oldWeight = getValidatorWeight(
-				BigInt(10),
+				10,
 				misBehavingValidator.selfStake,
 				misBehavingValidator.totalStake,
 			);
@@ -721,7 +729,7 @@ describe('ReportMisbehaviorCommand', () => {
 		});
 
 		it('should add self stake of validator to balance of the sender if validator self stake is less than report punishment reward', async () => {
-			const selfStake = reportPunishmentReward - BigInt(1);
+			const selfStake = config.reportMisbehaviorReward - BigInt(1);
 			misBehavingValidator = {
 				name: 'misBehavingValidator',
 				totalStake: BigInt(100000000),
@@ -735,7 +743,7 @@ describe('ReportMisbehaviorCommand', () => {
 				sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 			};
 			const oldWeight = getValidatorWeight(
-				BigInt(10),
+				10,
 				misBehavingValidator.selfStake,
 				misBehavingValidator.totalStake,
 			);
