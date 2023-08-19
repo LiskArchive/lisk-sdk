@@ -65,20 +65,15 @@ const groupOrderDouble = Buffer.from(
  * @returns a boolean value.
  */
 export const isMultipleOfGroupOrder = (sk: Buffer): boolean => {
-	if (timingSafeEqual(sk, groupOrder)) {
-		return false;
-	}
+	const equalToGroupOrder = timingSafeEqual(sk, groupOrder);
+	const equalToDoubleGroupOrder = timingSafeEqual(sk, groupOrderDouble);
 
-	if (timingSafeEqual(sk, groupOrderDouble)) {
-		return false;
-	}
-
-	return true;
+	return equalToGroupOrder || equalToDoubleGroupOrder;
 };
 
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.4
 export const blsSkToPk = (sk: Buffer): Buffer => {
-	if (!isMultipleOfGroupOrder(sk)) {
+	if (isMultipleOfGroupOrder(sk)) {
 		throw new Error('Secret key is not valid.');
 	}
 
@@ -98,7 +93,7 @@ export const blsAggregate = (signatures: Buffer[]): Buffer | false => {
 
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.6
 export const blsSign = (sk: Buffer, message: Buffer): Buffer => {
-	if (!isMultipleOfGroupOrder(sk)) {
+	if (isMultipleOfGroupOrder(sk)) {
 		throw new Error('Secret key is not valid.');
 	}
 
@@ -161,7 +156,7 @@ export const blsPopProve = (sk: Buffer): Buffer => {
 	const message = blsSkToPk(sk);
 	const sig = new blst.P2();
 
-	if (!isMultipleOfGroupOrder(sk)) {
+	if (isMultipleOfGroupOrder(sk)) {
 		throw new Error('Secret key is not valid.');
 	}
 

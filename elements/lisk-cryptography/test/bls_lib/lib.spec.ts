@@ -60,36 +60,36 @@ interface EthFastAggrVerifySpec {
 
 describe('bls_lib', () => {
 	describe('isMultipleOfGroupOrder', () => {
-		it('should return true if sk is not equal to groupOrder or groupOrderDouble', () => {
+		it('should return false if sk is not equal to groupOrder or groupOrderDouble', () => {
 			const sk = Buffer.from(
 				'73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000003',
 				'hex',
 			);
-			expect(isMultipleOfGroupOrder(sk)).toBe(true);
+			expect(isMultipleOfGroupOrder(sk)).toBe(false);
 		});
 
-		it('should return true when the buffer is not a multiple of the group order that is 32 bytes long', () => {
+		it('should return false when the buffer is not a multiple of the group order that is 32 bytes long', () => {
 			const sk = Buffer.from(
 				'0000000000000000000000000000000000000000000000000000000000000001',
 				'hex',
 			);
-			expect(isMultipleOfGroupOrder(sk)).toBe(true);
+			expect(isMultipleOfGroupOrder(sk)).toBe(false);
 		});
 
-		it('should return false when the buffer is equal to the group order', () => {
+		it('should return true when the buffer is equal to the group order', () => {
 			const sk = Buffer.from(
 				'73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001',
 				'hex',
 			);
-			expect(isMultipleOfGroupOrder(sk)).toBe(false);
+			expect(isMultipleOfGroupOrder(sk)).toBe(true);
 		});
 
-		it('should return false if sk is equal to 2 times the group order', () => {
+		it('should return true if sk is equal to 2 times the group order', () => {
 			const sk = Buffer.from(
 				'e7db4ea6533afa906673b0101343b00aa77b4805fffcb7fdfffffffe00000002',
 				'hex',
 			);
-			expect(isMultipleOfGroupOrder(sk)).toBe(false);
+			expect(isMultipleOfGroupOrder(sk)).toBe(true);
 		});
 	});
 
@@ -145,12 +145,12 @@ describe('bls_lib', () => {
 			expect(() => blsSkToPk(sk)).toThrow('Secret key is not valid.');
 		});
 
-		it('should pass if sk is equal to 3 times the group order', () => {
+		it('should throw error if sk is equal to 3 times the group order', () => {
 			const sk = Buffer.from(
-				'15bc8f5f97cd877d899ad88181ce5880ffb38ec08fffb13fcfffffffd00000003',
+				'015bc8f5f97cd877d899ad88181ce5880ffb38ec08fffb13fcfffffffd00000003',
 				'hex',
 			);
-			expect(() => blsSkToPk(sk)).not.toThrow();
+			expect(() => blsSkToPk(sk)).toThrow('Input buffers must have the same byte length');
 		});
 	});
 
@@ -201,10 +201,12 @@ describe('bls_lib', () => {
 
 		it('should pass if sk is equal to 3 times the group order', () => {
 			const sk = Buffer.from(
-				'15bc8f5f97cd877d899ad88181ce5880ffb38ec08fffb13fcfffffffd00000003',
+				'015bc8f5f97cd877d899ad88181ce5880ffb38ec08fffb13fcfffffffd00000003',
 				'hex',
 			);
-			expect(() => blsSign(sk, Buffer.alloc(32, 1))).not.toThrow();
+			expect(() => blsSign(sk, Buffer.alloc(32, 1))).toThrow(
+				'Input buffers must have the same byte length',
+			);
 		});
 	});
 
@@ -336,10 +338,10 @@ describe('bls_lib', () => {
 
 		it('should pass if sk is equal to 3 times the group order', () => {
 			const sk = Buffer.from(
-				'15bc8f5f97cd877d899ad88181ce5880ffb38ec08fffb13fcfffffffd00000003',
+				'015bc8f5f97cd877d899ad88181ce5880ffb38ec08fffb13fcfffffffd00000003',
 				'hex',
 			);
-			expect(() => blsPopProve(sk)).not.toThrow();
+			expect(() => blsPopProve(sk)).toThrow('Input buffers must have the same byte length');
 		});
 	});
 
