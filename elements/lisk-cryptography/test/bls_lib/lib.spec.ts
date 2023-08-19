@@ -336,7 +336,7 @@ describe('bls_lib', () => {
 			expect(() => blsPopProve(sk)).toThrow('Secret key is not valid.');
 		});
 
-		it('should pass if sk is equal to 3 times the group order', () => {
+		it('should throw if sk is equal to 3 times the group order', () => {
 			const sk = Buffer.from(
 				'015bc8f5f97cd877d899ad88181ce5880ffb38ec08fffb13fcfffffffd00000003',
 				'hex',
