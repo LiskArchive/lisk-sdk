@@ -199,7 +199,7 @@ describe('bls_lib', () => {
 			expect(() => blsSign(sk, Buffer.alloc(32, 1))).toThrow('Secret key is not valid.');
 		});
 
-		it('should pass if sk is equal to 3 times the group order', () => {
+		it('should throw error if sk is equal to 3 times the group order', () => {
 			const sk = Buffer.from(
 				'015bc8f5f97cd877d899ad88181ce5880ffb38ec08fffb13fcfffffffd00000003',
 				'hex',
