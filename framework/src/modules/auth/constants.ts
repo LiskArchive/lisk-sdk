@@ -22,3 +22,7 @@ export const MESSAGE_TAG_TRANSACTION = Buffer.from('LSK_TX_', 'utf8');
 export const ADDRESS_LENGTH = 20;
 export const ED25519_PUBLIC_KEY_LENGTH = 32;
 export const ED25519_SIGNATURE_LENGTH = 64;
+
+export const defaultConfig = {
+	maxNumberOfSignatures: MAX_NUMBER_OF_SIGNATURES,
+};

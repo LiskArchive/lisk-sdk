@@ -21,13 +21,7 @@ import {
 	CommandExecuteContext,
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
-import {
-	MAX_NUMBER_PENDING_UNLOCKS,
-	MAX_NUMBER_SENT_STAKES,
-	MODULE_NAME_POS,
-	PoSEventResult,
-	BASE_STAKE_AMOUNT,
-} from '../constants';
+import { MODULE_NAME_POS, PoSEventResult } from '../constants';
 import { ValidatorStakedEvent } from '../events/validator_staked';
 import { InternalMethod } from '../internal_method';
 import { stakeCommandParamsSchema } from '../schemas';
@@ -43,16 +37,28 @@ export class StakeCommand extends BaseCommand {
 	private _tokenMethod!: TokenMethod;
 	private _posTokenID!: TokenID;
 	private _internalMethod!: InternalMethod;
-	private _factorSelfStakes!: bigint;
+	private _factorSelfStakes!: number;
+	private _baseStakeAmount!: bigint;
+	private _maxNumberPendingUnlocks!: number;
+	private _maxNumberSentStakes!: number;
 
 	public addDependencies(args: { tokenMethod: TokenMethod; internalMethod: InternalMethod }) {
 		this._tokenMethod = args.tokenMethod;
 		this._internalMethod = args.internalMethod;
 	}
 
-	public init(args: { posTokenID: TokenID; factorSelfStakes: bigint }) {
+	public init(args: {
+		posTokenID: TokenID;
+		factorSelfStakes: number;
+		baseStakeAmount: bigint;
+		maxNumberPendingUnlocks: number;
+		maxNumberSentStakes: number;
+	}) {
 		this._posTokenID = args.posTokenID;
 		this._factorSelfStakes = args.factorSelfStakes;
+		this._baseStakeAmount = args.baseStakeAmount;
+		this._maxNumberPendingUnlocks = args.maxNumberPendingUnlocks;
+		this._maxNumberSentStakes = args.maxNumberSentStakes;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -87,7 +93,7 @@ export class StakeCommand extends BaseCommand {
 				};
 			}
 
-			if (stake.amount % BASE_STAKE_AMOUNT !== BigInt(0)) {
+			if (stake.amount % this._baseStakeAmount !== BigInt(0)) {
 				return {
 					status: VerifyStatus.FAIL,
 					error: new ValidationError(
@@ -104,21 +110,21 @@ export class StakeCommand extends BaseCommand {
 			}
 		}
 
-		if (upstakeCount > MAX_NUMBER_SENT_STAKES) {
+		if (upstakeCount > this._maxNumberSentStakes) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new ValidationError(
-					`Upstake can only be casted up to ${MAX_NUMBER_SENT_STAKES}.`,
+					`Upstake can only be casted up to ${this._maxNumberSentStakes}.`,
 					upstakeCount.toString(),
 				),
 			};
 		}
 
-		if (downstakeCount > MAX_NUMBER_SENT_STAKES) {
+		if (downstakeCount > this._maxNumberSentStakes) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new ValidationError(
-					`Downstake can only be casted up to ${MAX_NUMBER_SENT_STAKES}.`,
+					`Downstake can only be casted up to ${this._maxNumberSentStakes}.`,
 					downstakeCount.toString(),
 				),
 			};
@@ -237,7 +243,7 @@ export class StakeCommand extends BaseCommand {
 				// Sort account.unlocking
 				sortUnlocking(stakerData.pendingUnlocks);
 
-				if (stakerData.pendingUnlocks.length > MAX_NUMBER_PENDING_UNLOCKS) {
+				if (stakerData.pendingUnlocks.length > this._maxNumberPendingUnlocks) {
 					this.events.get(ValidatorStakedEvent).error(
 						context,
 						{
@@ -248,7 +254,7 @@ export class StakeCommand extends BaseCommand {
 						PoSEventResult.STAKE_FAILED_TOO_MANY_PENDING_UNLOCKS,
 					);
 
-					throw new Error(`Pending unlocks cannot exceed ${MAX_NUMBER_PENDING_UNLOCKS}.`);
+					throw new Error(`Pending unlocks cannot exceed ${this._maxNumberPendingUnlocks}.`);
 				}
 			}
 			// upstake
@@ -281,7 +287,7 @@ export class StakeCommand extends BaseCommand {
 				}
 
 				stakerData.stakes.sort((a, b) => a.validatorAddress.compare(b.validatorAddress));
-				if (stakerData.stakes.length > MAX_NUMBER_SENT_STAKES) {
+				if (stakerData.stakes.length > this._maxNumberSentStakes) {
 					this.events.get(ValidatorStakedEvent).error(
 						context,
 						{
@@ -292,7 +298,7 @@ export class StakeCommand extends BaseCommand {
 						PoSEventResult.STAKE_FAILED_TOO_MANY_SENT_STAKES,
 					);
 
-					throw new Error(`Sender can only stake upto ${MAX_NUMBER_SENT_STAKES.toString()}.`);
+					throw new Error(`Sender can only stake upto ${this._maxNumberSentStakes}.`);
 				}
 			}
 

@@ -15,7 +15,7 @@
 import { math } from '@liskhq/lisk-utils';
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import { BaseMethod } from '../base_method';
-import { EMPTY_KEY, MAX_LENGTH_NAME, REPORT_MISBEHAVIOR_LIMIT_BANNED } from './constants';
+import { EMPTY_KEY } from './constants';
 import { GenesisDataStore } from './stores/genesis';
 import { StakerStore } from './stores/staker';
 import { ModuleConfig, StakerData, TokenMethod } from './types';
@@ -47,7 +47,7 @@ export class PoSMethod extends BaseMethod {
 		name: string,
 	): Promise<boolean> {
 		const nameSubStore = this.stores.get(NameStore);
-		if (name.length > MAX_LENGTH_NAME || name.length < 1 || !isUsername(name)) {
+		if (name.length > this._config.maxLengthName || name.length < 1 || !isUsername(name)) {
 			return false;
 		}
 
@@ -164,7 +164,7 @@ export class PoSMethod extends BaseMethod {
 		if (!validator.isBanned) {
 			throw new Error('The specified validator is not banned.');
 		}
-		if (validator.reportMisbehaviorHeights.length >= REPORT_MISBEHAVIOR_LIMIT_BANNED) {
+		if (validator.reportMisbehaviorHeights.length >= this._config.reportMisbehaviorLimitBanned) {
 			throw new Error(
 				'Validator exceeded the maximum allowed number of misbehaviors and is permanently banned.',
 			);

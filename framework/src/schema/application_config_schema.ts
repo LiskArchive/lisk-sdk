@@ -14,11 +14,13 @@
  */
 
 import {
+	BFT_BATCH_SIZE,
 	DEFAULT_HOST,
 	DEFAULT_PORT_P2P,
 	DEFAULT_PORT_RPC,
 	MAX_CCM_SIZE,
 	MAX_NUM_VALIDATORS,
+	MAX_TRANSACTIONS_SIZE,
 } from '../constants';
 
 export const applicationConfigSchema = {
@@ -332,8 +334,8 @@ export const applicationConfigSchema = {
 				fromFile: './config/genesis_block.blob',
 			},
 			blockTime: 10,
-			bftBatchSize: 103,
-			maxTransactionsSize: 15 * 1024, // Kilo Bytes
+			bftBatchSize: BFT_BATCH_SIZE,
+			maxTransactionsSize: MAX_TRANSACTIONS_SIZE,
 			minimumCertifyHeight: 1,
 		},
 		generator: {

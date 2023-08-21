@@ -12,9 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+const MIN_FEE_PER_BYTE = 1000;
+const MAX_BLOCK_HEIGHT_ZERO_FEE_PER_BYTE = 0;
+
 export const defaultConfig = {
-	minFeePerByte: 1000,
-	maxBlockHeightZeroFeePerByte: 0,
+	minFeePerByte: MIN_FEE_PER_BYTE,
+	maxBlockHeightZeroFeePerByte: MAX_BLOCK_HEIGHT_ZERO_FEE_PER_BYTE,
 };
 
 export const CONTEXT_STORE_KEY_AVAILABLE_FEE = 'CONTEXT_STORE_KEY_AVAILABLE_FEE';

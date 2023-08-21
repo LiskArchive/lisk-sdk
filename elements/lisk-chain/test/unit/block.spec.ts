@@ -13,7 +13,7 @@
  */
 import { utils } from '@liskhq/lisk-cryptography';
 import { Block, BlockAsset, BlockAssets, Transaction } from '../../src';
-import { EMPTY_BUFFER, EMPTY_HASH } from '../../src/constants';
+import { EMPTY_BUFFER, EMPTY_HASH, MAX_ASSET_DATA_SIZE_BYTES } from '../../src/constants';
 import { createValidDefaultBlock } from '../utils/block';
 import { getTransaction } from '../utils/transaction';
 
@@ -28,11 +28,11 @@ describe('block', () => {
 			assetList = [
 				{
 					module: 'auth',
-					data: utils.getRandomBytes(64),
+					data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 				},
 				{
 					module: 'random',
-					data: utils.getRandomBytes(64),
+					data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 				},
 			];
 			blockAssets = new BlockAssets(assetList);
@@ -90,11 +90,11 @@ describe('block', () => {
 				const assets = [
 					{
 						module: 'auth',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 					{
 						module: 'random',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 				];
 				const txs = new Array(20).fill(0).map(() => tx);
@@ -139,11 +139,11 @@ describe('block', () => {
 			assetList = [
 				{
 					module: 'auth',
-					data: utils.getRandomBytes(64),
+					data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 				},
 				{
 					module: 'random',
-					data: utils.getRandomBytes(64),
+					data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 				},
 			];
 			blockAssets = new BlockAssets(assetList);
@@ -181,11 +181,11 @@ describe('block', () => {
 				const assets = [
 					{
 						module: 'auth',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 					{
 						module: 'random',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 				];
 				block = await createValidDefaultBlock({

@@ -12,10 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface ModuleConfig {
-	maxLengthRevealsMainchain?: number;
-}
-
 export interface BlockHeaderAssetRandomModule {
 	seedReveal: Buffer;
 }

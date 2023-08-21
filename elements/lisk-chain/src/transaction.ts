@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { address, ed, utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { NAME_REGEX, TAG_TRANSACTION, TRANSACTION_MAX_PARAMS_SIZE } from './constants';
+import { NAME_REGEX, TAG_TRANSACTION, MAX_PARAMS_SIZE } from './constants';
 import { JSONObject } from './types';
 
 export interface TransactionAttrs {
@@ -152,8 +152,8 @@ export class Transaction {
 			throw new Error(`Invalid command name ${this.command}`);
 		}
 
-		if (this.params.length > TRANSACTION_MAX_PARAMS_SIZE) {
-			throw new Error(`Params exceeds max size allowed ${TRANSACTION_MAX_PARAMS_SIZE}.`);
+		if (this.params.length > MAX_PARAMS_SIZE) {
+			throw new Error(`Params exceeds max size allowed ${MAX_PARAMS_SIZE}.`);
 		}
 
 		if (this.signatures.length === 0) {

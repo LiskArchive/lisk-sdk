@@ -23,7 +23,7 @@ import {
 	VerifyStatus,
 } from '../../../state_machine';
 import { AuthAccountStore } from '../stores/auth_account';
-import { MAX_NUMBER_OF_SIGNATURES, MESSAGE_TAG_MULTISIG_REG } from '../constants';
+import { MESSAGE_TAG_MULTISIG_REG } from '../constants';
 import { multisigRegMsgSchema, registerMultisignatureParamsSchema } from '../schemas';
 import { RegisterMultisignatureParams } from '../types';
 import { InvalidSignatureEvent } from '../events/invalid_signature';
@@ -31,6 +31,12 @@ import { MultisignatureRegistrationEvent } from '../events/multisignature_regist
 
 export class RegisterMultisignatureCommand extends BaseCommand {
 	public schema = registerMultisignatureParamsSchema;
+
+	private _maxNumberOfSignatures!: number;
+
+	public init(args: { maxNumberOfSignatures: number }) {
+		this._maxNumberOfSignatures = args.maxNumberOfSignatures;
+	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(
@@ -62,13 +68,13 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		}
 
 		if (
-			mandatoryKeys.length + optionalKeys.length > MAX_NUMBER_OF_SIGNATURES ||
+			mandatoryKeys.length + optionalKeys.length > this._maxNumberOfSignatures ||
 			mandatoryKeys.length + optionalKeys.length < 1
 		) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
-					`The count of Mandatory and Optional keys should be between 1 and ${MAX_NUMBER_OF_SIGNATURES}.`,
+					`The count of Mandatory and Optional keys should be between 1 and ${this._maxNumberOfSignatures}.`,
 				),
 			};
 		}
