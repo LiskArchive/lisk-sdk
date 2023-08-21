@@ -40,3 +40,10 @@ export const OWNER_READ_WRITE = 0o600;
 
 export const MAX_CCM_SIZE = 10240;
 export const MAX_NUM_VALIDATORS = 199;
+
+export const CHAIN_ID_LENGTH = 4;
+export const LOCAL_ID_LENGTH = 4;
+export const TOKEN_ID_LENGTH = CHAIN_ID_LENGTH + LOCAL_ID_LENGTH;
+
+export const MIN_MODULE_NAME_LENGTH = 1;
+export const MAX_MODULE_NAME_LENGTH = 32;
