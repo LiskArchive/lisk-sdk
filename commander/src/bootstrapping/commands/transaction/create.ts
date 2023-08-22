@@ -230,9 +230,9 @@ export abstract class CreateCommand extends Command {
 	];
 
 	static examples = [
-		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"send token"}\'',
-		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"send token"}\' --json',
-		'transaction:create token transfer 100000000 --offline --network mainnet --chain-id 10000000 --nonce 1 --params=\'{"amount":100000000,"recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"send token"}\'',
+		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"tokenID":"0400000000000000","recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"send token"}\'',
+		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"tokenID":"0400000000000000","recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"send token"}\' --json',
+		'transaction:create token transfer 100000000 --offline --network mainnet --chain-id 10000000 --nonce 1 --params=\'{"amount":100000000,"tokenID":"0400000000000000","recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"send token"}\'',
 		'transaction:create token transfer 100000000 --file=/txn_params.json',
 		'transaction:create token transfer 100000000 --file=/txn_params.json --json',
 	];
