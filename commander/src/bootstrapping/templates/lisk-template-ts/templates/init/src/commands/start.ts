@@ -11,6 +11,7 @@ import { MonitorPlugin } from '@liskhq/lisk-framework-monitor-plugin';
 import { ReportMisbehaviorPlugin } from '@liskhq/lisk-framework-report-misbehavior-plugin';
 import { DashboardPlugin } from '@liskhq/lisk-framework-dashboard-plugin';
 import { FaucetPlugin } from '@liskhq/lisk-framework-faucet-plugin';
+import { ChainConnectorPlugin } from '@liskhq/lisk-framework-chain-connector-plugin';
 import { join } from 'path';
 import { getApplication } from '../app/app';
 
@@ -75,7 +76,7 @@ export class StartCommand extends BaseStartCommand {
 		'enable-report-misbehavior-plugin': flagParser.boolean({
 			description:
 				'Enable ReportMisbehavior Plugin. Environment variable "LISK_ENABLE_REPORT_MISBEHAVIOR_PLUGIN" can also be used.',
-			env: 'LISK_ENABLE_MONITOR_PLUGIN',
+			env: 'LISK_ENABLE_MISBEHAVIOR_PLUGIN',
 			default: false,
 		}),
 		'enable-faucet-plugin': flagParser.boolean({
@@ -102,6 +103,12 @@ export class StartCommand extends BaseStartCommand {
 			env: 'LISK_DASHBOARD_PLUGIN_PORT',
 			dependsOn: ['enable-dashboard-plugin'],
 		}),
+		'enable-chain-connector-plugin': flagParser.boolean({
+			description:
+				'Enable ChainConnector Plugin. Environment variable "LISK_ENABLE_CHAIN_CONNECTOR_PLUGIN" can also be used.',
+			env: 'LISK_ENABLE_CONNECTOR_PLUGIN',
+			default: false,
+		}),
 	};
 
 	public async getApplication(config: PartialApplicationConfig): Promise<Application> {
@@ -125,6 +132,9 @@ export class StartCommand extends BaseStartCommand {
 		}
 		if (flags['enable-dashboard-plugin']) {
 			app.registerPlugin(new DashboardPlugin(), { loadAsChildProcess: true });
+		}
+		if (flags['enable-chain-connector-plugin']) {
+			app.registerPlugin(new ChainConnectorPlugin(), { loadAsChildProcess: true });
 		}
 
 		return app;
