@@ -13,9 +13,7 @@
  */
 
 import { BaseModule, ModuleMetadata } from '../base_module';
-// import { FeeMethod } from '../fee';
-// import { PoSMethod } from '../pos';
-// import { TokenMethod } from '../token';
+// import { FeeMethod, PoSMethod, TokenMethod } from './types';
 import { GovernanceEndpoint } from './endpoint';
 import { ProposalCreatedEvent } from './events/proposal_created';
 import { ProposalCreationFailedEvent } from './events/proposal_creation_failed';

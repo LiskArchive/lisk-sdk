@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { ImmutableMethodContext, MethodContext } from '../../state_machine';
+
 export enum ProposalType {
 	UNIVERSAL = 0,
 	FUNDING = 1,
@@ -44,4 +46,27 @@ export interface CreateProposalParams {
 	type: ProposalType;
 	description: ProposalDescription;
 	data: Buffer;
+}
+
+export interface TokenMethod {
+	lock(
+		methodContext: MethodContext,
+		address: Buffer,
+		module: string,
+		tokenID: Buffer,
+		amount: bigint,
+	): Promise<void>;
+	getAvailableBalance(
+		methodContext: ImmutableMethodContext,
+		address: Buffer,
+		tokenID: Buffer,
+	): Promise<bigint>;
+}
+
+export interface FeeMethod {
+	payFee(methodContext: MethodContext, amount: bigint): void;
+}
+
+export interface PoSMethod {
+	getLockedStakedAmount(ctx: ImmutableMethodContext, address: Buffer): Promise<bigint>;
 }
