@@ -13,10 +13,10 @@
  */
 import { BaseStore } from '../../base_store';
 
-export interface IndexStoreData {
+export interface ProposalIndexStoreData {
 	nextIndex: number;
 	nextOutcomeCheckIndex: number;
 	nextQuorumCheckIndex: number;
 }
 
-export class IndexStore extends BaseStore<IndexStoreData> {}
+export class ProposalIndexStore extends BaseStore<ProposalIndexStoreData> {}

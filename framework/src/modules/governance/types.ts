@@ -14,13 +14,13 @@
 
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 
-export enum ProposalType {
+export const enum ProposalType {
 	UNIVERSAL = 0,
 	FUNDING = 1,
 	CONFIG_UPDATE = 2,
 }
 
-export enum ProposalStatus {
+export const enum ProposalStatus {
 	ACTIVE = 0,
 	FINISHED_ACCEPTED = 1,
 	ACCEPTED_ERROR = 2,
@@ -28,7 +28,7 @@ export enum ProposalStatus {
 	FAILED_QUORUM = 4,
 }
 
-export enum ProposalDecision {
+export const enum ProposalDecision {
 	YES = 0,
 	NO = 1,
 	PASS = 2,

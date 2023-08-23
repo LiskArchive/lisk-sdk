@@ -21,7 +21,7 @@ import { ProposalOutcomeEvent } from './events/proposal_outcome';
 import { ProposalQuorumCheckedEvent } from './events/proposal_quorum_checked';
 import { ProposalVotedEvent } from './events/proposal_voted';
 import { GovernanceMethod } from './method';
-import { IndexStore } from './stores';
+import { ProposalIndexStore } from './stores/proposal_index';
 import { ConfigStore } from './stores/config';
 import { ProposalsStore } from './stores/proposals';
 import { VotesStore } from './stores/votes';
@@ -39,7 +39,7 @@ export class GovernanceModule extends BaseModule {
 
 		this.stores.register(ProposalsStore, new ProposalsStore(this.name, 0));
 		this.stores.register(VotesStore, new VotesStore(this.name, 1));
-		this.stores.register(IndexStore, new IndexStore(this.name, 2));
+		this.stores.register(ProposalIndexStore, new ProposalIndexStore(this.name, 2));
 		this.stores.register(ConfigStore, new ConfigStore(this.name, 3));
 
 		this.events.register(ProposalCreatedEvent, new ProposalCreatedEvent(this.name));
