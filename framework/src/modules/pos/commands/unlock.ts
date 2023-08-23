@@ -18,21 +18,32 @@ import { EMPTY_KEY, MODULE_NAME_POS } from '../constants';
 import { ValidatorStore } from '../stores/validator';
 import { GenesisDataStore } from '../stores/genesis';
 import { StakerStore } from '../stores/staker';
-import { TokenMethod, TokenID, UnlockCommandDependencies } from '../types';
+import {
+	TokenMethod,
+	TokenID,
+	UnlockCommandDependencies,
+	PunishmentLockingPeriods,
+} from '../types';
 import { isPunished, isCertificateGenerated, hasWaited } from '../utils';
 
 export class UnlockCommand extends BaseCommand {
 	private _tokenMethod!: TokenMethod;
 	private _posTokenID!: TokenID;
 	private _roundLength!: number;
+	private _punishmentLockingPeriods!: PunishmentLockingPeriods;
 
 	public addDependencies(args: UnlockCommandDependencies) {
 		this._tokenMethod = args.tokenMethod;
 	}
 
-	public init(args: { posTokenID: TokenID; roundLength: number }) {
+	public init(args: {
+		posTokenID: TokenID;
+		roundLength: number;
+		punishmentLockingPeriods: PunishmentLockingPeriods;
+	}) {
 		this._posTokenID = args.posTokenID;
 		this._roundLength = args.roundLength;
+		this._punishmentLockingPeriods = args.punishmentLockingPeriods;
 	}
 
 	public async execute(context: CommandExecuteContext): Promise<void> {
@@ -56,8 +67,14 @@ export class UnlockCommand extends BaseCommand {
 			);
 
 			if (
-				hasWaited(unlockObject, senderAddress, height) &&
-				!isPunished(unlockObject, reportMisbehaviorHeights, senderAddress, height) &&
+				hasWaited(unlockObject, senderAddress, height, this._punishmentLockingPeriods) &&
+				!isPunished(
+					unlockObject,
+					reportMisbehaviorHeights,
+					senderAddress,
+					height,
+					this._punishmentLockingPeriods,
+				) &&
 				isCertificateGenerated({
 					unlockObject,
 					genesisHeight,

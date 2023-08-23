@@ -49,10 +49,8 @@ import { SnapshotStore } from '../../../../src/modules/pos/stores/snapshot';
 import { createStoreGetter } from '../../../../src/testing/utils';
 import {
 	CHAIN_ID_LENGTH,
-	COMMISSION_INCREASE_PERIOD,
-	MAX_COMMISSION_INCREASE_RATE,
 	TOKEN_ID_LENGTH,
-	WEIGHT_SCALE_FACTOR,
+	defaultConfig,
 } from '../../../../src/modules/pos/constants';
 import { EligibleValidatorsStore } from '../../../../src/modules/pos/stores/eligible_validators';
 import {
@@ -63,25 +61,7 @@ import {
 
 describe('PoS module', () => {
 	const EMPTY_KEY = Buffer.alloc(0);
-	const defaultConfig = {
-		factorSelfStakes: 10,
-		maxLengthName: 20,
-		maxNumberSentStakes: 10,
-		maxNumberPendingUnlocks: 20,
-		failSafeMissedBlocks: 50,
-		failSafeInactiveWindow: 260000,
-		punishmentWindow: 780000,
-		roundLength: 103,
-		minWeightStandby: (BigInt(1000) * BigInt(10 ** 8)).toString(),
-		numberActiveValidators: 101,
-		numberStandbyValidators: 2,
-		posTokenID: '0000000000000000',
-		validatorRegistrationFee: (BigInt(10) * BigInt(10) ** BigInt(8)).toString(),
-		maxBFTWeightCap: 500,
-		commissionIncreasePeriod: COMMISSION_INCREASE_PERIOD,
-		maxCommissionIncreaseRate: MAX_COMMISSION_INCREASE_RATE,
-		useInvalidBLSKey: false,
-	};
+	const genesisConfig = { chainID: '00'.repeat(CHAIN_ID_LENGTH) } as GenesisConfig;
 
 	const sortValidatorsByWeightDesc = (validators: ValidatorWeight[]) =>
 		validators.sort((a, b) => {
@@ -102,12 +82,7 @@ describe('PoS module', () => {
 
 	describe('init', () => {
 		it('should initialize config with default value when module config is empty', async () => {
-			await expect(
-				pos.init({
-					genesisConfig: { chainID: '00'.repeat(CHAIN_ID_LENGTH) } as any,
-					moduleConfig: {},
-				}),
-			).resolves.toBeUndefined();
+			await expect(pos.init({ genesisConfig, moduleConfig: {} })).resolves.toBeUndefined();
 
 			const expectedConfig = getModuleConfig({
 				...defaultConfig,
@@ -119,41 +94,38 @@ describe('PoS module', () => {
 
 		it('should initialize config with given value', async () => {
 			await expect(
-				pos.init({
-					genesisConfig: { chainID: '00'.repeat(CHAIN_ID_LENGTH) } as any,
-					moduleConfig: { ...defaultConfig, maxLengthName: 25 },
-				}),
+				pos.init({ genesisConfig, moduleConfig: { ...defaultConfig, maxLengthName: 25 } }),
 			).toResolve();
 
 			expect(pos['_moduleConfig'].maxLengthName).toBe(25);
 		});
 
-		it('should throw when configured values for failSafeInactiveWindow or punishmentWindow are outside of their allowed ranges', async () => {
+		it('should throw when configured values for failSafeInactiveWindow or punishmentWindowSelfStaking are outside of their allowed ranges', async () => {
 			await expect(
 				pos.init({
-					genesisConfig: { chainID: '00000000', blockTime: 3 } as any,
+					genesisConfig: { ...genesisConfig, blockTime: 3 } as any,
 					moduleConfig: { ...defaultConfig, failSafeInactiveWindow: 140_000 },
 				}),
 			).rejects.toThrow('Lisk validator found 1 error[s]:');
 
 			await expect(
 				pos.init({
-					genesisConfig: { chainID: '00000000', blockTime: 5 } as any,
+					genesisConfig: { ...genesisConfig, blockTime: 5 } as any,
 					moduleConfig: { ...defaultConfig, failSafeInactiveWindow: 6_400_000 },
 				}),
 			).rejects.toThrow('Lisk validator found 1 error[s]:');
 
 			await expect(
 				pos.init({
-					genesisConfig: { chainID: '00000000', blockTime: 7 } as any,
-					moduleConfig: { ...defaultConfig, punishmentWindow: 60_000 },
+					genesisConfig: { ...genesisConfig, blockTime: 7 } as any,
+					moduleConfig: { ...defaultConfig, punishmentWindowSelfStaking: 60_000 },
 				}),
 			).rejects.toThrow('Lisk validator found 1 error[s]:');
 
 			await expect(
 				pos.init({
-					genesisConfig: { chainID: '00000000', blockTime: 8 } as any,
-					moduleConfig: { ...defaultConfig, punishmentWindow: 4_000_000 },
+					genesisConfig: { ...genesisConfig, blockTime: 8 } as any,
+					moduleConfig: { ...defaultConfig, punishmentWindowSelfStaking: 4_000_000 },
 				}),
 			).rejects.toThrow('Lisk validator found 1 error[s]:');
 		});
@@ -192,10 +164,7 @@ describe('PoS module', () => {
 			};
 			pos.addDependencies(randomMethod, validatorMethod, tokenMethod, feeMethod);
 
-			await pos.init({
-				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfig,
-			});
+			await pos.init({ genesisConfig, moduleConfig: defaultConfig });
 		});
 
 		describe.each(invalidAssets)('%p', (_, data, errString) => {
@@ -331,7 +300,7 @@ describe('PoS module', () => {
 			describe('when moduleConfig.useInvalidBLSKey is set to true and chain is mainchain', () => {
 				beforeEach(async () => {
 					await pos.init({
-						genesisConfig: {} as GenesisConfig,
+						genesisConfig,
 						moduleConfig: { ...defaultConfig, useInvalidBLSKey: true },
 					});
 				});
@@ -351,10 +320,7 @@ describe('PoS module', () => {
 
 	describe('_createStakeWeightSnapshot', () => {
 		beforeEach(async () => {
-			await pos.init({
-				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfig,
-			});
+			await pos.init({ genesisConfig, moduleConfig: defaultConfig });
 		});
 
 		describe('when all eligible validators are not punished', () => {
@@ -379,7 +345,7 @@ describe('PoS module', () => {
 						eligibleValidatorStore.getKey(
 							Buffer.from(data.address, 'hex'),
 							getValidatorWeight(
-								BigInt(defaultConfig.factorSelfStakes),
+								defaultConfig.factorSelfStakes,
 								BigInt(data.validatorWeight),
 								BigInt(data.validatorWeight),
 							),
@@ -406,6 +372,8 @@ describe('PoS module', () => {
 		describe('when there are validators who are PoMed', () => {
 			const fixtures = forgerSelectionMoreThan2StandByScenario.testCases.input.validatorWeights;
 
+			const height = 1030000;
+
 			let context: BlockAfterExecuteContext;
 			let stateStore: PrefixedStateReadWriter;
 
@@ -413,7 +381,7 @@ describe('PoS module', () => {
 				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				context = createBlockContext({
 					stateStore,
-					header: createFakeBlockHeader({ height: 1030000 }),
+					header: createFakeBlockHeader({ height }),
 				}).getBlockAfterExecuteContext();
 				const genesisDataStore = pos.stores.get(GenesisDataStore);
 				await genesisDataStore.set(context, EMPTY_KEY, {
@@ -440,7 +408,7 @@ describe('PoS module', () => {
 						BigInt(fixtures[1].validatorWeight),
 					),
 					{
-						lastReportMisbehaviorHeight: 250001,
+						lastReportMisbehaviorHeight: height - defaultConfig.punishmentWindowSelfStaking + 1,
 					},
 				);
 				await eligibleValidatorStore.set(
@@ -450,7 +418,7 @@ describe('PoS module', () => {
 						BigInt(fixtures[2].validatorWeight),
 					),
 					{
-						lastReportMisbehaviorHeight: 250000,
+						lastReportMisbehaviorHeight: height - defaultConfig.punishmentWindowSelfStaking,
 					},
 				);
 				for (const data of fixtures.slice(3)) {
@@ -499,10 +467,7 @@ describe('PoS module', () => {
 
 	describe('_updateValidators', () => {
 		beforeEach(async () => {
-			await pos.init({
-				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfig,
-			});
+			await pos.init({ genesisConfig, moduleConfig: defaultConfig });
 		});
 
 		describe('given valid scenarios', () => {
@@ -530,7 +495,7 @@ describe('PoS module', () => {
 						const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 						const blockContext = createBlockContext({
 							header: createFakeBlockHeader({
-								height: (defaultRound - 1) * defaultConfig.roundLength,
+								height: (defaultRound - 1) * pos['_moduleConfig'].roundLength,
 							}),
 							stateStore,
 						});
@@ -606,7 +571,7 @@ describe('PoS module', () => {
 				const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				blockContext = createBlockContext({
 					header: createFakeBlockHeader({
-						height: (defaultRound - 1) * defaultConfig.roundLength,
+						height: (defaultRound - 1) * pos['_moduleConfig'].roundLength,
 					}),
 					stateStore,
 				});
@@ -663,7 +628,7 @@ describe('PoS module', () => {
 
 			it('should have activeValidators + standbyValidators validators in the generators list', () => {
 				expect((validatorMethod.setValidatorsParams as jest.Mock).mock.calls[0][4]).toHaveLength(
-					defaultConfig.roundLength,
+					pos['_moduleConfig'].roundLength,
 				);
 			});
 
@@ -695,7 +660,7 @@ describe('PoS module', () => {
 				const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				blockContext = createBlockContext({
 					header: createFakeBlockHeader({
-						height: (defaultRound - 1) * defaultConfig.roundLength,
+						height: (defaultRound - 1) * pos['_moduleConfig'].roundLength,
 					}),
 					stateStore,
 				});
@@ -752,7 +717,7 @@ describe('PoS module', () => {
 
 			it('should have activeValidators + standbyValidators validators in the generators list', () => {
 				expect((validatorMethod.setValidatorsParams as jest.Mock).mock.calls[0][4]).toHaveLength(
-					defaultConfig.roundLength,
+					pos['_moduleConfig'].roundLength,
 				);
 			});
 
@@ -793,12 +758,7 @@ describe('PoS module', () => {
 		let validatorStore: ValidatorStore;
 
 		beforeEach(async () => {
-			await pos.init({
-				genesisConfig: {
-					chainID: '00000000',
-				} as GenesisConfig,
-				moduleConfig: defaultConfig,
-			});
+			await pos.init({ genesisConfig, moduleConfig: defaultConfig });
 
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
@@ -1203,10 +1163,7 @@ describe('PoS module', () => {
 		const initValidators = new Array(101).fill(0).map(() => utils.getRandomBytes(20));
 
 		beforeEach(async () => {
-			await pos.init({
-				genesisConfig: {} as GenesisConfig,
-				moduleConfig: defaultConfig,
-			});
+			await pos.init({ genesisConfig, moduleConfig: defaultConfig });
 
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			await pos.stores.get(GenesisDataStore).set(createStoreGetter(stateStore), EMPTY_KEY, {
@@ -1360,7 +1317,9 @@ describe('PoS module', () => {
 				const notFromInitValidators = result.filter(
 					v => initValidators.findIndex(address => v.address.equals(address)) === -1,
 				);
-				expect(notFromInitValidators.every(v => v.weight <= WEIGHT_SCALE_FACTOR)).toBeTrue();
+				expect(
+					notFromInitValidators.every(v => v.weight <= BigInt(defaultConfig.weightScaleFactor)),
+				).toBeTrue();
 			});
 		});
 
@@ -1441,7 +1400,9 @@ describe('PoS module', () => {
 				const notFromInitValidators = result.filter(
 					v => initValidators.findIndex(address => v.address.equals(address)) === -1,
 				);
-				expect(notFromInitValidators.every(v => v.weight <= WEIGHT_SCALE_FACTOR)).toBeTrue();
+				expect(
+					notFromInitValidators.every(v => v.weight <= BigInt(defaultConfig.weightScaleFactor)),
+				).toBeTrue();
 			});
 		});
 
@@ -1534,12 +1495,7 @@ describe('PoS module', () => {
 		let genesisDataStore: GenesisDataStore;
 
 		beforeEach(async () => {
-			await pos.init({
-				genesisConfig: {
-					chainID: '00000000',
-				} as GenesisConfig,
-				moduleConfig: defaultConfig,
-			});
+			await pos.init({ genesisConfig, moduleConfig: defaultConfig });
 			pos.addDependencies(randomMethod, validatorsMethod, tokenMethod, feeMethod);
 
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());

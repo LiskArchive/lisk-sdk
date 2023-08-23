@@ -64,6 +64,9 @@ describe('utils', () => {
 				minWeightStandby: BigInt(defaultConfig.minWeightStandby),
 				posTokenID: Buffer.alloc(TOKEN_ID_LENGTH),
 				validatorRegistrationFee: BigInt(defaultConfig.validatorRegistrationFee),
+				baseStakeAmount: BigInt(defaultConfig.baseStakeAmount),
+				reportMisbehaviorReward: BigInt(defaultConfig.reportMisbehaviorReward),
+				weightScaleFactor: BigInt(defaultConfig.weightScaleFactor),
 			};
 
 			const actual: ModuleConfig = getModuleConfig({

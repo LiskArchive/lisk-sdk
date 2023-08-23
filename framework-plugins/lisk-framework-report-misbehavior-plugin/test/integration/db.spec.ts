@@ -83,31 +83,19 @@ describe('db', () => {
 				),
 				id: Buffer.from('e734e77355e887660b5a8382eba26fa0b536b7deb1ddfdda394bdb6614b4cd55', 'hex'),
 			});
-			const result = await getContradictingBlockHeader(
-				db,
-				header,
-				reportMisbehaviorPlugin['apiClient'],
-			);
+			const result = await getContradictingBlockHeader(db, header);
 			expect(result).toBeUndefined();
 		});
 
 		it('should resolve undefine when there are no conflicting block header by the same generator', async () => {
 			const decodedBlockHeader1 = chain.BlockHeader.fromBytes(blockHeader1);
-			const result = await getContradictingBlockHeader(
-				db,
-				decodedBlockHeader1,
-				reportMisbehaviorPlugin['apiClient'],
-			);
+			const result = await getContradictingBlockHeader(db, decodedBlockHeader1);
 			expect(result).toBeUndefined();
 		});
 
 		it('should resolve a contradicting blockheader when there is a conflicting block in the database', async () => {
 			const decodedBlockHeader1 = chain.BlockHeader.fromBytes(blockHeader1Contradicting);
-			const result = await getContradictingBlockHeader(
-				db,
-				decodedBlockHeader1,
-				reportMisbehaviorPlugin['apiClient'],
-			);
+			const result = await getContradictingBlockHeader(db, decodedBlockHeader1);
 			expect(result).toBeDefined();
 
 			expect(result?.getBytes().toString('hex')).toEqual(blockHeader1.toString('hex'));

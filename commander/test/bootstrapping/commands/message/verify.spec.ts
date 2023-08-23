@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getConfig } from '../../helpers/config';
-import VerifyCommand from '../../../src/commands/message/verify';
-import * as readerUtils from '../../../src/utils/reader';
-import { Awaited } from '../../types';
+import { getConfig } from '../../../helpers/config';
+import { VerifyCommand } from '../../../../src/commands/message/verify';
+import * as readerUtils from '../../../../src/utils/reader';
+import { Awaited } from '../../../types';
 
 describe('message:verify', () => {
 	const message = 'Hello World';

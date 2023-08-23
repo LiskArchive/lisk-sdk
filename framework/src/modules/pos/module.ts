@@ -29,10 +29,8 @@ import {
 	VALIDATOR_LIST_ROUND_OFFSET,
 	EMPTY_KEY,
 	MAX_NUMBER_SENT_STAKES,
-	MAX_NUMBER_PENDING_UNLOCKS,
 	defaultConfig,
 	MAX_CAP,
-	WEIGHT_SCALE_FACTOR,
 } from './constants';
 import { PoSEndpoint } from './endpoint';
 import {
@@ -66,6 +64,7 @@ import {
 	ModuleConfigJSON,
 	ModuleConfig,
 	FeeMethod,
+	PunishmentLockingPeriods,
 } from './types';
 import {
 	equalUnlocking,
@@ -273,12 +272,29 @@ export class PoSModule extends BaseModule {
 
 		this._moduleConfig = getModuleConfig(config);
 
+		const punishmentLockingPeriods: PunishmentLockingPeriods = {
+			punishmentWindowStaking: this._moduleConfig.punishmentWindowStaking,
+			punishmentWindowSelfStaking: this._moduleConfig.punishmentWindowSelfStaking,
+			lockingPeriodStaking: this._moduleConfig.lockingPeriodStaking,
+			lockingPeriodSelfStaking: this._moduleConfig.lockingPeriodSelfStaking,
+		};
+
 		this.method.init(this.name, this._moduleConfig, this._internalMethod, this._tokenMethod);
-		this.endpoint.init(this.name, this._moduleConfig, this._internalMethod, this._tokenMethod);
+		this.endpoint.init(
+			this.name,
+			this._moduleConfig,
+			this._internalMethod,
+			this._tokenMethod,
+			punishmentLockingPeriods,
+		);
 
 		this._reportMisbehaviorCommand.init({
 			posTokenID: this._moduleConfig.posTokenID,
 			factorSelfStakes: this._moduleConfig.factorSelfStakes,
+			lockingPeriodSelfStaking: this._moduleConfig.lockingPeriodSelfStaking,
+			reportMisbehaviorReward: this._moduleConfig.reportMisbehaviorReward,
+			reportMisbehaviorLimitBanned: this._moduleConfig.reportMisbehaviorLimitBanned,
+			punishmentLockingPeriods,
 		});
 		this._registerValidatorCommand.init({
 			validatorRegistrationFee: this._moduleConfig.validatorRegistrationFee,
@@ -286,10 +302,14 @@ export class PoSModule extends BaseModule {
 		this._unlockCommand.init({
 			posTokenID: this._moduleConfig.posTokenID,
 			roundLength: this._moduleConfig.roundLength,
+			punishmentLockingPeriods,
 		});
 		this._stakeCommand.init({
 			posTokenID: this._moduleConfig.posTokenID,
-			factorSelfStakes: BigInt(this._moduleConfig.factorSelfStakes),
+			factorSelfStakes: this._moduleConfig.factorSelfStakes,
+			baseStakeAmount: this._moduleConfig.baseStakeAmount,
+			maxNumberPendingUnlocks: this._moduleConfig.maxNumberPendingUnlocks,
+			maxNumberSentStakes: this._moduleConfig.maxNumberSentStakes,
 		});
 		this._changeCommissionCommand.init({
 			commissionIncreasePeriod: this._moduleConfig.commissionIncreasePeriod,
@@ -297,10 +317,6 @@ export class PoSModule extends BaseModule {
 		});
 
 		this.stores.get(EligibleValidatorsStore).init(this._moduleConfig);
-		this._stakeCommand.init({
-			posTokenID: this._moduleConfig.posTokenID,
-			factorSelfStakes: BigInt(this._moduleConfig.factorSelfStakes),
-		});
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
@@ -378,8 +394,10 @@ export class PoSModule extends BaseModule {
 				}
 			}
 
-			if (staker.pendingUnlocks.length > MAX_NUMBER_PENDING_UNLOCKS) {
-				throw new Error(`PendingUnlocks exceeds max unlocking ${MAX_NUMBER_PENDING_UNLOCKS}.`);
+			if (staker.pendingUnlocks.length > this._moduleConfig.maxNumberPendingUnlocks) {
+				throw new Error(
+					`PendingUnlocks exceeds max unlocking ${this._moduleConfig.maxNumberPendingUnlocks}.`,
+				);
 			}
 			const sortingPendingUnlocks = [...staker.pendingUnlocks];
 			sortUnlocking(sortingPendingUnlocks);
@@ -592,7 +610,8 @@ export class PoSModule extends BaseModule {
 		for (const { key, value } of eligibleValidatorsList) {
 			if (
 				value.lastReportMisbehaviorHeight === 0 ||
-				value.lastReportMisbehaviorHeight < snapshotHeight - this._moduleConfig.punishmentWindow
+				value.lastReportMisbehaviorHeight <
+					snapshotHeight - this._moduleConfig.punishmentWindowSelfStaking
 			) {
 				const [address, weight] = eligibleValidatorStore.splitKey(key);
 				validatorWeightSnapshot.push({ address, weight });
@@ -721,7 +740,7 @@ export class PoSModule extends BaseModule {
 					context,
 					address,
 					getValidatorWeight(
-						BigInt(this._moduleConfig.factorSelfStakes),
+						this._moduleConfig.factorSelfStakes,
 						validatorData.selfStake,
 						validatorData.totalStake,
 					),
@@ -766,7 +785,7 @@ export class PoSModule extends BaseModule {
 			const numElectedValidators = this._moduleConfig.numberActiveValidators - numInitValidators;
 			let weightSum = BigInt(0);
 			const activeValidators = snapshotValidators.slice(0, numElectedValidators).map(v => {
-				const scaledWeight = this._ceiling(v.weight, WEIGHT_SCALE_FACTOR);
+				const scaledWeight = this._ceiling(v.weight, this._moduleConfig.weightScaleFactor);
 				weightSum += scaledWeight;
 				return {
 					...v,
@@ -803,7 +822,10 @@ export class PoSModule extends BaseModule {
 				? snapshotValidators.slice(0, this._moduleConfig.numberActiveValidators)
 				: snapshotValidators;
 		return this._capWeightIfNeeded(
-			activeValidators.map(v => ({ ...v, weight: this._ceiling(v.weight, WEIGHT_SCALE_FACTOR) })),
+			activeValidators.map(v => ({
+				...v,
+				weight: this._ceiling(v.weight, this._moduleConfig.weightScaleFactor),
+			})),
 		);
 	}
 
@@ -855,8 +877,8 @@ export class PoSModule extends BaseModule {
 		const posSchema = { ...configSchema };
 		posSchema.properties.failSafeInactiveWindow.minimum = Math.floor(5 * blocksPerDay);
 		posSchema.properties.failSafeInactiveWindow.maximum = Math.floor(365 * blocksPerDay);
-		posSchema.properties.punishmentWindow.minimum = Math.floor(5 * blocksPerDay);
-		posSchema.properties.punishmentWindow.maximum = Math.floor(365 * blocksPerDay);
+		posSchema.properties.punishmentWindowSelfStaking.minimum = Math.floor(5 * blocksPerDay);
+		posSchema.properties.punishmentWindowSelfStaking.maximum = Math.floor(365 * blocksPerDay);
 
 		return posSchema;
 	}

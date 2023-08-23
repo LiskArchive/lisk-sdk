@@ -18,7 +18,6 @@ import { createBlockContext, createBlockHeaderWithDefaults } from '../../../../s
 import {
 	REWARD_NO_REDUCTION,
 	REWARD_REDUCTION_SEED_REVEAL,
-	REWARD_REDUCTION_FACTOR_BFT,
 	REWARD_REDUCTION_MAX_PREVOTES,
 	CONTEXT_STORE_KEY_BLOCK_REWARD,
 	CONTEXT_STORE_KEY_BLOCK_REDUCTION,
@@ -39,6 +38,7 @@ describe('RewardModule', () => {
 			'100000000', // Milestone 4
 		],
 		tokenID: '0000000000000000',
+		rewardReductionFactorBFT: '4',
 	};
 
 	let rewardModule: RewardModule;
@@ -68,6 +68,7 @@ describe('RewardModule', () => {
 				...moduleConfig,
 				brackets: moduleConfig.brackets.map(b => BigInt(b)),
 				tokenID: Buffer.from(moduleConfig.tokenID, 'hex'),
+				rewardReductionFactorBFT: BigInt(moduleConfig.rewardReductionFactorBFT),
 			});
 		});
 
@@ -211,7 +212,7 @@ describe('RewardModule', () => {
 			rewardModule.method.getBlockReward = jest
 				.fn()
 				.mockReturnValue([
-					BigInt(1) / BigInt(REWARD_REDUCTION_FACTOR_BFT),
+					BigInt(1) / BigInt(rewardModule['_moduleConfig'].rewardReductionFactorBFT),
 					REWARD_REDUCTION_MAX_PREVOTES,
 				]);
 			await rewardModule.beforeTransactionsExecute(blockExecuteContext);
