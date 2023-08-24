@@ -101,15 +101,25 @@ export interface TransactionVerifyContext {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
+/** Context for the command verification. */
 export interface CommandVerifyContext<T = undefined> {
+	/** Logger interface, to create log messages. */
 	logger: Logger;
+	/** The identifier of the blockchain network, in which this command is executed. */
 	chainID: Buffer;
+	/** Timestamp and height when the transaction was sent. */
 	header: { timestamp: number; height: number };
+	/** The transaction to verify. */
 	transaction: Transaction; // without decoding params
+	/** The command-specific parameters. */
 	params: T;
+	/** TBD */
 	getMethodContext: () => ImmutableMethodContext;
+	/** TBD */
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
+	/** State store interface, to get data from the module stores. */
 	stateStore: ImmutableStateStore;
+	/** TBD */
 	contextStore: Map<string, unknown>;
 }
 

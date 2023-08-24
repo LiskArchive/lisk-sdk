@@ -76,6 +76,13 @@ import { CrossChainTransferCommand as CrossChainTransferMessageCommand } from '.
 import { TransferCrossChainCommand } from './commands/transfer_cross_chain';
 import { InternalMethod } from './internal_method';
 
+/**
+ * The Token module handles all logic related to balance.
+ * Specifically the following criteria:
+ *
+ * - Storing token balances of accounts
+ * - Transferring tokens between accounts.
+ */
 export class TokenModule extends BaseInteroperableModule {
 	public method = new TokenMethod(this.stores, this.events, this.name);
 	public endpoint = new TokenEndpoint(this.stores, this.offchainStores);
