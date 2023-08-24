@@ -88,6 +88,14 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 
 		if (flags.output) {
 			const { dir } = path.parse(flags.output);
+			// eslint-disable-next-line no-console
+			console.log('dir', dir);
+
+			/* The code is checking if the directory specified in the `output` flag does not exist. If the
+			directory does not exist, it logs the directory path to the console. */
+			if (!fs.existsSync(dir)) {
+				console.error('dir does not exist');
+			}
 			fs.ensureDirSync(dir);
 		}
 
@@ -124,12 +132,12 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 			this.log(`Generator info is exported to ${flags.output}`);
 		} else {
 			// write to cwd
-			fs.writeJSONSync(path.join(process.cwd(), 'genInfo.json'), output, {
+			fs.writeJSONSync(`${process.cwd()}/genInfo.json`, output, {
 				spaces: ' ',
 				mode: OWNER_READ_WRITE,
 			});
 
-			this.log(JSON.stringify(output, undefined, '  '));
+			// this.log(JSON.stringify(output, undefined, '  '));
 			this.log(`Generator info is exported to ${process.cwd()}/genInfo.json`);
 		}
 	}

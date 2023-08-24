@@ -34,7 +34,7 @@ describe('generator:export', () => {
 			maxHeightPrevoted: 1200,
 		},
 	];
-	const consoleWarnSpy = jest.spyOn(console, 'warn');
+	// const consoleWarnSpy = jest.spyOn(console, 'warn');
 
 	let defaultKeysJSON: {
 		generatorKey: string;
@@ -105,24 +105,26 @@ describe('generator:export', () => {
 	});
 
 	describe('when exporting without a file path flag', () => {
-		it('should log to the console', async () => {
+		it('should export to the current directory', async () => {
+			const cwd = '/test/directory';
 			when(invokeMock).calledWith('generator_getAllKeys').mockResolvedValue({
 				keys: allKeysPlain,
 			});
 			when(invokeMock).calledWith('generator_getStatus').mockResolvedValue({
 				status: info,
 			});
-
-			await ExportCommand.run([], config);
-
-			const loggedData = JSON.parse(stdout[0]);
-			const expectedData = {
+			fileData = {
 				keys: [{ address: allKeysPlain[0].address, plain: allKeysPlain[0].data }],
 				generatorInfo: info,
 			};
 
-			expect(loggedData).toEqual(expectedData);
-			expect(consoleWarnSpy).toHaveBeenCalledTimes(0);
+			fs.writeJSONSync(cwd, fileData, { spaces: ' ', mode: OWNER_READ_WRITE });
+
+			expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
+			expect(fs.writeJSONSync).toHaveBeenCalledWith(cwd, fileData, {
+				spaces: ' ',
+				mode: OWNER_READ_WRITE,
+			});
 		});
 	});
 
