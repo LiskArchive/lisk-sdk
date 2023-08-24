@@ -16,7 +16,6 @@ import { BaseModule, ModuleMetadata } from '../base_module';
 // import { FeeMethod, PoSMethod, TokenMethod } from './types';
 import { GovernanceEndpoint } from './endpoint';
 import { ProposalCreatedEvent } from './events/proposal_created';
-import { ProposalCreationFailedEvent } from './events/proposal_creation_failed';
 import { ProposalOutcomeEvent } from './events/proposal_outcome';
 import { ProposalQuorumCheckedEvent } from './events/proposal_quorum_checked';
 import { ProposalVotedEvent } from './events/proposal_voted';
@@ -43,7 +42,6 @@ export class GovernanceModule extends BaseModule {
 		this.stores.register(ConfigStore, new ConfigStore(this.name, 3));
 
 		this.events.register(ProposalCreatedEvent, new ProposalCreatedEvent(this.name));
-		this.events.register(ProposalCreationFailedEvent, new ProposalCreationFailedEvent(this.name));
 		this.events.register(ProposalQuorumCheckedEvent, new ProposalQuorumCheckedEvent(this.name));
 		this.events.register(ProposalOutcomeEvent, new ProposalOutcomeEvent(this.name));
 		this.events.register(ProposalVotedEvent, new ProposalVotedEvent(this.name));
