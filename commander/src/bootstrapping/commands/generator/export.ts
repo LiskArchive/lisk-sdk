@@ -88,14 +88,6 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 
 		if (flags.output) {
 			const { dir } = path.parse(flags.output);
-			// eslint-disable-next-line no-console
-			console.log('dir', dir);
-
-			/* The code is checking if the directory specified in the `output` flag does not exist. If the
-			directory does not exist, it logs the directory path to the console. */
-			if (!fs.existsSync(dir)) {
-				console.error('dir does not exist');
-			}
 			fs.ensureDirSync(dir);
 		}
 
