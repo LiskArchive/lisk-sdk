@@ -13,7 +13,7 @@
  */
 import { utils } from '@liskhq/lisk-cryptography';
 import { Transaction } from '../../src/transaction';
-import { TRANSACTION_MAX_PARAMS_SIZE } from '../../src/constants';
+import { MAX_PARAMS_SIZE } from '../../src/constants';
 
 describe('blocks/transactions', () => {
 	describe('#validateTransaction', () => {
@@ -25,7 +25,7 @@ describe('blocks/transactions', () => {
 				command: 'transfer',
 				fee: BigInt(613000),
 				// 126 is the size of other properties
-				params: utils.getRandomBytes(TRANSACTION_MAX_PARAMS_SIZE),
+				params: utils.getRandomBytes(MAX_PARAMS_SIZE),
 				nonce: BigInt(2),
 				senderPublicKey: utils.getRandomBytes(32),
 				signatures: [utils.getRandomBytes(64)],
@@ -65,7 +65,7 @@ describe('blocks/transactions', () => {
 				command: 'transfer',
 				fee: BigInt(613000),
 				// 126 is the size of other properties
-				params: utils.getRandomBytes(TRANSACTION_MAX_PARAMS_SIZE + 1),
+				params: utils.getRandomBytes(MAX_PARAMS_SIZE + 1),
 				nonce: BigInt(2),
 				senderPublicKey: utils.getRandomBytes(32),
 				signatures: [utils.getRandomBytes(64)],
