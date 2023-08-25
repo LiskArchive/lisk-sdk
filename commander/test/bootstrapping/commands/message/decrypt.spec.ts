@@ -15,10 +15,10 @@
  */
 import * as inquirer from 'inquirer';
 import { encrypt } from '@liskhq/lisk-cryptography';
-import { getConfig } from '../../helpers/config';
-import DecryptCommand from '../../../src/commands/message/decrypt';
-import * as readerUtils from '../../../src/utils/reader';
-import { Awaited } from '../../types';
+import { getConfig } from '../../../helpers/config';
+import { DecryptCommand } from '../../../../src/commands/message/decrypt';
+import * as readerUtils from '../../../../src/utils/reader';
+import { Awaited } from '../../../types';
 
 describe('message:decrypt', () => {
 	const defaultEncryptedMessage =

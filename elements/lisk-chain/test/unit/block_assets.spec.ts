@@ -24,11 +24,11 @@ describe('block assets', () => {
 		assetList = [
 			{
 				module: 'auth',
-				data: utils.getRandomBytes(64),
+				data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 			},
 			{
 				module: 'random',
-				data: utils.getRandomBytes(64),
+				data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 			},
 		];
 		assets = new BlockAssets(assetList);
@@ -98,11 +98,11 @@ describe('block assets', () => {
 				assetList = [
 					{
 						module: 'auth',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 					{
 						module: 'random',
-						data: utils.getRandomBytes(128),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES + 1),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -115,7 +115,7 @@ describe('block assets', () => {
 				assetList = [
 					{
 						module: 'auth-',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -163,11 +163,11 @@ describe('block assets', () => {
 				assetList = [
 					{
 						module: 'random',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 					{
 						module: 'auth',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -180,11 +180,11 @@ describe('block assets', () => {
 				assetList = [
 					{
 						module: 'auth',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 					{
 						module: 'random',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -197,15 +197,15 @@ describe('block assets', () => {
 				assetList = [
 					{
 						module: 'auth',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 					{
 						module: 'random',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 					{
 						module: 'random',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -214,19 +214,19 @@ describe('block assets', () => {
 				);
 			});
 
-			it('should pass when there is atmost 1 asset for a module', () => {
+			it('should pass when there is at most 1 asset for a module', () => {
 				assetList = [
 					{
 						module: 'amd',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 					{
 						module: 'auth',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 					{
 						module: 'random',
-						data: utils.getRandomBytes(64),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
 					},
 				];
 				assets = new BlockAssets(assetList);

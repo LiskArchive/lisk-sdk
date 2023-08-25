@@ -94,6 +94,7 @@ describe('DynamicRewardModule', () => {
 				...defaultConfig,
 				brackets: defaultConfig.brackets.map(b => BigInt(b)),
 				tokenID: Buffer.from('0000000000000000', 'hex'),
+				rewardReductionFactorBFT: BigInt(defaultConfig.rewardReductionFactorBFT),
 			});
 		});
 

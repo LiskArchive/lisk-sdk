@@ -237,7 +237,7 @@ const MainPage: React.FC = () => {
 	};
 
 	const loadActions = async () => {
-		setActions(await getClient().invoke<string[]>('app_getRegisteredActions'));
+		setActions(await getClient().invoke<string[]>('app_getRegisteredEndpoints'));
 	};
 
 	const loadNodeInfo = async () => {

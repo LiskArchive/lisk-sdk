@@ -33,7 +33,7 @@ export const TAG_BLOCK_HEADER = utils.createMessageTag('BH');
 export const TAG_TRANSACTION = utils.createMessageTag('TX');
 
 // TODO: Actual size TBD
-export const MAX_ASSET_DATA_SIZE_BYTES = 64;
+export const MAX_ASSET_DATA_SIZE_BYTES = 18;
 export const SIGNATURE_LENGTH_BYTES = 64;
 
 export const MIN_MODULE_NAME_LENGTH = 1;
@@ -51,7 +51,7 @@ export const EVENT_INDEX_LENGTH_BITS = 30;
 export const EVENT_TOPIC_INDEX_LENGTH_BITS = 2;
 export const EVENT_MAX_EVENT_SIZE_BYTES = 10 * 1024;
 
-export const TRANSACTION_MAX_PARAMS_SIZE = 14 * 1024;
+export const MAX_PARAMS_SIZE = 14 * 1024;
 
 export const EVENT_TOTAL_INDEX_LENGTH_BYTES =
 	(EVENT_INDEX_LENGTH_BITS + EVENT_TOPIC_INDEX_LENGTH_BITS) / 8;

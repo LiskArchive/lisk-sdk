@@ -17,7 +17,6 @@ import { BaseMethod } from '../base_method';
 import { calculateDefaultReward } from './calculate_reward';
 import {
 	REWARD_NO_REDUCTION,
-	REWARD_REDUCTION_FACTOR_BFT,
 	REWARD_REDUCTION_MAX_PREVOTES,
 	REWARD_REDUCTION_SEED_REVEAL,
 } from './constants';
@@ -59,7 +58,10 @@ export class RewardMethod extends BaseMethod {
 		}
 
 		if (!header.impliesMaxPrevotes) {
-			return [defaultReward / BigInt(REWARD_REDUCTION_FACTOR_BFT), REWARD_REDUCTION_MAX_PREVOTES];
+			return [
+				defaultReward / BigInt(this._config.rewardReductionFactorBFT),
+				REWARD_REDUCTION_MAX_PREVOTES,
+			];
 		}
 
 		return [defaultReward, REWARD_NO_REDUCTION];

@@ -113,7 +113,7 @@ export const generateGenesisBlock = async (
 			data.push(pair);
 		}
 	}
-	header.eventRoot = await eventSMT.update(Buffer.alloc(0), data);
+	header.eventRoot = await eventSMT.update(EMPTY_HASH, data);
 	header.validatorsHash = computeValidatorsHash(
 		blockCtx.nextValidators.validators,
 		blockCtx.nextValidators.certificateThreshold,
