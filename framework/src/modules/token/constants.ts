@@ -29,7 +29,15 @@ export const MIN_RETURN_FEE_PER_BYTE_BEDDOWS = BigInt(1000);
 
 export const CHAIN_ID_LENGTH = 4;
 export const HASH_LENGTH = 32;
+/** The local token ID is a ID that is unique within a specific blockchain for a particular kind of token.
+ * It is exactly 4bytes (=8 characters) long. */
 export const LOCAL_ID_LENGTH = 4;
+/**
+ * `TokenID`s must be exactly 8 bytes (16 characters) long.
+ *
+ * The first 4 bytes correspond to the `chainID`, see {@link CHAIN_ID_LENGTH }.
+ * The last 4 bytes to the local ID, see {@link LOCAL_ID_LENGTH }.
+ * */
 export const TOKEN_ID_LENGTH = CHAIN_ID_LENGTH + LOCAL_ID_LENGTH;
 export const LOCAL_ID_LSK = Buffer.alloc(LOCAL_ID_LENGTH, 0);
 export const USER_SUBSTORE_INITIALIZATION_FEE = BigInt(5000000);

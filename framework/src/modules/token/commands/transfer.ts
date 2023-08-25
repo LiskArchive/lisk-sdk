@@ -28,7 +28,7 @@ import { InternalMethod } from '../internal_method';
 import { InsufficientBalanceError } from '../../../errors';
 
 /** Interface for the parameters of the Token Transfer Command */
-interface Params {
+export interface Params {
 	/**	ID of the tokens being transferred. `TokenID` must be 8 bytes (16 characters). The first 4 bytes correspond to the `chainID`. */
 	tokenID: TokenID;
 	/** Amount of tokens to be transferred in Beddows. */
@@ -60,13 +60,13 @@ export class TransferCommand extends BaseCommand {
 	}
 
 	/**
-	 * The hook `Command.verify()` is called to do all necessary verifications.
-	 * If the verification of the command was successful, the command can be {@link execute | executed} as next step.
-	 * Similar to the {@link BaseModule.verifyTransaction} hook, `Command.verify()` will be called also in the {@link @liskhq/lisk-transaction-pool!TransactionPool}, and it is to ensure the verification defined in this hook is respected when the transactions are included in a block.
+	 * Checks if the sender has enough balance to send the specified amount of tokens.
 	 *
-	 * In this hook, the state *cannot* be mutated and events cannot be emitted.
+	 * For more info about the `verify()` method, refer to the {@link BaseCommand}
+	 * For more info about the `verify()` method, refer to {@link BaseCommand.verify}
+	 * For more info about the `verify()` method, refer to {@link BaseCommand#verify}
 	 *
-	 * @param context The context available in every Command.verify() hook.
+	 * @param context
 	 */
 	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
 		const { params } = context;

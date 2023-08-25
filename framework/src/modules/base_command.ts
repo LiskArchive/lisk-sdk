@@ -28,6 +28,15 @@ export abstract class BaseCommand<T = unknown> {
 	// eslint-disable-next-line no-useless-constructor
 	public constructor(protected stores: NamedRegistry, protected events: NamedRegistry) {}
 
+	/**
+	 * The hook `Command.verify()` is called to do all necessary verifications.
+	 * If the verification of the command was successful, the command can be {@link execute | executed} as next step.
+	 * Similar to the {@link BaseModule.verifyTransaction} hook, `Command.verify()` will be called also in the {@link @liskhq/lisk-transaction-pool!TransactionPool}, and it is to ensure the verification defined in this hook is respected when the transactions are included in a block.
+	 *
+	 * In this hook, the state *cannot* be mutated and events cannot be emitted.
+	 *
+	 * @param context The context available in every Command.verify() hook.
+	 */
 	public verify?(context: CommandVerifyContext<T>): Promise<VerificationResult>;
 
 	public abstract execute(context: CommandExecuteContext<T>): Promise<void>;

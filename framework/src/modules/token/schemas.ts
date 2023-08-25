@@ -79,9 +79,7 @@ export const transferParamsSchema = {
 	properties: {
 		/**
 		 * ID of the tokens being transferred.
-		 * `TokenID` must be 8 bytes (16 characters), see {@link TOKEN_ID_LENGTH }.
-		 * The first 4 bytes correspond to the `chainID`, see {@link CHAIN_ID_LENGTH }.
-		 * The last 4 bytes to the local ID, see {@link LOCAL_ID_LENGTH }.
+		 * `minLength` and `maxLength` are {@link TOKEN_ID_LENGTH}
 		 */
 		tokenID: {
 			dataType: 'bytes',
@@ -100,6 +98,10 @@ export const transferParamsSchema = {
 			fieldNumber: 3,
 			format: 'lisk32',
 		},
+		/** Optional field for data / messages.
+		 *
+		 * `maxLength` is {@link MAX_DATA_LENGTH}.
+		 * */
 		data: {
 			dataType: 'string',
 			fieldNumber: 4,
