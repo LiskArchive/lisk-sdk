@@ -63,8 +63,6 @@ export class TransferCommand extends BaseCommand {
 	 * Checks if the sender has enough balance to send the specified amount of tokens.
 	 *
 	 * For more info about the `verify()` method, refer to the {@link BaseCommand}
-	 * For more info about the `verify()` method, refer to {@link BaseCommand.verify}
-	 * For more info about the `verify()` method, refer to {@link BaseCommand#verify}
 	 *
 	 * @param context
 	 */

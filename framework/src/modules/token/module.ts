@@ -82,6 +82,7 @@ import { InternalMethod } from './internal_method';
  *
  * - Storing token balances of accounts
  * - Transferring tokens between accounts.
+ * - Transferring tokens between accounts on different chains.
  */
 export class TokenModule extends BaseInteroperableModule {
 	public method = new TokenMethod(this.stores, this.events, this.name);
