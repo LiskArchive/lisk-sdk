@@ -106,7 +106,6 @@ describe('generator:export', () => {
 
 	describe('when exporting without a file path flag', () => {
 		it('should export to the current directory', async () => {
-			const cwd = '/test/directory';
 			when(invokeMock).calledWith('generator_getAllKeys').mockResolvedValue({
 				keys: allKeysPlain,
 			});
@@ -118,13 +117,16 @@ describe('generator:export', () => {
 				generatorInfo: info,
 			};
 
-			fs.writeJSONSync(cwd, fileData, { spaces: ' ', mode: OWNER_READ_WRITE });
+			await ExportCommand.run([], config);
 
 			expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
-			expect(fs.writeJSONSync).toHaveBeenCalledWith(cwd, fileData, {
-				spaces: ' ',
-				mode: OWNER_READ_WRITE,
-			});
+			expect(fs.writeJSONSync).toHaveBeenCalledWith(
+				`${process.cwd()}/genInfo.json`,
+				expect.any(Object),
+				{ spaces: ' ', mode: OWNER_READ_WRITE },
+			);
+			expect(fs.ensureDirSync).toHaveBeenCalledTimes(0);
+			expect(stdout[0]).toContain(`Generator info is exported to ${process.cwd()}/genInfo.json`);
 		});
 	});
 

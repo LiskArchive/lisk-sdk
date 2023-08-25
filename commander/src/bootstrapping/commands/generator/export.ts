@@ -123,13 +123,11 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 			fs.writeJSONSync(flags.output, output, { spaces: ' ', mode: OWNER_READ_WRITE });
 			this.log(`Generator info is exported to ${flags.output}`);
 		} else {
-			// write to cwd
 			fs.writeJSONSync(`${process.cwd()}/genInfo.json`, output, {
 				spaces: ' ',
 				mode: OWNER_READ_WRITE,
 			});
 
-			// this.log(JSON.stringify(output, undefined, '  '));
 			this.log(`Generator info is exported to ${process.cwd()}/genInfo.json`);
 		}
 	}
