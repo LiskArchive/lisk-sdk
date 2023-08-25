@@ -68,21 +68,33 @@ export const terminatedEscrowStoreSchema = {
 };
 
 export const transferParamsSchema = {
+	/** The unique identifier of the schema. */
 	$id: '/lisk/transferParams',
+	/** Schema title */
 	title: 'Transfer transaction params',
 	type: 'object',
+	/** The required parameters for the command. */
 	required: ['tokenID', 'amount', 'recipientAddress', 'data'],
+	/** A list describing the available parameters for the command. */
 	properties: {
+		/**
+		 * ID of the tokens being transferred.
+		 * `TokenID` must be 8 bytes (16 characters), see {@link TOKEN_ID_LENGTH }.
+		 * The first 4 bytes correspond to the `chainID`, see {@link CHAIN_ID_LENGTH }.
+		 * The last 4 bytes to the local ID, see {@link LOCAL_ID_LENGTH }.
+		 */
 		tokenID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
 			minLength: TOKEN_ID_LENGTH,
 			maxLength: TOKEN_ID_LENGTH,
 		},
+		/** Amount of tokens to be transferred in Beddows. */
 		amount: {
 			dataType: 'uint64',
 			fieldNumber: 2,
 		},
+		/** Address of the recipient. */
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 3,
