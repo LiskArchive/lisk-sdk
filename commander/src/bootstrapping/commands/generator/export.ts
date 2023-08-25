@@ -119,16 +119,8 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 			generatorInfo: returnedGeneratorInfo,
 		};
 
-		if (flags.output) {
-			fs.writeJSONSync(flags.output, output, { spaces: ' ', mode: OWNER_READ_WRITE });
-			this.log(`Generator info is exported to ${flags.output}`);
-		} else {
-			fs.writeJSONSync(`${process.cwd()}/genInfo.json`, output, {
-				spaces: ' ',
-				mode: OWNER_READ_WRITE,
-			});
-
-			this.log(`Generator info is exported to ${process.cwd()}/genInfo.json`);
-		}
+		const filePath = flags.output ? flags.output : `${process.cwd()}/genInfo.json`;
+		fs.writeJSONSync(filePath, output, { spaces: ' ', mode: OWNER_READ_WRITE });
+		this.log(`Generator info is exported to ${filePath}`);
 	}
 }
