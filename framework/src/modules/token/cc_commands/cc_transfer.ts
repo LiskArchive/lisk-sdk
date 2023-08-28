@@ -38,7 +38,7 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 	private _internalMethod!: InternalMethod;
 
 	/**
-	 * See {@link BaseCCCommand.name}
+	 * Returns the command name: {@link CROSS_CHAIN_COMMAND_NAME_TRANSFER}
 	 */
 	public get name(): string {
 		return CROSS_CHAIN_COMMAND_NAME_TRANSFER;
