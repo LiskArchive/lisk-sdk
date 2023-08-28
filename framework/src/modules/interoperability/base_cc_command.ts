@@ -16,6 +16,9 @@ import { Schema, emptySchema } from '@liskhq/lisk-codec';
 import { NamedRegistry } from '../named_registry';
 import { CCCommandExecuteContext, ImmutableCrossChainMessageContext } from './types';
 
+/**
+ * The `BaseCCCommand` is the class every module cross-chain command extends from.
+ */
 export abstract class BaseCCCommand<T = unknown> {
 	public schema: Schema = emptySchema;
 
@@ -26,6 +29,26 @@ export abstract class BaseCCCommand<T = unknown> {
 
 	// eslint-disable-next-line no-useless-constructor
 	public constructor(protected stores: NamedRegistry, protected events: NamedRegistry) {}
+	/**
+	 * The hook `CCCommand.verify()` is called to do all necessary verifications.
+	 *
+	 * In this hook, the state *cannot* be mutated and events cannot be emitted.
+	 *
+	 * If the verification of the command was successful, the cc-command can be {@link execute | executed} as next step.
+	 *
+	 * @param context The context available in every Command.verify() hook.
+	 */
 	public verify?(ctx: ImmutableCrossChainMessageContext): Promise<void>;
+
+	/**
+	 * Applies the state changes of a command through the state machine.
+	 * The hook `CCCommand.execute()` is triggered by a transaction identified by the module name and the command name.
+	 *
+	 * Additionally, an event will be emitted that provides the information on whether a command is executed successfully or failed.
+	 *
+	 * In this hook, the *state can be mutated* and *events* can be emitted.
+	 *
+	 * @param context The context available in every `CCCommand.execute()` hook.
+	 */
 	public abstract execute(ctx: CCCommandExecuteContext<T>): Promise<void>;
 }

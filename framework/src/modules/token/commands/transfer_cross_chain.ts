@@ -37,7 +37,7 @@ import { TransferCrossChainEvent } from '../events/transfer_cross_chain';
 import { InternalMethod } from '../internal_method';
 import { InsufficientBalanceError } from '../../../errors';
 
-interface Params {
+export interface Params {
 	tokenID: Buffer;
 	amount: bigint;
 	receivingChainID: Buffer;
@@ -47,6 +47,12 @@ interface Params {
 	messageFeeTokenID: Buffer;
 }
 
+/**
+ * The `transfer` command of the {@link TokenModule} transfers tokens from one account to another account on a different chain.
+ *
+ * - name: `transfercrosschain`
+ * - module: {@link TokenModule | `token`}
+ */
 export class TransferCrossChainCommand extends BaseCommand {
 	public schema = crossChainTransferParamsSchema;
 	private _moduleName!: string;
@@ -54,6 +60,15 @@ export class TransferCrossChainCommand extends BaseCommand {
 	private _interoperabilityMethod!: InteroperabilityMethod;
 	private _internalMethod!: InternalMethod;
 
+	/**
+	 * The `init()` hook of a command is called by the Lisk Framework when the node starts.
+	 *
+	 * Here, you can validate and cache the module config or do initializations which should only happen once per node starts.
+	 *
+	 * @see [Command initialization](https://lisk.com/documentation/beta/understand-blockchain/sdk/modules-commands.html#command-initialization)
+	 *
+	 * @param args Contains the module methods and internal module methods.
+	 */
 	public init(args: {
 		moduleName: string;
 		method: TokenMethod;
@@ -66,6 +81,16 @@ export class TransferCrossChainCommand extends BaseCommand {
 		this._internalMethod = args.internalMethod;
 	}
 
+	/**
+	 * Verifies if:
+	 *  - the token being sent is native to either the sending or the receiving chain
+	 *  - the right token ID is used to pay the CCM fee
+	 *  - and if the sender has enough balance to send the specified amount of tokens.
+	 *
+	 * For more info about the `verify()` method, please refer to the {@link BaseCommand}
+	 *
+	 * @param context
+	 */
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
 		const { params } = context;
@@ -127,6 +152,15 @@ export class TransferCrossChainCommand extends BaseCommand {
 		};
 	}
 
+	/**
+	 * Creates and sends a CCM that transfers the specified amount of tokens from the sender to the recipient account on another chain.
+	 *
+	 * If the token being sent is native to the sending chain, it also adds the amount of tokens being sent to the escrow account for the respective tokens.
+	 *
+	 * For more info about the `execute()` method, please refer to the {@link BaseCommand}.
+	 *
+	 * @param context
+	 */
 	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
 		const {
 			params,

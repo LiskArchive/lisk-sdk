@@ -25,6 +25,12 @@ import { EscrowStore } from '../stores/escrow';
 import { InternalMethod } from '../internal_method';
 import { MAX_RESERVED_ERROR_STATUS } from '../../interoperability/constants';
 
+/**
+ * The `transferCrossChain` cross-chain command of the {@link TokenModule}
+ *
+ * - name: `transferCrossChain`
+ * - module: {@link TokenModule | `token`}
+ */
 export class CrossChainTransferCommand extends BaseCCCommand {
 	public schema = crossChainTransferMessageParams;
 
@@ -35,11 +41,29 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 		return CROSS_CHAIN_COMMAND_NAME_TRANSFER;
 	}
 
+	/**
+	 * The `init()` hook of a command is called by the Lisk Framework when the node starts.
+	 *
+	 * Here, you can validate and cache the module config or do initializations which should only happen once per node starts.
+	 *
+	 * @see [Command initialization](https://lisk.com/documentation/beta/understand-blockchain/sdk/modules-commands.html#command-initialization)
+	 *
+	 * @param args Contains the module methods and internal module methods.
+	 */
 	public init(args: { tokenMethod: TokenMethod; internalMethod: InternalMethod }): void {
 		this._tokenMethod = args.tokenMethod;
 		this._internalMethod = args.internalMethod;
 	}
 
+	/**
+	 * Checks if the token is native on either the sending or the receiving chain.
+	 *
+	 * If the token is native to the receiving chain, it also checks if there is enough balance in the escrow account to transfer the specified tokens.
+	 *
+	 * For more info about the `verify()` method, please refer to the {@link BaseCommand}
+	 *
+	 * @param context
+	 */
 	public async verify(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 		const methodContext = ctx.getMethodContext();
@@ -73,6 +97,15 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 		}
 	}
 
+	/**
+	 * Transfers the specified amount of tokens to the recipient account.
+	 *
+	 * If the token being transferred is native to the receiving chain, it also subtracts the same amount of tokens from the respective escrow account.
+	 *
+	 * For more info about the `execute()` method, please refer to the {@link BaseCommand}.
+	 *
+	 * @param context
+	 */
 	public async execute(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 		const methodContext = ctx.getMethodContext();

@@ -17,6 +17,9 @@ import { Schema, emptySchema } from '@liskhq/lisk-codec';
 import { CommandVerifyContext, CommandExecuteContext, VerificationResult } from '../state_machine';
 import { NamedRegistry } from './named_registry';
 
+/**
+ * The `BaseCommand` is the class every module command extends from.
+ */
 export abstract class BaseCommand<T = unknown> {
 	public schema: Schema = emptySchema;
 
@@ -39,5 +42,17 @@ export abstract class BaseCommand<T = unknown> {
 	 */
 	public verify?(context: CommandVerifyContext<T>): Promise<VerificationResult>;
 
+	/**
+	 * Applies the state changes of a command through the state machine.
+	 * The hook `Command.execute()` is triggered by a transaction identified by the module name and the command name.
+	 *
+	 * Additionally, an event will be emitted that provides the information on whether a command is executed successfully or failed.
+	 *
+	 * In this hook, the *state can be mutated* and *events* can be emitted.
+	 *
+	 * If the {@link verify | command verification} succeeded, but the hook execution *fails*, the transaction that triggered this command is still valid, but the *state changes applied in this hook are reverted.*
+	 *
+	 * @param context The context available in every `Command.execute()` hook.
+	 */
 	public abstract execute(context: CommandExecuteContext<T>): Promise<void>;
 }

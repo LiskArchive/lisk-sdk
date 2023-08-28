@@ -123,6 +123,9 @@ export interface CommandVerifyContext<T = undefined> {
 	contextStore: Map<string, unknown>;
 }
 
+/**
+ * TODO
+ */
 export interface CommandExecuteContext<T = undefined> {
 	logger: Logger;
 	chainID: Buffer;

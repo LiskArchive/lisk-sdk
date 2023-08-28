@@ -51,7 +51,12 @@ export class TransferCommand extends BaseCommand {
 	private _internalMethod!: InternalMethod;
 
 	/**
+	 * The `init()` hook of a command is called by the Lisk Framework when the node starts.
+	 *
+	 * Here, you can validate and cache the module config or do initializations which should only happen once per node starts.
+	 *
 	 * @see [Command initialization](https://lisk.com/documentation/beta/understand-blockchain/sdk/modules-commands.html#command-initialization)
+	 *
 	 * @param args Contains the module methods and internal module methods.
 	 */
 	public init(args: { method: TokenMethod; internalMethod: InternalMethod }) {
@@ -62,7 +67,7 @@ export class TransferCommand extends BaseCommand {
 	/**
 	 * Checks if the sender has enough balance to send the specified amount of tokens.
 	 *
-	 * For more info about the `verify()` method, refer to the {@link BaseCommand}
+	 * For more info about the `verify()` method, please refer to the {@link BaseCommand}
 	 *
 	 * @param context
 	 */
@@ -87,13 +92,11 @@ export class TransferCommand extends BaseCommand {
 	}
 
 	/**
-	 * Applies the state changes of a command through the state machine.
-	 * The hook `Command.execute()` is triggered by a transaction identified by the module name and the command name.
+	 * Transfers the specified amount of tokens from the sender to the recipient account.
 	 *
-	 * If the hook execution fails, the transaction that triggered this command is still valid, but the state changes applied during this hook are reverted.
-	 * Additionally, an event will be emitted that provides the information on whether a command is executed successfully or failed.
+	 * For more info about the `execute()` method, please refer to the {@link BaseCommand}.
 	 *
-	 * @param context The context available in every `Command.execute()` hook.
+	 * @param context
 	 */
 	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
 		const { params } = context;
