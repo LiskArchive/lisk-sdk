@@ -15,10 +15,12 @@
 import { bls, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { Transaction } from '@liskhq/lisk-chain';
+import { EMPTY_BUFFER } from '@liskhq/lisk-chain/dist-node/constants';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
 	SidechainInteroperabilityModule,
+	EMPTY_BYTES,
 	VerifyStatus,
 } from '../../../../../../src';
 import {
@@ -34,6 +36,10 @@ import { Certificate } from '../../../../../../src/engine/consensus/certificate_
 import { certificateSchema } from '../../../../../../src/engine/consensus/certificate_generation/schema';
 import * as interopUtils from '../../../../../../src/modules/interoperability/utils';
 import {
+	computeValidatorsHash,
+	getDecodedCCMAndID,
+} from '../../../../../../src/modules/interoperability/utils';
+import {
 	ccmSchema,
 	crossChainUpdateTransactionParams,
 } from '../../../../../../src/modules/interoperability/schemas';
@@ -44,10 +50,6 @@ import {
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
-import {
-	computeValidatorsHash,
-	getDecodedCCMAndID,
-} from '../../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import {
 	ChainAccountStore,
@@ -60,6 +62,10 @@ import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { createTransactionContext } from '../../../../../../src/testing';
 import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../../../../../../src/modules/token/constants';
 import { BaseInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/base_interoperability_internal_methods';
+import {
+	OwnChainAccountStore,
+	OwnChainAccount,
+} from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 
 describe('SubmitSidechainCrossChainUpdateCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
@@ -271,7 +277,13 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 	});
 
 	describe('verify', () => {
-		beforeEach(() => {
+		const ownChainAccount: OwnChainAccount = {
+			chainID: EMPTY_BUFFER,
+			name: 'ownChain',
+			nonce: BigInt(1),
+		};
+
+		beforeEach(async () => {
 			verifyContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -281,7 +293,24 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 					params: codec.encode(crossChainUpdateTransactionParams, params),
 				}),
 			}).createCommandVerifyContext(sidechainCCUUpdateCommand.schema);
+
+			await sidechainCCUUpdateCommand['stores']
+				.get(OwnChainAccountStore)
+				.set(stateStore, EMPTY_BYTES, {
+					...ownChainAccount,
+				});
+
 			jest.spyOn(sidechainCCUUpdateCommand['internalMethod'], 'isLive').mockResolvedValue(true);
+		});
+
+		it('should verify verifyCommon is called', async () => {
+			jest.spyOn(sidechainCCUUpdateCommand, 'verifyCommon' as any);
+
+			await expect(sidechainCCUUpdateCommand.verify(verifyContext)).resolves.toEqual({
+				status: VerifyStatus.OK,
+			});
+
+			expect(sidechainCCUUpdateCommand['verifyCommon']).toHaveBeenCalled();
 		});
 
 		it('should reject when ccu params validation fails', async () => {
@@ -293,174 +322,26 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			).rejects.toThrow('.sendingChainID');
 		});
 
-		it('should reject when certificate and inboxUpdate are empty', async () => {
-			await expect(
-				sidechainCCUUpdateCommand.verify({
-					...verifyContext,
-					params: {
-						...params,
-						certificate: Buffer.alloc(0),
-						inboxUpdate: {
-							crossChainMessages: [],
-							messageWitnessHashes: [],
-							outboxRootWitness: {
-								bitmap: Buffer.alloc(0),
-								siblingHashes: [],
-							},
-						},
-					} as any,
-				}),
-			).rejects.toThrow(
-				'A cross-chain update must contain a non-empty certificate and/or a non-empty inbox update.',
-			);
-		});
-
-		it('should reject when sending chain does not exist', async () => {
-			await partnerChainStore.del(stateStore, params.sendingChainID);
+		it('should call isLive with only 2 params', async () => {
+			jest.spyOn(sidechainCCUUpdateCommand['internalMethod'], 'isLive');
 
 			await expect(
 				sidechainCCUUpdateCommand.verify({
 					...verifyContext,
 					params: { ...params } as any,
 				}),
-			).rejects.toThrow('The mainchain is not registered');
-		});
+			).resolves.toEqual({ status: VerifyStatus.OK });
 
-		it('should reject when sending chain is not mainchain', async () => {
-			await expect(
-				sidechainCCUUpdateCommand.verify({
-					...verifyContext,
-					params: { ...params, sendingChainID: Buffer.from([0, 1, 1, 0]) } as any,
-				}),
-			).rejects.toThrow('Only the mainchain can send a sidechain cross-chain update');
-		});
-
-		it('should return error when sending chain not live', async () => {
-			jest.spyOn(sidechainCCUUpdateCommand['internalMethod'], 'isLive').mockResolvedValue(false);
-			await expect(sidechainCCUUpdateCommand.verify(verifyContext)).rejects.toThrow(
-				'The sending chain is not live',
+			expect(sidechainCCUUpdateCommand['internalMethod'].isLive).toHaveBeenCalledWith(
+				verifyContext,
+				verifyContext.params.sendingChainID,
 			);
-		});
 
-		it('should reject when sending chain status is registered and certificate is empty', async () => {
-			await partnerChainStore.set(stateStore, params.sendingChainID, {
-				...partnerChainAccount,
-				status: ChainStatus.REGISTERED,
-			});
-
-			await expect(
-				sidechainCCUUpdateCommand.verify({
-					...verifyContext,
-					header: { timestamp: Math.floor(Date.now() / 1000), height: 0 },
-					params: {
-						...params,
-						certificate: Buffer.alloc(0),
-					},
-				}),
-			).rejects.toThrow(
-				'Cross-chain updates from chains with status CHAIN_STATUS_REGISTERED must contain a non-empty certificate.',
+			expect(sidechainCCUUpdateCommand['internalMethod'].isLive).not.toHaveBeenCalledWith(
+				verifyContext,
+				verifyContext.params.sendingChainID,
+				verifyContext.header.timestamp,
 			);
-		});
-
-		it('should verify certificate when certificate is not empty', async () => {
-			await expect(
-				sidechainCCUUpdateCommand.verify({
-					...verifyContext,
-					params,
-				}),
-			).resolves.toEqual({ status: VerifyStatus.OK });
-
-			expect(sidechainCCUUpdateCommand['internalMethod'].verifyCertificate).toHaveBeenCalledTimes(
-				1,
-			);
-		});
-
-		it('should not reject when first CCU contains a certificate older than LIVENESS_LIMIT / 2 when inboxUpdate is empty', async () => {
-			await interopMod.stores.get(ChainAccountStore).set(stateStore, params.sendingChainID, {
-				...partnerChainAccount,
-				status: ChainStatus.REGISTERED,
-			});
-
-			await expect(
-				sidechainCCUUpdateCommand.verify({
-					...verifyContext,
-					header: { timestamp: Math.floor(Date.now() / 1000), height: 0 },
-					params: {
-						...params,
-						certificate: codec.encode(certificateSchema, {
-							...defaultCertificate,
-							timestamp: 0,
-						}),
-						inboxUpdate: {
-							crossChainMessages: [],
-							messageWitnessHashes: [],
-							outboxRootWitness: {
-								bitmap: Buffer.alloc(0),
-								siblingHashes: [],
-							},
-						},
-					},
-				}),
-			).resolves.toEqual({ status: VerifyStatus.OK });
-		});
-
-		it('should verify validators update when active validator update exist', async () => {
-			await expect(
-				sidechainCCUUpdateCommand.verify({
-					...verifyContext,
-					params: {
-						...params,
-						activeValidatorsUpdate: {
-							blsKeysUpdate: [utils.getRandomBytes(48)],
-							bftWeightsUpdate: [],
-							bftWeightsUpdateBitmap: Buffer.from([1]),
-						},
-					},
-				}),
-			).resolves.toEqual({ status: VerifyStatus.OK });
-
-			expect(
-				sidechainCCUUpdateCommand['internalMethod'].verifyValidatorsUpdate,
-			).toHaveBeenCalledTimes(1);
-		});
-
-		it('should verify validators update when certificate threshold changes', async () => {
-			await expect(
-				sidechainCCUUpdateCommand.verify({
-					...verifyContext,
-					params: {
-						...params,
-						certificateThreshold: BigInt(1),
-					},
-				}),
-			).resolves.toEqual({ status: VerifyStatus.OK });
-
-			expect(
-				sidechainCCUUpdateCommand['internalMethod'].verifyValidatorsUpdate,
-			).toHaveBeenCalledTimes(1);
-		});
-
-		it('should verify partnerchain outbox root when inboxUpdate is not empty', async () => {
-			await expect(
-				sidechainCCUUpdateCommand.verify({
-					...verifyContext,
-					params: {
-						...params,
-						inboxUpdate: {
-							crossChainMessages: [utils.getRandomBytes(100)],
-							messageWitnessHashes: [utils.getRandomBytes(32)],
-							outboxRootWitness: {
-								bitmap: utils.getRandomBytes(2),
-								siblingHashes: [utils.getRandomBytes(32)],
-							},
-						},
-					},
-				}),
-			).resolves.toEqual({ status: VerifyStatus.OK });
-
-			expect(
-				sidechainCCUUpdateCommand['internalMethod'].verifyOutboxRootWitness,
-			).toHaveBeenCalledTimes(1);
 		});
 	});
 

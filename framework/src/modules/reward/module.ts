@@ -92,6 +92,7 @@ export class RewardModule extends BaseModule {
 			...config,
 			tokenID: Buffer.from(config.tokenID, 'hex'),
 			brackets: config.brackets.map(bracket => BigInt(bracket)),
+			rewardReductionFactorBFT: BigInt(config.rewardReductionFactorBFT),
 		};
 
 		this.method.init({

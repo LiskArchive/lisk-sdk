@@ -12,7 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Block, BlockAssets } from '@liskhq/lisk-chain';
+import {
+	Block,
+	BlockAssets,
+	blockAssetSchema,
+	blockHeaderSchema,
+	blockSchema,
+	eventSchema,
+	standardEventDataSchema,
+	transactionSchema,
+} from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SystemEndpoint } from '../../../../src/engine/endpoint/system';
 import { createFakeBlockHeader } from '../../../../src/testing';
@@ -96,6 +105,19 @@ describe('system endpoint', () => {
 						endpoints: expect.any(Array),
 					},
 				],
+			});
+		});
+	});
+
+	describe('getSchema', () => {
+		it('should return schemas', async () => {
+			await expect(endpoint.getSchema({} as never)).resolves.toEqual({
+				block: blockSchema,
+				header: blockHeaderSchema,
+				asset: blockAssetSchema,
+				transaction: transactionSchema,
+				event: eventSchema,
+				standardEvent: standardEventDataSchema,
 			});
 		});
 	});

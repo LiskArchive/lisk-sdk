@@ -47,7 +47,10 @@ import {
 import { chainAccountToJSON } from '../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
-import { getChainAccountResponseSchema } from '../../../../src/modules/interoperability/schemas';
+import {
+	ccmSchema,
+	getChainAccountResponseSchema,
+} from '../../../../src/modules/interoperability/schemas';
 
 class TestEndpoint extends BaseInteroperabilityEndpoint {}
 
@@ -385,6 +388,18 @@ describe('Test interoperability endpoint', () => {
 					testInteroperabilityEndpoint.getChainValidators(moduleContext),
 				).rejects.toThrow('Chain account does not exist.');
 			});
+		});
+	});
+
+	describe('getCCMSchema', () => {
+		let ccmSchemaResult: any;
+
+		beforeEach(async () => {
+			ccmSchemaResult = await testInteroperabilityEndpoint.getCCMSchema(moduleContext);
+		});
+
+		it('should return JSON format result', () => {
+			expect(ccmSchemaResult).toEqual({ schema: ccmSchema });
 		});
 	});
 });

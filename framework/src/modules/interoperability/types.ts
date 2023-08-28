@@ -108,6 +108,10 @@ export interface CrossChainMessageContext extends ImmutableCrossChainMessageCont
 	eventQueue: EventQueue;
 }
 
+export interface BeforeCCMForwardingContext extends CrossChainMessageContext {
+	ccmFailed: boolean;
+}
+
 export interface CCCommandExecuteContext<T> extends CrossChainMessageContext {
 	params: T;
 }

@@ -21,6 +21,7 @@ import { MainchainCCMethod } from './cc_method';
 import { MainchainInteroperabilityEndpoint } from './endpoint';
 import {
 	genesisInteroperabilitySchema,
+	getCCMSchemaResponseSchema,
 	getChainAccountRequestSchema,
 	getChainValidatorsRequestSchema,
 	getChainValidatorsResponseSchema,
@@ -211,6 +212,10 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 					name: this.endpoint.isChainNameAvailable.name,
 					request: isChainNameAvailableRequestSchema,
 					response: isChainNameAvailableResponseSchema,
+				},
+				{
+					name: this.endpoint.getCCMSchema.name,
+					response: getCCMSchemaResponseSchema,
 				},
 			],
 			assets: [

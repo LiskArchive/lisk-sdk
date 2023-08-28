@@ -25,12 +25,16 @@
 		"block": {
 			"fromFile": "./config/genesis_block.blob"
 		},
-		"blockTime": 10,
-		"bftBatchSize": 103,
+		"blockTime": 5,
 		"maxTransactionsSize": 15360,
 		"chainID": "04000000"
 	},
 	"generator": {},
-	"modules": {},
+	"modules": {
+		"pos": {
+			"numberActiveValidators": 7,
+			"numberStandbyValidators": 2
+		}
+	},
 	"plugins": {}
 }

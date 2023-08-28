@@ -20,12 +20,7 @@ import {
 	CommandExecuteContext,
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
-import {
-	REPORTING_PUNISHMENT_REWARD,
-	REPORT_MISBEHAVIOR_LIMIT_BANNED,
-	LOCKING_PERIOD_SELF_STAKING,
-	MODULE_NAME_POS,
-} from '../constants';
+import { MODULE_NAME_POS } from '../constants';
 import { reportMisbehaviorCommandParamsSchema } from '../schemas';
 import {
 	PomCommandDependencies,
@@ -33,6 +28,7 @@ import {
 	TokenMethod,
 	TokenID,
 	ValidatorsMethod,
+	PunishmentLockingPeriods,
 } from '../types';
 import { getValidatorWeight, getPunishmentPeriod } from '../utils';
 import { ValidationError } from '../../../errors';
@@ -49,15 +45,30 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 	private _validatorsMethod!: ValidatorsMethod;
 	private _posTokenID!: TokenID;
 	private _factorSelfStakes!: number;
+	private _lockingPeriodSelfStaking!: number;
+	private _reportMisbehaviorReward!: bigint;
+	private _reportMisbehaviorLimitBanned!: number;
+	private _punishmentLockingPeriods!: PunishmentLockingPeriods;
 
 	public addDependencies(args: PomCommandDependencies) {
 		this._tokenMethod = args.tokenMethod;
 		this._validatorsMethod = args.validatorsMethod;
 	}
 
-	public init(args: { posTokenID: TokenID; factorSelfStakes: number }) {
+	public init(args: {
+		posTokenID: TokenID;
+		factorSelfStakes: number;
+		lockingPeriodSelfStaking: number;
+		reportMisbehaviorReward: bigint;
+		reportMisbehaviorLimitBanned: number;
+		punishmentLockingPeriods: PunishmentLockingPeriods;
+	}) {
 		this._posTokenID = args.posTokenID;
 		this._factorSelfStakes = args.factorSelfStakes;
+		this._lockingPeriodSelfStaking = args.lockingPeriodSelfStaking;
+		this._reportMisbehaviorReward = args.reportMisbehaviorReward;
+		this._reportMisbehaviorLimitBanned = args.reportMisbehaviorLimitBanned;
+		this._punishmentLockingPeriods = args.punishmentLockingPeriods;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -91,7 +102,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 			Math.abs(header2.height - currentHeight),
 		);
 
-		if (maxPunishableHeight >= LOCKING_PERIOD_SELF_STAKING) {
+		if (maxPunishableHeight >= this._lockingPeriodSelfStaking) {
 			throw new Error('Locking period has expired.');
 		}
 
@@ -101,6 +112,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 				validatorAddress,
 				validatorAccount.reportMisbehaviorHeights,
 				header.height,
+				this._punishmentLockingPeriods,
 			) > 0
 		) {
 			throw new Error('Validator is already punished.');
@@ -142,7 +154,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 			height: currentHeight,
 		});
 
-		if (validatorAccount.reportMisbehaviorHeights.length === REPORT_MISBEHAVIOR_LIMIT_BANNED) {
+		if (validatorAccount.reportMisbehaviorHeights.length === this._reportMisbehaviorLimitBanned) {
 			validatorAccount.isBanned = true;
 
 			this.events.get(ValidatorBannedEvent).log(context, {
@@ -151,9 +163,9 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 			});
 		}
 		const reward =
-			REPORTING_PUNISHMENT_REWARD > validatorAccount.selfStake
+			this._reportMisbehaviorReward > validatorAccount.selfStake
 				? validatorAccount.selfStake
-				: REPORTING_PUNISHMENT_REWARD;
+				: this._reportMisbehaviorReward;
 
 		if (reward > BigInt(0)) {
 			await this._tokenMethod.unlock(
@@ -172,7 +184,7 @@ export class ReportMisbehaviorCommand extends BaseCommand {
 			);
 		}
 		const oldWeight = getValidatorWeight(
-			BigInt(this._factorSelfStakes),
+			this._factorSelfStakes,
 			validatorAccount.selfStake,
 			validatorAccount.totalStake,
 		);

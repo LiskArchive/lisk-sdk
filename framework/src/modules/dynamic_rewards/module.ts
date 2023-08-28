@@ -23,7 +23,6 @@ import {
 } from './constants';
 import {
 	REWARD_NO_REDUCTION,
-	REWARD_REDUCTION_FACTOR_BFT,
 	REWARD_REDUCTION_MAX_PREVOTES,
 	REWARD_REDUCTION_NO_ACCOUNT,
 	REWARD_REDUCTION_SEED_REVEAL,
@@ -140,6 +139,7 @@ export class DynamicRewardModule extends BaseModule {
 		this._moduleConfig = {
 			...config,
 			brackets: config.brackets.map(bracket => BigInt(bracket)),
+			rewardReductionFactorBFT: BigInt(config.rewardReductionFactorBFT),
 			tokenID: Buffer.from(config.tokenID, 'hex'),
 		};
 
@@ -236,7 +236,10 @@ export class DynamicRewardModule extends BaseModule {
 		}
 
 		if (!header.impliesMaxPrevotes) {
-			return [defaultReward / REWARD_REDUCTION_FACTOR_BFT, REWARD_REDUCTION_MAX_PREVOTES];
+			return [
+				defaultReward / this._moduleConfig.rewardReductionFactorBFT,
+				REWARD_REDUCTION_MAX_PREVOTES,
+			];
 		}
 
 		return [defaultReward, REWARD_NO_REDUCTION];

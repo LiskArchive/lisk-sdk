@@ -41,10 +41,11 @@ import {
 	StakerData,
 	StakerDataJSON,
 	GetExpectedSharedRewardsRequest,
+	PunishmentLockingPeriods,
 } from './types';
 import { getPunishTime, getWaitTime, isCertificateGenerated, calculateStakeRewards } from './utils';
 import { GenesisDataStore } from './stores/genesis';
-import { EMPTY_KEY, PUNISHMENT_PERIOD } from './constants';
+import { EMPTY_KEY } from './constants';
 import { EligibleValidator, EligibleValidatorsStore } from './stores/eligible_validators';
 import {
 	getClaimableRewardsRequestSchema,
@@ -62,17 +63,20 @@ export class PoSEndpoint extends BaseEndpoint {
 	private _moduleName!: string;
 	private _tokenMethod!: TokenMethod;
 	private _internalMethod!: InternalMethod;
+	private _punishmentLockingPeriods!: PunishmentLockingPeriods;
 
 	public init(
 		moduleName: string,
 		moduleConfig: ModuleConfig,
 		internalMethod: InternalMethod,
 		tokenMethod: TokenMethod,
+		punishmentLockingPeriods: PunishmentLockingPeriods,
 	) {
 		this._moduleName = moduleName;
 		this._moduleConfig = moduleConfig;
 		this._tokenMethod = tokenMethod;
 		this._internalMethod = internalMethod;
+		this._punishmentLockingPeriods = punishmentLockingPeriods;
 	}
 
 	public async getStaker(ctx: ModuleEndpointContext): Promise<StakerDataJSON> {
@@ -158,7 +162,8 @@ export class PoSEndpoint extends BaseEndpoint {
 			maxNumberPendingUnlocks: this._moduleConfig.maxNumberPendingUnlocks,
 			failSafeMissedBlocks: this._moduleConfig.failSafeMissedBlocks,
 			failSafeInactiveWindow: this._moduleConfig.failSafeInactiveWindow,
-			punishmentWindow: this._moduleConfig.punishmentWindow,
+			punishmentWindowStaking: this._moduleConfig.punishmentWindowStaking,
+			punishmentWindowSelfStaking: this._moduleConfig.punishmentWindowSelfStaking,
 			roundLength: this._moduleConfig.roundLength,
 			minWeightStandby: this._moduleConfig.minWeightStandby.toString(),
 			numberActiveValidators: this._moduleConfig.numberActiveValidators,
@@ -169,6 +174,12 @@ export class PoSEndpoint extends BaseEndpoint {
 			commissionIncreasePeriod: this._moduleConfig.commissionIncreasePeriod,
 			maxCommissionIncreaseRate: this._moduleConfig.maxCommissionIncreaseRate,
 			useInvalidBLSKey: this._moduleConfig.useInvalidBLSKey,
+			baseStakeAmount: this._moduleConfig.baseStakeAmount.toString(),
+			lockingPeriodStaking: this._moduleConfig.lockingPeriodStaking,
+			lockingPeriodSelfStaking: this._moduleConfig.lockingPeriodSelfStaking,
+			reportMisbehaviorReward: this._moduleConfig.reportMisbehaviorReward.toString(),
+			reportMisbehaviorLimitBanned: this._moduleConfig.reportMisbehaviorLimitBanned,
+			weightScaleFactor: this._moduleConfig.weightScaleFactor.toString(),
 		};
 	}
 
@@ -376,7 +387,8 @@ export class PoSEndpoint extends BaseEndpoint {
 	): Promise<number> {
 		const validatorSubStore = this.stores.get(ValidatorStore);
 		const validatorAccount = await validatorSubStore.get(ctx, validatorAddress);
-		const waitTime = getWaitTime(callerAddress, validatorAddress) + unstakeHeight;
+		const waitTime =
+			getWaitTime(callerAddress, validatorAddress, this._punishmentLockingPeriods) + unstakeHeight;
 		if (!validatorAccount.reportMisbehaviorHeights.length) {
 			return waitTime;
 		}
@@ -389,12 +401,16 @@ export class PoSEndpoint extends BaseEndpoint {
 			return waitTime;
 		}
 		return Math.max(
-			getPunishTime(callerAddress, validatorAddress) + lastPomHeight,
-			getWaitTime(callerAddress, validatorAddress) + unstakeHeight,
+			getPunishTime(callerAddress, validatorAddress, this._punishmentLockingPeriods) +
+				lastPomHeight,
+			waitTime,
 		);
 	}
 
-	private _calculatePunishmentPeriods(pomHeights: number[], period = PUNISHMENT_PERIOD) {
+	private _calculatePunishmentPeriods(
+		pomHeights: number[],
+		period = this._punishmentLockingPeriods.punishmentWindowSelfStaking,
+	) {
 		const result: punishmentPeriod[] = [];
 
 		for (const pomHeight of pomHeights) {
