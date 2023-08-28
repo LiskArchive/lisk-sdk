@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ADDRESS_LENGTH } from '../../../constants';
 import { BaseEvent, EventQueuer } from '../../base_event';
 import { ProposalDecision } from '../types';
 
@@ -34,7 +33,7 @@ export const proposalVotedEventSchema = {
 		},
 		voterAddress: {
 			dataType: 'bytes',
-			length: ADDRESS_LENGTH,
+			format: 'lisk32',
 			fieldNumber: 2,
 		},
 		decision: {
@@ -52,6 +51,9 @@ export class ProposalVotedEvent extends BaseEvent<ProposalVotedEventData> {
 	public schema = proposalVotedEventSchema;
 
 	public log(ctx: EventQueuer, data: ProposalVotedEventData): void {
-		this.add(ctx, data, [data.voterAddress, Buffer.from(data.index.toString())]);
+		const index = Buffer.alloc(4);
+		index.writeUInt32BE(data.index);
+
+		this.add(ctx, data, [data.voterAddress, index]);
 	}
 }

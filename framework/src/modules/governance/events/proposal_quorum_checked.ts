@@ -40,6 +40,9 @@ export class ProposalQuorumCheckedEvent extends BaseEvent<ProposalQuorumCheckedE
 	public schema = proposalQuorumCheckedEventDataSchema;
 
 	public log(ctx: EventQueuer, data: ProposalQuorumCheckedEventData): void {
-		this.add(ctx, data, [Buffer.from(data.index.toString())]);
+		const index = Buffer.alloc(4);
+		index.writeUInt32BE(data.index);
+
+		this.add(ctx, data, [index]);
 	}
 }

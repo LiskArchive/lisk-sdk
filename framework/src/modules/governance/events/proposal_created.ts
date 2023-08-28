@@ -46,6 +46,9 @@ export class ProposalCreatedEvent extends BaseEvent<ProposalCreatedEventData> {
 	public schema = proposalCreatedEventDataSchema;
 
 	public log(ctx: EventQueuer, data: ProposalCreatedEventData): void {
-		this.add(ctx, data, [data.creator, Buffer.from(data.index.toString())]);
+		const index = Buffer.alloc(4);
+		index.writeUInt32BE(data.index);
+
+		this.add(ctx, data, [data.creator, index]);
 	}
 }
