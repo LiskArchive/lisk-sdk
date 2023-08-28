@@ -23,7 +23,6 @@ export { TokenMethod } from './method';
 export { TokenInteroperableMethod } from './cc_method';
 export { TokenEndpoint } from './endpoint';
 export { genesisTokenStoreSchema } from './schemas';
-export { CrossChainMessageContext } from './types';
 export {
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	LOCAL_ID_LENGTH,
