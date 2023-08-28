@@ -7,7 +7,7 @@ import { StateRecoveryDB } from './db/StateRecoveryDb';
 import { MessageRecoveryHelper } from './MessageRecoveryHelper';
 import { CCMsg } from 'lisk-framework';
 import { parseCCMs } from './events';
-import { StateRecoveryHelper } from './stateRecoveryHelper';
+import { StateRecoveryHelper } from './StateRecoveryHelper';
 import { Sidechain } from './Sidechain';
 
 export class Mainchain {
