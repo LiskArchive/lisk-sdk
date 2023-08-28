@@ -783,4 +783,60 @@ describe('NFTEndpoint', () => {
 			await expect(endpoint.isNFTSupported(context)).resolves.toEqual({ isNFTSupported: false });
 		});
 	});
+
+	describe('getSupportedNFTs', () => {
+		it('should return * when all nft`s are supported globally', async () => {
+			await supportedNFTsStore.save(methodContext, ALL_SUPPORTED_NFTS_KEY, {
+				supportedCollectionIDArray: [],
+			});
+			const moduleEndpointContext = createTransientModuleEndpointContext({ stateStore });
+
+			await expect(endpoint.getSupportedNFTs(moduleEndpointContext)).resolves.toEqual({
+				supportedNFTs: ['*'],
+			});
+		});
+
+		it('should return the list of supported nft`s when all the nft`s from a chain are supported', async () => {
+			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+			await supportedNFTsStore.save(methodContext, chainID, {
+				supportedCollectionIDArray: [],
+			});
+
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				chainID,
+			});
+
+			await expect(endpoint.getSupportedNFTs(moduleEndpointContext)).resolves.toEqual({
+				supportedNFTs: [`${chainID.toString('hex')}********`],
+			});
+		});
+
+		it('should return the list of supported nft`s when not all the nft`s from a chain are supported', async () => {
+			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+			const supportedCollections = [
+				{
+					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID),
+				},
+				{
+					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID),
+				},
+			];
+			await supportedNFTsStore.save(methodContext, chainID, {
+				supportedCollectionIDArray: supportedCollections,
+			});
+
+			const moduleEndpointContext = createTransientModuleEndpointContext({
+				stateStore,
+				chainID,
+			});
+
+			await expect(endpoint.getSupportedNFTs(moduleEndpointContext)).resolves.toEqual({
+				supportedNFTs: [
+					chainID.toString('hex') + supportedCollections[0].collectionID.toString('hex'),
+					chainID.toString('hex') + supportedCollections[1].collectionID.toString('hex'),
+				],
+			});
+		});
+	});
 });
