@@ -83,6 +83,8 @@ import { InternalMethod } from './internal_method';
  * - Storing token balances of accounts
  * - Transferring tokens between accounts.
  * - Transferring tokens between accounts on different chains.
+ *
+ * @see [LIP 0051 - Define state and state transitions of Token module](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0051.md)
  */
 export class TokenModule extends BaseInteroperableModule {
 	public method = new TokenMethod(this.stores, this.events, this.name);
