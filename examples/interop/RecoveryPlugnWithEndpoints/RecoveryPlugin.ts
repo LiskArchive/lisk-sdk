@@ -6,7 +6,6 @@ import { MessageRecoveryDb } from './db/MessageRecoveryDb';
 import { StateRecoveryDB } from './db/StateRecoveryDb';
 import { getDBInstance } from './db/db';
 import { Endpoint } from './endpoint';
-import { Sidechain } from './Sidechain';
 
 export class RecoveryPlugin extends BasePlugin<RecoveryPluginConfig> {
 	//
@@ -15,13 +14,11 @@ export class RecoveryPlugin extends BasePlugin<RecoveryPluginConfig> {
 	private _stateRecoveryDb!: StateRecoveryDB;
 
 	private readonly _mainchain: Mainchain;
-	private readonly _sidechain: Sidechain;
 
 	public constructor() {
 		super();
 
 		this._mainchain = new Mainchain();
-		this._sidechain = new Sidechain();
 	}
 
 	public async init(context: PluginInitContext): Promise<void> {
@@ -45,7 +42,6 @@ export class RecoveryPlugin extends BasePlugin<RecoveryPluginConfig> {
 
 	public async unload(): Promise<void> {
 		await this._mainchain.disconnect();
-		await this._sidechain.disconnect();
 	}
 
 	public get nodeModulePath(): string {
