@@ -50,7 +50,7 @@ export interface Params {
 /**
  * The `transfer` command of the {@link TokenModule} transfers tokens from one account to another account on a different chain.
  *
- * - name: `transfercrosschain`
+ * - name: `transferCrossChain`
  * - module: {@link TokenModule | `token`}
  */
 export class TransferCrossChainCommand extends BaseCommand {
