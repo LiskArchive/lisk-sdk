@@ -67,6 +67,9 @@ export const terminatedEscrowStoreSchema = {
 	},
 };
 
+/**
+ * Parameters of the token transfer command
+ */
 export const transferParamsSchema = {
 	/** The unique identifier of the schema. */
 	$id: '/lisk/transferParams',
@@ -111,9 +114,14 @@ export const transferParamsSchema = {
 	},
 };
 
+/**
+ * Parameters of the cross-chain token transfer command
+ */
 export const crossChainTransferParamsSchema = {
+	/** The unique identifier of the schema. */
 	$id: '/lisk/ccTransferParams',
 	type: 'object',
+	/** The required parameters for the command. */
 	required: [
 		'tokenID',
 		'amount',
@@ -123,28 +131,44 @@ export const crossChainTransferParamsSchema = {
 		'messageFee',
 		'messageFeeTokenID',
 	],
+	/** A list describing the available parameters for the command. */
 	properties: {
+		/**
+		 * ID of the tokens being transferred.
+		 * `minLength` and `maxLength` are {@link TOKEN_ID_LENGTH}
+		 */
 		tokenID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
 			minLength: TOKEN_ID_LENGTH,
 			maxLength: TOKEN_ID_LENGTH,
 		},
+		/** Amount of tokens to be transferred in Beddows. */
 		amount: {
 			dataType: 'uint64',
 			fieldNumber: 2,
 		},
+		/**
+		 * The chain ID of the receiving chain.
+		 *
+		 * `maxLength` and `minLength` are equal to {@link CHAIN_ID_LENGTH}.
+		 */
 		receivingChainID: {
 			dataType: 'bytes',
 			fieldNumber: 3,
 			minLength: CHAIN_ID_LENGTH,
 			maxLength: CHAIN_ID_LENGTH,
 		},
+		/** Address of the recipient. */
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 4,
 			format: 'lisk32',
 		},
+		/** Optional field for data / messages.
+		 *
+		 * `maxLength` is {@link MAX_DATA_LENGTH}.
+		 */
 		data: {
 			dataType: 'string',
 			fieldNumber: 5,
@@ -172,31 +196,49 @@ export interface CCTransferMessageParams {
 	data: string;
 }
 
+/**
+ * Parameters of the cross-chain token transfer CCM
+ */
 export const crossChainTransferMessageParams = {
+	/** The unique identifier of the schema. */
 	$id: '/lisk/ccTransferMessageParams',
 	type: 'object',
+	/** The required parameters for the command. */
 	required: ['tokenID', 'amount', 'senderAddress', 'recipientAddress', 'data'],
+	/** A list describing the available parameters for the CCM. */
 	properties: {
+		/**
+		 * ID of the tokens being transferred.
+		 * `minLength` and `maxLength` are {@link TOKEN_ID_LENGTH}
+		 */
 		tokenID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
 			minLength: TOKEN_ID_LENGTH,
 			maxLength: TOKEN_ID_LENGTH,
 		},
+		/** Amount of tokens to be transferred in Beddows. */
 		amount: {
 			dataType: 'uint64',
 			fieldNumber: 2,
 		},
+		/** Address of the sender. */
 		senderAddress: {
 			dataType: 'bytes',
 			fieldNumber: 3,
 			format: 'lisk32',
 		},
+		/** Address of the recipient. */
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 4,
 			format: 'lisk32',
 		},
+		/** Optional field for data / messages.
+		 *
+		 * `minLength is `0`.
+		 * `maxLength` is {@link MAX_DATA_LENGTH}.
+		 */
 		data: {
 			dataType: 'string',
 			fieldNumber: 5,

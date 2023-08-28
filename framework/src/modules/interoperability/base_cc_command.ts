@@ -22,6 +22,9 @@ import { CCCommandExecuteContext, ImmutableCrossChainMessageContext } from './ty
 export abstract class BaseCCCommand<T = unknown> {
 	public schema: Schema = emptySchema;
 
+	/**
+	 * Returns the name of the cross-chain command.
+	 */
 	public get name(): string {
 		const name = this.constructor.name.replace('CCCommand', '');
 		return name.charAt(0).toLowerCase() + name.substring(1);
