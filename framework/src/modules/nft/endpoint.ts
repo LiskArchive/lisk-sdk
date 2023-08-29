@@ -26,7 +26,7 @@ import {
 	isNFTSupportedRequestSchema,
 } from './schemas';
 import { NFTStore } from './stores/nft';
-import { LENGTH_ADDRESS, LENGTH_NFT_ID } from './constants';
+import { ALL_SUPPORTED_NFTS_KEY, LENGTH_ADDRESS, LENGTH_NFT_ID } from './constants';
 import { UserStore } from './stores/user';
 import { NFT } from './types';
 import { SupportedNFTsStore } from './stores/supported_nfts';
@@ -242,5 +242,35 @@ export class NFTEndpoint extends BaseEndpoint {
 		}
 
 		return { isNFTSupported };
+	}
+
+	public async getSupportedNFTs(
+		context: ModuleEndpointContext,
+	): Promise<{ supportedNFTs: string[] }> {
+		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
+
+		const areAllNFTsSupported = await supportedNFTsStore.has(context, ALL_SUPPORTED_NFTS_KEY);
+		if (areAllNFTsSupported) {
+			return {
+				supportedNFTs: ['*'],
+			};
+		}
+
+		const supportedNFTs: string[] = [];
+
+		const storeData = await supportedNFTsStore.getAll(context);
+		for (const { key, value } of storeData) {
+			if (!value.supportedCollectionIDArray.length) {
+				supportedNFTs.push(`${key.toString('hex')}********`);
+			} else {
+				for (const supportedCollectionID of value.supportedCollectionIDArray) {
+					supportedNFTs.push(
+						key.toString('hex') + supportedCollectionID.collectionID.toString('hex'),
+					);
+				}
+			}
+		}
+
+		return { supportedNFTs };
 	}
 }
