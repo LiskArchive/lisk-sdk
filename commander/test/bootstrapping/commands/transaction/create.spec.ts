@@ -641,6 +641,18 @@ describe('transaction:create command', () => {
 					});
 					expect(stdout[0]).toContain(`Transaction with id: 'undefined' received by node`);
 				});
+
+				it('should invoke send command when --send flag is provided', async () => {
+					await CreateCommandExtended.run(
+						['pos', 'unlock', '100000000', `--passphrase=${passphrase}`, '--send'],
+						config,
+					);
+
+					expect(clientMock.invoke).toHaveBeenCalledTimes(2);
+					expect(clientMock.invoke).toHaveBeenCalledWith('txpool_postTransaction', {
+						transaction: mockEncodedTransaction.toString('hex'),
+					});
+				});
 			});
 		});
 
