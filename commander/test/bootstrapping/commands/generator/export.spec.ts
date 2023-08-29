@@ -17,6 +17,7 @@ import { ed, bls, encrypt, utils } from '@liskhq/lisk-cryptography';
 import * as apiClient from '@liskhq/lisk-api-client';
 import { when } from 'jest-when';
 import * as fs from 'fs-extra';
+import path = require('path');
 import * as appUtils from '../../../../src/utils/application';
 import { ExportCommand } from '../../../../src/bootstrapping/commands/generator/export';
 import { getConfig } from '../../../helpers/config';
@@ -121,12 +122,14 @@ describe('generator:export', () => {
 
 			expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
 			expect(fs.writeJSONSync).toHaveBeenCalledWith(
-				`${process.cwd()}/genInfo.json`,
+				path.join(process.cwd(), 'generator_info.json'),
 				expect.any(Object),
 				{ spaces: ' ', mode: OWNER_READ_WRITE },
 			);
 			expect(fs.ensureDirSync).toHaveBeenCalledTimes(0);
-			expect(stdout[0]).toContain(`Generator info is exported to ${process.cwd()}/genInfo.json`);
+			expect(stdout[0]).toContain(
+				`Generator info is exported to ${path.join(process.cwd(), 'generator_info.json')}`,
+			);
 		});
 	});
 

@@ -119,7 +119,7 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 			generatorInfo: returnedGeneratorInfo,
 		};
 
-		const filePath = flags.output ? flags.output : `${process.cwd()}/genInfo.json`;
+		const filePath = flags.output ? flags.output : path.join(process.cwd(), 'generator_info.json');
 		fs.writeJSONSync(filePath, output, { spaces: ' ', mode: OWNER_READ_WRITE });
 		this.log(`Generator info is exported to ${filePath}`);
 	}
