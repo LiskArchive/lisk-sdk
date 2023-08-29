@@ -33,11 +33,11 @@ export abstract class BaseCCCommand<T = unknown> {
 	// eslint-disable-next-line no-useless-constructor
 	public constructor(protected stores: NamedRegistry, protected events: NamedRegistry) {}
 	/**
-	 * The hook `CCCommand.verify()` is called to do all necessary verifications.
+	 * The hook `CCCommand.verify()` is called to perform all necessary verifications.
 	 *
 	 * In this hook, the state *cannot* be mutated and events cannot be emitted.
 	 *
-	 * If the verification of the command was successful, the cc-command can be {@link execute | executed} as next step.
+	 * If the verification of the command was successful, for the next step the cc-command can be {@link execute | executed}.
 	 *
 	 * @param context The context available in every Command.verify() hook.
 	 */

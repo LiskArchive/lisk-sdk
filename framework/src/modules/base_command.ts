@@ -32,9 +32,9 @@ export abstract class BaseCommand<T = unknown> {
 	public constructor(protected stores: NamedRegistry, protected events: NamedRegistry) {}
 
 	/**
-	 * The hook `Command.verify()` is called to do all necessary verifications.
-	 * If the verification of the command was successful, the command can be {@link execute | executed} as next step.
-	 * Similar to the {@link BaseModule.verifyTransaction} hook, `Command.verify()` will be called also in the {@link @liskhq/lisk-transaction-pool!TransactionPool}, and it is to ensure the verification defined in this hook is respected when the transactions are included in a block.
+	 * The hook `Command.verify()` is called to perform all necessary verifications.
+	 * If the verification of the command was successful, for the next step the command can be {@link execute | executed}.
+	 * Similar to the {@link BaseModule.verifyTransaction} hook, `Command.verify()` will be called also in the {@link @liskhq/lisk-transaction-pool!TransactionPool}, and Its purpose is to guarantee that the verification defined within this hook is adhered to when the transactions are incorporated into a block.
 	 *
 	 * In this hook, the state *cannot* be mutated and events cannot be emitted.
 	 *
@@ -50,7 +50,7 @@ export abstract class BaseCommand<T = unknown> {
 	 *
 	 * In this hook, the *state can be mutated* and *events* can be emitted.
 	 *
-	 * If the {@link verify | command verification} succeeded, but the hook execution *fails*, the transaction that triggered this command is still valid, but the *state changes applied in this hook are reverted.*
+	 * If the {@link verify | command verification} succeeded, but the hook execution *fails*, the transaction that triggered this command is still valid, however the *state changes applied in this hook are reverted.*
 	 *
 	 * @param context The context available in every `Command.execute()` hook.
 	 */
