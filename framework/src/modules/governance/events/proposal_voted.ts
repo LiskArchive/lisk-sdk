@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseEvent } from '../../base_event';
+import { BaseEvent, EventQueuer } from '../../base_event';
 import { ProposalDecision } from '../types';
 
 interface ProposalVotedEventData {
@@ -22,4 +22,38 @@ interface ProposalVotedEventData {
 	amount: bigint;
 }
 
-export class ProposalVotedEvent extends BaseEvent<ProposalVotedEventData> {}
+export const proposalVotedEventSchema = {
+	$id: '/governance/events/proposalVoted',
+	type: 'object',
+	required: ['index', 'voterAddress', 'decision', 'amount'],
+	properties: {
+		index: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		voterAddress: {
+			dataType: 'bytes',
+			format: 'lisk32',
+			fieldNumber: 2,
+		},
+		decision: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+		amount: {
+			dataType: 'uint64',
+			fieldNumber: 4,
+		},
+	},
+};
+
+export class ProposalVotedEvent extends BaseEvent<ProposalVotedEventData> {
+	public schema = proposalVotedEventSchema;
+
+	public log(ctx: EventQueuer, data: ProposalVotedEventData): void {
+		const index = Buffer.alloc(4);
+		index.writeUInt32BE(data.index);
+
+		this.add(ctx, data, [data.voterAddress, index]);
+	}
+}

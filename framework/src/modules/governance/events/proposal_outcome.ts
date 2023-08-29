@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseEvent } from '../../base_event';
+import { BaseEvent, EventQueuer } from '../../base_event';
 import { ProposalStatus } from '../types';
 
 interface ProposalOutcomeEventData {
@@ -20,4 +20,29 @@ interface ProposalOutcomeEventData {
 	status: ProposalStatus;
 }
 
-export class ProposalOutcomeEvent extends BaseEvent<ProposalOutcomeEventData> {}
+export const proposalOutcomeEventDataSchema = {
+	$id: '/governance/events/proposalOutcome',
+	type: 'object',
+	required: ['index', 'status'],
+	properties: {
+		index: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		status: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+	},
+};
+
+export class ProposalOutcomeEvent extends BaseEvent<ProposalOutcomeEventData> {
+	public schema = proposalOutcomeEventDataSchema;
+
+	public log(ctx: EventQueuer, data: ProposalOutcomeEventData): void {
+		const index = Buffer.alloc(4);
+		index.writeUInt32BE(data.index);
+
+		this.add(ctx, data, [index]);
+	}
+}
