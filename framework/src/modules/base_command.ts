@@ -18,7 +18,7 @@ import { CommandVerifyContext, CommandExecuteContext, VerificationResult } from 
 import { NamedRegistry } from './named_registry';
 
 /**
- * The `BaseCommand` is the class every module command extends from.
+ * The `BaseCommand` represents Lisk commands by providing a generic interface, from which each command extends from.
  */
 export abstract class BaseCommand<T = unknown> {
 	public schema: Schema = emptySchema;
@@ -34,7 +34,7 @@ export abstract class BaseCommand<T = unknown> {
 	/**
 	 * The hook `Command.verify()` is called to perform all necessary verifications.
 	 * If the verification of the command was successful, for the next step the command can be {@link execute | executed}.
-	 * Similar to the {@link BaseModule.verifyTransaction} hook, `Command.verify()` will be called also in the {@link @liskhq/lisk-transaction-pool!TransactionPool}, and Its purpose is to guarantee that the verification defined within this hook is adhered to when the transactions are incorporated into a block.
+	 * Similar to the {@link BaseModule.verifyTransaction} hook, `Command.verify()` will be called also in the {@link @liskhq/lisk-transaction-pool!TransactionPool}, and its purpose is to guarantee that the verification defined within this hook is adhered to when the transactions are incorporated into a block.
 	 *
 	 * In this hook, the state *cannot* be mutated and events cannot be emitted.
 	 *

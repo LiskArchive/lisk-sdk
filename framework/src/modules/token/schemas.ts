@@ -82,7 +82,7 @@ export const transferParamsSchema = {
 	properties: {
 		/**
 		 * ID of the tokens being transferred.
-		 * `minLength` and `maxLength` are {@link TOKEN_ID_LENGTH}
+		 * `minLength` and `maxLength` are {@link TOKEN_ID_LENGTH}.
 		 */
 		tokenID: {
 			dataType: 'bytes',
@@ -135,7 +135,7 @@ export const crossChainTransferParamsSchema = {
 	properties: {
 		/**
 		 * ID of the tokens being transferred.
-		 * `minLength` and `maxLength` are {@link TOKEN_ID_LENGTH}
+		 * `minLength` and `maxLength` are {@link TOKEN_ID_LENGTH}.
 		 */
 		tokenID: {
 			dataType: 'bytes',
@@ -209,7 +209,7 @@ export const crossChainTransferMessageParams = {
 	properties: {
 		/**
 		 * ID of the tokens being transferred.
-		 * `minLength` and `maxLength` are {@link TOKEN_ID_LENGTH}
+		 * `minLength` and `maxLength` are {@link TOKEN_ID_LENGTH}.
 		 */
 		tokenID: {
 			dataType: 'bytes',
