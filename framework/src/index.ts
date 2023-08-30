@@ -147,6 +147,7 @@ export {
 	BaseInteroperableModule,
 	CrossChainMessageContext,
 	CCCommandExecuteContext,
+	ImmutableCrossChainMessageContext,
 	getMainchainID,
 	RecoverContext,
 } from './modules/interoperability';
