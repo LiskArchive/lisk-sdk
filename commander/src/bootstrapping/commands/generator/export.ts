@@ -70,8 +70,8 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 
 	static examples = [
 		'generator:export',
-		'generator:export --output /mypath/genInfo.json',
-		'generator:export --output /mypath/genInfo.json --data-path ./data ',
+		'generator:export --output /mypath/generator_info.json',
+		'generator:export --output /mypath/generator_info.json --data-path ./data ',
 	];
 
 	static flags = {

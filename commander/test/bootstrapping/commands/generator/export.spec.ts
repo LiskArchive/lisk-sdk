@@ -35,7 +35,6 @@ describe('generator:export', () => {
 			maxHeightPrevoted: 1200,
 		},
 	];
-	// const consoleWarnSpy = jest.spyOn(console, 'warn');
 
 	let defaultKeysJSON: {
 		generatorKey: string;
