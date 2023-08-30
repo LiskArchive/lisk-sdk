@@ -17,7 +17,7 @@ import { NamedRegistry } from '../named_registry';
 import { CCCommandExecuteContext, ImmutableCrossChainMessageContext } from './types';
 
 /**
- * The `BaseCCCommand` is the class every module cross-chain command extends from.
+ * The `BaseCCCommand` represents Lisk cross-chain commands by providing a generic interface, from which each cross-chain command extends from.
  */
 export abstract class BaseCCCommand<T = unknown> {
 	public schema: Schema = emptySchema;
