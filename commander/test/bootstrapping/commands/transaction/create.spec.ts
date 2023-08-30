@@ -19,6 +19,7 @@ import * as apiClient from '@liskhq/lisk-api-client';
 import * as transactions from '@liskhq/lisk-transactions';
 
 import { emptySchema } from '@liskhq/lisk-codec';
+import { join } from 'path';
 import * as appUtils from '../../../../src/utils/application';
 import * as readerUtils from '../../../../src/utils/reader';
 import { tokenTransferParamsSchema, posVoteParamsSchema } from '../../../helpers/transactions';
@@ -624,6 +625,8 @@ describe('transaction:create command', () => {
 			});
 
 			describe('create and send using --send flag', () => {
+				const pathToAppPIDFiles = join(__dirname, 'fake_test_app');
+
 				it('should return encoded transaction string in hex format with signature and invoke send command', async () => {
 					const stdout: string[] = [];
 					jest
@@ -644,7 +647,14 @@ describe('transaction:create command', () => {
 
 				it('should invoke send command when --send flag is provided', async () => {
 					await CreateCommandExtended.run(
-						['pos', 'unlock', '100000000', `--passphrase=${passphrase}`, '--send'],
+						[
+							'pos',
+							'unlock',
+							'100000000',
+							`--passphrase=${passphrase}`,
+							'--send',
+							`--data-path=${pathToAppPIDFiles}`,
+						],
 						config,
 					);
 
@@ -652,6 +662,23 @@ describe('transaction:create command', () => {
 					expect(clientMock.invoke).toHaveBeenCalledWith('txpool_postTransaction', {
 						transaction: mockEncodedTransaction.toString('hex'),
 					});
+				});
+
+				it('should throw an error when the application for the provided path is not running.', async () => {
+					jest.spyOn(appUtils, 'isApplicationRunning').mockReturnValue(false);
+					await expect(
+						CreateCommandExtended.run(
+							[
+								'pos',
+								'unlock',
+								'100000000',
+								`--passphrase=${passphrase}`,
+								'--send',
+								`--data-path=${pathToAppPIDFiles}`,
+							],
+							config,
+						),
+					).rejects.toThrow(`Application at data path ${pathToAppPIDFiles} is not running.`);
 				});
 			});
 		});
