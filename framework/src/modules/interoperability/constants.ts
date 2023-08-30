@@ -45,7 +45,7 @@ export const MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH = 1;
 export const MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH = 32;
 /**
  * Chain identifiers are 4-byte values that follow a specific format:
- * - The network-specific prefix: The first byte is used to identify the mainchain and its corresponding network of blockchains to which the chain wishes to connect.
+ * - The network-specific prefix: The first byte is used to identify the mainchain and its corresponding network of blockchains to which the chain wishes to establish a connection.
  * It is included explicitly to ensure that a chain does not use the same chain identifier in the test network as in the mainnet.
  * - The chain-specific suffix: The other 3 bytes identify the chain within the network.
  * Must be unique within the network.

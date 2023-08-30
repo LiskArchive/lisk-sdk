@@ -80,7 +80,7 @@ import { InternalMethod } from './internal_method';
  * The Token module handles all logic related to balance.
  * Specifically the following criteria:
  *
- * - Storing token balances of accounts
+ * - Storing token balances of accounts.
  * - Transferring tokens between accounts.
  * - Transferring tokens between accounts on different chains.
  *

@@ -63,7 +63,7 @@ export class TransferCrossChainCommand extends BaseCommand {
 	/**
 	 * The `init()` hook of a command is called by the Lisk Framework when the node starts.
 	 *
-	 * Here, you can validate and cache the module config or do initializations which should only happen once per node starts.
+	 * In this context, you have the opportunity to validate and cache the module config or perform initializations that are intended to occur only once.
 	 *
 	 * @see [Command initialization](https://lisk.com/documentation/beta/understand-blockchain/sdk/modules-commands.html#command-initialization)
 	 *
@@ -83,9 +83,9 @@ export class TransferCrossChainCommand extends BaseCommand {
 
 	/**
 	 * Verifies if:
-	 *  - the token being sent is native to either the sending or the receiving chain
-	 *  - the right token ID is used to pay the CCM fee
-	 *  - and if the sender has enough balance to send the specified amount of tokens.
+	 *  - the token being sent is native to either the sending or the receiving chain.
+	 *  - the correct token ID is used to pay the CCM fee.
+	 *  - if the sender has enough balance to send the specified amount of tokens.
 	 *
 	 * For more info about the `verify()` method, please refer to the {@link BaseCommand}
 	 *
