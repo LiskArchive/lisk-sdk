@@ -17,6 +17,7 @@ import { ed, bls, encrypt, utils } from '@liskhq/lisk-cryptography';
 import * as apiClient from '@liskhq/lisk-api-client';
 import { when } from 'jest-when';
 import * as fs from 'fs-extra';
+import path = require('path');
 import * as appUtils from '../../../../src/utils/application';
 import { ExportCommand } from '../../../../src/bootstrapping/commands/generator/export';
 import { getConfig } from '../../../helpers/config';
@@ -34,7 +35,6 @@ describe('generator:export', () => {
 			maxHeightPrevoted: 1200,
 		},
 	];
-	const consoleWarnSpy = jest.spyOn(console, 'warn');
 
 	let defaultKeysJSON: {
 		generatorKey: string;
@@ -105,24 +105,30 @@ describe('generator:export', () => {
 	});
 
 	describe('when exporting without a file path flag', () => {
-		it('should log to the console', async () => {
+		it('should export to the current directory', async () => {
 			when(invokeMock).calledWith('generator_getAllKeys').mockResolvedValue({
 				keys: allKeysPlain,
 			});
 			when(invokeMock).calledWith('generator_getStatus').mockResolvedValue({
 				status: info,
 			});
-
-			await ExportCommand.run([], config);
-
-			const loggedData = JSON.parse(stdout[0]);
-			const expectedData = {
+			fileData = {
 				keys: [{ address: allKeysPlain[0].address, plain: allKeysPlain[0].data }],
 				generatorInfo: info,
 			};
 
-			expect(loggedData).toEqual(expectedData);
-			expect(consoleWarnSpy).toHaveBeenCalledTimes(0);
+			await ExportCommand.run([], config);
+
+			expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
+			expect(fs.writeJSONSync).toHaveBeenCalledWith(
+				path.join(process.cwd(), 'generator_info.json'),
+				expect.any(Object),
+				{ spaces: ' ', mode: OWNER_READ_WRITE },
+			);
+			expect(fs.ensureDirSync).toHaveBeenCalledTimes(0);
+			expect(stdout[0]).toContain(
+				`Generator info is exported to ${path.join(process.cwd(), 'generator_info.json')}`,
+			);
 		});
 	});
 
