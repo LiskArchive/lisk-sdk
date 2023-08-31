@@ -101,29 +101,53 @@ export interface TransactionVerifyContext {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
+/** Context for the command verification. */
 export interface CommandVerifyContext<T = undefined> {
+	/** Logger interface, to create log messages. */
 	logger: Logger;
+	/** The identifier of the blockchain network, in which this command is executed. */
 	chainID: Buffer;
+	/** Timestamp and height when the transaction was sent. */
 	header: { timestamp: number; height: number };
+	/** The transaction to verify. */
 	transaction: Transaction; // without decoding params
+	/** The command-specific parameters. */
 	params: T;
+	/** TBD */
 	getMethodContext: () => ImmutableMethodContext;
+	/** State store interface to get data from the module stores. */
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
+	/** TBD */
 	stateStore: ImmutableStateStore;
+	/** TBD */
 	contextStore: Map<string, unknown>;
 }
 
+/**
+ *  Context for the command execution.
+ */
 export interface CommandExecuteContext<T = undefined> {
+	/** Logger interface, to create log messages. */
 	logger: Logger;
+	/** The identifier of the blockchain network, in which this command is executed. */
 	chainID: Buffer;
+	/** Event interface to ad blockchain events to the event queue. */
 	eventQueue: EventQueue;
+	/** State store interface. */
 	stateStore: StateStore;
+	/** TBD */
 	contextStore: Map<string, unknown>;
+	/** The block header. */
 	header: BlockHeader;
+	/** The block assets. */
 	assets: BlockAssets;
+	/** The transaction to execute. */
 	transaction: Transaction; // without decoding params
+	/** The command-specific parameters. */
 	params: T;
+	/** Method interface to call methods */
 	getMethodContext: () => MethodContext;
+	/** State store interface to get data from the module stores. */
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 }
 

@@ -45,6 +45,8 @@ export {
 	LastCertificate,
 	LastCertificateJSON,
 	CrossChainMessageContext,
+	CCCommandExecuteContext,
+	ImmutableCrossChainMessageContext,
 	RecoverContext,
 } from './types';
 // Common

@@ -62,6 +62,7 @@ tmp
 build/
 dist/
 build/
+docs/typedoc/
 dist-node/
 dist-browser/
 browsertest.build/

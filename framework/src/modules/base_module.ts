@@ -61,6 +61,9 @@ export interface ModuleMetadata {
 
 export type ModuleMetadataJSON = ModuleMetadata & { name: string };
 
+/**
+ * The `BaseModule` represents Lisk modules by providing a generic interface, from which each module extends from.
+ */
 export abstract class BaseModule {
 	public commands: BaseCommand[] = [];
 	public events: NamedRegistry = new NamedRegistry();

@@ -13,7 +13,19 @@
  */
 
 export { TokenModule } from './module';
-export { TransferCommand } from './commands/transfer';
+export { TransferCommand, Params as TransferParams } from './commands/transfer';
+export {
+	TransferCrossChainCommand,
+	Params as CCTransferParams,
+} from './commands/transfer_cross_chain';
+export { CrossChainTransferCommand } from './cc_commands/cc_transfer';
 export { TokenMethod } from './method';
+export { TokenInteroperableMethod } from './cc_method';
+export { TokenEndpoint } from './endpoint';
 export { genesisTokenStoreSchema } from './schemas';
-export { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from './constants';
+export {
+	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+	LOCAL_ID_LENGTH,
+	TOKEN_ID_LENGTH,
+	MAX_DATA_LENGTH,
+} from './constants';

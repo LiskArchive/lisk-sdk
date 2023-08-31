@@ -64,8 +64,17 @@ export {
 	TokenMethod,
 	TokenModule,
 	TransferCommand,
+	TransferCrossChainCommand,
+	CrossChainTransferCommand,
+	TokenInteroperableMethod,
+	TokenEndpoint,
+	TransferParams,
+	CCTransferParams,
 	genesisTokenStoreSchema as tokenGenesisStoreSchema,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+	LOCAL_ID_LENGTH,
+	TOKEN_ID_LENGTH,
+	MAX_DATA_LENGTH,
 } from './modules/token';
 export { NFTModule, NFTMethod } from './modules/nft';
 export {
@@ -137,6 +146,8 @@ export {
 	BaseCCMethod,
 	BaseInteroperableModule,
 	CrossChainMessageContext,
+	CCCommandExecuteContext,
+	ImmutableCrossChainMessageContext,
 	getMainchainID,
 	RecoverContext,
 } from './modules/interoperability';

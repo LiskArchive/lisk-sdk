@@ -27,23 +27,50 @@ import { TokenID } from '../types';
 import { InternalMethod } from '../internal_method';
 import { InsufficientBalanceError } from '../../../errors';
 
-interface Params {
+/** Interface for the parameters of the Token Transfer Command */
+export interface Params {
+	/**	ID of the tokens being transferred. `TokenID` must be 8 bytes (16 characters). The first 4 bytes correspond to the `chainID`. */
 	tokenID: TokenID;
+	/** Amount of tokens to be transferred in Beddows. */
 	amount: bigint;
+	/** Address of the recipient. */
 	recipientAddress: Buffer;
+	/** Optional message / data field. */
 	data: string;
 }
 
+/**
+ * The `transfer` command of the {@link TokenModule} transfers tokens from one account to another.
+ *
+ * - name: `transfer`
+ * - module: {@link TokenModule | `token`}
+ */
 export class TransferCommand extends BaseCommand {
 	public schema = transferParamsSchema;
 	private _method!: TokenMethod;
 	private _internalMethod!: InternalMethod;
 
+	/**
+	 * The `init()` hook of a command is called by the Lisk Framework when the node starts.
+	 *
+	 * In this context, you have the opportunity to validate and cache the module config or perform initializations that are intended to occur only once.
+	 *
+	 * @see [Command initialization](https://lisk.com/documentation/beta/understand-blockchain/sdk/modules-commands.html#command-initialization)
+	 *
+	 * @param args Contains the module methods and internal module methods.
+	 */
 	public init(args: { method: TokenMethod; internalMethod: InternalMethod }) {
 		this._method = args.method;
 		this._internalMethod = args.internalMethod;
 	}
 
+	/**
+	 * Checks if the sender has enough balance to send the specified amount of tokens.
+	 *
+	 * For more info about the `verify()` method, please refer to the {@link BaseCommand}
+	 *
+	 * @param context
+	 */
 	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
 		const { params } = context;
 
@@ -64,6 +91,13 @@ export class TransferCommand extends BaseCommand {
 		};
 	}
 
+	/**
+	 * Transfers the specified amount of tokens from the sender to the recipient account.
+	 *
+	 * For more info about the `execute()` method, please refer to the {@link BaseCommand}.
+	 *
+	 * @param context
+	 */
 	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
 		const { params } = context;
 

@@ -76,6 +76,9 @@ export interface CCUpdateParams {
 	inboxUpdate: InboxUpdate;
 }
 
+/**
+ * TODO
+ */
 export interface ImmutableCrossChainMessageContext {
 	getMethodContext: () => ImmutableMethodContext;
 	getStore: ImmutableStoreCallback;
@@ -94,6 +97,9 @@ export interface ImmutableCrossChainMessageContext {
 	ccm: CCMsg;
 }
 
+/**
+ * TODO
+ */
 export interface CrossChainMessageContext extends ImmutableCrossChainMessageContext {
 	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
