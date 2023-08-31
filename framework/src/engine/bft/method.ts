@@ -89,6 +89,19 @@ export class BFTMethod {
 		return getBFTParameters(paramsStore, height);
 	}
 
+	public async getBFTParametersActiveValidators(
+		stateStore: StateStore,
+		height: number,
+	): Promise<BFTParameters> {
+		const bftParams = await this.getBFTParameters(stateStore, height);
+
+		return {
+			...bftParams,
+			// Filter standby validators with bftWeight === 0
+			validators: bftParams.validators.filter(v => v.bftWeight > BigInt(0)),
+		};
+	}
+
 	public async getBFTHeights(stateStore: StateStore): Promise<BFTHeights> {
 		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
