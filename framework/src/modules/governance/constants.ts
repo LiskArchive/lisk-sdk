@@ -16,3 +16,9 @@ export const MAX_PARAM_NAME_LENGTH = 64;
 export const MAX_PARAM_VALUE_LENGTH = 64;
 
 export const PROPOSAL_ID_LENGTH = 4;
+
+export const MAX_LENGTH_PROPOSAL_TITLE = 124;
+export const MAX_LENGTH_PROPOSAL_AUTHOR = 200;
+export const MAX_LENGTH_PROPOSAL_SUMMARY = 500;
+export const MAX_LENGTH_PROPOSAL_LINK = 200;
+export const MAX_LENGTH_PROPOSAL_TEXT = 10 * 1024;
