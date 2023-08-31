@@ -962,6 +962,21 @@ describe('token module', () => {
 				),
 			).resolves.toBeUndefined();
 		});
+
+		it('should reject if messageFee is negative', async () => {
+			await expect(
+				method.transferCrossChain(
+					methodContext,
+					defaultAddress,
+					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					utils.getRandomBytes(20),
+					defaultTokenID,
+					BigInt('100000'),
+					BigInt(-1),
+					'data',
+				),
+			).resolves.toBeUndefined();
+		});
 	});
 
 	describe('lock', () => {
@@ -1159,6 +1174,17 @@ describe('token module', () => {
 	});
 
 	describe('payMessageFee', () => {
+		it('should reject if fee is negative', async () => {
+			await expect(
+				method.payMessageFee(
+					methodContext,
+					defaultAddress,
+					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					BigInt(-1),
+				),
+			).rejects.toThrow('invalid Message Fee');
+		});
+
 		it('should reject if address does not have sufficient balance', async () => {
 			await expect(
 				method.payMessageFee(

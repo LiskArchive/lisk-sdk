@@ -413,6 +413,9 @@ export class TokenMethod extends BaseMethod {
 		if (amount <= BigInt(0)) {
 			return;
 		}
+		if (messageFee < BigInt(0)) {
+			return;
+		}
 
 		const eventData = {
 			senderAddress,
@@ -640,6 +643,10 @@ export class TokenMethod extends BaseMethod {
 		receivingChainID: Buffer,
 		fee: bigint,
 	): Promise<void> {
+		if (fee <= BigInt(0)) {
+			throw new Error('invalid Message Fee');
+		}
+
 		const messageFeeTokenID = await this._interoperabilityMethod.getMessageFeeTokenID(
 			methodContext,
 			receivingChainID,
