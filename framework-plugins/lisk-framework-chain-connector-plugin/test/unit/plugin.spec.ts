@@ -1084,6 +1084,31 @@ describe('ChainConnectorPlugin', () => {
 			);
 		});
 
+		describe('CCU params calculation when no new ceritifcate and last certificate height == 0', () => {
+			beforeEach(() => {
+				jest
+					.spyOn(chainConnectorPlugin, '_findNextCertificate' as never)
+					.mockResolvedValue(undefined as never);
+				chainConnectorPlugin['_lastCertificate'] = {
+					height: 0,
+					stateRoot: Buffer.alloc(1),
+					timestamp: Date.now(),
+					validatorsHash: cryptography.utils.hash(cryptography.utils.getRandomBytes(4)),
+				};
+			});
+
+			it('should exit function without CCU params ', async () => {
+				const result = await chainConnectorPlugin['_computeCCUParams'](
+					sampleBlockHeaders,
+					sampleAggregateCommits,
+					sampleValidatorsHashPreimage,
+					sampleCCMsWithEvents,
+				);
+
+				expect(result).toBeUndefined();
+			});
+		});
+
 		describe('CCU params calculation when last certificate', () => {
 			beforeEach(() => {
 				when(sendingChainAPIClientMock.invoke)

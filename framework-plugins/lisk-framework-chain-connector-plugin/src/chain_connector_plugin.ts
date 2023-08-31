@@ -264,6 +264,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			blockHeaders,
 			validatorsHashPreimage,
 		);
+
+		if (!newCertificate && this._lastCertificate.height === 0) {
+			return;
+		}
 		/**
 		 * If no lastSentCCM then assume that it's the first CCM to be sent
 		 * and we can use the lastCertificate height
@@ -326,9 +330,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		 * If there is no new certificate then we calculate CCU params based on last certificate and pending ccms
 		 */
 		if (!newCertificate) {
-			if (this._lastCertificate.height === 0) {
-				return;
-			}
 			if (crossChainMessages.length === 0) {
 				this.logger.info(
 					'CCU cant be created as there are no pending CCMs for the last certificate.',

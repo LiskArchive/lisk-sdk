@@ -69,8 +69,9 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 	static description = 'Export to <FILE>.';
 
 	static examples = [
-		'generator:export --output /mypath/genInfo.json',
-		'generator:export --output /mypath/genInfo.json --data-path ./data ',
+		'generator:export',
+		'generator:export --output /mypath/generator_info.json',
+		'generator:export --output /mypath/generator_info.json --data-path ./data ',
 	];
 
 	static flags = {
@@ -80,6 +81,7 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 
 	async run(): Promise<void> {
 		const { flags } = await this.parse(ExportCommand);
+
 		if (!this._client) {
 			this.error('APIClient is not initialized.');
 		}
@@ -117,10 +119,8 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 			generatorInfo: returnedGeneratorInfo,
 		};
 
-		if (flags.output) {
-			fs.writeJSONSync(flags.output, output, { spaces: ' ', mode: OWNER_READ_WRITE });
-		} else {
-			this.log(JSON.stringify(output, undefined, '  '));
-		}
+		const filePath = flags.output ? flags.output : path.join(process.cwd(), 'generator_info.json');
+		fs.writeJSONSync(filePath, output, { spaces: ' ', mode: OWNER_READ_WRITE });
+		this.log(`Generator info is exported to ${filePath}`);
 	}
 }
