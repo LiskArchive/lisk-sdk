@@ -13,7 +13,7 @@
  */
 
 import { BlockHeader, Chain, StateStore } from '@liskhq/lisk-chain';
-import { dataStructures, objects } from '@liskhq/lisk-utils';
+import { dataStructures } from '@liskhq/lisk-utils';
 import { bls } from '@liskhq/lisk-cryptography';
 import { Database } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
@@ -340,12 +340,7 @@ export class CommitPool {
 			const { validators: bftParamValidators, certificateThreshold } =
 				await this._bftMethod.getBFTParametersActiveValidators(methodContext, nextHeight);
 
-			const activeValidatorAddresses = bftParamValidators.map(v => v.address);
-			// Filter out any single commits from standby delegates
-			const singleCommitsByActiveValidators = singleCommits.filter(commit =>
-				objects.bufferArrayIncludes(activeValidatorAddresses, commit.validatorAddress),
-			);
-			const nextValidators = singleCommitsByActiveValidators.map(commit => commit.validatorAddress);
+			const nextValidators = singleCommits.map(commit => commit.validatorAddress);
 
 			for (const matchingAddress of nextValidators) {
 				const bftParamsValidatorInfo = bftParamValidators.find(bftParamValidator =>
@@ -359,7 +354,7 @@ export class CommitPool {
 			}
 
 			if (aggregateBFTWeight >= certificateThreshold) {
-				return this.aggregateSingleCommits(methodContext, singleCommitsByActiveValidators);
+				return this.aggregateSingleCommits(methodContext, singleCommits);
 			}
 
 			nextHeight -= 1;

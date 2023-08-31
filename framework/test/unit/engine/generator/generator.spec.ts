@@ -138,6 +138,7 @@ describe('generator', () => {
 				}),
 				setBFTParameters: jest.fn(),
 				getBFTParameters: jest.fn().mockResolvedValue({ validators: [] }),
+				getBFTParametersActiveValidators: jest.fn().mockResolvedValue({ validators: [] }),
 				existBFTParameters: jest.fn().mockResolvedValue(false),
 				getGeneratorAtTimestamp: jest.fn(),
 				impliesMaximalPrevotes: jest.fn().mockResolvedValue(false),
@@ -496,6 +497,9 @@ describe('generator', () => {
 				.spyOn(generator['_bft'].method, 'getBFTParameters')
 				.mockResolvedValue({ validatorsHash, validators: [] } as never);
 			jest
+				.spyOn(generator['_bft'].method, 'getBFTParametersActiveValidators')
+				.mockResolvedValue({ validatorsHash, validators: [] } as never);
+			jest
 				.spyOn(generator['_consensus'], 'getAggregateCommit')
 				.mockResolvedValue(aggregateCommit as never);
 			await generator.init({
@@ -661,7 +665,7 @@ describe('generator', () => {
 				.mockResolvedValue(false as never)
 				.calledWith(expect.anything(), 55)
 				.mockResolvedValue(true as never);
-			when(generator['_bft'].method.getBFTParameters as jest.Mock)
+			when(generator['_bft'].method.getBFTParametersActiveValidators as jest.Mock)
 				.calledWith(expect.anything(), 11)
 				.mockResolvedValue({ validators: [{ address, blsKey }] })
 				.calledWith(expect.anything(), 20)
