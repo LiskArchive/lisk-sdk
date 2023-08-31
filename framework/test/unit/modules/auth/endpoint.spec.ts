@@ -675,6 +675,41 @@ describe('AuthEndpoint', () => {
 			expect(sortedSignatures.signatures[4]).toEqual(inputData.optional[0].signature);
 		});
 
+		it('should throw a validation error when missing required fields', () => {
+			const inputData = {
+				mandatory: [
+					{
+						publicKey: '3333333333333333333333333333333333333333333333333333333333333333',
+					},
+					{
+						publicKey: '0000000000000000000000000000000000000000000000000000000000000000',
+						signature:
+							'11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111',
+					},
+					{
+						publicKey: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+						signature:
+							'00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+					},
+				],
+				optional: [
+					{
+						publicKey: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+						signature: '',
+					},
+					{
+						publicKey: '2222222222222222222222222222222222222222222222222222222222222222',
+						signature:
+							'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+					},
+				],
+			};
+
+			const context = createTransientModuleEndpointContext({ params: inputData });
+
+			expect(() => authEndpoint.sortMultisignatureGroup(context)).toThrow(LiskValidationError);
+		});
+
 		it('should throw a validation error when provided invalid request', () => {
 			const inputData = {
 				mandatory: [
