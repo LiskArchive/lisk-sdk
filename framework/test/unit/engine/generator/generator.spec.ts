@@ -652,100 +652,161 @@ describe('generator', () => {
 		const blsKey = bls.getPublicKeyFromPrivateKey(keypair.blsSecretKey);
 		const blockHeader = createFakeBlockHeader();
 
-		beforeEach(async () => {
-			generator['_keypairs'].set(address, keypair);
-			when(generator['_bft'].method.existBFTParameters as jest.Mock)
-				.calledWith(expect.anything(), 1)
-				.mockResolvedValue(true as never)
-				.calledWith(expect.anything(), 12)
-				.mockResolvedValue(true as never)
-				.calledWith(expect.anything(), 21)
-				.mockResolvedValue(true as never)
-				.calledWith(expect.anything(), 51)
-				.mockResolvedValue(false as never)
-				.calledWith(expect.anything(), 55)
-				.mockResolvedValue(true as never);
-			when(generator['_bft'].method.getBFTParametersActiveValidators as jest.Mock)
-				.calledWith(expect.anything(), 11)
-				.mockResolvedValue({ validators: [{ address, blsKey }] })
-				.calledWith(expect.anything(), 20)
-				.mockResolvedValue({ validators: [{ address, blsKey: Buffer.alloc(48) }] })
-				.calledWith(expect.anything(), 50)
-				.mockResolvedValue({ validators: [{ address, blsKey }] })
-				.calledWith(expect.anything(), 54)
-				.mockResolvedValue({ validators: [] });
+		describe('when generator is a standby validator', () => {
+			beforeEach(async () => {
+				generator['_keypairs'].set(address, keypair);
+				when(generator['_bft'].method.existBFTParameters as jest.Mock)
+					.calledWith(expect.anything(), 1)
+					.mockResolvedValue(true as never)
+					.calledWith(expect.anything(), 12)
+					.mockResolvedValue(true as never)
+					.calledWith(expect.anything(), 21)
+					.mockResolvedValue(true as never)
+					.calledWith(expect.anything(), 51)
+					.mockResolvedValue(false as never)
+					.calledWith(expect.anything(), 55)
+					.mockResolvedValue(true as never);
+				when(generator['_bft'].method.getBFTParametersActiveValidators as jest.Mock)
+					.calledWith(expect.anything(), 11)
+					.mockResolvedValue({
+						validators: [{ address: utils.getRandomBytes(20), blsKey: utils.getRandomBytes(48) }],
+					})
+					.calledWith(expect.anything(), 20)
+					.mockResolvedValue({
+						validators: [{ address: utils.getRandomBytes(20), blsKey: utils.getRandomBytes(48) }],
+					})
+					.calledWith(expect.anything(), 50)
+					.mockResolvedValue({
+						validators: [{ address: utils.getRandomBytes(20), blsKey: utils.getRandomBytes(48) }],
+					})
+					.calledWith(expect.anything(), 54)
+					.mockResolvedValue({ validators: [] });
 
-			jest
-				.spyOn(generator['_chain'].dataAccess, 'getBlockHeaderByHeight')
-				.mockResolvedValue(blockHeader as never);
-			await generator.init({
-				blockchainDB,
-				generatorDB,
-				logger,
-				genesisHeight: 0,
+				jest
+					.spyOn(generator['_chain'].dataAccess, 'getBlockHeaderByHeight')
+					.mockResolvedValue(blockHeader as never);
+				await generator.init({
+					blockchainDB,
+					generatorDB,
+					logger,
+					genesisHeight: 0,
+				});
+				await generator.start();
+				jest.spyOn(generator['_consensus'], 'certifySingleCommit');
 			});
-			await generator.start();
-			jest.spyOn(generator['_consensus'], 'certifySingleCommit');
-		});
 
-		it('should call certifySingleCommit for range when params for height + 1 exist', async () => {
-			// Act
-			await Promise.all(generator['_handleFinalizedHeightChanged'](10, 50));
-
-			// Assert
-			expect(generator['_consensus'].certifySingleCommit).toHaveBeenCalledTimes(2);
-			expect(generator['_consensus'].certifySingleCommit).toHaveBeenCalledWith(blockHeader, {
-				address,
-				blsPublicKey: blsKey,
-				blsSecretKey: keypair.blsSecretKey,
+			afterAll(async () => {
+				await generator.stop();
 			});
-		});
+			it('should not call certifySingleCommit when standby validator creates block', async () => {
+				// Act
+				await Promise.all(generator['_handleFinalizedHeightChanged'](10, 50));
 
-		it('should not call certifySingleCommit for range when params for height + 1 does not exist', async () => {
-			// Act
-			await Promise.all(generator['_handleFinalizedHeightChanged'](51, 54));
-
-			// Assert
-			expect(generator['_consensus'].certifySingleCommit).not.toHaveBeenCalled();
-		});
-
-		it('should not call certifySingleCommit for finalized height + 1 when BFT params exist', async () => {
-			// Act
-			await Promise.all(generator['_handleFinalizedHeightChanged'](53, 54));
-
-			// Assert
-			expect(generator['_consensus'].certifySingleCommit).not.toHaveBeenCalled();
-		});
-
-		it('should not call certifySingleCommit for the validator who has not registered bls key', async () => {
-			// Act
-			await Promise.all(generator['_handleFinalizedHeightChanged'](20, 21));
-
-			// Assert
-			expect(generator['_consensus'].certifySingleCommit).not.toHaveBeenCalled();
-		});
-
-		it('should call certifySingleCommit for finalized height + 1 when BFT params does not exist', async () => {
-			// For height 50, it should ceritifySingleCommit event though BFTParameter does not exist
-			await Promise.all(generator['_handleFinalizedHeightChanged'](15, 50));
-
-			// Assert
-			expect(generator['_consensus'].certifySingleCommit).toHaveBeenCalledTimes(1);
-			expect(generator['_consensus'].certifySingleCommit).toHaveBeenCalledWith(blockHeader, {
-				address,
-				blsPublicKey: blsKey,
-				blsSecretKey: keypair.blsSecretKey,
+				// Assert
+				expect(generator['_consensus'].certifySingleCommit).toHaveBeenCalledTimes(0);
 			});
 		});
 
-		it('should not call certifySingleCommit when validator is not active at the height', async () => {
-			// height 20 returns existBFTParameters true, but no active validators.
-			// Therefore, it should not certify single commit
-			// Act
-			await Promise.all(generator['_handleFinalizedHeightChanged'](15, 54));
+		describe('when generator is an active validator', () => {
+			beforeEach(async () => {
+				generator['_keypairs'].set(address, keypair);
+				when(generator['_bft'].method.existBFTParameters as jest.Mock)
+					.calledWith(expect.anything(), 1)
+					.mockResolvedValue(true as never)
+					.calledWith(expect.anything(), 12)
+					.mockResolvedValue(true as never)
+					.calledWith(expect.anything(), 21)
+					.mockResolvedValue(true as never)
+					.calledWith(expect.anything(), 51)
+					.mockResolvedValue(false as never)
+					.calledWith(expect.anything(), 55)
+					.mockResolvedValue(true as never);
+				when(generator['_bft'].method.getBFTParametersActiveValidators as jest.Mock)
+					.calledWith(expect.anything(), 11)
+					.mockResolvedValue({ validators: [{ address, blsKey }] })
+					.calledWith(expect.anything(), 20)
+					.mockResolvedValue({ validators: [{ address, blsKey: Buffer.alloc(48) }] })
+					.calledWith(expect.anything(), 50)
+					.mockResolvedValue({ validators: [{ address, blsKey }] })
+					.calledWith(expect.anything(), 54)
+					.mockResolvedValue({ validators: [] });
 
-			// Assert
-			expect(generator['_consensus'].certifySingleCommit).not.toHaveBeenCalled();
+				jest
+					.spyOn(generator['_chain'].dataAccess, 'getBlockHeaderByHeight')
+					.mockResolvedValue(blockHeader as never);
+				await generator.init({
+					blockchainDB,
+					generatorDB,
+					logger,
+					genesisHeight: 0,
+				});
+				await generator.start();
+				jest.spyOn(generator['_consensus'], 'certifySingleCommit');
+			});
+
+			afterAll(async () => {
+				await generator.stop();
+			});
+
+			it('should call certifySingleCommit for range when params for height + 1 exist', async () => {
+				// Act
+				await Promise.all(generator['_handleFinalizedHeightChanged'](10, 50));
+
+				// Assert
+				expect(generator['_consensus'].certifySingleCommit).toHaveBeenCalledTimes(2);
+				expect(generator['_consensus'].certifySingleCommit).toHaveBeenCalledWith(blockHeader, {
+					address,
+					blsPublicKey: blsKey,
+					blsSecretKey: keypair.blsSecretKey,
+				});
+			});
+
+			it('should not call certifySingleCommit for range when params for height + 1 does not exist', async () => {
+				// Act
+				await Promise.all(generator['_handleFinalizedHeightChanged'](51, 54));
+
+				// Assert
+				expect(generator['_consensus'].certifySingleCommit).not.toHaveBeenCalled();
+			});
+
+			it('should not call certifySingleCommit for finalized height + 1 when BFT params exist', async () => {
+				// Act
+				await Promise.all(generator['_handleFinalizedHeightChanged'](53, 54));
+
+				// Assert
+				expect(generator['_consensus'].certifySingleCommit).not.toHaveBeenCalled();
+			});
+
+			it('should not call certifySingleCommit for the validator who has not registered bls key', async () => {
+				// Act
+				await Promise.all(generator['_handleFinalizedHeightChanged'](20, 21));
+
+				// Assert
+				expect(generator['_consensus'].certifySingleCommit).not.toHaveBeenCalled();
+			});
+
+			it('should call certifySingleCommit for finalized height + 1 when BFT params does not exist', async () => {
+				// For height 50, it should ceritifySingleCommit event though BFTParameter does not exist
+				await Promise.all(generator['_handleFinalizedHeightChanged'](15, 50));
+
+				// Assert
+				expect(generator['_consensus'].certifySingleCommit).toHaveBeenCalledTimes(1);
+				expect(generator['_consensus'].certifySingleCommit).toHaveBeenCalledWith(blockHeader, {
+					address,
+					blsPublicKey: blsKey,
+					blsSecretKey: keypair.blsSecretKey,
+				});
+			});
+
+			it('should not call certifySingleCommit when validator is not active at the height', async () => {
+				// height 20 returns existBFTParameters true, but no active validators.
+				// Therefore, it should not certify single commit
+				// Act
+				await Promise.all(generator['_handleFinalizedHeightChanged'](15, 54));
+
+				// Assert
+				expect(generator['_consensus'].certifySingleCommit).not.toHaveBeenCalled();
+			});
 		});
 	});
 });

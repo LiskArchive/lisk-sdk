@@ -1393,28 +1393,6 @@ describe('CommitPool', () => {
 			]);
 		});
 
-		it('should call aggregateSingleCommits with single commits only from active validators when it reaches threshold', async () => {
-			// Act
-			const singleCommitByStandbyValidator = {
-				blockID: blockHeader2.id,
-				height: blockHeader2.height,
-				validatorAddress: utils.getRandomBytes(20),
-				certificateSignature: signCertificate(
-					utils.getRandomBytes(32),
-					chainID,
-					unsignedCertificate2,
-				),
-			};
-			commitPool['_nonGossipedCommitsLocal'].add(singleCommitByStandbyValidator);
-
-			await commitPool['_selectAggregateCommit'](stateStore);
-
-			// Assert
-			expect(commitPool['aggregateSingleCommits']).toHaveBeenCalledWith(stateStore, [
-				singleCommit2,
-			]);
-		});
-
 		it('should not call aggregateSingleCommits when it does not reach threshold and return default aggregateCommit', async () => {
 			// Arrange
 			bftMethod.getBFTParametersActiveValidators.mockReturnValue({
