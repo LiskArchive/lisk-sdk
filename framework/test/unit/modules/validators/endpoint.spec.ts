@@ -54,11 +54,9 @@ describe('ValidatorsModuleEndpoint', () => {
 					},
 				});
 
-				await validatorsModule.stores
-					.get(BLSKeyStore)
-					.set(createStoreGetter(stateStore), blsKey, {
-						address: utils.getRandomBytes(ADDRESS_LENGTH),
-					});
+				await validatorsModule.stores.get(BLSKeyStore).set(createStoreGetter(stateStore), blsKey, {
+					address: utils.getRandomBytes(ADDRESS_LENGTH),
+				});
 
 				await expect(validatorsModule.endpoint.validateBLSKey(context)).resolves.toStrictEqual({
 					valid: false,
