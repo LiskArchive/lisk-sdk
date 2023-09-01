@@ -19,6 +19,7 @@ import {
 	areDistinctHeadersContradicting,
 	computeValidatorsHash,
 	sortValidatorsByAddress,
+	sortValidatorsByBLSKey,
 } from './utils';
 import { getBFTParameters } from './bft_params';
 import {
@@ -217,7 +218,7 @@ export class BFTMethod {
 			throw new Error('Invalid certificateThreshold input.');
 		}
 
-		sortValidatorsByAddress(validators);
+		sortValidatorsByBLSKey(validators);
 		const validatorsHash = computeValidatorsHash(
 			validators
 				.filter(v => v.bftWeight > BigInt(0))
