@@ -73,6 +73,7 @@ export const sortMultisignatureGroupRequestSchema = {
 			type: 'array',
 			items: {
 				type: 'object',
+				required: ['publicKey', 'signature'],
 				properties: {
 					publicKey: {
 						type: 'string',
@@ -95,6 +96,7 @@ export const sortMultisignatureGroupRequestSchema = {
 			type: 'array',
 			items: {
 				type: 'object',
+				required: ['publicKey', 'signature'],
 				properties: {
 					publicKey: {
 						type: 'string',
