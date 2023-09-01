@@ -17,6 +17,7 @@ import { BaseMethod } from '../base_method';
 import { MethodContext, ImmutableMethodContext } from '../../state_machine';
 import {
 	ADDRESS_LENGTH,
+	BLS_POP_LENGTH,
 	BLS_PUBLIC_KEY_LENGTH,
 	ED25519_PUBLIC_KEY_LENGTH,
 	EMPTY_KEY,
@@ -30,6 +31,13 @@ import { BLSKeyStore } from './stores/bls_keys';
 import { BlsKeyRegistrationEvent } from './events/bls_key_registration';
 import { ValidatorsParams, ValidatorsParamsStore } from './stores/validators_params';
 import { NextValidatorsSetter, Validator } from '../../state_machine/types';
+
+export type ValidatorArgs = {
+	validatorAddress?: Buffer;
+	blsKey?: Buffer;
+	proofOfPossession?: Buffer;
+	generatorKey?: Buffer;
+};
 
 export class ValidatorsMethod extends BaseMethod {
 	private _blockTime!: number;
@@ -45,9 +53,8 @@ export class ValidatorsMethod extends BaseMethod {
 		generatorKey: Buffer,
 		proofOfPossession: Buffer,
 	): Promise<void> {
-		if (validatorAddress.length !== ADDRESS_LENGTH) {
-			throw new Error(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
-		}
+		this._validateLengths({ validatorAddress, blsKey, proofOfPossession });
+
 		const validatorAccount = {
 			generatorKey,
 			blsKey,
@@ -103,9 +110,8 @@ export class ValidatorsMethod extends BaseMethod {
 		validatorAddress: Buffer,
 		generatorKey: Buffer,
 	): Promise<boolean> {
-		if (validatorAddress.length !== ADDRESS_LENGTH) {
-			throw new Error(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
-		}
+		this._validateLengths({ validatorAddress });
+
 		const validatorAccount = {
 			generatorKey,
 			blsKey: INVALID_BLS_KEY,
@@ -137,9 +143,7 @@ export class ValidatorsMethod extends BaseMethod {
 		methodContext: MethodContext,
 		blsKey: Buffer,
 	): Promise<ValidatorAddress> {
-		if (blsKey.length !== BLS_PUBLIC_KEY_LENGTH) {
-			throw new Error(`BLS public key must be ${BLS_PUBLIC_KEY_LENGTH} bytes long.`);
-		}
+		this._validateLengths({ blsKey });
 
 		const blsKeysSubStore = this.stores.get(BLSKeyStore);
 		const blsKeyExists = await blsKeysSubStore.has(methodContext, blsKey);
@@ -157,9 +161,7 @@ export class ValidatorsMethod extends BaseMethod {
 		methodContext: ImmutableMethodContext,
 		address: Buffer,
 	): Promise<ValidatorKeys> {
-		if (address.length !== ADDRESS_LENGTH) {
-			throw new Error(`Validator address length must be ${ADDRESS_LENGTH}.`);
-		}
+		this._validateLengths({ validatorAddress: address });
 
 		const validatorsSubStore = this.stores.get(ValidatorKeysStore);
 		const addressExists = await validatorsSubStore.has(methodContext, address);
@@ -176,12 +178,7 @@ export class ValidatorsMethod extends BaseMethod {
 		blsKey: Buffer,
 		proofOfPossession: Buffer,
 	): Promise<boolean> {
-		if (validatorAddress.length !== ADDRESS_LENGTH) {
-			throw new Error(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
-		}
-		if (blsKey.length !== BLS_PUBLIC_KEY_LENGTH) {
-			throw new Error(`BLS public key must be ${BLS_PUBLIC_KEY_LENGTH} bytes long.`);
-		}
+		this._validateLengths({ validatorAddress, blsKey, proofOfPossession });
 
 		const validatorsSubStore = this.stores.get(ValidatorKeysStore);
 		const addressExists = await validatorsSubStore.has(methodContext, validatorAddress);
@@ -244,12 +241,7 @@ export class ValidatorsMethod extends BaseMethod {
 		validatorAddress: Buffer,
 		generatorKey: Buffer,
 	): Promise<boolean> {
-		if (validatorAddress.length !== ADDRESS_LENGTH) {
-			throw new Error(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
-		}
-		if (generatorKey.length !== ED25519_PUBLIC_KEY_LENGTH) {
-			throw new Error(`Generator key must be ${ED25519_PUBLIC_KEY_LENGTH} bytes long.`);
-		}
+		this._validateLengths({ validatorAddress, generatorKey });
 
 		const validatorsSubStore = this.stores.get(ValidatorKeysStore);
 
@@ -361,5 +353,20 @@ export class ValidatorsMethod extends BaseMethod {
 			validators: validatorsWithKey,
 		});
 		validatorSetter.setNextValidators(preCommitThreshold, certificateThreshold, validatorsWithKey);
+	}
+
+	private _validateLengths(args: ValidatorArgs) {
+		if (args.validatorAddress && args.validatorAddress.length !== ADDRESS_LENGTH) {
+			throw new Error(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
+		}
+		if (args.blsKey && args.blsKey.length !== BLS_PUBLIC_KEY_LENGTH) {
+			throw new Error(`BLS public key must be ${BLS_PUBLIC_KEY_LENGTH} bytes long.`);
+		}
+		if (args.proofOfPossession && args.proofOfPossession.length !== BLS_POP_LENGTH) {
+			throw new Error(`Proof of possesion must be ${BLS_POP_LENGTH} bytes long.`);
+		}
+		if (args.generatorKey && args.generatorKey.length !== ED25519_PUBLIC_KEY_LENGTH) {
+			throw new Error(`Generator key must be ${ED25519_PUBLIC_KEY_LENGTH} bytes long.`);
+		}
 	}
 }
