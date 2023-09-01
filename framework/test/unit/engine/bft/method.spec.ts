@@ -1107,7 +1107,7 @@ describe('BFT Method', () => {
 				const validatorsHash = computeValidatorsHash(accounts, BigInt(99));
 
 				const sortedAccounts = [...accounts];
-				sortedAccounts.sort((a, b) => a.blsKey.compare(b.blsKey));
+
 				expect(validatorsHash).toEqual(
 					utils.hash(
 						codec.encode(validatorsHashInputSchema, {

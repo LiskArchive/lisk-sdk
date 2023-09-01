@@ -15,14 +15,9 @@
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { Validator } from '../../abi';
-import {
-	BFTVotesBlockInfo,
-	ValidatorsHashInfo,
-	ValidatorsHashInput,
-	validatorsHashInputSchema,
-} from './schemas';
+import { BFTVotesBlockInfo, ValidatorsHashInput, validatorsHashInputSchema } from './schemas';
 import { BFTHeader } from './types';
+import { ActiveValidator } from '../consensus/types';
 
 export const areDistinctHeadersContradicting = (b1: BFTHeader, b2: BFTHeader): boolean => {
 	let earlierBlock = b1;
@@ -78,14 +73,10 @@ export const sortValidatorsByAddress = (validators: { address: Buffer }[]) =>
 export const sortValidatorsByBLSKey = (validators: { blsKey: Buffer }[]) =>
 	validators.sort((a, b) => a.blsKey.compare(b.blsKey));
 
-export const computeValidatorsHash = (validators: Validator[], certificateThreshold: bigint) => {
-	const activeValidators: ValidatorsHashInfo[] = [];
-	for (const validator of validators) {
-		activeValidators.push({
-			blsKey: validator.blsKey,
-			bftWeight: validator.bftWeight,
-		});
-	}
+export const computeValidatorsHash = (
+	activeValidators: ActiveValidator[],
+	certificateThreshold: bigint,
+) => {
 	const input: ValidatorsHashInput = {
 		activeValidators,
 		certificateThreshold,

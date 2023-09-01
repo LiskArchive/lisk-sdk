@@ -31,6 +31,11 @@ export interface Validator {
 	blsKey: Buffer;
 }
 
+export interface ActiveValidator {
+	bftWeight: bigint;
+	blsKey: Buffer;
+}
+
 export interface PkSigPair {
 	publicKey: Buffer;
 	signature: Buffer;

@@ -115,7 +115,7 @@ export const generateGenesisBlock = async (
 	}
 	header.eventRoot = await eventSMT.update(EMPTY_HASH, data);
 	header.validatorsHash = computeValidatorsHash(
-		blockCtx.nextValidators.validators,
+		blockCtx.nextValidators.validators.map(v => ({ bftWeight: v.bftWeight, blsKey: v.blsKey })),
 		blockCtx.nextValidators.certificateThreshold,
 	);
 

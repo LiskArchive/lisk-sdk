@@ -219,7 +219,9 @@ export class BFTMethod {
 
 		sortValidatorsByAddress(validators);
 		const validatorsHash = computeValidatorsHash(
-			validators.filter(v => v.bftWeight > BigInt(0)),
+			validators
+				.filter(v => v.bftWeight > BigInt(0))
+				.map(v => ({ bftWeight: v.bftWeight, blsKey: v.blsKey })),
 			certificateThreshold,
 		);
 		const bftParams: BFTParameters = {
