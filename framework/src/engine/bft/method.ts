@@ -217,7 +217,11 @@ export class BFTMethod {
 			throw new Error('Invalid certificateThreshold input.');
 		}
 
-		const validatorsHash = computeValidatorsHash(validators, certificateThreshold);
+		sortValidatorsByAddress(validators);
+		const validatorsHash = computeValidatorsHash(
+			validators.filter(v => v.bftWeight > BigInt(0)),
+			certificateThreshold,
+		);
 		const bftParams: BFTParameters = {
 			prevoteThreshold: (BigInt(2) * aggregateBFTWeight) / BigInt(3) + BigInt(1),
 			precommitThreshold,

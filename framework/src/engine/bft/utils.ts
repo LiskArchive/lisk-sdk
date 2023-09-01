@@ -86,10 +86,8 @@ export const computeValidatorsHash = (validators: Validator[], certificateThresh
 			bftWeight: validator.bftWeight,
 		});
 	}
-	sortValidatorsByBLSKey(activeValidators);
 	const input: ValidatorsHashInput = {
-		// Exclude standby validators with bftWeight === 0
-		activeValidators: activeValidators.filter(v => v.bftWeight > BigInt(0)),
+		activeValidators,
 		certificateThreshold,
 	};
 	const encodedValidatorsHashInput = codec.encode(validatorsHashInputSchema, input);
