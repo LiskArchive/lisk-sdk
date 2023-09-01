@@ -132,7 +132,10 @@ export class CommitPool {
 		}
 
 		// Validation Step 5
-		const { validators } = await this._bftMethod.getBFTParameters(methodContext, commit.height);
+		const { validators } = await this._bftMethod.getBFTParametersActiveValidators(
+			methodContext,
+			commit.height,
+		);
 		const validator = validators.find(v => v.address.equals(commit.validatorAddress));
 		if (!validator) {
 			throw new Error('Commit validator was not active for its height.');
@@ -238,13 +241,11 @@ export class CommitPool {
 			aggregationBits: aggregateCommit.aggregationBits,
 			signature: aggregateCommit.certificateSignature,
 		};
-		const { validators, certificateThreshold } = await this._bftMethod.getBFTParameters(
-			stateStore,
-			aggregateCommit.height,
-		);
+		const { validators: activeValidators, certificateThreshold } =
+			await this._bftMethod.getBFTParametersActiveValidators(stateStore, aggregateCommit.height);
 
 		return verifyAggregateCertificateSignature(
-			validators,
+			activeValidators,
 			certificateThreshold,
 			this._chain.chainID,
 			certificate,
@@ -266,7 +267,10 @@ export class CommitPool {
 		const { height } = singleCommits[0];
 
 		// assuming this list of validators includes all validators corresponding to each singleCommit.validatorAddress
-		const { validators } = await this._bftMethod.getBFTParameters(methodContext, height);
+		const { validators } = await this._bftMethod.getBFTParametersActiveValidators(
+			methodContext,
+			height,
+		);
 		const addressToBlsKey: dataStructures.BufferMap<Buffer> = new dataStructures.BufferMap();
 		const validatorKeys: Buffer[] = [];
 
@@ -330,12 +334,13 @@ export class CommitPool {
 				...this._nonGossipedCommitsLocal.getByHeight(nextHeight),
 				...this._gossipedCommits.getByHeight(nextHeight),
 			];
-			const nextValidators = singleCommits.map(commit => commit.validatorAddress);
 			let aggregateBFTWeight = BigInt(0);
 
 			// Assume BFT parameters exist for next height
 			const { validators: bftParamValidators, certificateThreshold } =
-				await this._bftMethod.getBFTParameters(methodContext, nextHeight);
+				await this._bftMethod.getBFTParametersActiveValidators(methodContext, nextHeight);
+
+			const nextValidators = singleCommits.map(commit => commit.validatorAddress);
 
 			for (const matchingAddress of nextValidators) {
 				const bftParamsValidatorInfo = bftParamValidators.find(bftParamValidator =>
@@ -408,7 +413,10 @@ export class CommitPool {
 
 		// 2. Select commits to gossip
 		const nextHeight = this._chain.lastBlock.header.height + 1;
-		const { validators } = await this._bftMethod.getBFTParameters(methodContext, nextHeight);
+		const { validators } = await this._bftMethod.getBFTParametersActiveValidators(
+			methodContext,
+			nextHeight,
+		);
 
 		const maxSelectedCommitsLength = 2 * validators.length;
 		// Get a list of commits sorted by ascending order of height

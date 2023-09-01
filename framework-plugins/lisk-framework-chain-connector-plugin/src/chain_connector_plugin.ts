@@ -567,7 +567,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		// Get validatorsData at new block header height
 		const bftParametersJSON = await this._sendingChainClient.invoke<BFTParametersJSON>(
-			'consensus_getBFTParameters',
+			'consensus_getBFTParametersActiveValidators',
 			{ height: newBlockHeader.height },
 		);
 
@@ -577,9 +577,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		);
 		// Save validatorsData if there is a new validatorsHash
 		if (validatorsDataIndex === -1) {
+			const activeValidators = bftParametersObj.validators;
 			validatorsHashPreimage.push({
 				certificateThreshold: bftParametersObj.certificateThreshold,
-				validators: bftParametersObj.validators,
+				validators: activeValidators,
 				validatorsHash: bftParametersObj.validatorsHash,
 			});
 		}

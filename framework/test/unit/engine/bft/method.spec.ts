@@ -215,6 +215,12 @@ describe('BFT Method', () => {
 					generatorKey: utils.getRandomBytes(32),
 					blsKey: utils.getRandomBytes(48),
 				},
+				{
+					address: utils.getRandomBytes(20),
+					bftWeight: BigInt(0),
+					generatorKey: utils.getRandomBytes(32),
+					blsKey: utils.getRandomBytes(48),
+				},
 			],
 			validatorsHash: utils.getRandomBytes(32),
 		});
@@ -238,6 +244,71 @@ describe('BFT Method', () => {
 
 		it('should throw if the BFT parameter does not exist for the height or lower', async () => {
 			await expect(bftMethod.getBFTParameters(stateStore, 19)).rejects.toThrow(
+				BFTParameterNotFoundError,
+			);
+		});
+	});
+
+	describe('getBFTParametersActiveValidators', () => {
+		const createParam = () => ({
+			prevoteThreshold: BigInt(68),
+			precommitThreshold: BigInt(68),
+			certificateThreshold: BigInt(68),
+			validators: [
+				{
+					address: utils.getRandomBytes(20),
+					bftWeight: BigInt(1),
+					blsKey: utils.getRandomBytes(48),
+					generatorKey: utils.getRandomBytes(32),
+				},
+				{
+					address: utils.getRandomBytes(20),
+					bftWeight: BigInt(1),
+					generatorKey: utils.getRandomBytes(32),
+					blsKey: utils.getRandomBytes(48),
+				},
+				// Standby validator
+				{
+					address: utils.getRandomBytes(20),
+					bftWeight: BigInt(0),
+					generatorKey: utils.getRandomBytes(32),
+					blsKey: utils.getRandomBytes(48),
+				},
+			],
+			validatorsHash: utils.getRandomBytes(32),
+		});
+		const params20 = createParam();
+		const params30 = createParam();
+		const params20WithOnlyActiveValidators = {
+			...params20,
+			validators: params20.validators.filter(v => v.bftWeight > BigInt(0)),
+		};
+		const params30WithOnlyActiveValidators = {
+			...params30,
+			validators: params30.validators.filter(v => v.bftWeight > BigInt(0)),
+		};
+
+		beforeEach(async () => {
+			stateStore = new StateStore(new InMemoryDatabase());
+			const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
+			await votesStore.setWithSchema(utils.intToBuffer(20, 4), params20, bftParametersSchema);
+			await votesStore.setWithSchema(utils.intToBuffer(30, 4), params30, bftParametersSchema);
+		});
+
+		it('should return BFT parameters with only active validators if it exists for the lower height', async () => {
+			await expect(bftMethod.getBFTParametersActiveValidators(stateStore, 25)).resolves.toEqual(
+				params20WithOnlyActiveValidators,
+			);
+		});
+
+		it('should return BFT parameters with only active validators if it exists for the height', async () => {
+			await expect(bftMethod.getBFTParametersActiveValidators(stateStore, 30)).resolves.toEqual(
+				params30WithOnlyActiveValidators,
+			);
+		});
+
+		it('should throw if the BFT parameter does not exist for the height or lower', async () => {
+			await expect(bftMethod.getBFTParametersActiveValidators(stateStore, 19)).rejects.toThrow(
 				BFTParameterNotFoundError,
 			);
 		});
@@ -1036,7 +1107,7 @@ describe('BFT Method', () => {
 				const validatorsHash = computeValidatorsHash(accounts, BigInt(99));
 
 				const sortedAccounts = [...accounts];
-				sortedAccounts.sort((a, b) => a.blsKey.compare(b.blsKey));
+
 				expect(validatorsHash).toEqual(
 					utils.hash(
 						codec.encode(validatorsHashInputSchema, {
