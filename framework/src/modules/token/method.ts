@@ -643,7 +643,7 @@ export class TokenMethod extends BaseMethod {
 		receivingChainID: Buffer,
 		fee: bigint,
 	): Promise<void> {
-		if (fee <= BigInt(0)) {
+		if (fee < BigInt(0)) {
 			throw new Error('invalid Message Fee');
 		}
 
