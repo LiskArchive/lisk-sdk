@@ -57,5 +57,4 @@ describe('backup', () => {
 		await expect(backupDB.has(key2)).resolves.toBeTrue();
 		backupDB.close();
 	});
-
 });

@@ -22,4 +22,4 @@ export const backupDatabase = async (dataPath: string, db: Database) => {
 		fs.rmSync(backupPath, { recursive: true, force: true });
 	}
 	await db.checkpoint(backupPath);
-}
+};
