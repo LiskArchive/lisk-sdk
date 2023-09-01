@@ -1182,7 +1182,7 @@ describe('token module', () => {
 					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt(-1),
 				),
-			).rejects.toThrow('invalid Message Fee');
+			).rejects.toThrow('Invalid Message Fee');
 		});
 
 		it('should reject if address does not have sufficient balance', async () => {

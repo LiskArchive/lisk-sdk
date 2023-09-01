@@ -644,7 +644,7 @@ export class TokenMethod extends BaseMethod {
 		fee: bigint,
 	): Promise<void> {
 		if (fee < BigInt(0)) {
-			throw new Error('invalid Message Fee');
+			throw new Error('Invalid Message Fee');
 		}
 
 		const messageFeeTokenID = await this._interoperabilityMethod.getMessageFeeTokenID(
