@@ -20,7 +20,7 @@ import { Block } from '@liskhq/lisk-chain';
 import { Database, StateDB } from '@liskhq/lisk-db';
 import { validator } from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
-import { APP_EVENT_SHUTDOWN, APP_EVENT_READY, OWNER_READ_WRITE } from './constants';
+import { APP_EVENT_SHUTDOWN, APP_EVENT_READY, OWNER_READ_WRITE, STATE_DB_NAME } from './constants';
 import {
 	ApplicationConfig,
 	PluginConfig,
@@ -300,7 +300,7 @@ export class Application {
 		this.logger.debug({ dbFolder }, 'Create module.db database instance.');
 		this._moduleDB = new Database(path.join(dbFolder, 'module.db'));
 		this.logger.debug({ dbFolder }, 'Create state.db database instance.');
-		this._stateDB = new StateDB(path.join(dbFolder, 'state.db'));
+		this._stateDB = new StateDB(path.join(dbFolder, STATE_DB_NAME));
 
 		await this._mutex.runExclusive<void>(async () => {
 			// Initialize all objects

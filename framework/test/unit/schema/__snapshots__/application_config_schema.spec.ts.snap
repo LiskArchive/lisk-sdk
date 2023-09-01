@@ -38,6 +38,9 @@ exports[`schema/application_config_schema.js application config schema must matc
       "port": 7887,
     },
     "system": {
+      "backup": {
+        "height": 0,
+      },
       "dataPath": "~/.lisk/beta-sdk-app",
       "enableMetrics": false,
       "keepEventsForHeights": 300,
@@ -326,6 +329,19 @@ exports[`schema/application_config_schema.js application config schema must matc
     },
     "system": {
       "properties": {
+        "backup": {
+          "properties": {
+            "height": {
+              "description": "Height at which the DB backup should be taken.",
+              "minimum": 0,
+              "type": "integer",
+            },
+          },
+          "required": [
+            "height",
+          ],
+          "type": "object",
+        },
         "dataPath": {
           "type": "string",
         },
@@ -357,6 +373,7 @@ exports[`schema/application_config_schema.js application config schema must matc
         "dataPath",
         "logLevel",
         "keepEventsForHeights",
+        "backup",
       ],
       "type": "object",
     },
