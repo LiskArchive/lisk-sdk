@@ -355,7 +355,7 @@ export abstract class CreateCommand extends Command {
 		}
 
 		if (flags.send) {
-			await SendCommand.run([encodedTransaction]);
+			await SendCommand.run([encodedTransaction, `--data-path=${this._dataPath}`], this.config);
 		}
 	}
 
