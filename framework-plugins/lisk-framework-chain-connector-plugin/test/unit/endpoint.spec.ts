@@ -30,31 +30,7 @@ import { ccmsFromEventsToJSON, getMainchainID } from '../../src/utils';
 describe('endpoints', () => {
 	const ownChainID = Buffer.from('10000000', 'hex');
 	const appConfigForPlugin: ApplicationConfigForPlugin = {
-		system: {
-			keepEventsForHeights: -1,
-			dataPath: '~/.lisk',
-			logLevel: 'info',
-			version: '1.0.0',
-			enableMetrics: false,
-		},
-		rpc: {
-			modes: ['ipc'],
-			port: 8080,
-			host: '127.0.0.1',
-			accessControlAllowOrigin: '*',
-		},
-		network: {
-			seedPeers: [],
-			port: 5000,
-			version: '1.0.0',
-		},
-		transactionPool: {
-			maxTransactions: 4096,
-			maxTransactionsPerAccount: 64,
-			transactionExpiryTime: 3 * 60 * 60 * 1000,
-			minEntranceFeePriority: '0',
-			minReplacementFeeDifference: '10',
-		},
+		...testing.fixtures.defaultConfig,
 		genesis: {
 			chainID: ownChainID.toString('hex'),
 		} as GenesisConfig,
