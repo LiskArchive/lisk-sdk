@@ -19,7 +19,7 @@ import {
 	MAX_LENGTH_PROPOSAL_TEXT,
 	MAX_LENGTH_PROPOSAL_TITLE,
 } from '../constants';
-import { ProposalType, ProposalDescription } from '../types';
+import { ProposalType, ProposalDescription, ProposalStatus } from '../types';
 
 export interface ProposalsStoreData {
 	creator: Buffer;
@@ -30,6 +30,8 @@ export interface ProposalsStoreData {
 	votesPass: bigint;
 	type: ProposalType;
 	description: ProposalDescription;
+	data: Buffer;
+	status: ProposalStatus;
 }
 
 export const proposalDescriptionSchema = {
