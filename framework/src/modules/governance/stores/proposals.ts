@@ -68,7 +68,7 @@ export const proposalDescriptionSchema = {
 };
 
 export const proposalSchema = {
-	$id: 'governance/store/proposal',
+	$id: '/governance/store/proposal',
 	type: 'object',
 	required: [
 		'creator',
