@@ -108,6 +108,17 @@ describe('encrypt', () => {
 
 				expect(encryptedMessage.kdfparams.iterations).toBe(customIterations);
 			});
+
+			it('should call options.getKey if provided', async () => {
+				const mockKey = utils.getRandomBytes(32);
+				const mockGetKey = jest.fn().mockResolvedValue(mockKey);
+				encryptedMessage = await encryptMessageWithPassword(passphrase, password, {
+					kdf: KDF.ARGON2,
+					getKey: mockGetKey,
+				});
+
+				expect(mockGetKey).toHaveBeenCalledOnce();
+			});
 		});
 
 		describe('#decryptMessageWithPassword', () => {
@@ -215,6 +226,21 @@ describe('encrypt', () => {
 				await expect(
 					decryptMessageWithPassword(encryptedMessage, defaultPassword, 'utf-8'),
 				).rejects.toThrow('Unsupported state or unable to authenticate data');
+			});
+
+			it('should call options.getKey if provided', async () => {
+				const mockKey = utils.getRandomBytes(32);
+				const mockGetKey = jest.fn().mockResolvedValue(mockKey);
+				encryptedMessage = await encryptMessageWithPassword(passphrase, password, {
+					kdf: KDF.ARGON2,
+					getKey: mockGetKey,
+				});
+
+				await decryptMessageWithPassword(encryptedMessage, passphrase, 'utf-8', {
+					getKey: mockGetKey,
+				});
+
+				expect(mockGetKey).toHaveBeenCalledTimes(2);
 			});
 		});
 
