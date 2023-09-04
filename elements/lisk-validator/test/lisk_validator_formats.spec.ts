@@ -40,6 +40,10 @@ describe('validator formats', () => {
 			expect(() => validator.validate(uint32Schema, { height: -1 })).toThrow();
 		});
 
+		it('should throw when a number is a correct uint32, but is provided as string type', () => {
+			expect(() => validator.validate(uint32Schema, { height: '8' })).toThrow();
+		});
+
 		it('should throw when the number is too big', () => {
 			expect(() => validator.validate(uint32Schema, { height: MAX_UINT32 + 1 })).toThrow();
 		});
@@ -62,6 +66,10 @@ describe('validator formats', () => {
 
 		it('should NOT throw for a negative number', () => {
 			expect(() => validator.validate(int32Schema, { height: -1 })).not.toThrow();
+		});
+
+		it('should throw when a number is a correct int32, but is provided as string type', () => {
+			expect(() => validator.validate(int32Schema, { height: '8' })).toThrow();
 		});
 
 		it('should throw when the number is too big', () => {
@@ -88,6 +96,10 @@ describe('validator formats', () => {
 			expect(() => validator.validate(uint64Schema, { height: '-1' })).toThrow();
 		});
 
+		it('should throw when a number is a correct uint64, but is provided as number type', () => {
+			expect(() => validator.validate(uint64Schema, { height: 8 })).toThrow();
+		});
+
 		it('should throw when the number is too big', () => {
 			expect(() =>
 				validator.validate(uint64Schema, { height: (MAX_UINT64 + BigInt(1)).toString() }),
@@ -112,6 +124,10 @@ describe('validator formats', () => {
 
 		it('should NOT throw for a negative number', () => {
 			expect(() => validator.validate(int64Schema, { height: '-1' })).not.toThrow();
+		});
+
+		it('should throw when a number is a correct int64, but is provided as number type', () => {
+			expect(() => validator.validate(int64Schema, { height: 8 })).toThrow();
 		});
 
 		it('should throw when the number is too big', () => {
