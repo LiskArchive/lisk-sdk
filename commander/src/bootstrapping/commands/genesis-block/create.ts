@@ -31,6 +31,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 	static examples = [
 		'genesis-block:create --output mydir',
 		'genesis-block:create --output mydir --assets-file ./assets.json',
+		'genesis-block:create --output mydir --assets-file ./assets.json --height 2 --timestamp 1592924699 --previous-block-id 085d7c9b7bddc8052be9eefe185f407682a495f1b4498677df1480026b74f2e9',
 	];
 
 	static flags = {
@@ -46,17 +47,46 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			description: 'Path to file which contains genesis block asset in JSON format',
 			required: true,
 		}),
+		height: flagParser.integer({
+			char: 'h',
+			description: 'Genesis block height',
+			required: false,
+		}),
+		timestamp: flagParser.integer({
+			char: 't',
+			description: 'Timestamp',
+			required: false,
+		}),
+		'previous-block-id': flagParser.string({
+			char: 'p',
+			description: 'Previous block id',
+			required: false,
+		}),
 	};
 
 	async run(): Promise<void> {
 		const {
-			flags: { output, config: configFilePath, network, 'assets-file': assetsFile },
+			flags: {
+				output,
+				config: configFilePath,
+				network,
+				'assets-file': assetsFile,
+				height,
+				timestamp,
+				'previous-block-id': previousBlockIDString,
+			},
 		} = await this.parse(BaseGenesisBlockCommand);
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;
 		const regexCamelCase = /^([a-z]+)(([A-Z]([a-z]+))+)$/;
 		if (regexCamelCase.test(output) || regexWhitespace.test(output)) {
 			this.error('Invalid name');
+		}
+		let previousBlockID;
+		if (previousBlockIDString) {
+			previousBlockID = Buffer.from(previousBlockIDString, 'hex');
+		} else {
+			previousBlockID = undefined;
 		}
 		const { configFilePath: defaultConfigFilepath } = getNetworkConfigFilesPath(
 			this.getApplicationConfigDir(),
@@ -84,6 +114,9 @@ export abstract class BaseGenesisBlockCommand extends Command {
 				schema: a.schema,
 			})),
 			chainID: Buffer.from(app.config.genesis.chainID, 'hex'),
+			height,
+			timestamp,
+			previousBlockID,
 		});
 		fs.mkdirSync(configPath, { recursive: true });
 		fs.writeFileSync(resolve(configPath, 'genesis_block.blob'), genesisBlock.getBytes(), {
