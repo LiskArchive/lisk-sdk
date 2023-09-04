@@ -40,37 +40,37 @@ export const configSchema = {
 	],
 	properties: {
 		tokenIdTreasury: {
-			type: 'bytes',
+			dataType: 'bytes',
 			minLength: TOKEN_ID_LENGTH,
 			maxLength: TOKEN_ID_LENGTH,
 			fieldNumber: 1,
 		},
 		voteDuration: {
-			type: 'uint32',
+			dataType: 'uint32',
 			fieldNumber: 2,
 		},
 		quorumDuration: {
-			type: 'uint32',
+			dataType: 'uint32',
 			fieldNumer: 3,
 		},
 		proposalCreationFee: {
-			type: 'uint64',
+			dataType: 'uint64',
 			fieldNumber: 4,
 		},
 		proposalCreationDeposit: {
-			type: 'uint64',
+			dataType: 'uint64',
 			fieldNumber: 5,
 		},
 		proposalCreationMinBalance: {
-			type: 'uint64',
+			dataType: 'uint64',
 			fieldNumber: 6,
 		},
 		quorumPercentage: {
-			type: 'uint32',
+			dataType: 'uint32',
 			fieldNumber: 7,
 		},
 		treasuryTokensPerBlock: {
-			type: 'uint64',
+			dataType: 'uint64',
 			fieldNumber: 8,
 		},
 	},
