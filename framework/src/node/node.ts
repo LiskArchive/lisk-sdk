@@ -737,7 +737,7 @@ export class Node {
 					backupDatabase(this._dataPath, this._blockchainDB).catch(err =>
 						this._logger.fatal(
 							{ err: err as Error, heght: this._options.backup.height },
-							'Fail to create backup',
+							'Failed to create backup',
 						),
 					);
 				}
