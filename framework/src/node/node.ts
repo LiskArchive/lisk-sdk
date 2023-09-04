@@ -71,6 +71,7 @@ import { EVENT_SYNCHRONIZER_SYNC_REQUIRED } from './synchronizer/base_synchroniz
 import { Network } from './network';
 import { BaseAsset, BaseModule } from '../modules';
 import { Bus } from '../controller/bus';
+import { backupDatabase } from './utils/backup';
 
 const forgeInterval = 1000;
 const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK, EVENT_VALIDATORS_CHANGED } = chainEvents;
@@ -733,19 +734,12 @@ export class Node {
 					this._options.backup.height > 0 &&
 					this._options.backup.height === block.header.height
 				) {
-					const backupPath = path.resolve(this._dataPath, 'backup');
-					// if backup already exist, it should remove the directory and create a new checkpoint
-					if (fs.existsSync(backupPath)) {
-						fs.removeSync(backupPath);
-					}
-					this._blockchainDB
-						.checkpoint(backupPath)
-						.catch(err =>
-							this._logger.fatal(
-								{ err: err as Error, height: this._options.backup.height, path: backupPath },
-								'Fail to create backup',
-							),
-						);
+					backupDatabase(this._dataPath, this._blockchainDB).catch(err =>
+						this._logger.fatal(
+							{ err: err as Error, heght: this._options.backup.height },
+							'Failed to create backup',
+						),
+					);
 				}
 
 				// Remove any transactions from the pool on new block
