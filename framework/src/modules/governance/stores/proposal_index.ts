@@ -20,7 +20,7 @@ export interface ProposalIndexStoreData {
 }
 
 export const proposalIndexSchema = {
-	$id: '/governance/store/index',
+	$id: '/governance/store/proposalIndex',
 	type: 'object',
 	required: ['nextIndex', 'nextOutcomeCheckIndex', 'nextQuorumCheckIndex'],
 	properties: {
