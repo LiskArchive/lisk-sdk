@@ -82,12 +82,6 @@ export abstract class BaseGenesisBlockCommand extends Command {
 		if (regexCamelCase.test(output) || regexWhitespace.test(output)) {
 			this.error('Invalid name');
 		}
-		let previousBlockID;
-		if (previousBlockIDString) {
-			previousBlockID = Buffer.from(previousBlockIDString, 'hex');
-		} else {
-			previousBlockID = undefined;
-		}
 		const { configFilePath: defaultConfigFilepath } = getNetworkConfigFilesPath(
 			this.getApplicationConfigDir(),
 			network,
@@ -116,7 +110,9 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			chainID: Buffer.from(app.config.genesis.chainID, 'hex'),
 			height,
 			timestamp,
-			previousBlockID,
+			previousBlockID: previousBlockIDString
+				? Buffer.from(previousBlockIDString, 'hex')
+				: undefined,
 		});
 		fs.mkdirSync(configPath, { recursive: true });
 		fs.writeFileSync(resolve(configPath, 'genesis_block.blob'), genesisBlock.getBytes(), {
