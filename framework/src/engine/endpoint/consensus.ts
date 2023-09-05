@@ -73,6 +73,34 @@ export class ConsensusEndpoint {
 		};
 	}
 
+	public async getBFTParametersActiveValidators(ctx: RequestContext): Promise<BFTParametersJSON> {
+		const stateStore = new StateStore(this._blockchainDB);
+		const {
+			certificateThreshold,
+			precommitThreshold,
+			prevoteThreshold,
+			validators,
+			validatorsHash,
+		} = await this._bftMethod.getBFTParametersActiveValidators(
+			stateStore,
+			ctx.params.height as number,
+		);
+
+		const validatorsJSON = validators.map(v => ({
+			address: address.getLisk32AddressFromAddress(v.address),
+			bftWeight: v.bftWeight.toString(),
+			blsKey: v.blsKey.toString('hex'),
+		}));
+
+		return {
+			validators: validatorsJSON,
+			certificateThreshold: certificateThreshold.toString(),
+			precommitThreshold: precommitThreshold.toString(),
+			prevoteThreshold: prevoteThreshold.toString(),
+			validatorsHash: validatorsHash.toString('hex'),
+		};
+	}
+
 	public async getBFTHeights(_ctx: RequestContext): Promise<BFTHeights> {
 		const stateStore = new StateStore(this._blockchainDB);
 		const result = await this._bftMethod.getBFTHeights(stateStore);
