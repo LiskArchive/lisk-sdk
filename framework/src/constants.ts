@@ -45,3 +45,4 @@ export const MAX_TRANSACTIONS_SIZE = 15 * 1024; // MAX_TRANSACTIONS_SIZE_BYTES i
 export const BFT_BATCH_SIZE = 103; // LSK_BFT_BATCH_SIZE in LIP-0063
 
 export const STATE_DB_NAME = 'state.db';
+export const MODULE_DB_NAME = 'module.db';
