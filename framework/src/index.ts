@@ -143,6 +143,7 @@ export { RewardMethod, RewardModule } from './modules/reward';
 export { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_rewards';
 export { FeeMethod, FeeModule } from './modules/fee';
 export { RandomMethod, RandomModule } from './modules/random';
+export { NamedRegistry } from './modules/named_registry';
 export {
 	GenesisBlockExecuteContext,
 	InsertAssetContext,
