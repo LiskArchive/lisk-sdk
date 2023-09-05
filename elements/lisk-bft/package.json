@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-bft",
-	"version": "0.3.5-alpha.2",
+	"version": "0.4.0-rc.0",
 	"description": "Byzantine fault tolerance implementation according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -36,11 +36,11 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-chain": "^0.3.5-alpha.2",
-		"@liskhq/lisk-codec": "^0.2.3-alpha.1",
-		"@liskhq/lisk-cryptography": "^3.2.2-alpha.1",
-		"@liskhq/lisk-utils": "^0.2.2-alpha.1",
-		"@liskhq/lisk-validator": "^0.6.3-alpha.1",
+		"@liskhq/lisk-chain": "^0.4.0-rc.0",
+		"@liskhq/lisk-codec": "^0.3.0-rc.0",
+		"@liskhq/lisk-cryptography": "^3.3.0-rc.0",
+		"@liskhq/lisk-utils": "^0.3.0-rc.0",
+		"@liskhq/lisk-validator": "^0.7.0-rc.0",
 		"@types/node": "18.15.3",
 		"debug": "4.3.4"
 	},

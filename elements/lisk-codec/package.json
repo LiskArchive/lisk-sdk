@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-codec",
-	"version": "0.2.3-alpha.1",
+	"version": "0.3.0-rc.0",
 	"description": "Implementation of decoder and encoder using Lisk JSON schema according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -36,8 +36,8 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-utils": "^0.2.2-alpha.1",
-		"@liskhq/lisk-validator": "^0.6.3-alpha.1"
+		"@liskhq/lisk-utils": "^0.3.0-rc.0",
+		"@liskhq/lisk-validator": "^0.7.0-rc.0"
 	},
 	"devDependencies": {
 		"@types/jest": "26.0.21",
