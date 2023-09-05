@@ -22,7 +22,7 @@ describe('validator formats', () => {
 	};
 
 	describe('uint32', () => {
-		const uint32IntegerSchema = {
+		const uint32Schema = {
 			...baseSchema,
 			properties: {
 				height: {
@@ -33,20 +33,24 @@ describe('validator formats', () => {
 		};
 
 		it('should validate a correct uint32', () => {
-			expect(() => validator.validate(uint32IntegerSchema, { height: 8 })).not.toThrow();
+			expect(() => validator.validate(uint32Schema, { height: 8 })).not.toThrow();
 		});
 
 		it('should throw for a negative number', () => {
-			expect(() => validator.validate(uint32IntegerSchema, { height: -1 })).toThrow();
+			expect(() => validator.validate(uint32Schema, { height: -1 })).toThrow();
+		});
+
+		it('should throw when a number is a correct uint32, but is provided as string type', () => {
+			expect(() => validator.validate(uint32Schema, { height: '8' })).toThrow();
 		});
 
 		it('should throw when the number is too big', () => {
-			expect(() => validator.validate(uint32IntegerSchema, { height: MAX_UINT32 + 1 })).toThrow();
+			expect(() => validator.validate(uint32Schema, { height: MAX_UINT32 + 1 })).toThrow();
 		});
 	});
 
 	describe('int32', () => {
-		const int32IntegerSchema = {
+		const int32Schema = {
 			...baseSchema,
 			properties: {
 				height: {
@@ -57,59 +61,77 @@ describe('validator formats', () => {
 		};
 
 		it('should validate a correct int32', () => {
-			expect(() => validator.validate(int32IntegerSchema, { height: 8 })).not.toThrow();
+			expect(() => validator.validate(int32Schema, { height: 8 })).not.toThrow();
+		});
+
+		it('should NOT throw for a negative number', () => {
+			expect(() => validator.validate(int32Schema, { height: -1 })).not.toThrow();
+		});
+
+		it('should throw when a number is a correct int32, but is provided as string type', () => {
+			expect(() => validator.validate(int32Schema, { height: '8' })).toThrow();
 		});
 
 		it('should throw when the number is too big', () => {
-			expect(() => validator.validate(int32IntegerSchema, { height: MAX_SINT32 + 1 })).toThrow();
+			expect(() => validator.validate(int32Schema, { height: MAX_SINT32 + 1 })).toThrow();
 		});
 	});
 
 	describe('uint64', () => {
-		const uint32IntegerSchema = {
+		const uint64Schema = {
 			...baseSchema,
 			properties: {
 				height: {
-					type: 'integer',
+					type: 'string',
 					format: 'uint64',
 				},
 			},
 		};
 
 		it('should validate a correct uint64', () => {
-			expect(() => validator.validate(uint32IntegerSchema, { height: 8 })).not.toThrow();
+			expect(() => validator.validate(uint64Schema, { height: '8' })).not.toThrow();
 		});
 
 		it('should throw for a negative number', () => {
-			expect(() => validator.validate(uint32IntegerSchema, { height: -1 })).toThrow();
+			expect(() => validator.validate(uint64Schema, { height: '-1' })).toThrow();
+		});
+
+		it('should throw when a number is a correct uint64, but is provided as number type', () => {
+			expect(() => validator.validate(uint64Schema, { height: 8 })).toThrow();
 		});
 
 		it('should throw when the number is too big', () => {
 			expect(() =>
-				validator.validate(uint32IntegerSchema, { height: MAX_UINT64 + BigInt(1) }),
+				validator.validate(uint64Schema, { height: (MAX_UINT64 + BigInt(1)).toString() }),
 			).toThrow();
 		});
 	});
 
 	describe('int64', () => {
-		const int32IntegerSchema = {
+		const int64Schema = {
 			...baseSchema,
 			properties: {
 				height: {
-					type: 'integer',
+					type: 'string',
 					format: 'int64',
 				},
 			},
 		};
 
 		it('should validate a correct int64', () => {
-			expect(() => validator.validate(int32IntegerSchema, { height: 8 })).not.toThrow();
+			expect(() => validator.validate(int64Schema, { height: '8' })).not.toThrow();
+		});
+
+		it('should NOT throw for a negative number', () => {
+			expect(() => validator.validate(int64Schema, { height: '-1' })).not.toThrow();
+		});
+
+		it('should throw when a number is a correct int64, but is provided as number type', () => {
+			expect(() => validator.validate(int64Schema, { height: 8 })).toThrow();
 		});
 
 		it('should throw when the number is too big', () => {
-			expect(() =>
-				validator.validate(int32IntegerSchema, { height: MAX_SINT64 + BigInt(1) }),
-			).toThrow();
+			expect(() => validator.validate(int64Schema, { height: MAX_SINT64 + BigInt(1) })).toThrow();
 		});
 	});
 
