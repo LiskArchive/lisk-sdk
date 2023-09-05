@@ -91,6 +91,7 @@ export const encryptAES128GCMWithPassword = async (
 			iterations: number;
 			parallelism: number;
 			memorySize: number;
+			hashLength: number;
 		}) => Promise<Buffer>;
 	},
 ): Promise<EncryptedMessageObject> => {
@@ -112,6 +113,7 @@ export const encryptAES128GCMWithPassword = async (
 			iterations,
 			parallelism,
 			memorySize,
+			hashLength: HASH_LENGTH,
 		});
 	} else if (kdf === KDF.ARGON2) {
 		key = await getKeyFromPasswordWithArgon2({
@@ -191,6 +193,7 @@ export async function decryptAES128GCMWithPassword(
 			iterations: number;
 			parallelism: number;
 			memorySize: number;
+			hashLength: number;
 		}) => Promise<Buffer>;
 	},
 ): Promise<string | Buffer> {
@@ -211,6 +214,7 @@ export async function decryptAES128GCMWithPassword(
 			iterations,
 			parallelism,
 			memorySize,
+			hashLength: HASH_LENGTH,
 		});
 	} else if (kdf === KDF.ARGON2) {
 		key = await getKeyFromPasswordWithArgon2({

@@ -11,6 +11,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { HASH_LENGTH } from '../src/constants';
 import {
 	EncryptedMessageObject,
 	encryptMessageWithPassword,
@@ -117,7 +118,14 @@ describe('encrypt', () => {
 					getKey: mockGetKey,
 				});
 
-				expect(mockGetKey).toHaveBeenCalledOnce();
+				expect(mockGetKey).toHaveBeenCalledOnceWith({
+					password: expect.anything(),
+					salt: expect.anything(),
+					iterations: expect.anything(),
+					parallelism: expect.anything(),
+					memorySize: expect.anything(),
+					hashLength: HASH_LENGTH,
+				});
 			});
 		});
 
@@ -241,6 +249,14 @@ describe('encrypt', () => {
 				});
 
 				expect(mockGetKey).toHaveBeenCalledTimes(2);
+				expect(mockGetKey).toHaveBeenNthCalledWith(2, {
+					password: expect.anything(),
+					salt: expect.anything(),
+					iterations: expect.anything(),
+					parallelism: expect.anything(),
+					memorySize: expect.anything(),
+					hashLength: HASH_LENGTH,
+				});
 			});
 		});
 
