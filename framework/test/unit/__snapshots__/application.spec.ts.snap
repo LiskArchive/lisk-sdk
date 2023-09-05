@@ -45,6 +45,9 @@ exports[`Application #constructor should set internal variables 1`] = `
     "port": 7887,
   },
   "system": {
+    "backup": {
+      "height": 0,
+    },
     "dataPath": "~/.lisk/beta-sdk-app",
     "enableMetrics": false,
     "keepEventsForHeights": 300,
