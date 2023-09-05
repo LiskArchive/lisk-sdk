@@ -22,6 +22,9 @@ export const defaultConfig: ApplicationConfig = {
 		logLevel: 'none',
 		keepEventsForHeights: -1,
 		dataPath: '~/.lisk/default',
+		backup: {
+			height: 0,
+		},
 		enableMetrics: false,
 	},
 	genesis: {
