@@ -32,7 +32,6 @@ import {
 import { Forger, Stakers } from './types';
 import { Endpoint } from './endpoint';
 
-const { Block } = chain;
 type BlockHeaderJSON = chain.BlockHeaderJSON;
 type BlockJSON = chain.BlockJSON;
 type TransactionJSON = chain.TransactionJSON;
@@ -63,7 +62,7 @@ interface ForgerTransactionsInfo {
 
 interface NodeInfo {
 	genesisHeight: number;
-	genesisConfig: GenesisConfig;
+	genesis: GenesisConfig;
 }
 
 interface MissedBlocksByAddress {
@@ -119,7 +118,9 @@ export class ForgerPlugin extends BasePlugin {
 
 	private async _setForgersList(): Promise<void> {
 		this._forgersList = new utils.dataStructures.BufferMap<boolean>();
-		const forgersList = await this.apiClient.invoke<Forger[]>('generator_getForgingStatus');
+		const { status: forgersList } = await this.apiClient.invoke<{ status: Forger[] }>(
+			'generator_getStatus',
+		);
 		for (const { address, forging } of forgersList) {
 			this._forgersList.set(Buffer.from(address, 'hex'), forging);
 		}
@@ -143,10 +144,12 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	private async _syncForgerInfo(): Promise<void> {
-		const lastBlockBytes = await this.apiClient.invoke<string>('app_getLastBlock');
+		const lastBlock = await this.apiClient.invoke<{ header: { height: number } }>(
+			'chain_getLastBlock',
+		);
 		const {
 			header: { height: lastBlockHeight },
-		} = Block.fromBytes(Buffer.from(lastBlockBytes, 'hex'));
+		} = lastBlock;
 		const { syncUptoHeight } = await getForgerSyncInfo(this._forgerPluginDB);
 		const { genesisHeight } = await this.apiClient.invoke<NodeInfo>('system_getNodeInfo');
 		const forgerPluginSyncedHeight = syncUptoHeight === 0 ? genesisHeight : syncUptoHeight;
@@ -384,14 +387,14 @@ export class ForgerPlugin extends BasePlugin {
 			height: height - 1,
 		});
 		const {
-			genesisConfig: { blockTime },
+			genesis: { blockTime },
 		} = await this.apiClient.invoke<NodeInfo>('system_getNodeInfo');
 		const missedBlocks = Math.ceil((timestamp - previousBlock.header.timestamp) / blockTime) - 1;
 
 		if (missedBlocks > 0) {
-			const forgersInfo = await this.apiClient.invoke<
-				readonly { address: string; nextForgingTime: number }[]
-			>('generator_getForgers');
+			const { list: forgersInfo } = await this.apiClient.invoke<{ list: { address: string }[] }>(
+				'chain_getGeneratorList',
+			);
 			const forgersRoundLength = forgersInfo.length;
 			const forgerIndex = forgersInfo.findIndex(f => f.address === forgerAddress);
 
