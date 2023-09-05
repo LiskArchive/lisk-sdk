@@ -704,7 +704,7 @@ describe('ChainConnectorPlugin', () => {
 				chain.BlockHeader.fromJSON(newBlockHeaderJSON).toObject(),
 			];
 			when(sendingChainAPIClientMock.invoke)
-				.calledWith('consensus_getBFTParameters', { height: newBlockHeaderHeight })
+				.calledWith('consensus_getBFTParametersActiveValidators', { height: newBlockHeaderHeight })
 				.mockResolvedValue({
 					prevoteThreshold: '2',
 					precommitThreshold: '2',

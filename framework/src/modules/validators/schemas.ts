@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { BLS_POP_LENGTH, BLS_PUBLIC_KEY_LENGTH } from './constants';
+
 export interface ValidateBLSKeyRequest {
 	proofOfPossession: string;
 	blsKey: string;
@@ -25,10 +27,14 @@ export const validateBLSKeyRequestSchema = {
 		proofOfPossession: {
 			type: 'string',
 			format: 'hex',
+			minLength: BLS_POP_LENGTH * 2,
+			maxLength: BLS_POP_LENGTH * 2,
 		},
 		blsKey: {
 			type: 'string',
 			format: 'hex',
+			minLength: BLS_PUBLIC_KEY_LENGTH * 2,
+			maxLength: BLS_PUBLIC_KEY_LENGTH * 2,
 		},
 	},
 	required: ['proofOfPossession', 'blsKey'],

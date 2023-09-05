@@ -19,6 +19,7 @@ import {
 	areDistinctHeadersContradicting,
 	computeValidatorsHash,
 	sortValidatorsByAddress,
+	sortValidatorsByBLSKey,
 } from './utils';
 import { getBFTParameters } from './bft_params';
 import {
@@ -87,6 +88,19 @@ export class BFTMethod {
 	public async getBFTParameters(stateStore: StateStore, height: number): Promise<BFTParameters> {
 		const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 		return getBFTParameters(paramsStore, height);
+	}
+
+	public async getBFTParametersActiveValidators(
+		stateStore: StateStore,
+		height: number,
+	): Promise<BFTParameters> {
+		const bftParams = await this.getBFTParameters(stateStore, height);
+
+		return {
+			...bftParams,
+			// Filter standby validators with bftWeight === 0
+			validators: bftParams.validators.filter(v => v.bftWeight > BigInt(0)),
+		};
 	}
 
 	public async getBFTHeights(stateStore: StateStore): Promise<BFTHeights> {
@@ -204,7 +218,13 @@ export class BFTMethod {
 			throw new Error('Invalid certificateThreshold input.');
 		}
 
-		const validatorsHash = computeValidatorsHash(validators, certificateThreshold);
+		sortValidatorsByBLSKey(validators);
+		const validatorsHash = computeValidatorsHash(
+			validators
+				.filter(v => v.bftWeight > BigInt(0))
+				.map(v => ({ bftWeight: v.bftWeight, blsKey: v.blsKey })),
+			certificateThreshold,
+		);
 		const bftParams: BFTParameters = {
 			prevoteThreshold: (BigInt(2) * aggregateBFTWeight) / BigInt(3) + BigInt(1),
 			precommitThreshold,
