@@ -21,7 +21,7 @@ import { blockFixtures } from './fixtures';
 import {
 	blockSchemaV2,
 	blockHeaderSchemaV2,
-	transactionSchema,
+	transactionSchemaV2,
 } from '../../../../src/engine/legacy/schemas';
 import { LegacyBlockJSON, LegacyTransactionJSON } from '../../../../src/engine/legacy/types';
 
@@ -71,10 +71,10 @@ describe('Legacy endpoint', () => {
 			inputTxID: string,
 		): void => {
 			expect(transaction.id).toEqual(inputTxID);
-			expect(codec.encodeJSON(transactionSchema, transaction)).toEqual(inputTx);
+			expect(codec.encodeJSON(transactionSchemaV2, transaction)).toEqual(inputTx);
 
 			expect(
-				codec.encodeJSON(transactionSchema, {
+				codec.encodeJSON(transactionSchemaV2, {
 					...transaction,
 					moduleID: transaction.moduleID - 1,
 				} as LegacyTransactionJSON),

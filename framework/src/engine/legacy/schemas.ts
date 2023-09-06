@@ -83,8 +83,8 @@ export const blockHeaderSchemaV2 = {
 };
 
 // https://github.com/LiskHQ/lisk-sdk/blob/release/5.3.0/elements/lisk-chain/src/transaction.ts
-export const transactionSchema = {
-	$id: 'lisk/transaction',
+export const transactionSchemaV2 = {
+	$id: '/block/v2/transaction',
 	type: 'object',
 	required: ['moduleID', 'assetID', 'nonce', 'fee', 'senderPublicKey', 'asset'],
 	properties: {

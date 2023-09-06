@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
+import { Batch, Database } from '@liskhq/lisk-db';
 import { utils } from '@liskhq/lisk-cryptography';
 import { encodeLegacyChainBracketInfo } from './codec';
 import { LegacyChainBracketInfo } from './types';
@@ -65,17 +65,12 @@ export class Storage {
 		}
 
 		const txIDs: Buffer[] = [];
-		try {
-			// each txID is hashed value of 32 length
-			const idLength = 32;
-			for (let i = 0; i < txIDsBuffer.length; i += idLength) {
-				const txID = txIDsBuffer.subarray(i, (i += idLength));
-				txIDs.push(txID);
-			}
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
+
+		// each txID is hashed value of 32 length
+		const idLength = 32;
+		for (let i = 0; i < txIDsBuffer.length; i += idLength) {
+			const txID = txIDsBuffer.subarray(i, (i += idLength));
+			txIDs.push(txID);
 		}
 
 		return Promise.all(txIDs.map(async ID => this.getTransactionByID(ID)));

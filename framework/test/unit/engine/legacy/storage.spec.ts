@@ -135,6 +135,26 @@ describe('Legacy storage', () => {
 			const transactions = await storage.getTransactionsByBlockID(header.id);
 			expect(transactions[0]).toEqual(payload[0]);
 		});
+
+		it("should save the block without it's transactions", async () => {
+			const { header, payload } = blockFixtures[0];
+			await storage.saveBlock(header.id, header.height, encodeBlock({ header, payload }), []);
+
+			const result = await storage.getBlockByID(header.id);
+			expect(result).toEqual(encodeBlock({ header, payload }));
+
+			try {
+				await storage.getTransactionByID(utils.hash(payload[0]));
+			} catch (error: any) {
+				expect(error.message).toInclude('does not exist');
+			}
+
+			try {
+				await storage.getTransactionsByBlockID(header.id);
+			} catch (error: any) {
+				expect(error.message).toInclude('does not exist');
+			}
+		});
 	});
 
 	describe('getLegacyChainBracketInfo', () => {

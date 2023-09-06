@@ -18,7 +18,7 @@ import {
 	blockHeaderSchemaV2,
 	blockSchemaV2,
 	legacyChainBracketInfoSchema,
-	transactionSchema,
+	transactionSchemaV2,
 } from './schemas';
 import {
 	LegacyBlock,
@@ -87,15 +87,15 @@ export const decodeBlockJSON = (
 export const getLegacyTransactionJSONWithSchema = (
 	data: Buffer,
 ): { transaction: LegacyTransactionJSON; schema: Schema } => {
-	const legacyTransaction = codec.decode<LegacyTransaction>(transactionSchema, data);
+	const legacyTransaction = codec.decode<LegacyTransaction>(transactionSchemaV2, data);
 	const id = utils.hash(data);
 
 	return {
 		transaction: {
-			...codec.toJSON(transactionSchema, legacyTransaction),
+			...codec.toJSON(transactionSchemaV2, legacyTransaction),
 			id: id.toString('hex'),
 		},
-		schema: transactionSchema,
+		schema: transactionSchemaV2,
 	};
 };
 
