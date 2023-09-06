@@ -96,8 +96,8 @@ export class Storage {
 			batch.set(buildTxIDDbKey(txIds[index]), payload[index]);
 		}
 
-		// each transaction's key is saved without concatenating the DB_KEY_TX_ID
-		// since DB_KEY_TX_ID is used inside getTransactionByID(ID: Buffer)
+		// each transaction's key is saved without concatenating the DB_KEY_TRANSACTIONS_ID
+		// since DB_KEY_TRANSACTIONS_ID is used inside getTransactionByID(ID: Buffer)
 		batch.set(buildTxsBlockIDDbKey(blockID), Buffer.concat(txIds));
 		await this._db.write(batch);
 	}
