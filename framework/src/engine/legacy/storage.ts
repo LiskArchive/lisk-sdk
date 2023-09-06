@@ -15,7 +15,7 @@
 import { intToBuffer } from '@liskhq/lisk-cryptography/dist-node/utils';
 import { Batch, Database } from '@liskhq/lisk-db';
 import { encodeLegacyChainBracketInfo } from './codec';
-import { DB_KEY_BLOCK_HEIGHT, DB_KEY_BLOCK_ID, DB_KEY_LEGACY_BRACKET } from './constants';
+import { DB_KEY_BLOCKS_HEIGHT, DB_KEY_BLOCKS_ID, DB_KEY_LEGACY_BRACKET } from './constants';
 import { LegacyChainBracketInfo } from './types';
 
 export class Storage {
@@ -26,12 +26,12 @@ export class Storage {
 	}
 
 	public async getBlockByID(id: Buffer): Promise<Buffer> {
-		return this._db.get(Buffer.concat([DB_KEY_BLOCK_ID, id]));
+		return this._db.get(Buffer.concat([DB_KEY_BLOCKS_ID, id]));
 	}
 
 	public async getBlockByHeight(height: number): Promise<Buffer> {
 		return this.getBlockByID(
-			await this._db.get(Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(height, 4)])),
+			await this._db.get(Buffer.concat([DB_KEY_BLOCKS_HEIGHT, intToBuffer(height, 4)])),
 		);
 	}
 
@@ -41,17 +41,17 @@ export class Storage {
 	}
 
 	public async isBlockPersisted(blockID: Buffer): Promise<boolean> {
-		return this._db.has(Buffer.concat([DB_KEY_BLOCK_ID, blockID]));
+		return this._db.has(Buffer.concat([DB_KEY_BLOCKS_ID, blockID]));
 	}
 
 	public async isBlockHeightPersisted(height: number): Promise<boolean> {
-		return this._db.has(Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(height, 4)]));
+		return this._db.has(Buffer.concat([DB_KEY_BLOCKS_HEIGHT, intToBuffer(height, 4)]));
 	}
 
 	public async saveBlock(id: Buffer, height: number, block: Buffer): Promise<void> {
 		const batch = new Batch();
-		batch.set(Buffer.concat([DB_KEY_BLOCK_ID, id]), block);
-		batch.set(Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(height, 4)]), id);
+		batch.set(Buffer.concat([DB_KEY_BLOCKS_ID, id]), block);
+		batch.set(Buffer.concat([DB_KEY_BLOCKS_HEIGHT, intToBuffer(height, 4)]), id);
 
 		await this._db.write(batch);
 	}
@@ -75,8 +75,8 @@ export class Storage {
 		toHeight: number,
 	): Promise<Buffer[]> {
 		const stream = this._db.createReadStream({
-			gte: Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(fromHeight, 4)]),
-			lte: Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(toHeight, 4)]),
+			gte: Buffer.concat([DB_KEY_BLOCKS_HEIGHT, intToBuffer(fromHeight, 4)]),
+			lte: Buffer.concat([DB_KEY_BLOCKS_HEIGHT, intToBuffer(toHeight, 4)]),
 			reverse: true,
 		});
 

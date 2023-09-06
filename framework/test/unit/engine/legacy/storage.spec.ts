@@ -16,7 +16,7 @@
 import { intToBuffer } from '@liskhq/lisk-cryptography/dist-node/utils';
 import { Batch, Database, InMemoryDatabase } from '@liskhq/lisk-db';
 import { encodeBlock, encodeLegacyChainBracketInfo } from '../../../../src/engine/legacy/codec';
-import { DB_KEY_BLOCK_HEIGHT, DB_KEY_BLOCK_ID } from '../../../../src/engine/legacy/constants';
+import { DB_KEY_BLOCKS_HEIGHT, DB_KEY_BLOCKS_ID } from '../../../../src/engine/legacy/constants';
 import { Storage } from '../../../../src/engine/legacy/storage';
 import { blockFixtures } from './fixtures';
 
@@ -36,8 +36,8 @@ describe('Legacy storage', () => {
 		for (const block of blocks) {
 			const { header, payload } = block;
 
-			batch.set(Buffer.concat([DB_KEY_BLOCK_ID, header.id]), encodeBlock({ header, payload }));
-			batch.set(Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(header.height, 4)]), header.id);
+			batch.set(Buffer.concat([DB_KEY_BLOCKS_ID, header.id]), encodeBlock({ header, payload }));
+			batch.set(Buffer.concat([DB_KEY_BLOCKS_HEIGHT, intToBuffer(header.height, 4)]), header.id);
 		}
 
 		await db.write(batch);
@@ -61,7 +61,7 @@ describe('Legacy storage', () => {
 
 		it('should throw error if block with given id does not exist', async () => {
 			await expect(storage.getBlockByID(Buffer.alloc(0))).rejects.toThrow(
-				`Specified key 00 does not exist`,
+				`Specified key 626c6f636b733a6964 does not exist`,
 			);
 		});
 	});
@@ -76,7 +76,7 @@ describe('Legacy storage', () => {
 
 		it('should throw an error if the block is not found', async () => {
 			await expect(storage.getBlockByHeight(100)).rejects.toThrow(
-				`Specified key 0100000064 does not exist`,
+				`Specified key 626c6f636b733a68656967687400000064 does not exist`,
 			);
 		});
 	});

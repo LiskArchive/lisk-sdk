@@ -11,7 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-export const DB_KEY_BLOCK_ID = Buffer.from([0]);
-export const DB_KEY_BLOCK_HEIGHT = Buffer.from([1]);
+export const DB_KEY_BLOCKS_ID = Buffer.from('blocks:id');
+export const DB_KEY_BLOCKS_HEIGHT = Buffer.from('blocks:height');
+export const DB_KEY_TRANSACTIONS_BLOCK_ID = Buffer.from('transactions:blockID');
+export const DB_KEY_TRANSACTIONS_ID = Buffer.from('transactions:id');
 export const DB_KEY_LEGACY_BRACKET = Buffer.from([2]);
