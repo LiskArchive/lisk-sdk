@@ -15,9 +15,9 @@
 import { Database } from '@liskhq/lisk-db';
 import { isHexString } from '@liskhq/lisk-validator';
 import { RequestContext } from '../rpc/rpc_server';
-import { LegacyBlockJSON } from './types';
+import { LegacyBlockJSON, LegacyTransactionJSON } from './types';
 import { Storage } from './storage';
-import { decodeBlockJSON } from './codec';
+import { decodeBlockJSON, getLegacyTransactionJSONWithSchema } from './codec';
 
 interface EndpointArgs {
 	db: Database;
@@ -25,10 +25,39 @@ interface EndpointArgs {
 
 export class LegacyEndpoint {
 	[key: string]: unknown;
+
 	public readonly storage: Storage;
 
 	public constructor(args: EndpointArgs) {
 		this.storage = new Storage(args.db);
+	}
+
+	public async getTransactionByID(context: RequestContext): Promise<LegacyTransactionJSON> {
+		const { id } = context.params;
+		if (!isHexString(id)) {
+			throw new Error('Invalid parameters. `id` must be a valid hex string.');
+		}
+
+		const tx = await this.storage.getTransactionByID(
+			// Here `id` is hashed value
+			Buffer.from(id as string, 'hex'),
+		);
+
+		return getLegacyTransactionJSONWithSchema(tx).transaction;
+	}
+
+	public async getTransactionsByBlockID(context: RequestContext): Promise<LegacyTransactionJSON[]> {
+		const { id } = context.params;
+		if (!isHexString(id)) {
+			throw new Error('Invalid parameters. `id` must be a valid hex string.');
+		}
+
+		const transactions = await this.storage.getTransactionsByBlockID(
+			// Here `id` is hashed value
+			Buffer.from(id as string, 'hex'),
+		);
+
+		return transactions.map(tx => getLegacyTransactionJSONWithSchema(tx).transaction);
 	}
 
 	public async getBlockByID(context: RequestContext): Promise<LegacyBlockJSON> {

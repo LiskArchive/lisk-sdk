@@ -17,7 +17,7 @@ import { encodeBlock } from '../../../../src/engine/legacy/codec';
 import { validateLegacyBlock } from '../../../../src/engine/legacy/validate';
 import { blockFixtures } from './fixtures';
 
-describe('Legacy valdate', () => {
+describe('Legacy validate', () => {
 	let encodedBlock: Buffer;
 
 	beforeEach(() => {
