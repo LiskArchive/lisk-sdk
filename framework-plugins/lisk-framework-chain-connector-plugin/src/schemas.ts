@@ -210,7 +210,7 @@ export const ccmsFromEventsSchema = {
 						},
 					},
 					outboxSize: {
-						type: 'number',
+						dataType: 'uint32',
 						fieldNumber: 4,
 					},
 				},

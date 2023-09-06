@@ -162,7 +162,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this._chainConnectorStore.close();
 	}
 
-	private async _newBlockReceivingChainHandler(_: Record<string, unknown>) {
+	private async _newBlockReceivingChainHandler(_?: Record<string, unknown>) {
 		const { finalizedHeight } = await this._receivingChainClient.invoke<{
 			finalizedHeight: number;
 		}>('system_getNodeInfo');
