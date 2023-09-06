@@ -165,22 +165,35 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	private async _newBlockReceivingChainHandler(_?: Record<string, unknown>) {
-		const { finalizedHeight } = await this._receivingChainClient.invoke<{
-			finalizedHeight: number;
-		}>('system_getNodeInfo');
-		this._receivingChainFinalizedHeight = finalizedHeight;
-		const { inbox } = await this._receivingChainClient.invoke<ChannelDataJSON>(
-			'interoperability_getChannel',
-			{ chainID: this._ownChainID.toString('hex') },
-		);
-		const { lastCertificate } = await this._receivingChainClient.invoke<ChainAccountJSON>(
-			'interoperability_getChainAccount',
-			{ chainID: this._ownChainID.toString('hex') },
-		);
-		this._heightToDeleteIndex.set(finalizedHeight, {
-			inboxSize: inbox.size,
-			lastCertificateHeight: lastCertificate.height,
-		});
+		try {
+			const { finalizedHeight } = await this._receivingChainClient.invoke<{
+				finalizedHeight: number;
+			}>('system_getNodeInfo');
+			this._receivingChainFinalizedHeight = finalizedHeight;
+			const { inbox } = await this._receivingChainClient.invoke<ChannelDataJSON>(
+				'interoperability_getChannel',
+				{ chainID: this._ownChainID.toString('hex') },
+			);
+			if (!inbox) {
+				throw new Error('No channel data available on receiving chain.');
+			}
+			const { lastCertificate } = await this._receivingChainClient.invoke<ChainAccountJSON>(
+				'interoperability_getChainAccount',
+				{ chainID: this._ownChainID.toString('hex') },
+			);
+			if (!lastCertificate) {
+				throw new Error('No chain data available on receiving chain.');
+			}
+			this._heightToDeleteIndex.set(finalizedHeight, {
+				inboxSize: inbox.size,
+				lastCertificateHeight: lastCertificate.height,
+			});
+		} catch (error) {
+			this.logger.debug(
+				error,
+				'No Channel or Chain Data: Sending chain is not registered yet on receiving chain.',
+			);
+		}
 
 		await this._cleanup();
 	}
