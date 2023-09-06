@@ -181,7 +181,7 @@ export const ccmsFromEventsSchema = {
 			fieldNumber: 1,
 			items: {
 				type: 'object',
-				required: ['ccms', 'height', 'inclusionProof'],
+				required: ['ccms', 'height', 'inclusionProof', 'outboxSize'],
 				properties: {
 					ccms: {
 						type: 'array',
@@ -208,6 +208,10 @@ export const ccmsFromEventsSchema = {
 								fieldNumber: 2,
 							},
 						},
+					},
+					outboxSize: {
+						type: 'number',
+						fieldNumber: 4,
 					},
 				},
 			},

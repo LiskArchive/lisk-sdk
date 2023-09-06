@@ -106,6 +106,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _isReceivingChainMainchain!: boolean;
 	private _registrationHeight!: number;
 	private _ccuSaveLimit!: number;
+	private _receivingChainFinalizedHeight!: number;
+	private _heightToDeleteIndex!: Map<number, { inboxSize: number; lastCertificateHeight: number }>;
 
 	public get nodeModulePath(): string {
 		return __filename;
@@ -123,6 +125,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this._isSaveCCU = this.config.isSaveCCU;
 		this._registrationHeight = this.config.registrationHeight;
 		this._ccuSaveLimit = this.config.ccuSaveLimit;
+		this._receivingChainFinalizedHeight = 0;
+		this._heightToDeleteIndex = new Map();
 	}
 
 	public async load(): Promise<void> {
@@ -141,7 +145,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this._sendingChainClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) =>
 			this._newBlockHandler(data),
 		);
-
 		this._sendingChainClient.subscribe(
 			'chain_deleteBlock',
 			async (data?: Record<string, unknown>) => this._deleteBlockHandler(data),
@@ -157,6 +160,28 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		this._chainConnectorStore.close();
+	}
+
+	private async _newBlockReceivingChainHandler(data?: Record<string, unknown>) {
+		const { blockHeader } = data as unknown as Data;
+		const { finalizedHeight } = await this._receivingChainClient.invoke<{
+			finalizedHeight: number;
+		}>('system_getNodeInfo');
+		this._receivingChainFinalizedHeight = finalizedHeight;
+		const { inbox } = await this._receivingChainClient.invoke<ChannelDataJSON>(
+			'interoperability_getChannel',
+			{ chainID: this._ownChainID.toString('hex') },
+		);
+		const { lastCertificate } = await this._receivingChainClient.invoke<ChainAccountJSON>(
+			'interoperability_getChainAccount',
+			{ chainID: this._ownChainID.toString('hex') },
+		);
+		this._heightToDeleteIndex.set(blockHeader.height, {
+			inboxSize: inbox.size,
+			lastCertificateHeight: lastCertificate.height,
+		});
+
+		await this._cleanup();
 	}
 
 	/**
@@ -233,7 +258,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 						`No valid CCU can be generated for the height: ${newBlockHeader.height}`,
 					);
 				}
-				await this._cleanup();
 			}
 		} catch (error) {
 			this.logger.error(error, 'Failed while handling the new block');
@@ -247,6 +271,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	 * - When lastCertificate, it only computes pending CCMs if any else it skips CCU creation
 	 * - When newCertificate it computes certificate, activeValidatorsUpdate and inboxUpdate
 	 */
+
 	private async _computeCCUParams(
 		blockHeaders: BlockHeader[],
 		aggregateCommits: AggregateCommit[],
@@ -325,7 +350,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		);
 		const { crossChainMessages, lastCCMToBeSent, messageWitnessHashes } =
 			messageWitnessHashesForCCMs;
-
 		/**
 		 * If there is no new certificate then we calculate CCU params based on last certificate and pending ccms
 		 */
@@ -552,12 +576,18 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			siblingHashes: proveResponseObj.proof.siblingHashes,
 		};
 		const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
+		const receivingChainChannelDataJSON = await this._sendingChainClient.invoke<ChannelDataJSON>(
+			'interoperability_getChannel',
+			{ chainID: this._receivingChainID.toString('hex') },
+		);
 		crossChainMessages.push({
 			ccms: this._isReceivingChainMainchain
 				? ccmsFromEvents
 				: ccmsFromEvents.filter(ccm => ccm.receivingChainID.equals(this._receivingChainID)),
 			height: newBlockHeader.height,
 			inclusionProof: outboxRootWitness,
+			// Add outbox size info to be used for cleanup
+			outboxSize: receivingChainChannelDataJSON.outbox.size,
 		});
 
 		await this._chainConnectorStore.setCrossChainMessages(crossChainMessages);
@@ -666,19 +696,40 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	private async _cleanup() {
+		// Delete CCUs
+		// When given -1 then there is no limit
+		if (this._ccuSaveLimit !== -1) {
+			const listOfCCUs = await this._chainConnectorStore.getListOfCCUs();
+			if (listOfCCUs.length > this._ccuSaveLimit) {
+				await this._chainConnectorStore.setListOfCCUs(
+					// Takes the last ccuSaveLimit elements
+					listOfCCUs.slice(-this._ccuSaveLimit),
+				);
+			}
+		}
+
+		const finalizedInfoAtHeight = this._heightToDeleteIndex.get(
+			this._receivingChainFinalizedHeight,
+		);
+
+		if (!finalizedInfoAtHeight) {
+			throw new Error('No finalized height information found during cleanup.');
+		}
+
 		// Delete CCMs
 		const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
 		const ccmsAfterLastCertificate = crossChainMessages.filter(
-			ccm => ccm.height >= this._lastCertificate.height,
+			ccm =>
+				// Some extra ccms may be stored at the outbox size === finalizedheight.inboxSize
+				ccm.outboxSize >= finalizedInfoAtHeight.inboxSize,
 		);
 
 		await this._chainConnectorStore.setCrossChainMessages(ccmsAfterLastCertificate);
-
 		// Delete blockHeaders
 		const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
 
 		const updatedBlockHeaders = blockHeaders.filter(
-			blockHeader => blockHeader.height >= this._lastCertificate.height,
+			blockHeader => blockHeader.height >= finalizedInfoAtHeight.lastCertificateHeight,
 		);
 		await this._chainConnectorStore.setBlockHeaders(updatedBlockHeaders);
 
@@ -687,7 +738,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		await this._chainConnectorStore.setAggregateCommits(
 			aggregateCommits.filter(
-				aggregateCommit => aggregateCommit.height >= this._lastCertificate.height,
+				aggregateCommit => aggregateCommit.height >= finalizedInfoAtHeight.lastCertificateHeight,
 			),
 		);
 		// Delete validatorsHashPreimage
@@ -703,17 +754,13 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		if (updatedValidatorsHashPreimages.length !== validatorsHashPreimage.length) {
 			await this._chainConnectorStore.setValidatorsHashPreimage(updatedValidatorsHashPreimages);
 		}
-		// Delete CCUs
-		// When given -1 then there is no limit
-		if (this._ccuSaveLimit !== -1) {
-			const listOfCCUs = await this._chainConnectorStore.getListOfCCUs();
-			if (listOfCCUs.length > this._ccuSaveLimit) {
-				await this._chainConnectorStore.setListOfCCUs(
-					// Takes the last ccuSaveLimit elements
-					listOfCCUs.slice(-this._ccuSaveLimit),
-				);
+
+		// Delete info less than finalized height
+		this._heightToDeleteIndex.forEach((_, key) => {
+			if (key < this._receivingChainFinalizedHeight) {
+				this._heightToDeleteIndex.delete(key);
 			}
-		}
+		});
 	}
 
 	private async _submitCCU(ccuParams: Buffer): Promise<void> {
@@ -783,6 +830,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 					this.config.receivingChainWsURL,
 				);
 			}
+			this._receivingChainClient.subscribe(
+				'chain_newBlock',
+				async (data?: Record<string, unknown>) => this._newBlockReceivingChainHandler(data),
+			);
 		} catch (error) {
 			this.logger.error(
 				error,
