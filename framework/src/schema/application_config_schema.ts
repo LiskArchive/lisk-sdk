@@ -30,7 +30,7 @@ export const applicationConfigSchema = {
 	properties: {
 		system: {
 			type: 'object',
-			required: ['version', 'dataPath', 'logLevel', 'keepEventsForHeights'],
+			required: ['version', 'dataPath', 'logLevel', 'keepEventsForHeights', 'backup'],
 			properties: {
 				version: {
 					type: 'string',
@@ -45,6 +45,17 @@ export const applicationConfigSchema = {
 				},
 				keepEventsForHeights: {
 					type: 'integer',
+				},
+				backup: {
+					type: 'object',
+					required: ['height'],
+					properties: {
+						height: {
+							type: 'integer',
+							minimum: 0,
+							description: 'Height at which the DB backup should be taken.',
+						},
+					},
 				},
 				enableMetrics: {
 					type: 'boolean',
@@ -305,6 +316,9 @@ export const applicationConfigSchema = {
 			keepEventsForHeights: 300,
 			logLevel: 'info',
 			enableMetrics: false,
+			backup: {
+				height: 0,
+			},
 		},
 		rpc: {
 			modes: ['ipc'],
