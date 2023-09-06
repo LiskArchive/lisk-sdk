@@ -15,10 +15,15 @@
 
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
+import { utils } from '@liskhq/lisk-cryptography';
 import { LegacyEndpoint } from '../../../../src/engine/legacy/endpoint';
 import { blockFixtures } from './fixtures';
-import { blockSchemaV2, blockHeaderSchemaV2 } from '../../../../src/engine/legacy/schemas';
-import { LegacyBlockJSON } from '../../../../src/engine/legacy/types';
+import {
+	blockSchemaV2,
+	blockHeaderSchemaV2,
+	transactionSchema,
+} from '../../../../src/engine/legacy/schemas';
+import { LegacyBlockJSON, LegacyTransactionJSON } from '../../../../src/engine/legacy/types';
 
 const bufferToHex = (b: Buffer) => Buffer.from(b).toString('hex');
 
@@ -60,6 +65,22 @@ describe('Legacy endpoint', () => {
 			expect(block.payload[0]).toEqual(bufferToHex(blockFixtures[0].payload[0]));
 		};
 
+		const matchTxExpectations = (
+			transaction: LegacyTransactionJSON,
+			inputTx: Buffer,
+			inputTxID: string,
+		): void => {
+			expect(transaction.id).toEqual(inputTxID);
+			expect(codec.encodeJSON(transactionSchema, transaction)).toEqual(inputTx);
+
+			expect(
+				codec.encodeJSON(transactionSchema, {
+					...transaction,
+					moduleID: transaction.moduleID - 1,
+				} as LegacyTransactionJSON),
+			).not.toEqual(inputTx);
+		};
+
 		it('getBlockByID', async () => {
 			const block = await legacyEndpoint.getBlockByID({
 				params: { id: bufferToHex(blockFixtures[0].header.id) },
@@ -74,6 +95,33 @@ describe('Legacy endpoint', () => {
 			} as any);
 
 			matchBlockExpectations(block);
+		});
+
+		it('getTransactionByID', async () => {
+			const tx = blockFixtures[0].payload[0];
+			jest.spyOn(legacyEndpoint['storage'], 'getTransactionByID').mockResolvedValue(tx);
+
+			const txID = utils.hash(tx).toString('hex');
+			const transaction = await legacyEndpoint.getTransactionByID({
+				params: { id: txID },
+			} as any);
+
+			matchTxExpectations(transaction, tx, txID);
+		});
+
+		it('getTransactionsByBlockID', async () => {
+			const blockID = blockFixtures[0].header.id;
+			const tx = blockFixtures[0].payload[0];
+			const txID = utils.hash(tx).toString('hex');
+
+			jest.spyOn(legacyEndpoint['storage'], 'getTransactionsByBlockID').mockResolvedValue([tx]);
+
+			const transactions = await legacyEndpoint.getTransactionsByBlockID({
+				params: { id: blockID.toString('hex') },
+			} as any);
+
+			expect(transactions).toBeArray();
+			matchTxExpectations(transactions[0], tx, txID);
 		});
 	});
 });

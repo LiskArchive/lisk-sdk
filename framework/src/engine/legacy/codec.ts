@@ -14,7 +14,12 @@
 
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { blockHeaderSchemaV2, blockSchemaV2, legacyChainBracketInfoSchema } from './schemas';
+import {
+	blockHeaderSchemaV2,
+	blockSchemaV2,
+	legacyChainBracketInfoSchema,
+	transactionSchema,
+} from './schemas';
 import {
 	LegacyBlock,
 	LegacyBlockJSON,
@@ -22,6 +27,8 @@ import {
 	RawLegacyBlock,
 	LegacyBlockWithID,
 	LegacyBlockHeaderWithID,
+	LegacyTransaction,
+	LegacyTransactionJSON,
 } from './types';
 
 interface LegacyBlockSchema {
@@ -74,6 +81,21 @@ export const decodeBlockJSON = (
 			payload: block.payload.map(tx => tx.toString('hex')),
 		},
 		schema,
+	};
+};
+
+export const getLegacyTransactionJSONWithSchema = (
+	data: Buffer,
+): { transaction: LegacyTransactionJSON; schema: Schema } => {
+	const legacyTransaction = codec.decode<LegacyTransaction>(transactionSchema, data);
+	const id = utils.hash(data);
+
+	return {
+		transaction: {
+			...codec.toJSON(transactionSchema, legacyTransaction),
+			id: id.toString('hex'),
+		},
+		schema: transactionSchema,
 	};
 };
 
