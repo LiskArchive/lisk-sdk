@@ -246,6 +246,7 @@ describe('endpoints', () => {
 					bitmap: Buffer.alloc(0),
 					siblingHashes: [],
 				},
+				outboxSize: 2,
 			};
 			ccmsFromEventsJSON = ccmsFromEventsToJSON(ccmsFromEvents);
 			await chainConnectorPlugin['_chainConnectorStore'].setCrossChainMessages([ccmsFromEvents]);

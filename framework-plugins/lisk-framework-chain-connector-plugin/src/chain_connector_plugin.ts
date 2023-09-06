@@ -89,6 +89,8 @@ type ModulesMetadata = [
 	},
 ];
 
+type FinalizedHeightInfo = { inboxSize: number; lastCertificateHeight: number };
+
 export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig> {
 	public endpoint = new Endpoint();
 	public configSchema = configSchema;
@@ -107,7 +109,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _registrationHeight!: number;
 	private _ccuSaveLimit!: number;
 	private _receivingChainFinalizedHeight!: number;
-	private _heightToDeleteIndex!: Map<number, { inboxSize: number; lastCertificateHeight: number }>;
+	private _heightToDeleteIndex!: Map<number, FinalizedHeightInfo>;
 
 	public get nodeModulePath(): string {
 		return __filename;
@@ -575,10 +577,19 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			siblingHashes: proveResponseObj.proof.siblingHashes,
 		};
 		const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
-		const receivingChainChannelDataJSON = await this._sendingChainClient.invoke<ChannelDataJSON>(
-			'interoperability_getChannel',
-			{ chainID: this._receivingChainID.toString('hex') },
-		);
+		let receivingChainOutboxSize = 0;
+		try {
+			const receivingChainChannelDataJSON = await this._sendingChainClient.invoke<ChannelDataJSON>(
+				'interoperability_getChannel',
+				{ chainID: this._receivingChainID.toString('hex') },
+			);
+			receivingChainOutboxSize = receivingChainChannelDataJSON.outbox.size;
+		} catch (error) {
+			this.logger.debug(
+				error,
+				'No Channel Data: Receiving chain is not registered yet on sending chain',
+			);
+		}
 		crossChainMessages.push({
 			ccms: this._isReceivingChainMainchain
 				? ccmsFromEvents
@@ -586,7 +597,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			height: newBlockHeader.height,
 			inclusionProof: outboxRootWitness,
 			// Add outbox size info to be used for cleanup
-			outboxSize: receivingChainChannelDataJSON.outbox.size,
+			outboxSize: receivingChainOutboxSize,
 		});
 
 		await this._chainConnectorStore.setCrossChainMessages(crossChainMessages);
@@ -705,61 +716,72 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 					listOfCCUs.slice(-this._ccuSaveLimit),
 				);
 			}
-		}
-
-		const finalizedInfoAtHeight = this._heightToDeleteIndex.get(
-			this._receivingChainFinalizedHeight,
-		);
-
-		if (!finalizedInfoAtHeight) {
-			throw new Error('No finalized height information found during cleanup.');
-		}
-
-		// Delete CCMs
-		const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
-		const ccmsAfterLastCertificate = crossChainMessages.filter(
-			ccm =>
-				// Some extra ccms may be stored at the outbox size === finalizedheight.inboxSize
-				ccm.outboxSize >= finalizedInfoAtHeight.inboxSize,
-		);
-
-		await this._chainConnectorStore.setCrossChainMessages(ccmsAfterLastCertificate);
-		// Delete blockHeaders
-		const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
-
-		const updatedBlockHeaders = blockHeaders.filter(
-			blockHeader => blockHeader.height >= finalizedInfoAtHeight.lastCertificateHeight,
-		);
-		await this._chainConnectorStore.setBlockHeaders(updatedBlockHeaders);
-
-		// Delete aggregateCommits
-		const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
-
-		await this._chainConnectorStore.setAggregateCommits(
-			aggregateCommits.filter(
-				aggregateCommit => aggregateCommit.height >= finalizedInfoAtHeight.lastCertificateHeight,
-			),
-		);
-		// Delete validatorsHashPreimage
-		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
-		const validatorsHashMap = updatedBlockHeaders.reduce((prev: Record<string, boolean>, curr) => {
-			// eslint-disable-next-line no-param-reassign
-			prev[curr.validatorsHash.toString('hex')] = true;
-			return prev;
-		}, {});
-		const updatedValidatorsHashPreimages = validatorsHashPreimage.filter(
-			vhp => validatorsHashMap[vhp.validatorsHash.toString('hex')],
-		);
-		if (updatedValidatorsHashPreimages.length !== validatorsHashPreimage.length) {
-			await this._chainConnectorStore.setValidatorsHashPreimage(updatedValidatorsHashPreimages);
-		}
-
-		// Delete info less than finalized height
-		this._heightToDeleteIndex.forEach((_, key) => {
-			if (key < this._receivingChainFinalizedHeight) {
-				this._heightToDeleteIndex.delete(key);
+			let finalizedInfoAtHeight = this._heightToDeleteIndex.get(
+				this._receivingChainFinalizedHeight,
+			);
+			if (!finalizedInfoAtHeight) {
+				for (let i = 1; i < this._heightToDeleteIndex.size; i += 1) {
+					if (this._heightToDeleteIndex.get(this._receivingChainFinalizedHeight - i)) {
+						finalizedInfoAtHeight = this._heightToDeleteIndex.get(
+							this._receivingChainFinalizedHeight - i,
+						);
+						break;
+					}
+				}
 			}
-		});
+
+			// Delete CCMs
+			const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
+			const ccmsAfterLastCertificate = crossChainMessages.filter(
+				ccm =>
+					// Some extra ccms may be stored at the outbox size === finalizedheight.inboxSize
+					ccm.outboxSize >= (finalizedInfoAtHeight ? finalizedInfoAtHeight.inboxSize : 0),
+			);
+
+			await this._chainConnectorStore.setCrossChainMessages(ccmsAfterLastCertificate);
+			// Delete blockHeaders
+			const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
+			const updatedBlockHeaders = blockHeaders.filter(
+				blockHeader =>
+					blockHeader.height >=
+					(finalizedInfoAtHeight ? finalizedInfoAtHeight.lastCertificateHeight : 0),
+			);
+			await this._chainConnectorStore.setBlockHeaders(updatedBlockHeaders);
+
+			// Delete aggregateCommits
+			const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
+
+			await this._chainConnectorStore.setAggregateCommits(
+				aggregateCommits.filter(
+					aggregateCommit =>
+						aggregateCommit.height >=
+						(finalizedInfoAtHeight ? finalizedInfoAtHeight.lastCertificateHeight : 0),
+				),
+			);
+			// Delete validatorsHashPreimage
+			const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
+			const validatorsHashMap = updatedBlockHeaders.reduce(
+				(prev: Record<string, boolean>, curr) => {
+					// eslint-disable-next-line no-param-reassign
+					prev[curr.validatorsHash.toString('hex')] = true;
+					return prev;
+				},
+				{},
+			);
+			const updatedValidatorsHashPreimages = validatorsHashPreimage.filter(
+				vhp => validatorsHashMap[vhp.validatorsHash.toString('hex')],
+			);
+			if (updatedValidatorsHashPreimages.length !== validatorsHashPreimage.length) {
+				await this._chainConnectorStore.setValidatorsHashPreimage(updatedValidatorsHashPreimages);
+			}
+
+			// Delete info less than finalized height
+			this._heightToDeleteIndex.forEach((_, key) => {
+				if (key < this._receivingChainFinalizedHeight) {
+					this._heightToDeleteIndex.delete(key);
+				}
+			});
+		}
 	}
 
 	private async _submitCCU(ccuParams: Buffer): Promise<void> {
