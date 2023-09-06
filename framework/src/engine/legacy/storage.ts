@@ -31,23 +31,23 @@ export class Storage {
 		this._db = db;
 	}
 
-	// `ID` is the hashed value (utils.hash)
-	public async getTransactionByID(ID: Buffer): Promise<Buffer> {
-		return this._db.get(buildTxIDDbKey(ID));
+	// `id` is the hashed value (utils.hash)
+	public async getTransactionByID(id: Buffer): Promise<Buffer> {
+		return this._db.get(buildTxIDDbKey(id));
 	}
 
-	public async getBlockByID(ID: Buffer): Promise<Buffer> {
-		return this._db.get(buildBlockIDDbKey(ID));
+	public async getBlockByID(id: Buffer): Promise<Buffer> {
+		return this._db.get(buildBlockIDDbKey(id));
 	}
 
 	public async getBlockByHeight(height: number): Promise<Buffer> {
-		const ID = await this._db.get(buildBlockHeightDbKey(height));
-		return this.getBlockByID(ID);
+		const id = await this._db.get(buildBlockHeightDbKey(height));
+		return this.getBlockByID(id);
 	}
 
 	public async getBlocksByHeightBetween(fromHeight: number, toHeight: number): Promise<Buffer[]> {
-		const IDs = await this._getBlockIDsBetweenHeights(fromHeight, toHeight);
-		return Promise.all(IDs.map(async ID => this.getBlockByID(ID)));
+		const ids = await this._getBlockIDsBetweenHeights(fromHeight, toHeight);
+		return Promise.all(ids.map(async id => this.getBlockByID(id)));
 	}
 
 	public async isBlockPersisted(blockID: Buffer): Promise<boolean> {
@@ -59,21 +59,22 @@ export class Storage {
 	}
 
 	public async getTransactionsByBlockID(blockID: Buffer): Promise<Buffer[]> {
-		const txIDsBuffer = await this._db.get(buildTxsBlockIDDbKey(blockID));
-		if (!txIDsBuffer.length) {
+		const txIdsBuffer = await this._db.get(buildTxsBlockIDDbKey(blockID));
+		// key for the txIDs always exists
+		if (!txIdsBuffer.length) {
 			return [];
 		}
 
-		const txIDs: Buffer[] = [];
+		const txIds: Buffer[] = [];
 
 		// each txID is hashed value of 32 length
 		const idLength = 32;
-		for (let i = 0; i < txIDsBuffer.length; i += idLength) {
-			const txID = txIDsBuffer.subarray(i, (i += idLength));
-			txIDs.push(txID);
+		for (let i = 0; i < txIdsBuffer.length; i += idLength) {
+			const txId = txIdsBuffer.subarray(i, (i += idLength));
+			txIds.push(txId);
 		}
 
-		return Promise.all(txIDs.map(async ID => this.getTransactionByID(ID)));
+		return Promise.all(txIds.map(async id => this.getTransactionByID(id)));
 	}
 
 	public async saveBlock(
@@ -87,19 +88,17 @@ export class Storage {
 		batch.set(blockIDDbKey, block);
 		batch.set(buildBlockHeightDbKey(height), blockID);
 
-		const txIDs = payload.map(tx => utils.hash(tx));
+		const txIds = payload.map(tx => utils.hash(tx));
 
-		let index = 0;
-		while (index < payload.length) {
+		for (let index = 0; index < payload.length; index += 1) {
 			// `key` is the hashed value
 			// while `value` is bytes
-			batch.set(buildTxIDDbKey(txIDs[index]), payload[index]);
-			index += 1;
+			batch.set(buildTxIDDbKey(txIds[index]), payload[index]);
 		}
 
 		// each transaction's key is saved without concatenating the DB_KEY_TX_ID
 		// since DB_KEY_TX_ID is used inside getTransactionByID(ID: Buffer)
-		batch.set(buildTxsBlockIDDbKey(blockID), Buffer.concat(txIDs));
+		batch.set(buildTxsBlockIDDbKey(blockID), Buffer.concat(txIds));
 		await this._db.write(batch);
 	}
 
