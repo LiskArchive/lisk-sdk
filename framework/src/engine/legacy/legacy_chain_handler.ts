@@ -187,10 +187,15 @@ export class LegacyChainHandler {
 		// @ts-expect-error Variable 'legacyBlocks' is used before being assigned.
 		for (const block of legacyBlocks) {
 			if (block.header.height > bracket.startHeight) {
+				let payload: Buffer[] = [];
+				if (block.payload.length) {
+					payload = block.payload;
+				}
 				await this._storage.saveBlock(
 					block.header.id as Buffer,
 					block.header.height,
 					encodeBlock(block),
+					payload,
 				);
 			}
 		}
