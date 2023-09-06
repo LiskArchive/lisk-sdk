@@ -162,8 +162,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this._chainConnectorStore.close();
 	}
 
-	private async _newBlockReceivingChainHandler(data?: Record<string, unknown>) {
-		const { blockHeader } = data as unknown as Data;
+	private async _newBlockReceivingChainHandler(_: Record<string, unknown>) {
 		const { finalizedHeight } = await this._receivingChainClient.invoke<{
 			finalizedHeight: number;
 		}>('system_getNodeInfo');
@@ -176,7 +175,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			'interoperability_getChainAccount',
 			{ chainID: this._ownChainID.toString('hex') },
 		);
-		this._heightToDeleteIndex.set(blockHeader.height, {
+		this._heightToDeleteIndex.set(finalizedHeight, {
 			inboxSize: inbox.size,
 			lastCertificateHeight: lastCertificate.height,
 		});
