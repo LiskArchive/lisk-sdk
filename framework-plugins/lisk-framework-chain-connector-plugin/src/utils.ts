@@ -70,6 +70,7 @@ export const ccmsFromEventsToJSON = (ccmsFromEvents: CCMsFromEvents): CCMsFromEv
 		bitmap: ccmsFromEvents.inclusionProof.bitmap.toString('hex'),
 		siblingHashes: ccmsFromEvents.inclusionProof.siblingHashes.map(s => s.toString('hex')),
 	},
+	outboxSize: ccmsFromEvents.outboxSize,
 });
 
 export const validatorsHashPreimagetoJSON = (validatorsHashPreimage: ValidatorsData[]) => {
