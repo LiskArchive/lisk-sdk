@@ -21,27 +21,27 @@ import {
 	InMemoryPrefixedStateDB,
 } from '../../../../src/testing';
 import { RewardMintedEvent } from '../../../../src/modules/reward/events/reward_minted';
-import { DynamicRewardModule } from '../../../../src/modules/dynamic_rewards';
+import { DynamicRewardModule } from '../../../../src/modules/dynamic_reward';
 import {
 	PoSMethod,
 	RandomMethod,
 	TokenMethod,
 	ValidatorsMethod,
-} from '../../../../src/modules/dynamic_rewards/types';
+} from '../../../../src/modules/dynamic_reward/types';
 import {
 	CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REDUCTION,
 	CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD,
 	DECIMAL_PERCENT_FACTOR,
 	defaultConfig,
 	EMPTY_BYTES,
-} from '../../../../src/modules/dynamic_rewards/constants';
+} from '../../../../src/modules/dynamic_reward/constants';
 import {
 	BlockAfterExecuteContext,
 	BlockExecuteContext,
 	GenesisBlockExecuteContext,
 } from '../../../../src';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
-import { EndOfRoundTimestampStore } from '../../../../src/modules/dynamic_rewards/stores/end_of_round_timestamp';
+import { EndOfRoundTimestampStore } from '../../../../src/modules/dynamic_reward/stores/end_of_round_timestamp';
 import {
 	REWARD_NO_REDUCTION,
 	REWARD_REDUCTION_MAX_PREVOTES,
