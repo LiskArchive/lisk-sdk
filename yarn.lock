@@ -1848,6 +1848,16 @@
     hash-wasm "4.9.0"
     tweetnacl "1.0.3"
 
+"@liskhq/lisk-cryptography@^4.0.0-rc.0":
+  version "4.0.0-rc.0"
+  resolved "https://npm.lisk.com/@liskhq/lisk-cryptography/-/lisk-cryptography-4.0.0-rc.0.tgz#0cf5e1b8f67116c8ff258e62d5da3d23a5cef185"
+  integrity sha512-OIqxD9oNcY2OlFNkI+Ay3Mex+EEt3AcmDFKpkshGBieuMvZzgfOAupPfaB3L36q6pMxGHpRc9Nzz6VQt0vNCYQ==
+  dependencies:
+    "@liskhq/lisk-passphrase" "^4.0.0-rc.0"
+    buffer-reverse "1.0.1"
+    hash-wasm "4.9.0"
+    tweetnacl "1.0.3"
+
 "@liskhq/lisk-db@0.3.7":
   version "0.3.7"
   resolved "https://registry.yarnpkg.com/@liskhq/lisk-db/-/lisk-db-0.3.7.tgz#9dce3d0c37f248f9221b26f0d57c3306d7d072ef"
@@ -1875,6 +1885,13 @@
   version "4.0.0-canary.33179"
   resolved "https://npm.lisk.com/@liskhq/lisk-passphrase/-/lisk-passphrase-4.0.0-canary.33179.tgz#8e04848238e72eafa2f2bb80ea91cb0e69bbedc3"
   integrity sha512-EPXgHb4YBme/FoS7CLEbvPU0pshKH9FRDL9qUn8Po2tB72IdIfDh+wP9nAD/92v4JcsVVGtPgX5MWiiYHb1GCw==
+  dependencies:
+    bip39 "3.0.3"
+
+"@liskhq/lisk-passphrase@^4.0.0-rc.0":
+  version "4.0.0-rc.0"
+  resolved "https://npm.lisk.com/@liskhq/lisk-passphrase/-/lisk-passphrase-4.0.0-rc.0.tgz#78fe583229c96d76258906375e34ff84a413be05"
+  integrity sha512-m87nhvUpOlSLr5NRV2M4INtg0IjjFF7Bte96Iq6X1dhzOjlmPg/QUQa7MFUzQu3NEWWHnpwON8QQK1FUE6ixYw==
   dependencies:
     bip39 "3.0.3"
 
@@ -1917,6 +1934,18 @@
   integrity sha512-oySl7xe84Fnh7gUtZwrHPCtpLruPfFo//Owbf0spW56QAkYZWu+1eeGOICgKW8RzxPyFX9WAjWwK3P8Md8tNTg==
   dependencies:
     "@liskhq/lisk-cryptography" "^4.0.0-beta.4"
+    ajv "8.1.0"
+    ajv-formats "2.1.1"
+    debug "4.3.4"
+    semver "7.5.2"
+    validator "13.7.0"
+
+"@liskhq/lisk-validator@^0.8.0-beta.0":
+  version "0.8.0-rc.0"
+  resolved "https://npm.lisk.com/@liskhq/lisk-validator/-/lisk-validator-0.8.0-rc.0.tgz#fb136717f71ce35c7937d79d3b857d26195ff8c8"
+  integrity sha512-ymKW2eRw4KVBXJLN7co2iJv9WmkytL4IyxXiwJq5xvSzAN/YIx7NYViT8WCcGmUA/ryd55kwdKX/9kKkhafiDw==
+  dependencies:
+    "@liskhq/lisk-cryptography" "^4.0.0-rc.0"
     ajv "8.1.0"
     ajv-formats "2.1.1"
     debug "4.3.4"

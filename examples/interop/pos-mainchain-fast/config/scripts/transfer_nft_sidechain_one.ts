@@ -13,9 +13,11 @@ type ModulesMetadata = [
 
 	const nodeAlias = 'one';
 	const tokenID = Buffer.from('0400000000000000', 'hex');
-	const sidechainID = Buffer.from('04000002', 'hex'); // Update this to send to another sidechain
-	const recipientLSKAddress = 'lskx5uqu2zzybdwrqswd8c6b5v5aj77yytn4k6mv6';
-	const recipientAddress = address.getAddressFromLisk32Address(recipientLSKAddress);
+	const nftID = Buffer.from('04000000010101010000000000000000', 'hex');
+	const sidechainID = Buffer.from('04000001', 'hex'); // Update this to send to another sidechain
+	const recipientAddress = address.getAddressFromLisk32Address(
+		'lskxz85sur2yo22dmcxybe39uvh2fg7s2ezxq4ny9',
+	);
 
 	const mainchainClient = await apiClient.createIPCClient(`~/.lisk/mainchain-node-one`);
 
@@ -24,21 +26,20 @@ type ModulesMetadata = [
 	const { modules: modulesMetadata } = await mainchainClient.invoke<{
 		modules: ModulesMetadata;
 	}>('system_getMetadata');
-
-	const tokenMetadata = modulesMetadata.find(m => m.name === 'token');
+	const tokenMetadata = modulesMetadata.find(m => m.name === 'nft');
 
 	const ccTransferCMDSchema = tokenMetadata?.commands.filter(
 		cmd => cmd.name == 'transferCrossChain',
 	)[0].params as Schema;
 
 	const params = {
-		tokenID,
-		amount: BigInt('910000000000'),
+		nftID,
 		receivingChainID: sidechainID,
 		recipientAddress,
-		data: 'cc transfer testing',
+		data: 'cc nft transfer testing',
 		messageFee: BigInt('10000000'),
 		messageFeeTokenID: tokenID,
+		includeAttributes: true,
 	};
 
 	const relayerkeyInfo = keys[2];
@@ -47,7 +48,7 @@ type ModulesMetadata = [
 	});
 
 	const tx = new Transaction({
-		module: 'token',
+		module: 'nft',
 		command: 'transferCrossChain',
 		fee: BigInt(200000000),
 		params: codec.encode(ccTransferCMDSchema, params),
@@ -68,11 +69,11 @@ type ModulesMetadata = [
 	});
 
 	console.log(
-		`Sent cross chain transfer transaction (amount: ${
-			params.amount
-		}, recipientAddress: ${recipientLSKAddress}) to sidechain (receivingChainID: ${params.receivingChainID.toString(
+		`Sent cross chain nft transfer transaction recipientAddress: ${params.recipientAddress.toString(
 			'hex',
-		)}) node ${nodeAlias}. Result from transaction pool is: `,
+		)}) to send of sidechain (sendingChainID: ${
+			params.receivingChainID
+		}) node ${nodeAlias}. Result from transaction pool is: `,
 		result,
 	);
 

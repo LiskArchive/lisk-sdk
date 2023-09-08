@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-chain",
-	"version": "0.5.0-beta.0",
+	"version": "0.6.0-beta.0",
 	"description": "Blocks and state management implementation that are used for block processing according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -35,12 +35,12 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-codec": "^0.4.0-beta.0",
-		"@liskhq/lisk-cryptography": "^4.1.0-beta.0",
+		"@liskhq/lisk-codec": "^0.5.0-beta.0",
+		"@liskhq/lisk-cryptography": "^4.1.0-beta.1",
 		"@liskhq/lisk-db": "0.3.7",
-		"@liskhq/lisk-tree": "^0.4.0-beta.0",
+		"@liskhq/lisk-tree": "^0.5.0-beta.0",
 		"@liskhq/lisk-utils": "^0.4.0-beta.0",
-		"@liskhq/lisk-validator": "^0.8.0-beta.0",
+		"@liskhq/lisk-validator": "^0.9.0-beta.0",
 		"debug": "4.3.4"
 	},
 	"devDependencies": {
