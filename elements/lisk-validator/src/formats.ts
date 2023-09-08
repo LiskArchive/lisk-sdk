@@ -13,17 +13,28 @@
  *
  */
 import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
-import { isHexString, isBytes, isIP, isIPV4, isEncryptedPassphrase, isSemVer } from './validation';
-import { MAX_UINT32, MAX_UINT64 } from './constants';
+import {
+	isHexString,
+	isBytes,
+	isIP,
+	isIPV4,
+	isEncryptedPassphrase,
+	isSemVer,
+	isNumberString,
+	isUInt64,
+	isSInt64,
+} from './validation';
+import { MAX_UINT32 } from './constants';
 
 export const hex = isHexString;
 export const bytes = isBytes;
 
-export const uint64 = {
-	type: 'number',
-	validate: (value: number) => Number.isInteger(value) && value >= 0 && value <= MAX_UINT64,
-};
+// uint64 and int64 are always type string, while uint32 and int32 are type integer
+export const int64 = (data: string): boolean => isNumberString(data) && isSInt64(BigInt(data));
 
+export const uint64 = (data: string): boolean => isNumberString(data) && isUInt64(BigInt(data));
+
+// int32 is appropriately defined in ajv-format plugin, no need to create a custom format
 export const uint32 = {
 	type: 'number',
 	validate: (value: number) => Number.isInteger(value) && value >= 0 && value <= MAX_UINT32,

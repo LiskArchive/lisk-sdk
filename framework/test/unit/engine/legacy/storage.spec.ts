@@ -13,12 +13,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography/dist-node/utils';
 import { Batch, Database, InMemoryDatabase } from '@liskhq/lisk-db';
+import { utils } from '@liskhq/lisk-cryptography';
 import { encodeBlock, encodeLegacyChainBracketInfo } from '../../../../src/engine/legacy/codec';
-import { DB_KEY_BLOCK_HEIGHT, DB_KEY_BLOCK_ID } from '../../../../src/engine/legacy/constants';
 import { Storage } from '../../../../src/engine/legacy/storage';
 import { blockFixtures } from './fixtures';
+import { buildBlockHeightDbKey, buildBlockIDDbKey } from '../../../../src/engine/legacy/utils';
 
 describe('Legacy storage', () => {
 	let db: InMemoryDatabase;
@@ -36,8 +36,8 @@ describe('Legacy storage', () => {
 		for (const block of blocks) {
 			const { header, payload } = block;
 
-			batch.set(Buffer.concat([DB_KEY_BLOCK_ID, header.id]), encodeBlock({ header, payload }));
-			batch.set(Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(header.height, 4)]), header.id);
+			batch.set(buildBlockIDDbKey(header.id), encodeBlock({ header, payload }));
+			batch.set(buildBlockHeightDbKey(header.height), header.id);
 		}
 
 		await db.write(batch);
@@ -61,7 +61,7 @@ describe('Legacy storage', () => {
 
 		it('should throw error if block with given id does not exist', async () => {
 			await expect(storage.getBlockByID(Buffer.alloc(0))).rejects.toThrow(
-				`Specified key 00 does not exist`,
+				`Specified key 626c6f636b733a6964 does not exist`,
 			);
 		});
 	});
@@ -76,7 +76,7 @@ describe('Legacy storage', () => {
 
 		it('should throw an error if the block is not found', async () => {
 			await expect(storage.getBlockByHeight(100)).rejects.toThrow(
-				`Specified key 0100000064 does not exist`,
+				`Specified key 626c6f636b733a68656967687400000064 does not exist`,
 			);
 		});
 	});
@@ -122,13 +122,38 @@ describe('Legacy storage', () => {
 	});
 
 	describe('saveBlock', () => {
-		it('should save the block', async () => {
+		it("should save the block along with it's transactions", async () => {
 			const { header, payload } = blockFixtures[0];
-			await storage.saveBlock(header.id, header.height, encodeBlock({ header, payload }));
+			await storage.saveBlock(header.id, header.height, encodeBlock({ header, payload }), payload);
 
 			const result = await storage.getBlockByID(header.id);
-
 			expect(result).toEqual(encodeBlock({ header, payload }));
+
+			const tx = await storage.getTransactionByID(utils.hash(payload[0]));
+			expect(tx).toEqual(payload[0]);
+
+			const transactions = await storage.getTransactionsByBlockID(header.id);
+			expect(transactions[0]).toEqual(payload[0]);
+		});
+
+		it("should save the block without it's transactions", async () => {
+			const { header, payload } = blockFixtures[0];
+			await storage.saveBlock(header.id, header.height, encodeBlock({ header, payload }), []);
+
+			const result = await storage.getBlockByID(header.id);
+			expect(result).toEqual(encodeBlock({ header, payload }));
+
+			try {
+				await storage.getTransactionByID(utils.hash(payload[0]));
+			} catch (error: any) {
+				expect(error.message).toInclude('does not exist');
+			}
+
+			try {
+				await storage.getTransactionsByBlockID(header.id);
+			} catch (error: any) {
+				expect(error.message).toInclude('does not exist');
+			}
 		});
 	});
 

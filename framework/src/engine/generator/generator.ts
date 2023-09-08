@@ -691,7 +691,7 @@ export class Generator {
 		blsPK: Buffer,
 		blsSK: Buffer,
 	): Promise<void> {
-		const params = await this._bft.method.getBFTParameters(stateStore, height);
+		const params = await this._bft.method.getBFTParametersActiveValidators(stateStore, height);
 		const registeredValidator = params.validators.find(v => v.address.equals(generatorAddress));
 		if (!registeredValidator) {
 			return;

@@ -23,6 +23,16 @@ describe('consensus endpoint', () => {
 			bftWeight: BigInt(2),
 			blsKey: utils.getRandomBytes(20),
 		},
+		{
+			address: utils.getRandomBytes(20),
+			bftWeight: BigInt(1),
+			blsKey: utils.getRandomBytes(20),
+		},
+		{
+			address: utils.getRandomBytes(20),
+			bftWeight: BigInt(0),
+			blsKey: utils.getRandomBytes(20),
+		},
 	];
 	const validatorsJSON = validators.map(v => ({
 		address: address.getLisk32AddressFromAddress(v.address),
@@ -59,6 +69,10 @@ describe('consensus endpoint', () => {
 		bftMethod = {
 			getBFTHeights: jest.fn().mockResolvedValue(bftHeights),
 			getBFTParameters: jest.fn().mockResolvedValue(bftParameters),
+			getBFTParametersActiveValidators: jest.fn().mockResolvedValue({
+				...bftParameters,
+				validators: bftParameters.validators.filter(v => v.bftWeight > BigInt(0)),
+			}),
 		};
 		endpoint = new ConsensusEndpoint({
 			bftMethod,
@@ -71,6 +85,21 @@ describe('consensus endpoint', () => {
 
 			expect(bftMethod.getBFTParameters).toHaveBeenCalledTimes(1);
 			expect(result).toEqual(bftParametersJSON);
+		});
+	});
+
+	describe('getBFTParametersActiveValidators', () => {
+		it('should return bft parameters in JSON format including only active validators', async () => {
+			const result = await endpoint.getBFTParametersActiveValidators({
+				params: { height: 0 },
+			} as any);
+			const bftParamsWithActiveValidators = {
+				...bftParametersJSON,
+				validators: [...bftParametersJSON.validators.filter(v => BigInt(v.bftWeight) > BigInt(0))],
+			};
+
+			expect(bftMethod.getBFTParametersActiveValidators).toHaveBeenCalledTimes(1);
+			expect(result).toEqual(bftParamsWithActiveValidators);
 		});
 	});
 

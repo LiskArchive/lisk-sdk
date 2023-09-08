@@ -93,7 +93,7 @@ describe('Legacy P2P network endpoint', () => {
 			// Save blocks to the database
 			for (let i = 0; i < blocks.length; i += 1) {
 				const block = blocks[i];
-				await endpoint['_storage'].saveBlock(utils.hash(block), startHeight + i, block);
+				await endpoint['_storage'].saveBlock(utils.hash(block), startHeight + i, block, []);
 			}
 
 			const encodedRequest = codec.encode(getBlocksFromIdRequestSchema, {

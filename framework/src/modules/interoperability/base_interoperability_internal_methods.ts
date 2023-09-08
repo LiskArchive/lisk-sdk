@@ -335,17 +335,25 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 				'The number of 1s in the bitmap is not equal to the number of new BFT weights.',
 			);
 		}
+
+		let bftWeightIndex = 0;
 		for (let i = 0; i < allBLSKeys.length; i += 1) {
-			// existing key does not need to be checked
-			if (!objects.bufferArrayIncludes(blsKeysUpdate, allBLSKeys[i])) {
-				continue;
-			}
+			const blsKey = allBLSKeys[i];
+			// Get digit of bitmap at index idx (starting from the right).
 			const digit = (bftWeightsUpdateBitmapBin >> BigInt(i)) & BigInt(1);
-			if (digit !== BigInt(1)) {
-				throw new Error('New validators must have a BFT weight update.');
+			if (objects.bufferArrayIncludes(blsKeysUpdate, blsKey)) {
+				// New validators must have a BFT weight update.
+				if (digit !== BigInt(1)) {
+					throw new Error('New validators must have a BFT weight update.');
+				}
+				// New validators must have a positive BFT weight.
+				// The BFT weight of current validator is specified by bftWeightsUpdate[bftWeightIndex].
+				if (bftWeightsUpdate[bftWeightIndex] === BigInt(0)) {
+					throw new Error('New validators must have a positive BFT weight.');
+				}
 			}
-			if (bftWeightsUpdate[i] === BigInt(0)) {
-				throw new Error('New validators must have a positive BFT weight.');
+			if (digit === BigInt(1)) {
+				bftWeightIndex += 1;
 			}
 		}
 

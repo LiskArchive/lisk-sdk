@@ -85,6 +85,14 @@ export const encryptAES128GCMWithPassword = async (
 			iterations?: number;
 			memorySize?: number;
 		};
+		getKey?: (options: {
+			password: string;
+			salt: Buffer;
+			iterations: number;
+			parallelism: number;
+			memorySize: number;
+			hashLength: number;
+		}) => Promise<Buffer>;
 	},
 ): Promise<EncryptedMessageObject> => {
 	const kdf = options?.kdf ?? KDF.ARGON2;
@@ -96,16 +104,29 @@ export const encryptAES128GCMWithPassword = async (
 		kdf === KDF.ARGON2 ? ARGON2_ITERATIONS : options?.kdfparams?.iterations ?? PBKDF2_ITERATIONS;
 	const parallelism = options?.kdfparams?.parallelism ?? ARGON2_PARALLELISM;
 	const memorySize = options?.kdfparams?.memorySize ?? ARGON2_MEMORY;
-	const key =
-		kdf === KDF.ARGON2
-			? await getKeyFromPasswordWithArgon2({
-					password,
-					salt,
-					iterations,
-					parallelism,
-					memorySize,
-			  })
-			: getKeyFromPassword(password, salt, iterations);
+	let key: Buffer;
+
+	if (options?.getKey !== undefined) {
+		key = await options.getKey({
+			password,
+			salt,
+			iterations,
+			parallelism,
+			memorySize,
+			hashLength: HASH_LENGTH,
+		});
+	} else if (kdf === KDF.ARGON2) {
+		key = await getKeyFromPasswordWithArgon2({
+			password,
+			salt,
+			iterations,
+			parallelism,
+			memorySize,
+		});
+	} else {
+		key = getKeyFromPassword(password, salt, iterations);
+	}
+
 	const cipher = crypto.createCipheriv('aes-128-gcm', key.slice(0, 16), iv);
 	const firstBlock = Buffer.isBuffer(plainText)
 		? cipher.update(plainText)
@@ -151,11 +172,30 @@ export async function decryptAES128GCMWithPassword(
 	encryptedMessage: EncryptedMessageObject,
 	password: string,
 	encoding: 'utf8' | 'utf-8',
+	options?: {
+		getKey?: (options: {
+			password: string;
+			salt: Buffer;
+			iterations: number;
+			parallelism: number;
+			memorySize: number;
+		}) => Promise<Buffer>;
+	},
 ): Promise<string>;
 export async function decryptAES128GCMWithPassword(
 	encryptedMessage: EncryptedMessageObject,
 	password: string,
 	encoding?: 'utf8' | 'utf-8',
+	options?: {
+		getKey?: (options: {
+			password: string;
+			salt: Buffer;
+			iterations: number;
+			parallelism: number;
+			memorySize: number;
+			hashLength: number;
+		}) => Promise<Buffer>;
+	},
 ): Promise<string | Buffer> {
 	const {
 		kdf,
@@ -165,17 +205,28 @@ export async function decryptAES128GCMWithPassword(
 	} = encryptedMessage;
 
 	const tagBuffer = getTagBuffer(tag);
-	const key =
-		kdf === KDF.ARGON2
-			? await getKeyFromPasswordWithArgon2({
-					password,
-					salt: hexToBuffer(salt, 'Salt'),
-					iterations,
-					parallelism,
-					memorySize,
-			  })
-			: getKeyFromPassword(password, hexToBuffer(salt, 'Salt'), iterations);
+	let key: Buffer;
 
+	if (options?.getKey !== undefined) {
+		key = await options.getKey({
+			password,
+			salt: hexToBuffer(salt, 'Salt'),
+			iterations,
+			parallelism,
+			memorySize,
+			hashLength: HASH_LENGTH,
+		});
+	} else if (kdf === KDF.ARGON2) {
+		key = await getKeyFromPasswordWithArgon2({
+			password,
+			salt: hexToBuffer(salt, 'Salt'),
+			iterations,
+			parallelism,
+			memorySize,
+		});
+	} else {
+		key = getKeyFromPassword(password, hexToBuffer(salt, 'Salt'), iterations);
+	}
 	const decipher = crypto.createDecipheriv('aes-128-gcm', key.slice(0, 16), hexToBuffer(iv, 'IV'));
 	decipher.setAuthTag(tagBuffer);
 	const firstBlock = decipher.update(hexToBuffer(ciphertext, 'Cipher text'));
