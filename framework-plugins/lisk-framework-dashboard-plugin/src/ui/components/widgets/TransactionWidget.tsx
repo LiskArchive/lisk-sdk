@@ -76,8 +76,12 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 					<TableBody>
 						{transactions.map(transaction => (
 							<tr key={transaction.id}>
-								<td><CopiableText text={transaction.id} /></td>
-								<td><CopiableText text={transaction.senderPublicKey} /></td>
+								<td>
+									<CopiableText text={transaction.id} />
+								</td>
+								<td>
+									<CopiableText text={transaction.senderPublicKey} />
+								</td>
 								<td>
 									<Text>
 										{getModuleAsset(props.metadata, transaction.module, transaction.command)}
