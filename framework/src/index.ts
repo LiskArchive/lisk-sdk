@@ -145,6 +145,7 @@ export { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_rewa
 export { FeeMethod, FeeModule } from './modules/fee';
 export { RandomMethod, RandomModule } from './modules/random';
 export { PoAModule, PoAMethod } from './modules/poa';
+export { NamedRegistry } from './modules/named_registry';
 export {
 	GenesisBlockExecuteContext,
 	InsertAssetContext,

@@ -66,6 +66,8 @@ import { GenerationContext } from '../state_machine/generator_context';
 import { BaseChannel } from '../controller/channels';
 import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 import { readGenesisBlock } from '../utils/genesis_block';
+import { STATE_DB_NAME } from '../constants';
+import { backupDatabase } from '../utils/backup';
 
 export interface ABIHandlerConstructor {
 	config: ApplicationConfig;
@@ -497,6 +499,18 @@ export class ABIHandler implements ABI {
 			};
 		} finally {
 			this._executionContext.stateStore.inner.close();
+			if (
+				this._config.system.backup.height > 0 &&
+				this._executionContext.header.height === this._config.system.backup.height
+			) {
+				// store backup
+				backupDatabase(this._config.system.dataPath, STATE_DB_NAME, this._stateDB).catch(err => {
+					this._logger.error(
+						{ err: err as Error, height: this._config.system.backup.height },
+						'Failed to create backup for stateDB',
+					);
+				});
+			}
 		}
 	}
 

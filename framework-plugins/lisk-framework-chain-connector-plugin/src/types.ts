@@ -63,6 +63,7 @@ export interface CCMsFromEvents {
 	ccms: CCMsg[];
 	height: number;
 	inclusionProof: OutboxRootWitness;
+	outboxSize: number;
 }
 
 type Primitive = string | number | bigint | boolean | null | undefined;

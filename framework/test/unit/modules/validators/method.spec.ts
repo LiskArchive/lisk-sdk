@@ -23,6 +23,7 @@ import {
 	ADDRESS_LENGTH,
 	BLS_PUBLIC_KEY_LENGTH,
 	ED25519_PUBLIC_KEY_LENGTH,
+	BLS_POP_LENGTH,
 } from '../../../../src/modules/validators/constants';
 import * as generatorList from '../../../fixtures/config/devnet/validators_for_first_round.json';
 import {
@@ -46,6 +47,7 @@ import {
 	BlsKeyRegistrationEvent,
 } from '../../../../src/modules/validators/events/bls_key_registration';
 import { ValidatorsParamsStore } from '../../../../src/modules/validators/stores/validators_params';
+import { ValidatorArgs } from '../../../../src/modules/validators/method';
 
 describe('ValidatorsModuleMethod', () => {
 	let validatorsMethod: ValidatorsMethod;
@@ -58,8 +60,8 @@ describe('ValidatorsModuleMethod', () => {
 	const blockTime = 10;
 	const genesisConfig: any = { blockTime };
 	const moduleConfig: any = {};
-	const address = utils.getRandomBytes(20);
-	const generatorKey = utils.getRandomBytes(32);
+	const address = utils.getRandomBytes(ADDRESS_LENGTH);
+	const generatorKey = utils.getRandomBytes(ED25519_PUBLIC_KEY_LENGTH);
 	const proofOfPossession = Buffer.from(
 		'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26',
 		'hex',
@@ -69,15 +71,15 @@ describe('ValidatorsModuleMethod', () => {
 		'hex',
 	);
 	const invalidProofOfPossession = Buffer.from(
-		'0x88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26',
+		'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d27',
 		'hex',
 	);
-	const invalidAddressShort = utils.getRandomBytes(19);
-	const invalidAddressLong = utils.getRandomBytes(21);
-	const invalidGeneratorKeyShort = utils.getRandomBytes(31);
-	const invalidGeneratorKeyLong = utils.getRandomBytes(33);
-	const invalidBlsKeyShort = utils.getRandomBytes(47);
-	const invalidBlsKeyLong = utils.getRandomBytes(49);
+	const invalidAddressShort = utils.getRandomBytes(ADDRESS_LENGTH - 1);
+	const invalidAddressLong = utils.getRandomBytes(ADDRESS_LENGTH + 1);
+	const invalidGeneratorKeyShort = utils.getRandomBytes(ED25519_PUBLIC_KEY_LENGTH - 1);
+	const invalidGeneratorKeyLong = utils.getRandomBytes(ED25519_PUBLIC_KEY_LENGTH + 1);
+	const invalidBlsKeyShort = utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH - 1);
+	const invalidBlsKeyLong = utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH + 1);
 
 	beforeAll(async () => {
 		validatorsModule = new ValidatorsModule();
@@ -607,8 +609,8 @@ describe('ValidatorsModuleMethod', () => {
 				validators: generatorList.map(addr => ({
 					address: Buffer.from(addr, 'hex'),
 					bftWeight: BigInt(1),
-					blsKey: Buffer.alloc(98),
-					generatorKey: Buffer.alloc(32),
+					blsKey: Buffer.alloc(BLS_PUBLIC_KEY_LENGTH),
+					generatorKey: Buffer.alloc(ED25519_PUBLIC_KEY_LENGTH),
 				})),
 			});
 		});
@@ -620,8 +622,8 @@ describe('ValidatorsModuleMethod', () => {
 				validators: generatorList.map(addr => ({
 					address: Buffer.from(addr, 'hex'),
 					bftWeight: BigInt(1),
-					blsKey: Buffer.alloc(98),
-					generatorKey: Buffer.alloc(32),
+					blsKey: Buffer.alloc(BLS_PUBLIC_KEY_LENGTH),
+					generatorKey: Buffer.alloc(ED25519_PUBLIC_KEY_LENGTH),
 				})),
 			});
 
@@ -733,8 +735,8 @@ describe('ValidatorsModuleMethod', () => {
 			methodContext = createNewMethodContext(new InMemoryPrefixedStateDB());
 
 			validatorAccount = {
-				generatorKey: utils.getRandomBytes(48),
-				blsKey: utils.getRandomBytes(32),
+				generatorKey: utils.getRandomBytes(ED25519_PUBLIC_KEY_LENGTH),
+				blsKey: utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
 			};
 
 			const validatorsStore = validatorsModule.stores.get(ValidatorKeysStore);
@@ -750,14 +752,13 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it(`should throw error when address length is not ${ADDRESS_LENGTH}`, async () => {
-			const invalidAddress = utils.getRandomBytes(19);
 			await expect(
-				validatorsMethod.getValidatorKeys(methodContext, invalidAddress),
-			).rejects.toThrow(`Validator address length must be ${ADDRESS_LENGTH}.`);
+				validatorsMethod.getValidatorKeys(methodContext, invalidAddressShort),
+			).rejects.toThrow(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
 		});
 
 		it('should throw if address does not exist', async () => {
-			const nonExistingAddress = utils.getRandomBytes(20);
+			const nonExistingAddress = utils.getRandomBytes(ADDRESS_LENGTH);
 			await expect(
 				validatorsMethod.getValidatorKeys(methodContext, nonExistingAddress),
 			).rejects.toThrow('No validator account found for the input address.');
@@ -889,6 +890,47 @@ describe('ValidatorsModuleMethod', () => {
 				),
 			).rejects.toThrow();
 			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
+		});
+	});
+
+	describe('_validateLengths', () => {
+		let validatorArgs: ValidatorArgs;
+
+		beforeEach(() => {
+			validatorArgs = {
+				validatorAddress: utils.getRandomBytes(ADDRESS_LENGTH),
+				blsKey: utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+				proofOfPossession: utils.getRandomBytes(BLS_POP_LENGTH),
+				generatorKey: utils.getRandomBytes(ED25519_PUBLIC_KEY_LENGTH),
+			};
+		});
+
+		it('should NOT throw when all properties are present and have correct length', () => {
+			expect(() => validatorsModule.method['_validateLengths'](validatorArgs)).not.toThrow();
+		});
+
+		it('should NOT throw when some properties are missing, but all have correct length', () => {
+			delete validatorArgs.blsKey;
+			delete validatorArgs.generatorKey;
+
+			expect(() => validatorsModule.method['_validateLengths'](validatorArgs)).not.toThrow();
+		});
+
+		it('should throw when all properties are present, but 1 of them have incorrect length', () => {
+			validatorArgs.blsKey = utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH + 1);
+
+			expect(() => validatorsModule.method['_validateLengths'](validatorArgs)).toThrow(
+				`BLS public key must be ${BLS_PUBLIC_KEY_LENGTH} bytes long.`,
+			);
+		});
+
+		it('should throw when 1 property are missing, and 1 of the existing ones have incorrect length', () => {
+			delete validatorArgs.blsKey;
+			validatorArgs.generatorKey = utils.getRandomBytes(ED25519_PUBLIC_KEY_LENGTH - 1);
+
+			expect(() => validatorsModule.method['_validateLengths'](validatorArgs)).toThrow(
+				`Generator key must be ${ED25519_PUBLIC_KEY_LENGTH} bytes long.`,
+			);
 		});
 	});
 });

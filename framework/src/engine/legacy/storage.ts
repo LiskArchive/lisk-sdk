@@ -12,11 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography/dist-node/utils';
 import { Batch, Database } from '@liskhq/lisk-db';
+import { utils } from '@liskhq/lisk-cryptography';
 import { encodeLegacyChainBracketInfo } from './codec';
-import { DB_KEY_BLOCK_HEIGHT, DB_KEY_BLOCK_ID, DB_KEY_LEGACY_BRACKET } from './constants';
 import { LegacyChainBracketInfo } from './types';
+import {
+	buildBlockIDDbKey,
+	buildBlockHeightDbKey,
+	buildTxIDDbKey,
+	buildLegacyBracketDBKey,
+	buildTxsBlockIDDbKey,
+} from './utils';
 
 export class Storage {
 	private readonly _db: Database;
@@ -25,39 +31,79 @@ export class Storage {
 		this._db = db;
 	}
 
+	// `id` is the hashed value (utils.hash)
+	public async getTransactionByID(id: Buffer): Promise<Buffer> {
+		return this._db.get(buildTxIDDbKey(id));
+	}
+
 	public async getBlockByID(id: Buffer): Promise<Buffer> {
-		return this._db.get(Buffer.concat([DB_KEY_BLOCK_ID, id]));
+		return this._db.get(buildBlockIDDbKey(id));
 	}
 
 	public async getBlockByHeight(height: number): Promise<Buffer> {
-		return this.getBlockByID(
-			await this._db.get(Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(height, 4)])),
-		);
+		const id = await this._db.get(buildBlockHeightDbKey(height));
+		return this.getBlockByID(id);
 	}
 
 	public async getBlocksByHeightBetween(fromHeight: number, toHeight: number): Promise<Buffer[]> {
-		const blockIDs = await this._getBlockIDsBetweenHeights(fromHeight, toHeight);
-		return Promise.all(blockIDs.map(async id => this.getBlockByID(id)));
+		const ids = await this._getBlockIDsBetweenHeights(fromHeight, toHeight);
+		return Promise.all(ids.map(async id => this.getBlockByID(id)));
 	}
 
 	public async isBlockPersisted(blockID: Buffer): Promise<boolean> {
-		return this._db.has(Buffer.concat([DB_KEY_BLOCK_ID, blockID]));
+		return this._db.has(buildBlockIDDbKey(blockID));
 	}
 
 	public async isBlockHeightPersisted(height: number): Promise<boolean> {
-		return this._db.has(Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(height, 4)]));
+		return this._db.has(buildBlockHeightDbKey(height));
 	}
 
-	public async saveBlock(id: Buffer, height: number, block: Buffer): Promise<void> {
-		const batch = new Batch();
-		batch.set(Buffer.concat([DB_KEY_BLOCK_ID, id]), block);
-		batch.set(Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(height, 4)]), id);
+	public async getTransactionsByBlockID(blockID: Buffer): Promise<Buffer[]> {
+		const txIdsBuffer = await this._db.get(buildTxsBlockIDDbKey(blockID));
+		// key for the txIDs always exists
+		if (!txIdsBuffer.length) {
+			return [];
+		}
 
+		const txIds: Buffer[] = [];
+
+		// each txID is hashed value of 32 length
+		const idLength = 32;
+		for (let i = 0; i < txIdsBuffer.length; i += idLength) {
+			const txId = txIdsBuffer.subarray(i, (i += idLength));
+			txIds.push(txId);
+		}
+
+		return Promise.all(txIds.map(async id => this.getTransactionByID(id)));
+	}
+
+	public async saveBlock(
+		blockID: Buffer,
+		height: number,
+		block: Buffer,
+		payload: Buffer[],
+	): Promise<void> {
+		const batch = new Batch();
+		const blockIDDbKey = buildBlockIDDbKey(blockID);
+		batch.set(blockIDDbKey, block);
+		batch.set(buildBlockHeightDbKey(height), blockID);
+
+		const txIds = payload.map(tx => utils.hash(tx));
+
+		for (let index = 0; index < payload.length; index += 1) {
+			// `key` is the hashed value
+			// while `value` is bytes
+			batch.set(buildTxIDDbKey(txIds[index]), payload[index]);
+		}
+
+		// each transaction's key is saved without concatenating the DB_KEY_TRANSACTIONS_ID
+		// since DB_KEY_TRANSACTIONS_ID is used inside getTransactionByID(ID: Buffer)
+		batch.set(buildTxsBlockIDDbKey(blockID), Buffer.concat(txIds));
 		await this._db.write(batch);
 	}
 
 	public async getLegacyChainBracketInfo(snapshotBlockID: Buffer): Promise<Buffer> {
-		return this._db.get(Buffer.concat([DB_KEY_LEGACY_BRACKET, snapshotBlockID]));
+		return this._db.get(buildLegacyBracketDBKey(snapshotBlockID));
 	}
 
 	public async setLegacyChainBracketInfo(
@@ -65,7 +111,7 @@ export class Storage {
 		bracketInfo: LegacyChainBracketInfo,
 	): Promise<void> {
 		await this._db.set(
-			Buffer.concat([DB_KEY_LEGACY_BRACKET, snapshotBlockID]),
+			buildLegacyBracketDBKey(snapshotBlockID),
 			encodeLegacyChainBracketInfo(bracketInfo),
 		);
 	}
@@ -75,8 +121,8 @@ export class Storage {
 		toHeight: number,
 	): Promise<Buffer[]> {
 		const stream = this._db.createReadStream({
-			gte: Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(fromHeight, 4)]),
-			lte: Buffer.concat([DB_KEY_BLOCK_HEIGHT, intToBuffer(toHeight, 4)]),
+			gte: buildBlockHeightDbKey(fromHeight),
+			lte: buildBlockHeightDbKey(toHeight),
 			reverse: true,
 		});
 

@@ -60,7 +60,9 @@ export class Endpoint extends BasePluginEndpoint {
 	}
 
 	public async getStakers(_context: PluginEndpointContext): Promise<Staker[]> {
-		const forgersList = await this._client.invoke<Forger[]>('app_getForgingStatus');
+		const { status: forgersList } = await this._client.invoke<{ status: Forger[] }>(
+			'generator_getStatus',
+		);
 		const forgerAccounts = [];
 		for (const validator of forgersList) {
 			const res = await this._client.invoke<Validator>('pos_getValidator', {
@@ -94,7 +96,9 @@ export class Endpoint extends BasePluginEndpoint {
 	}
 
 	public async getForgingInfo(_context: PluginEndpointContext): Promise<ForgerInfo[]> {
-		const forgersList = await this._client.invoke<ReadonlyArray<Forger>>('app_getForgingStatus');
+		const { status: forgersList } = await this._client.invoke<{ status: Forger[] }>(
+			'generator_getStatus',
+		);
 		const forgerAccounts = [];
 		for (const validator of forgersList) {
 			const res = await this._client.invoke<Validator>('pos_getValidator', {

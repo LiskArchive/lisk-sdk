@@ -51,6 +51,22 @@ export interface LegacyBlockWithID extends LegacyBlock {
 
 export type LegacyBlockJSON = JSONObject<LegacyBlock>;
 
+export interface LegacyTransaction {
+	moduleID: number;
+	assetID: number;
+	nonce: bigint;
+	fee: bigint;
+	senderPublicKey: Buffer;
+	asset: Buffer;
+	signatures: Buffer[];
+}
+
+export interface LegacyTransactionWithID extends LegacyTransaction {
+	id: Buffer;
+}
+
+export type LegacyTransactionJSON = JSONObject<LegacyTransactionWithID>;
+
 export interface LegacyChainBracketInfo {
 	startHeight: number;
 	snapshotBlockHeight: number;

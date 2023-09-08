@@ -675,7 +675,6 @@ describe('ChainConnectorPlugin', () => {
 			// For chain_newBlock and chain_deleteBlock
 			expect(sendingChainAPIClientMock.subscribe).toHaveBeenCalledTimes(2);
 			expect(chainConnectorPlugin['_submitCCU']).toHaveBeenCalled();
-			expect(chainConnectorPlugin['_cleanup']).toHaveBeenCalled();
 		});
 
 		it('should invoke "chain_getEvents" on _sendingChainClient', async () => {
@@ -704,7 +703,7 @@ describe('ChainConnectorPlugin', () => {
 				chain.BlockHeader.fromJSON(newBlockHeaderJSON).toObject(),
 			];
 			when(sendingChainAPIClientMock.invoke)
-				.calledWith('consensus_getBFTParameters', { height: newBlockHeaderHeight })
+				.calledWith('consensus_getBFTParametersActiveValidators', { height: newBlockHeaderHeight })
 				.mockResolvedValue({
 					prevoteThreshold: '2',
 					precommitThreshold: '2',
@@ -830,7 +829,7 @@ describe('ChainConnectorPlugin', () => {
 			 * 4. consensus_getBFTParameters
 			 * 5. consensus_getBFTHeights
 			 */
-			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledTimes(4);
+			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledTimes(5);
 			/**
 			 * Two calls to below RPC through receivingChainAPIClient
 			 * 1. interoperability_getChainAccount: in load() function
@@ -847,11 +846,11 @@ describe('ChainConnectorPlugin', () => {
 						bitmap: sampleProof.proof.queries[0].bitmap,
 						siblingHashes: sampleProof.proof.siblingHashes,
 					},
+					outboxSize: 0,
 				},
 			]);
 
 			expect((chainConnectorPlugin as any)['_submitCCU']).toHaveBeenCalled();
-			expect((chainConnectorPlugin as any)['_cleanup']).toHaveBeenCalled();
 		});
 	});
 
@@ -905,6 +904,10 @@ describe('ChainConnectorPlugin', () => {
 				timestamp: Date.now(),
 				validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
 			};
+			chainConnectorPlugin['_heightToDeleteIndex'].set(0, {
+				inboxSize: 10,
+				lastCertificateHeight: 10,
+			});
 			chainConnectorStoreMock.getCrossChainMessages.mockResolvedValue([
 				getSampleCCM(1),
 				getSampleCCM(2),
@@ -938,12 +941,12 @@ describe('ChainConnectorPlugin', () => {
 			chainConnectorStoreMock.getListOfCCUs.mockResolvedValue(sampleCCUs as never);
 		});
 
-		it('should delete block headers with height less than _lastCertifiedHeight', async () => {
+		it('should delete block headers with height less than finalized lastCertifiedHeight', async () => {
 			await chainConnectorPlugin['_cleanup']();
 
 			expect(chainConnectorStoreMock.getBlockHeaders).toHaveBeenCalledTimes(1);
 
-			expect(chainConnectorStoreMock.setBlockHeaders).toHaveBeenCalledWith([blockHeader2]);
+			expect(chainConnectorStoreMock.setBlockHeaders).toHaveBeenCalledWith([]);
 		});
 
 		it('should delete aggregate commits with height less than _lastCertifiedHeight', async () => {
@@ -1023,6 +1026,7 @@ describe('ChainConnectorPlugin', () => {
 					bitmap: Buffer.alloc(1),
 					siblingHashes: [Buffer.alloc(1)],
 				},
+				outboxSize: 2,
 			}));
 			sampleAggregateCommits = sampleBlockHeaders
 				.filter(b => !b.aggregateCommit.certificateSignature.equals(Buffer.alloc(0)))
@@ -1082,6 +1086,31 @@ describe('ChainConnectorPlugin', () => {
 			await chainConnectorPlugin['_chainConnectorStore'].setCrossChainMessages(
 				sampleCCMsWithEvents,
 			);
+		});
+
+		describe('CCU params calculation when no new ceritifcate and last certificate height == 0', () => {
+			beforeEach(() => {
+				jest
+					.spyOn(chainConnectorPlugin, '_findNextCertificate' as never)
+					.mockResolvedValue(undefined as never);
+				chainConnectorPlugin['_lastCertificate'] = {
+					height: 0,
+					stateRoot: Buffer.alloc(1),
+					timestamp: Date.now(),
+					validatorsHash: cryptography.utils.hash(cryptography.utils.getRandomBytes(4)),
+				};
+			});
+
+			it('should exit function without CCU params ', async () => {
+				const result = await chainConnectorPlugin['_computeCCUParams'](
+					sampleBlockHeaders,
+					sampleAggregateCommits,
+					sampleValidatorsHashPreimage,
+					sampleCCMsWithEvents,
+				);
+
+				expect(result).toBeUndefined();
+			});
 		});
 
 		describe('CCU params calculation when last certificate', () => {
@@ -1504,6 +1533,7 @@ describe('ChainConnectorPlugin', () => {
 						bitmap: Buffer.alloc(1),
 						siblingHashes: [Buffer.alloc(1)],
 					},
+					outboxSize: 2,
 				};
 				await chainConnectorPlugin['_chainConnectorStore'].setCrossChainMessages(
 					sampleCCMsWithEvents,
@@ -1603,6 +1633,7 @@ describe('ChainConnectorPlugin', () => {
 								bitmap: Buffer.alloc(1),
 								siblingHashes: [Buffer.alloc(1)],
 							},
+							outboxSize: 2,
 						},
 					],
 				);
