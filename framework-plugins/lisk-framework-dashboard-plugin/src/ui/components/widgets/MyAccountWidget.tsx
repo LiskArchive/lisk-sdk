@@ -44,10 +44,13 @@ const MyAccountWidget: React.FC<MyAccountProps> = props => {
 						<TableHeader sticky>
 							<tr>
 								<th>
-									<Text>Binary addresss</Text>
+									<Text>Lisk32 address</Text>
 								</th>
 								<th>
 									<Text>Public Key</Text>
+								</th>
+                                <th>
+									<Text>Passphrase</Text>
 								</th>
 							</tr>
 						</TableHeader>
@@ -59,6 +62,9 @@ const MyAccountWidget: React.FC<MyAccountProps> = props => {
 									</td>
 									<td>
 										<CopiableText text={account.publicKey}>{account.publicKey}</CopiableText>
+									</td>
+                                    <td>
+										<CopiableText text={account.passphrase ?? ''}></CopiableText>
 									</td>
 								</tr>
 							))}
