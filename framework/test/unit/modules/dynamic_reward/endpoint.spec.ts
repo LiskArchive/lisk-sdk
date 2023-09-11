@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { utils, address as cryptoAddress } from '@liskhq/lisk-cryptography';
-import { DynamicRewardModule } from '../../../../src/modules/dynamic_rewards';
-import { DynamicRewardEndpoint } from '../../../../src/modules/dynamic_rewards/endpoint';
+import { DynamicRewardModule } from '../../../../src/modules/dynamic_reward';
+import { DynamicRewardEndpoint } from '../../../../src/modules/dynamic_reward/endpoint';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import {
 	InMemoryPrefixedStateDB,
