@@ -19,4 +19,26 @@ export interface ProposalIndexStoreData {
 	nextQuorumCheckIndex: number;
 }
 
-export class ProposalIndexStore extends BaseStore<ProposalIndexStoreData> {}
+export const proposalIndexSchema = {
+	$id: '/governance/store/proposalIndex',
+	type: 'object',
+	required: ['nextIndex', 'nextOutcomeCheckIndex', 'nextQuorumCheckIndex'],
+	properties: {
+		nextIndex: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		nextOutcomeCheckIndex: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		nextQuorumCheckIndex: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+	},
+};
+
+export class ProposalIndexStore extends BaseStore<ProposalIndexStoreData> {
+	public schema = proposalIndexSchema;
+}
