@@ -110,21 +110,45 @@ describe('encrypt', () => {
 				expect(encryptedMessage.kdfparams.iterations).toBe(customIterations);
 			});
 
-			it('should call options.getKey if provided', async () => {
-				const mockKey = utils.getRandomBytes(32);
-				const mockGetKey = jest.fn().mockResolvedValue(mockKey);
-				encryptedMessage = await encryptMessageWithPassword(passphrase, password, {
-					kdf: KDF.ARGON2,
-					getKey: mockGetKey,
+			describe('if options.getKey is provided', () => {
+				it('should call options.getKey', async () => {
+					const mockKey = utils.getRandomBytes(32);
+					const mockGetKey = jest.fn().mockResolvedValue(mockKey);
+					encryptedMessage = await encryptMessageWithPassword(passphrase, password, {
+						kdf: KDF.ARGON2,
+						getKey: mockGetKey,
+					});
+
+					expect(mockGetKey).toHaveBeenCalledOnceWith({
+						password: expect.anything(),
+						salt: expect.anything(),
+						iterations: expect.anything(),
+						parallelism: expect.anything(),
+						memorySize: expect.anything(),
+						hashLength: HASH_LENGTH,
+					});
 				});
 
-				expect(mockGetKey).toHaveBeenCalledOnceWith({
-					password: expect.anything(),
-					salt: expect.anything(),
-					iterations: expect.anything(),
-					parallelism: expect.anything(),
-					memorySize: expect.anything(),
-					hashLength: HASH_LENGTH,
+				it('should call options.getKey with provided iterations', async () => {
+					const iterations = 10;
+					const mockKey = utils.getRandomBytes(32);
+					const mockGetKey = jest.fn().mockResolvedValue(mockKey);
+					encryptedMessage = await encryptMessageWithPassword(passphrase, password, {
+						kdf: KDF.ARGON2,
+						getKey: mockGetKey,
+						kdfparams: {
+							iterations: 10,
+						},
+					});
+
+					expect(mockGetKey).toHaveBeenCalledOnceWith({
+						password: expect.anything(),
+						salt: expect.anything(),
+						iterations,
+						parallelism: expect.anything(),
+						memorySize: expect.anything(),
+						hashLength: HASH_LENGTH,
+					});
 				});
 			});
 		});
