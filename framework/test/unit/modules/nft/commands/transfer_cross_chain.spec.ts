@@ -18,7 +18,7 @@ import { address, utils } from '@liskhq/lisk-cryptography';
 import { NFTModule } from '../../../../../src/modules/nft/module';
 import {
 	TransferCrossChainCommand,
-	Params,
+	TransferCrossChainParams,
 } from '../../../../../src/modules/nft/commands/transfer_cross_chain';
 import { crossChainTransferParamsSchema } from '../../../../../src/modules/nft/schemas';
 import {
@@ -76,7 +76,7 @@ describe('TransferCrossChainComand', () => {
 	let lockedExistingNFT: { nftID: any; owner: any };
 	let escrowedNFT: { nftID: any; owner: any };
 
-	const validParams: Params = {
+	const validParams: TransferCrossChainParams = {
 		nftID: Buffer.alloc(LENGTH_NFT_ID),
 		receivingChainID,
 		recipientAddress: utils.getRandomBytes(LENGTH_ADDRESS),

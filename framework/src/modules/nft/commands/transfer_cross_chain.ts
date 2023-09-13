@@ -14,9 +14,7 @@
 
 import { validator } from '@liskhq/lisk-validator';
 import { crossChainTransferParamsSchema } from '../schemas';
-import { NFTStore } from '../stores/nft';
 import { NFTMethod } from '../method';
-import { LENGTH_CHAIN_ID, NFT_NOT_LOCKED } from '../constants';
 import { InteroperabilityMethod, TokenMethod } from '../types';
 import { BaseCommand } from '../../base_command';
 import {
@@ -27,7 +25,7 @@ import {
 } from '../../../state_machine';
 import { InternalMethod } from '../internal_method';
 
-export interface Params {
+export interface TransferCrossChainParams {
 	nftID: Buffer;
 	receivingChainID: Buffer;
 	recipientAddress: Buffer;
@@ -56,27 +54,24 @@ export class TransferCrossChainCommand extends BaseCommand {
 		this._internalMethod = args.internalMethod;
 	}
 
-	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
+	public async verify(
+		context: CommandVerifyContext<TransferCrossChainParams>,
+	): Promise<VerificationResult> {
 		const { params } = context;
+		const { senderAddress } = context.transaction;
 
 		validator.validate(this.schema, params);
-
-		const nftStore = this.stores.get(NFTStore);
-		const nftExists = await nftStore.has(context.getMethodContext(), params.nftID);
 
 		if (params.receivingChainID.equals(context.chainID)) {
 			throw new Error('Receiving chain cannot be the sending chain');
 		}
 
-		if (!nftExists) {
-			throw new Error('NFT substore entry does not exist');
-		}
-
-		const owner = await this._nftMethod.getNFTOwner(context.getMethodContext(), params.nftID);
-
-		if (owner.length === LENGTH_CHAIN_ID) {
-			throw new Error('NFT is escrowed to another chain');
-		}
+		// perform checks that are common for same-chain and cross-chain transfers
+		await this._internalMethod.verifyTransfer(
+			context.getMethodContext(),
+			senderAddress,
+			params.nftID,
+		);
 
 		const nftChainID = this._nftMethod.getChainID(params.nftID);
 
@@ -89,22 +84,9 @@ export class TransferCrossChainCommand extends BaseCommand {
 			params.receivingChainID,
 		);
 
-		if (!owner.equals(context.transaction.senderAddress)) {
-			throw new Error('Transfer not initiated by the NFT owner');
-		}
-
-		const lockingModule = await this._nftMethod.getLockingModule(
-			context.getMethodContext(),
-			params.nftID,
-		);
-
-		if (lockingModule !== NFT_NOT_LOCKED) {
-			throw new Error('Locked NFTs cannot be transferred');
-		}
-
 		const availableBalance = await this._tokenMethod.getAvailableBalance(
 			context.getMethodContext(),
-			context.transaction.senderAddress,
+			senderAddress,
 			messageFeeTokenID,
 		);
 
@@ -117,7 +99,7 @@ export class TransferCrossChainCommand extends BaseCommand {
 		};
 	}
 
-	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
+	public async execute(context: CommandExecuteContext<TransferCrossChainParams>): Promise<void> {
 		const { params } = context;
 
 		await this._internalMethod.transferCrossChainInternal(

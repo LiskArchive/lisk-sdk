@@ -16,7 +16,7 @@ import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils, address } from '@liskhq/lisk-cryptography';
 import { NFTModule } from '../../../../../src/modules/nft/module';
-import { TransferCommand, Params } from '../../../../../src/modules/nft/commands/transfer';
+import { TransferCommand, TransferParams } from '../../../../../src/modules/nft/commands/transfer';
 import { createTransactionContext } from '../../../../../src/testing';
 import { transferParamsSchema } from '../../../../../src/modules/nft/schemas';
 import {
@@ -27,20 +27,23 @@ import {
 } from '../../../../../src/modules/nft/constants';
 import { NFTAttributes, NFTStore } from '../../../../../src/modules/nft/stores/nft';
 import { createStoreGetter } from '../../../../../src/testing/utils';
-import { VerifyStatus } from '../../../../../src';
+import { NFTMethod, VerifyStatus } from '../../../../../src';
 import { InternalMethod } from '../../../../../src/modules/nft/internal_method';
-import { NFTMethod } from '../../../../../src/modules/nft/method';
 import { UserStore } from '../../../../../src/modules/nft/stores/user';
 import { EventQueue } from '../../../../../src/state_machine';
 import { TransferEvent } from '../../../../../src/modules/nft/events/transfer';
+import { InteroperabilityMethod } from '../../../../../src/modules/nft/types';
 
 describe('Transfer command', () => {
 	const module = new NFTModule();
-	const method = new NFTMethod(module.stores, module.events);
+	const nftMethod = new NFTMethod(module.stores, module.events);
+	let interoperabilityMethod!: InteroperabilityMethod;
 	const internalMethod = new InternalMethod(module.stores, module.events);
+	internalMethod.addDependencies(nftMethod, interoperabilityMethod);
+
 	let command: TransferCommand;
 
-	const validParams: Params = {
+	const validParams: TransferParams = {
 		nftID: Buffer.alloc(LENGTH_NFT_ID, 1),
 		recipientAddress: utils.getRandomBytes(20),
 		data: '',
@@ -95,7 +98,7 @@ describe('Transfer command', () => {
 
 	beforeEach(() => {
 		command = new TransferCommand(module.stores, module.events);
-		command.init({ method, internalMethod });
+		command.init({ internalMethod });
 	});
 
 	describe('verify', () => {

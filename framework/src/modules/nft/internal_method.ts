@@ -16,10 +16,15 @@ import { codec } from '@liskhq/lisk-codec';
 import { BaseMethod } from '../base_method';
 import { NFTStore, NFTAttributes } from './stores/nft';
 import { InteroperabilityMethod, ModuleConfig, NFTMethod } from './types';
-import { MethodContext } from '../../state_machine';
+import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import { TransferEvent } from './events/transfer';
 import { UserStore } from './stores/user';
-import { CROSS_CHAIN_COMMAND_NAME_TRANSFER, MODULE_NAME_NFT, NFT_NOT_LOCKED } from './constants';
+import {
+	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+	LENGTH_CHAIN_ID,
+	MODULE_NAME_NFT,
+	NFT_NOT_LOCKED,
+} from './constants';
 import { EscrowStore } from './stores/escrow';
 import { TransferCrossChainEvent } from './events/transfer_cross_chain';
 import { crossChainNFTTransferMessageParamsSchema } from './schemas';
@@ -80,6 +85,28 @@ export class InternalMethod extends BaseMethod {
 			owner: address,
 			attributesArray,
 		});
+	}
+
+	public async verifyTransfer(
+		immutableMethodContext: ImmutableMethodContext,
+		senderAddress: Buffer,
+		nftID: Buffer,
+	) {
+		const owner = await this._method.getNFTOwner(immutableMethodContext, nftID);
+
+		if (owner.length === LENGTH_CHAIN_ID) {
+			throw new Error('NFT is escrowed to another chain');
+		}
+
+		if (!owner.equals(senderAddress)) {
+			throw new Error('Transfer not initiated by the NFT owner');
+		}
+
+		const lockingModule = await this._method.getLockingModule(immutableMethodContext, nftID);
+
+		if (lockingModule !== NFT_NOT_LOCKED) {
+			throw new Error('Locked NFTs cannot be transferred');
+		}
 	}
 
 	public async transferInternal(
