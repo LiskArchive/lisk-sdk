@@ -16,7 +16,6 @@ import {
 	LENGTH_CHAIN_ID,
 	LENGTH_COLLECTION_ID,
 	LENGTH_NFT_ID,
-	LENGTH_TOKEN_ID,
 	MAX_LENGTH_MODULE_NAME,
 	MIN_LENGTH_MODULE_NAME,
 	MAX_LENGTH_DATA,
@@ -114,7 +113,6 @@ export const crossChainTransferParamsSchema = {
 		'recipientAddress',
 		'data',
 		'messageFee',
-		'messageFeeTokenID',
 		'includeAttributes',
 	],
 	properties: {
@@ -145,15 +143,9 @@ export const crossChainTransferParamsSchema = {
 			dataType: 'uint64',
 			fieldNumber: 5,
 		},
-		messageFeeTokenID: {
-			dataType: 'bytes',
-			minLength: LENGTH_TOKEN_ID,
-			maxLength: LENGTH_TOKEN_ID,
-			fieldNumber: 6,
-		},
 		includeAttributes: {
 			dataType: 'boolean',
-			fieldNumber: 7,
+			fieldNumber: 6,
 		},
 	},
 };
