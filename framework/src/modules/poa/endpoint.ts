@@ -18,7 +18,7 @@ import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseEndpoint } from '../base_endpoint';
 import { ValidatorStore } from './stores/validator';
 import { ModuleEndpointContext } from '../../types';
-import { KEY_SNAPSHOT_0 } from './constants';
+import { KEY_SNAPSHOT_0, NUM_BYTES_ADDRESS } from './constants';
 import { SnapshotStore } from './stores';
 import { Validator } from './types';
 import { getValidatorRequestSchema } from './schemas';
@@ -72,8 +72,8 @@ export class PoAEndpoint extends BaseEndpoint {
 		context: ModuleEndpointContext,
 	): Promise<{ validators: Validator[] }> {
 		const validatorStore = this.stores.get(ValidatorStore);
-		const startBuf = Buffer.alloc(20);
-		const endBuf = Buffer.alloc(20, 255);
+		const startBuf = Buffer.alloc(NUM_BYTES_ADDRESS);
+		const endBuf = Buffer.alloc(NUM_BYTES_ADDRESS, 255);
 		const validatorStoreData = await validatorStore.iterate(context, {
 			gte: startBuf,
 			lte: endBuf,
