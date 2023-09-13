@@ -32,9 +32,9 @@ export class PoAEndpoint extends BaseEndpoint {
 
 	public async getValidator(context: ModuleEndpointContext): Promise<Validator> {
 		const validatorSubStore = this.stores.get(ValidatorStore);
-		const address = context.params.address as string;
 
 		validator.validate(getValidatorRequestSchema, context.params);
+		const address = context.params.address as string;
 
 		cryptoAddress.validateLisk32Address(address);
 
