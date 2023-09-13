@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseEndpoint } from '../base_endpoint';
@@ -20,6 +21,7 @@ import { ModuleEndpointContext } from '../../types';
 import { KEY_SNAPSHOT_0 } from './constants';
 import { SnapshotStore } from './stores';
 import { Validator } from './types';
+import { getValidatorRequestSchema } from './schemas';
 
 export class PoAEndpoint extends BaseEndpoint {
 	private _authorityRegistrationFee!: bigint;
@@ -30,10 +32,10 @@ export class PoAEndpoint extends BaseEndpoint {
 
 	public async getValidator(context: ModuleEndpointContext): Promise<Validator> {
 		const validatorSubStore = this.stores.get(ValidatorStore);
-		const { address } = context.params;
-		if (typeof address !== 'string') {
-			throw new Error('Parameter address must be a string.');
-		}
+		const address = context.params.address as string;
+
+		validator.validate(getValidatorRequestSchema, context.params);
+
 		cryptoAddress.validateLisk32Address(address);
 
 		let validatorName: { name: string };
@@ -89,12 +91,12 @@ export class PoAEndpoint extends BaseEndpoint {
 				v => cryptoAddress.getLisk32AddressFromAddress(v.address) === address,
 			);
 
-			const validator: Validator = {
+			const v: Validator = {
 				name,
 				address,
 				weight: activeValidator ? activeValidator.weight.toString() : '',
 			};
-			validatorsData.push(validator);
+			validatorsData.push(v);
 		}
 
 		// This is needed since response from this endpoint is returning data in unexpected sorting order on next execution
