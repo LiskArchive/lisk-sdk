@@ -13,7 +13,6 @@
  */
 
 import { address } from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
 import { BaseCommand } from '../../base_command';
 import { registerAuthoritySchema } from '../schemas';
 import {
@@ -50,14 +49,6 @@ export class RegisterAuthorityCommand extends BaseCommand {
 		context: CommandVerifyContext<RegisterAuthorityParams>,
 	): Promise<VerificationResult> {
 		const { name } = context.params;
-		try {
-			validator.validate(registerAuthoritySchema, context.params);
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
-			};
-		}
 
 		if (!POA_VALIDATOR_NAME_REGEX.test(name)) {
 			throw new Error(`Name does not comply with format ${POA_VALIDATOR_NAME_REGEX.toString()}.`);
