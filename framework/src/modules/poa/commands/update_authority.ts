@@ -20,7 +20,6 @@ import { BaseCommand } from '../../base_command';
 import { updateAuthoritySchema, validatorSignatureMessageSchema } from '../schemas';
 import {
 	COMMAND_UPDATE_AUTHORITY,
-	MAX_NUM_VALIDATORS,
 	MESSAGE_TAG_POA,
 	EMPTY_BYTES,
 	UpdateAuthorityResult,
@@ -54,20 +53,20 @@ export class UpdateAuthorityCommand extends BaseCommand {
 		context: CommandVerifyContext<UpdateAuthorityParams>,
 	): Promise<VerificationResult> {
 		const { newValidators, threshold, validatorsUpdateNonce } = context.params;
-
-		if (newValidators.length < 1 || newValidators.length > MAX_NUM_VALIDATORS) {
-			throw new Error(
-				`newValidators length must be between 1 and ${MAX_NUM_VALIDATORS} (inclusive).`,
-			);
-		}
-
 		const newValidatorsAddresses = newValidators.map(newValidator => newValidator.address);
+
 		if (!objectUtils.isBufferArrayOrdered(newValidatorsAddresses)) {
-			throw new Error('Addresses in newValidators are not lexicographically ordered.');
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Addresses in newValidators are not lexicographically ordered.'),
+			};
 		}
 
 		if (!objectUtils.bufferArrayUniqueItems(newValidatorsAddresses)) {
-			throw new Error('Addresses in newValidators are not unique.');
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Addresses in newValidators are not unique.'),
+			};
 		}
 
 		const validatorStore = this.stores.get(ValidatorStore);
@@ -75,29 +74,58 @@ export class UpdateAuthorityCommand extends BaseCommand {
 		for (const newValidator of newValidators) {
 			const validatorExists = await validatorStore.has(context, newValidator.address);
 			if (!validatorExists) {
-				throw new Error(
-					`No validator found for given address ${newValidator.address.toString('hex')}.`,
-				);
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error(
+						`No validator found for given address ${newValidator.address.toString('hex')}.`,
+					),
+				};
 			}
+
+			if (newValidator.weight === BigInt(0)) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error(`Validator weight cannot be zero.`),
+				};
+			}
+
 			totalWeight += newValidator.weight;
 		}
 
+		if (totalWeight === BigInt(0)) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(`Validators total weight cannot be zero.`),
+			};
+		}
+
 		if (totalWeight > MAX_UINT64) {
-			throw new Error(`Validators total weight exceeds ${MAX_UINT64}.`);
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(`Validators total weight exceeds ${MAX_UINT64}.`),
+			};
 		}
 
 		const minThreshold = totalWeight / BigInt(3) + BigInt(1);
 		if (threshold < minThreshold || threshold > totalWeight) {
-			throw new Error(`Threshold must be between ${minThreshold} and ${totalWeight} (inclusive).`);
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(
+					`Threshold must be between ${minThreshold} and ${totalWeight} (inclusive).`,
+				),
+			};
 		}
 
 		const chainPropertiesStore = await this.stores
 			.get(ChainPropertiesStore)
 			.get(context, EMPTY_BYTES);
 		if (validatorsUpdateNonce !== chainPropertiesStore.validatorsUpdateNonce) {
-			throw new Error(
-				`validatorsUpdateNonce must be equal to ${chainPropertiesStore.validatorsUpdateNonce}.`,
-			);
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(
+					`validatorsUpdateNonce must be equal to ${chainPropertiesStore.validatorsUpdateNonce}.`,
+				),
+			};
 		}
 
 		return {

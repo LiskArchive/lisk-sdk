@@ -66,6 +66,7 @@ import {
 	ALL_SUPPORTED_NFTS_KEY,
 	LENGTH_ADDRESS,
 	LENGTH_CHAIN_ID,
+	MODULE_NAME_NFT,
 	NFT_NOT_LOCKED,
 } from './constants';
 
@@ -122,7 +123,7 @@ export class NFTModule extends BaseInteroperableModule {
 	}
 
 	public get name(): string {
-		return 'nft';
+		return MODULE_NAME_NFT;
 	}
 
 	public addDependencies(
