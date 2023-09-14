@@ -365,6 +365,10 @@ export class NFTMethod extends BaseMethod {
 		const userKey = userStore.getKey(owner, nftID);
 		const userData = await userStore.get(methodContext, userKey);
 
+		if (module === NFT_NOT_LOCKED) {
+			throw new Error('Cannot be locked by NFT module');
+		}
+
 		if (userData.lockingModule !== NFT_NOT_LOCKED) {
 			this.events.get(LockEvent).error(
 				methodContext,
