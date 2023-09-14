@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { BaseCommand } from '../../base_command';
 import { updateGeneratorKeySchema } from '../schemas';
 import { COMMAND_UPDATE_KEY } from '../constants';
@@ -40,6 +41,15 @@ export class UpdateGeneratorKeyCommand extends BaseCommand {
 	public async verify(
 		context: CommandVerifyContext<UpdateGeneratorKeyParams>,
 	): Promise<VerificationResult> {
+		try {
+			validator.validate(updateGeneratorKeySchema, context.params);
+		} catch (err) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: err as Error,
+			};
+		}
+
 		const validatorExists = await this.stores
 			.get(ValidatorStore)
 			.has(context, context.transaction.senderAddress);
