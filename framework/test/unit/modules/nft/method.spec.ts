@@ -253,8 +253,6 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return the lockingModule for the owner of the NFT', async () => {
-			// const lockingModule = 'nft';
-
 			await nftStore.save(methodContext, nftID, {
 				owner,
 				attributesArray: [],
