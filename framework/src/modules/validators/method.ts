@@ -363,7 +363,7 @@ export class ValidatorsMethod extends BaseMethod {
 			throw new Error(`BLS public key must be ${BLS_PUBLIC_KEY_LENGTH} bytes long.`);
 		}
 		if (args.proofOfPossession && args.proofOfPossession.length !== BLS_POP_LENGTH) {
-			throw new Error(`Proof of possesion must be ${BLS_POP_LENGTH} bytes long.`);
+			throw new Error(`Proof of Possession must be ${BLS_POP_LENGTH} bytes long.`);
 		}
 		if (args.generatorKey && args.generatorKey.length !== ED25519_PUBLIC_KEY_LENGTH) {
 			throw new Error(`Generator key must be ${ED25519_PUBLIC_KEY_LENGTH} bytes long.`);

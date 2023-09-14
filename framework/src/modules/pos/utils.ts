@@ -99,16 +99,17 @@ export const pickStandByValidator = (
 	return -1;
 };
 
-export const shuffleValidatorList = (
-	previousRoundSeed1: Buffer,
-	addresses: ValidatorWeight[],
-): ValidatorWeight[] => {
+export const shuffleValidatorList = <T extends ValidatorWeight>(
+	roundSeed: Buffer,
+	addresses: T[],
+): (T & { roundHash: Buffer })[] => {
 	const validatorList = [...addresses].map(validator => ({
 		...validator,
-	})) as { address: Buffer; roundHash: Buffer; weight: bigint }[];
+		roundHash: Buffer.from([]),
+	})) as (T & { roundHash: Buffer })[];
 
 	for (const validator of validatorList) {
-		const seedSource = Buffer.concat([previousRoundSeed1, validator.address]);
+		const seedSource = Buffer.concat([roundSeed, validator.address]);
 		validator.roundHash = utils.hash(seedSource);
 	}
 

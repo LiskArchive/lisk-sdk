@@ -54,8 +54,9 @@ import {
 	ChainPropertiesStore,
 	SnapshotObject,
 	ChainProperties,
+	Validator,
 } from '../../../../src/modules/poa/stores';
-import { shuffleValidatorList } from '../../../../src/modules/poa/utils';
+import { shuffleValidatorList } from '../../../../src/modules/pos/utils';
 
 describe('PoA module', () => {
 	let poaModule: PoAModule;
@@ -306,7 +307,7 @@ describe('PoA module', () => {
 			for (const validator of snapshot1.validators) {
 				validators.push(validator);
 			}
-			const nextValidators = shuffleValidatorList(randomSeed, validators);
+			const nextValidators = shuffleValidatorList<Validator>(randomSeed, validators);
 			await poaModule.afterTransactionsExecute(context);
 			expect(poaModule.stores.get(SnapshotStore).set).toHaveBeenCalledWith(
 				context,

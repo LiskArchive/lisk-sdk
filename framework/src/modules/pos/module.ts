@@ -690,7 +690,7 @@ export class PoSModule extends BaseModule {
 		}
 
 		// Update the validators
-		const shuffledValidators = shuffleValidatorList(randomSeed1, validators);
+		const shuffledValidators = shuffleValidatorList<ValidatorWeight>(randomSeed1, validators);
 		let aggregateBFTWeight = BigInt(0);
 		const bftValidators: { address: Buffer; bftWeight: bigint }[] = [];
 		for (const v of shuffledValidators) {
