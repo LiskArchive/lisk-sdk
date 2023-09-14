@@ -23,6 +23,7 @@ import {
 	LENGTH_ADDRESS,
 	LENGTH_CHAIN_ID,
 	LENGTH_COLLECTION_ID,
+	LENGTH_INDEX,
 	LENGTH_NFT_ID,
 	MAX_LENGTH_DATA,
 	NFT_NOT_LOCKED,
@@ -273,12 +274,11 @@ export class NFTMethod extends BaseMethod {
 		methodContext: MethodContext,
 		collectionID: Buffer,
 	): Promise<bigint> {
-		const indexLength = LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID;
 		const nftStore = this.stores.get(NFTStore);
 
 		const nftStoreData = await nftStore.iterate(methodContext, {
-			gte: Buffer.concat([this._config.ownChainID, collectionID, Buffer.alloc(indexLength, 0)]),
-			lte: Buffer.concat([this._config.ownChainID, collectionID, Buffer.alloc(indexLength, 255)]),
+			gte: Buffer.concat([this._config.ownChainID, collectionID, Buffer.alloc(LENGTH_INDEX, 0)]),
+			lte: Buffer.concat([this._config.ownChainID, collectionID, Buffer.alloc(LENGTH_INDEX, 255)]),
 		});
 
 		if (nftStoreData.length === 0) {
@@ -312,7 +312,7 @@ export class NFTMethod extends BaseMethod {
 		}
 
 		const index = await this.getNextAvailableIndex(methodContext, collectionID);
-		const indexBytes = Buffer.alloc(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID);
+		const indexBytes = Buffer.alloc(LENGTH_INDEX);
 		indexBytes.writeBigInt64BE(index);
 
 		const nftID = Buffer.concat([this._config.ownChainID, collectionID, indexBytes]);
