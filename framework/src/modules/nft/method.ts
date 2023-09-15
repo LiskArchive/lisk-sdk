@@ -185,16 +185,8 @@ export class NFTMethod extends BaseMethod {
 		});
 	}
 
-	public async getCollectionID(
-		methodContext: ImmutableMethodContext,
-		nftID: Buffer,
-	): Promise<Buffer> {
-		const nftStore = this.stores.get(NFTStore);
-		const nftExists = await nftStore.has(methodContext, nftID);
-		if (!nftExists) {
-			throw new Error('NFT substore entry does not exist');
-		}
-		return nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
+	public getCollectionID(nftID: Buffer): Buffer {
+		return nftID.subarray(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
 	}
 
 	public async isNFTSupported(
@@ -221,7 +213,7 @@ export class NFTMethod extends BaseMethod {
 			if (supportedNFTsStoreData.supportedCollectionIDArray.length === 0) {
 				return true;
 			}
-			const collectionID = await this.getCollectionID(methodContext, nftID);
+			const collectionID = this.getCollectionID(nftID);
 			if (
 				supportedNFTsStoreData.supportedCollectionIDArray.some(id =>
 					collectionID.equals(id.collectionID),
