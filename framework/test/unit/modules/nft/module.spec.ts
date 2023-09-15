@@ -29,6 +29,7 @@ import {
 	LENGTH_CHAIN_ID,
 	LENGTH_COLLECTION_ID,
 	LENGTH_NFT_ID,
+	MODULE_NAME_NFT,
 	NFT_NOT_LOCKED,
 } from '../../../../src/modules/nft/constants';
 import { NFTStore } from '../../../../src/modules/nft/stores/nft';
@@ -55,7 +56,7 @@ describe('nft module', () => {
 	};
 
 	it('should have the name "nft"', () => {
-		expect(module.name).toBe('nft');
+		expect(module.name).toBe(MODULE_NAME_NFT);
 	});
 
 	describe('initGenesisState', () => {
