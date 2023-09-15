@@ -362,19 +362,13 @@ describe('NFTMethod', () => {
 	});
 
 	describe('getCollectionID', () => {
-		it('should throw if entry does not exist in the nft substore for the nft id', async () => {
-			await expect(method.getCollectionID(methodContext, nftID)).rejects.toThrow(
-				'NFT substore entry does not exist',
-			);
-		});
-
 		it('should return the first bytes of length LENGTH_CHAIN_ID from provided nftID', async () => {
 			await nftStore.save(methodContext, nftID, {
 				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
 				attributesArray: [],
 			});
-			const expectedValue = nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
-			const receivedValue = await method.getCollectionID(methodContext, nftID);
+			const expectedValue = nftID.subarray(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
+			const receivedValue = method.getCollectionID(nftID);
 			expect(receivedValue).toEqual(expectedValue);
 		});
 	});
@@ -395,7 +389,7 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return true if nft chain id does not equal own chain id but nft chain id is supported and corresponding supported collection id array is empty', async () => {
-			await supportedNFTsStore.set(methodContext, nftID.slice(0, LENGTH_CHAIN_ID), {
+			await supportedNFTsStore.set(methodContext, nftID.subarray(0, LENGTH_CHAIN_ID), {
 				supportedCollectionIDArray: [],
 			});
 
@@ -404,9 +398,9 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return true if nft chain id does not equal own chain id but nft chain id is supported and corresponding supported collection id array includes collection id for nft id', async () => {
-			await supportedNFTsStore.set(methodContext, nftID.slice(0, LENGTH_CHAIN_ID), {
+			await supportedNFTsStore.set(methodContext, nftID.subarray(0, LENGTH_CHAIN_ID), {
 				supportedCollectionIDArray: [
-					{ collectionID: nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID) },
+					{ collectionID: nftID.subarray(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID) },
 					{ collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID) },
 				],
 			});
