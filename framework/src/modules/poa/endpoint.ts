@@ -85,16 +85,15 @@ export class PoAEndpoint extends BaseEndpoint {
 		const validatorsData: Validator[] = [];
 		for (const data of validatorStoreData) {
 			const address = cryptoAddress.getLisk32AddressFromAddress(data.key);
-			// `name` comes from type `ValidatorName`
-			const { name } = await validatorStore.get(context, data.key);
+			const { value } = data;
 			const activeValidator = currentRoundSnapshot.validators.find(
 				v => cryptoAddress.getLisk32AddressFromAddress(v.address) === address,
 			);
 
 			const v: Validator = {
-				name,
+				name: value.name,
 				address,
-				weight: activeValidator ? activeValidator.weight.toString() : '',
+				weight: activeValidator ? activeValidator.weight.toString() : '0',
 			};
 			validatorsData.push(v);
 		}
