@@ -105,6 +105,8 @@ export const updateAuthoritySchema = {
 			type: 'array',
 			fieldNumber: 1,
 			items: validator,
+			minItems: 1,
+			maxItems: MAX_NUM_VALIDATORS,
 		},
 		threshold: {
 			dataType: 'uint64',
