@@ -625,6 +625,12 @@ describe('NFTMethod', () => {
 	});
 
 	describe('lock', () => {
+		it('should throw if provided locking module is "nft"', async () => {
+			await expect(method.lock(methodContext, NFT_NOT_LOCKED, existingNFT.nftID)).rejects.toThrow(
+				'Cannot be locked by NFT module',
+			);
+		});
+
 		it('should throw and log LockEvent if NFT does not exist', async () => {
 			await expect(method.lock(methodContext, lockingModule, nftID)).rejects.toThrow(
 				'NFT substore entry does not exist',
@@ -676,12 +682,6 @@ describe('NFTMethod', () => {
 					nftID: lockedExistingNFT.nftID,
 				},
 				NftEventResult.RESULT_NFT_LOCKED,
-			);
-		});
-
-		it('should throw if provided locking module is "nft"', async () => {
-			await expect(method.lock(methodContext, NFT_NOT_LOCKED, existingNFT.nftID)).rejects.toThrow(
-				'Cannot be locked by NFT module',
 			);
 		});
 
