@@ -29,11 +29,11 @@ import {
 	KEY_SNAPSHOT_2,
 	MAX_UINT64,
 	defaultConfig,
-	SUBSTORE_PREFIX_VALIDATOR,
-	SUBSTORE_PREFIX_CHAIN,
-	SUBSTORE_PREFIX_NAME,
-	SUBSTORE_PREFIX_SNAPSHOT,
 	POA_VALIDATOR_NAME_REGEX,
+	SUBSTORE_PREFIX_VALIDATOR_INDEX,
+	SUBSTORE_PREFIX_CHAIN_INDEX,
+	SUBSTORE_PREFIX_NAME_INDEX,
+	SUBSTORE_PREFIX_SNAPSHOT_INDEX,
 } from './constants';
 import { shuffleValidatorList } from './utils';
 import { NextValidatorsSetter, MethodContext } from '../../state_machine/types';
@@ -83,13 +83,19 @@ export class PoAModule extends BaseModule {
 	public constructor() {
 		super();
 		this.events.register(AuthorityUpdateEvent, new AuthorityUpdateEvent(this.name));
-		this.stores.register(ValidatorStore, new ValidatorStore(this.name, SUBSTORE_PREFIX_VALIDATOR));
+		this.stores.register(
+			ValidatorStore,
+			new ValidatorStore(this.name, SUBSTORE_PREFIX_VALIDATOR_INDEX),
+		);
 		this.stores.register(
 			ChainPropertiesStore,
-			new ChainPropertiesStore(this.name, SUBSTORE_PREFIX_CHAIN),
+			new ChainPropertiesStore(this.name, SUBSTORE_PREFIX_CHAIN_INDEX),
 		);
-		this.stores.register(NameStore, new NameStore(this.name, SUBSTORE_PREFIX_NAME));
-		this.stores.register(SnapshotStore, new SnapshotStore(this.name, SUBSTORE_PREFIX_SNAPSHOT));
+		this.stores.register(NameStore, new NameStore(this.name, SUBSTORE_PREFIX_NAME_INDEX));
+		this.stores.register(
+			SnapshotStore,
+			new SnapshotStore(this.name, SUBSTORE_PREFIX_SNAPSHOT_INDEX),
+		);
 	}
 
 	public get name() {

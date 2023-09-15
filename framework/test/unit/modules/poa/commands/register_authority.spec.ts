@@ -103,18 +103,7 @@ describe('RegisterAuthority', () => {
 		nameStore = poaModule.stores.get(NameStore);
 	});
 
-	describe('verify', () => {
-		let context: CommandVerifyContext<RegisterAuthorityParams>;
-		beforeEach(() => {
-			context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction: buildTransaction({}),
-					chainID,
-				})
-				.createCommandVerifyContext<RegisterAuthorityParams>(registerAuthoritySchema);
-		});
-
+	describe('verifySchema', () => {
 		it(`should throw error when name is longer than ${MAX_LENGTH_NAME}`, () => {
 			expect(() =>
 				validator.validate(registerAuthorityCommand.schema, {
@@ -176,6 +165,19 @@ describe('RegisterAuthority', () => {
 					generatorKey: utils.getRandomBytes(LENGTH_GENERATOR_KEY + 1),
 				}),
 			).toThrow(`Property '.generatorKey' maxLength exceeded`);
+		});
+	});
+
+	describe('verify', () => {
+		let context: CommandVerifyContext<RegisterAuthorityParams>;
+		beforeEach(() => {
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction: buildTransaction({}),
+					chainID,
+				})
+				.createCommandVerifyContext<RegisterAuthorityParams>(registerAuthoritySchema);
 		});
 
 		it('should return error when name does not comply regex', async () => {
