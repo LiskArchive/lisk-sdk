@@ -82,7 +82,6 @@ describe('TransferCrossChainComand', () => {
 		recipientAddress: utils.getRandomBytes(LENGTH_ADDRESS),
 		data: '',
 		messageFee: BigInt(100000),
-		messageFeeTokenID,
 		includeAttributes: false,
 	};
 
@@ -302,32 +301,6 @@ describe('TransferCrossChainComand', () => {
 			).rejects.toThrow("'.data' must NOT have more than 64 characters");
 		});
 
-		it('should fail if messageFeeTokenID does not have valid length', async () => {
-			const messageFeeTokenIDMinLengthContext = createTransactionContextWithOverridingParams({
-				messageFeeTokenID: utils.getRandomBytes(LENGTH_TOKEN_ID - 1),
-			});
-
-			const messageFeeTokenIDMaxLengthContext = createTransactionContextWithOverridingParams({
-				messageFeeTokenID: utils.getRandomBytes(LENGTH_TOKEN_ID + 1),
-			});
-
-			await expect(
-				command.verify(
-					messageFeeTokenIDMinLengthContext.createCommandVerifyContext(
-						crossChainTransferParamsSchema,
-					),
-				),
-			).rejects.toThrow("'.messageFeeTokenID' minLength not satisfied");
-
-			await expect(
-				command.verify(
-					messageFeeTokenIDMaxLengthContext.createCommandVerifyContext(
-						crossChainTransferParamsSchema,
-					),
-				),
-			).rejects.toThrow("'.messageFeeTokenID' maxLength exceeded");
-		});
-
 		it('should fail if NFT does not exist', async () => {
 			const context = createTransactionContextWithOverridingParams({
 				nftID: utils.getRandomBytes(LENGTH_NFT_ID),
@@ -363,17 +336,6 @@ describe('TransferCrossChainComand', () => {
 			await expect(
 				command.verify(context.createCommandVerifyContext(crossChainTransferParamsSchema)),
 			).rejects.toThrow('');
-		});
-
-		it('should fail if messageFeeTokenID for receiving chain differs from the messageFeeTokenID of parameters', async () => {
-			const context = createTransactionContextWithOverridingParams({
-				nftID: existingNFT.nftID,
-				messageFeeTokenID: utils.getRandomBytes(LENGTH_TOKEN_ID),
-			});
-
-			await expect(
-				command.verify(context.createCommandVerifyContext(crossChainTransferParamsSchema)),
-			).rejects.toThrow('Mismatching message fee Token ID');
 		});
 
 		it('should fail if the owner of the NFT is not the sender', async () => {
