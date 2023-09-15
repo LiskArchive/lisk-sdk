@@ -210,7 +210,7 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return the first bytes of length LENGTH_CHAIN_ID from provided nftID', () => {
-			expect(method.getChainID(nftID)).toEqual(nftID.slice(0, LENGTH_CHAIN_ID));
+			expect(method.getChainID(nftID)).toEqual(nftID.subarray(0, LENGTH_CHAIN_ID));
 		});
 	});
 
@@ -416,7 +416,7 @@ describe('NFTMethod', () => {
 				attributesArray: [],
 			});
 
-			await supportedNFTsStore.set(methodContext, foreignNFT.slice(0, LENGTH_CHAIN_ID), {
+			await supportedNFTsStore.set(methodContext, foreignNFT.subarray(0, LENGTH_CHAIN_ID), {
 				supportedCollectionIDArray: [
 					{ collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID) },
 					{ collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID) },
@@ -490,7 +490,7 @@ describe('NFTMethod', () => {
 			{ module: 'customMod1', attributes: Buffer.alloc(5) },
 			{ module: 'customMod2', attributes: Buffer.alloc(2) },
 		];
-		const collectionID = nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
+		const collectionID = nftID.subarray(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
 
 		beforeEach(async () => {
 			await nftStore.save(methodContext, nftID, {
@@ -544,7 +544,7 @@ describe('NFTMethod', () => {
 	describe('create', () => {
 		const attributesArray1 = [{ module: 'customMod3', attributes: Buffer.alloc(7) }];
 		const attributesArray2 = [{ module: 'customMod3', attributes: Buffer.alloc(9) }];
-		const collectionID = nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
+		const collectionID = nftID.subarray(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
 		const address = utils.getRandomBytes(LENGTH_ADDRESS);
 
 		beforeEach(() => {
@@ -933,7 +933,7 @@ describe('NFTMethod', () => {
 
 		it('should throw and emit error transfer cross chain event if nft does not exist', async () => {
 			const nonExistingNFTID = utils.getRandomBytes(LENGTH_NFT_ID);
-			receivingChainID = nonExistingNFTID.slice(0, LENGTH_CHAIN_ID);
+			receivingChainID = nonExistingNFTID.subarray(0, LENGTH_CHAIN_ID);
 			await expect(
 				method.transferCrossChain(
 					methodContext,

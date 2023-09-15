@@ -452,10 +452,11 @@ export class MerkleTree {
 			type === NodeType.BRANCH
 				? value.readInt32BE(BRANCH_PREFIX.length + LAYER_INDEX_SIZE)
 				: value.readInt32BE(LEAF_PREFIX.length);
-		const rightHash = type === NodeType.BRANCH ? value.slice(-1 * NODE_HASH_SIZE) : Buffer.alloc(0);
+		const rightHash =
+			type === NodeType.BRANCH ? value.subarray(-1 * NODE_HASH_SIZE) : Buffer.alloc(0);
 		const leftHash =
 			type === NodeType.BRANCH
-				? value.slice(-2 * NODE_HASH_SIZE, -1 * NODE_HASH_SIZE)
+				? value.subarray(-2 * NODE_HASH_SIZE, -1 * NODE_HASH_SIZE)
 				: Buffer.alloc(0);
 
 		return {

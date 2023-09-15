@@ -45,7 +45,7 @@ describe('address', () => {
 
 	describe('#getAddressFromPrivateKey', () => {
 		it('should create correct address', () => {
-			expect(getAddressFromPrivateKey(defaultPrivateKey.slice(0, 64))).toEqual(defaultAddress);
+			expect(getAddressFromPrivateKey(defaultPrivateKey.subarray(0, 64))).toEqual(defaultAddress);
 		});
 	});
 
