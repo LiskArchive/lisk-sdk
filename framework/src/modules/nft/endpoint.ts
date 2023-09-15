@@ -17,8 +17,8 @@ import { validator } from '@liskhq/lisk-validator';
 import { BaseEndpoint } from '../base_endpoint';
 import { JSONObject, ModuleEndpointContext } from '../../types';
 import {
-	collectionExistsRequestSchema,
-	getCollectionIDsRequestSchema,
+	isCollectionIDSupportedRequestSchema,
+	getSupportedCollectionIDsRequestSchema,
 	getEscrowedNFTIDsRequestSchema,
 	getNFTRequestSchema,
 	getNFTsRequestSchema,
@@ -136,12 +136,12 @@ export class NFTEndpoint extends BaseEndpoint {
 		};
 	}
 
-	public async getCollectionIDs(
+	public async getSupportedCollectionIDs(
 		context: ModuleEndpointContext,
 	): Promise<{ collectionIDs: string[] }> {
 		const { params } = context;
 
-		validator.validate<{ chainID: string }>(getCollectionIDsRequestSchema, params);
+		validator.validate<{ chainID: string }>(getSupportedCollectionIDsRequestSchema, params);
 
 		const chainID = Buffer.from(params.chainID, 'hex');
 
@@ -153,29 +153,41 @@ export class NFTEndpoint extends BaseEndpoint {
 			return { collectionIDs: [] };
 		}
 
+		const isNFTSupported = await this.isNFTSupported(context);
+
+		if (!isNFTSupported.isNFTSupported) {
+			throw new Error('NFT is not supported');
+		}
+
 		const supportedNFTsData = await supportedNFTsStore.get(
 			context.getImmutableMethodContext(),
 			chainID,
 		);
 
-		return {
-			collectionIDs: supportedNFTsData.supportedCollectionIDArray.map(collection =>
-				collection.collectionID.toString('hex'),
-			),
-		};
+		if (supportedNFTsData.supportedCollectionIDArray.length) {
+			return {
+				collectionIDs: supportedNFTsData.supportedCollectionIDArray.map(collection =>
+					collection.collectionID.toString('hex'),
+				),
+			};
+		}
+
+		return { collectionIDs: [] };
 	}
 
-	public async collectionExists(
+	public async isCollectionIDSupported(
 		context: ModuleEndpointContext,
 	): Promise<{ collectionExists: boolean }> {
 		const { params } = context;
 
 		validator.validate<{ chainID: string; collectionID: string }>(
-			collectionExistsRequestSchema,
+			isCollectionIDSupportedRequestSchema,
 			params,
 		);
 
 		const chainID = Buffer.from(params.chainID, 'hex');
+
+		const collectionID = Buffer.from(params.collectionID, 'hex');
 
 		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
 
@@ -185,7 +197,11 @@ export class NFTEndpoint extends BaseEndpoint {
 			return { collectionExists: false };
 		}
 
-		const collectionID = Buffer.from(params.collectionID, 'hex');
+		const isNFTSupported = await this.isNFTSupported(context);
+
+		if (!isNFTSupported.isNFTSupported) {
+			throw new Error('NFT is not supported');
+		}
 
 		const supportedNFTsData = await supportedNFTsStore.get(
 			context.getImmutableMethodContext(),
