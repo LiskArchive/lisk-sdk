@@ -329,6 +329,10 @@ export class NFTMethod extends BaseMethod {
 	}
 
 	public async lock(methodContext: MethodContext, module: string, nftID: Buffer): Promise<void> {
+		if (module === NFT_NOT_LOCKED) {
+			throw new Error('Cannot be locked by NFT module');
+		}
+
 		const nftStore = this.stores.get(NFTStore);
 
 		const nftExists = await nftStore.has(methodContext, nftID);
