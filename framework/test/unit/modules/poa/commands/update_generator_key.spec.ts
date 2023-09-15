@@ -90,18 +90,7 @@ describe('UpdateGeneratorKey', () => {
 		);
 	});
 
-	describe('verify', () => {
-		let context: CommandVerifyContext<UpdateGeneratorKeyParams>;
-		beforeEach(() => {
-			context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction: buildTransaction({}),
-					chainID,
-				})
-				.createCommandVerifyContext<UpdateGeneratorKeyParams>(updateGeneratorKeySchema);
-		});
-
+	describe('verifySchema', () => {
 		it(`should throw error when generator key shorter than ${LENGTH_GENERATOR_KEY}`, () => {
 			expect(() =>
 				validator.validate(updateGeneratorKeyCommand.schema, {
@@ -116,6 +105,19 @@ describe('UpdateGeneratorKey', () => {
 					generatorKey: utils.getRandomBytes(LENGTH_GENERATOR_KEY + 1),
 				}),
 			).toThrow(`Property '.generatorKey' maxLength exceeded`);
+		});
+	});
+
+	describe('verify', () => {
+		let context: CommandVerifyContext<UpdateGeneratorKeyParams>;
+		beforeEach(() => {
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction: buildTransaction({}),
+					chainID,
+				})
+				.createCommandVerifyContext<UpdateGeneratorKeyParams>(updateGeneratorKeySchema);
 		});
 
 		it('should return error when validator not exist', async () => {
