@@ -568,10 +568,10 @@ describe('NFTEndpoint', () => {
 			});
 
 			await expect(endpoint.isCollectionIDSupported(context)).resolves.toEqual({
-				collectionExists: false,
+				isCollectionIDSupported: false,
 			});
 
-			validator.validate(isCollectionIDSupportedResponseSchema, { collectionExists: false });
+			validator.validate(isCollectionIDSupportedResponseSchema, { isCollectionIDSupported: false });
 		});
 
 		it('should return false if provided collectionID does not exist for the provided chainID', async () => {
@@ -605,7 +605,7 @@ describe('NFTEndpoint', () => {
 			});
 
 			await expect(endpoint.isCollectionIDSupported(context)).resolves.toEqual({
-				collectionExists: false,
+				isCollectionIDSupported: false,
 			});
 		});
 
@@ -641,10 +641,10 @@ describe('NFTEndpoint', () => {
 			});
 
 			await expect(endpoint.isCollectionIDSupported(context)).resolves.toEqual({
-				collectionExists: true,
+				isCollectionIDSupported: true,
 			});
 
-			validator.validate(isCollectionIDSupportedResponseSchema, { collectionExists: true });
+			validator.validate(isCollectionIDSupportedResponseSchema, { isCollectionIDSupported: true });
 		});
 
 		it('should throw an error if nft is not supported', async () => {

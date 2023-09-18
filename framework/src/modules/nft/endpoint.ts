@@ -177,7 +177,7 @@ export class NFTEndpoint extends BaseEndpoint {
 
 	public async isCollectionIDSupported(
 		context: ModuleEndpointContext,
-	): Promise<{ collectionExists: boolean }> {
+	): Promise<{ isCollectionIDSupported: boolean }> {
 		const { params } = context;
 
 		validator.validate<{ chainID: string; collectionID: string }>(
@@ -194,7 +194,7 @@ export class NFTEndpoint extends BaseEndpoint {
 		const chainExists = await supportedNFTsStore.has(context.getImmutableMethodContext(), chainID);
 
 		if (!chainExists) {
-			return { collectionExists: false };
+			return { isCollectionIDSupported: false };
 		}
 
 		const isNFTSupported = await this.isNFTSupported(context);
@@ -209,8 +209,8 @@ export class NFTEndpoint extends BaseEndpoint {
 		);
 
 		return {
-			collectionExists: supportedNFTsData.supportedCollectionIDArray.some(supportedCollection =>
-				supportedCollection.collectionID.equals(collectionID),
+			isCollectionIDSupported: supportedNFTsData.supportedCollectionIDArray.some(
+				supportedCollection => supportedCollection.collectionID.equals(collectionID),
 			),
 		};
 	}

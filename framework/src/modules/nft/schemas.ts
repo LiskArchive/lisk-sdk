@@ -330,7 +330,7 @@ export const isCollectionIDSupportedResponseSchema = {
 	$id: '/nft/endpoint/isCollectionIDSupportedResponse',
 	type: 'object',
 	properties: {
-		collectionExists: {
+		isCollectionIDSupported: {
 			type: 'boolean',
 		},
 	},
