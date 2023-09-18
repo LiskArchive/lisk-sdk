@@ -1471,9 +1471,7 @@ describe('NFTMethod', () => {
 					config.ownChainID,
 					utils.getRandomBytes(LENGTH_CHAIN_ID),
 				),
-			).resolves.toBeUndefined();
-
-			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+			).rejects.toThrow('Invalid operation. Support for native NFTs cannot be removed');
 		});
 
 		it('should throw if all NFTs are supported', async () => {
