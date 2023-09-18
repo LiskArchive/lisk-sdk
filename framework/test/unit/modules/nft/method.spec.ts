@@ -1668,6 +1668,31 @@ describe('NFTMethod', () => {
 			);
 		});
 
+		it('should throw and emit error recover event if module name length in attributes array is not valid', async () => {
+			const newStoreValue = codec.encode(nftStoreSchema, {
+				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
+				attributesArray: [
+					{ module: 'customMod1', attributes: Buffer.alloc(5) },
+					{ module: '', attributes: Buffer.alloc(2) },
+				],
+			});
+
+			await expect(
+				method.recover(methodContext, terminatedChainID, substorePrefix, storeKey, newStoreValue),
+			).rejects.toThrow('Invalid inputs');
+			checkEventResult<RecoverEventData>(
+				methodContext.eventQueue,
+				1,
+				RecoverEvent,
+				0,
+				{
+					terminatedChainID,
+					nftID: storeKey,
+				},
+				NftEventResult.RESULT_RECOVER_FAIL_INVALID_INPUTS,
+			);
+		});
+
 		it('should throw and emit error recover event if nft chain id is not same as own chain id', async () => {
 			await expect(
 				method.recover(methodContext, terminatedChainID, substorePrefix, storeKey, storeValue),
