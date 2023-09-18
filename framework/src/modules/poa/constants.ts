@@ -33,7 +33,6 @@ export const COMMAND_REGISTER_AUTHORITY = 'registerAuthority';
 export const COMMAND_UPDATE_KEY = 'updateKey';
 export const COMMAND_UPDATE_AUTHORITY = 'updateAuthority';
 export const MAX_UINT64 = BigInt(2) ** BigInt(64) - BigInt(1);
-export const LENGTH_PROOF_OF_POSESSION = 96;
 export const defaultConfig = {
 	authorityRegistrationFee: AUTHORITY_REGISTRATION_FEE.toString(),
 };
@@ -43,3 +42,7 @@ export const defaultConfig = {
 export const KEY_SNAPSHOT_0 = utils.intToBuffer(0, 4);
 export const KEY_SNAPSHOT_1 = utils.intToBuffer(1, 4);
 export const KEY_SNAPSHOT_2 = utils.intToBuffer(2, 4);
+export const SUBSTORE_PREFIX_VALIDATOR_INDEX = 0;
+export const SUBSTORE_PREFIX_CHAIN_INDEX = 1;
+export const SUBSTORE_PREFIX_NAME_INDEX = 2;
+export const SUBSTORE_PREFIX_SNAPSHOT_INDEX = 3;

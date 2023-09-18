@@ -29,6 +29,11 @@ import {
 	KEY_SNAPSHOT_2,
 	MAX_UINT64,
 	defaultConfig,
+	POA_VALIDATOR_NAME_REGEX,
+	SUBSTORE_PREFIX_VALIDATOR_INDEX,
+	SUBSTORE_PREFIX_CHAIN_INDEX,
+	SUBSTORE_PREFIX_NAME_INDEX,
+	SUBSTORE_PREFIX_SNAPSHOT_INDEX,
 } from './constants';
 import { shuffleValidatorList } from './utils';
 import { NextValidatorsSetter, MethodContext } from '../../state_machine/types';
@@ -78,14 +83,23 @@ export class PoAModule extends BaseModule {
 	public constructor() {
 		super();
 		this.events.register(AuthorityUpdateEvent, new AuthorityUpdateEvent(this.name));
-		this.stores.register(ValidatorStore, new ValidatorStore(this.name, 0));
-		this.stores.register(ChainPropertiesStore, new ChainPropertiesStore(this.name, 1));
-		this.stores.register(NameStore, new NameStore(this.name, 2));
-		this.stores.register(SnapshotStore, new SnapshotStore(this.name, 3));
+		this.stores.register(
+			ValidatorStore,
+			new ValidatorStore(this.name, SUBSTORE_PREFIX_VALIDATOR_INDEX),
+		);
+		this.stores.register(
+			ChainPropertiesStore,
+			new ChainPropertiesStore(this.name, SUBSTORE_PREFIX_CHAIN_INDEX),
+		);
+		this.stores.register(NameStore, new NameStore(this.name, SUBSTORE_PREFIX_NAME_INDEX));
+		this.stores.register(
+			SnapshotStore,
+			new SnapshotStore(this.name, SUBSTORE_PREFIX_SNAPSHOT_INDEX),
+		);
 	}
 
 	public get name() {
-		return 'poa';
+		return MODULE_NAME_POA;
 	}
 
 	public addDependencies(
@@ -213,7 +227,7 @@ export class PoAModule extends BaseModule {
 				throw new Error('`validators` must be ordered lexicographically by address.');
 			}
 
-			if (!/^[a-z0-9!@$&_.]+$/g.test(validators[i].name)) {
+			if (!POA_VALIDATOR_NAME_REGEX.test(validators[i].name)) {
 				throw new Error('`name` property is invalid. Must contain only characters a-z0-9!@$&_.');
 			}
 		}
