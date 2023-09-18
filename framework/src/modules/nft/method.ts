@@ -324,7 +324,6 @@ export class NFTMethod extends BaseMethod {
 		this.events.get(CreateEvent).log(methodContext, {
 			address,
 			nftID,
-			collectionID,
 		});
 	}
 

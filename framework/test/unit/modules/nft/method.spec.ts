@@ -587,7 +587,6 @@ describe('NFTMethod', () => {
 			checkEventResult(methodContext.eventQueue, 1, CreateEvent, 0, {
 				address,
 				nftID: expectedKey,
-				collectionID,
 			});
 		});
 
@@ -619,7 +618,6 @@ describe('NFTMethod', () => {
 			checkEventResult(methodContext.eventQueue, 1, CreateEvent, 0, {
 				address,
 				nftID: expectedKey,
-				collectionID,
 			});
 		});
 	});
