@@ -42,11 +42,18 @@ export class TransferCommand extends BaseCommand {
 
 		validator.validate<TransferParams>(this.schema, params);
 
-		await this._internalMethod.verifyTransfer(
-			context.getMethodContext(),
-			context.transaction.senderAddress,
-			params.nftID,
-		);
+		try {
+			await this._internalMethod.verifyTransfer(
+				context.getMethodContext(),
+				context.transaction.senderAddress,
+				params.nftID,
+			);
+		} catch (error) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: error as Error,
+			};
+		}
 
 		return {
 			status: VerifyStatus.OK,
@@ -56,7 +63,7 @@ export class TransferCommand extends BaseCommand {
 	public async execute(context: CommandExecuteContext<TransferParams>): Promise<void> {
 		const { params } = context;
 
-		await this._internalMethod.transferInternal(
+		await this._internalMethod.transfer(
 			context.getMethodContext(),
 			params.recipientAddress,
 			params.nftID,

@@ -131,9 +131,9 @@ describe('CrossChain Transfer Command', () => {
 
 	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		method.addDependencies(interopMethod, internalMethod, feeMethod, tokenMethod);
+		method.addDependencies(interopMethod, internalMethod, feeMethod);
 		method.init(config);
-		internalMethod.addDependencies(method, interopMethod);
+		internalMethod.addDependencies(method, interopMethod, tokenMethod);
 		internalMethod.init(config);
 		command = new CrossChainTransferCommand(module.stores, module.events);
 		command.init({ method, internalMethod, feeMethod });
@@ -251,7 +251,7 @@ describe('CrossChain Transfer Command', () => {
 				userAccountInitializationFee: BigInt(50000000),
 			};
 			method.init(newConfig);
-			internalMethod.addDependencies(method, interopMethod);
+			internalMethod.addDependencies(method, interopMethod, tokenMethod);
 			internalMethod.init(newConfig);
 			params = codec.encode(crossChainNFTTransferMessageParamsSchema, {
 				nftID: Buffer.alloc(LENGTH_NFT_ID, 1),
@@ -313,7 +313,7 @@ describe('CrossChain Transfer Command', () => {
 				userAccountInitializationFee: BigInt(50000000),
 			};
 			method.init(newConfig);
-			internalMethod.addDependencies(method, interopMethod);
+			internalMethod.addDependencies(method, interopMethod, tokenMethod);
 			internalMethod.init(newConfig);
 			context = {
 				ccm,
@@ -339,7 +339,7 @@ describe('CrossChain Transfer Command', () => {
 				userAccountInitializationFee: BigInt(50000000),
 			};
 			method.init(newConfig);
-			internalMethod.addDependencies(method, interopMethod);
+			internalMethod.addDependencies(method, interopMethod, tokenMethod);
 			internalMethod.init(newConfig);
 			context = {
 				ccm,
@@ -560,7 +560,7 @@ describe('CrossChain Transfer Command', () => {
 				userAccountInitializationFee: BigInt(50000000),
 			};
 			method.init(newConfig);
-			internalMethod.addDependencies(method, interopMethod);
+			internalMethod.addDependencies(method, interopMethod, tokenMethod);
 			internalMethod.init(newConfig);
 			context = {
 				ccm,
@@ -604,7 +604,7 @@ describe('CrossChain Transfer Command', () => {
 				userAccountInitializationFee: BigInt(50000000),
 			};
 			method.init(newConfig);
-			internalMethod.addDependencies(method, interopMethod);
+			internalMethod.addDependencies(method, interopMethod, tokenMethod);
 			internalMethod.init(newConfig);
 			ccm = {
 				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,

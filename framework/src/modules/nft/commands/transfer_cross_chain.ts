@@ -37,9 +37,6 @@ export interface TransferCrossChainParams {
 export class TransferCrossChainCommand extends BaseCommand {
 	public schema = crossChainTransferParamsSchema;
 
-	private _nftMethod!: NFTMethod;
-	private _tokenMethod!: TokenMethod;
-	private _interoperabilityMethod!: InteroperabilityMethod;
 	private _internalMethod!: InternalMethod;
 
 	public init(args: {
@@ -48,9 +45,6 @@ export class TransferCrossChainCommand extends BaseCommand {
 		interoperabilityMethod: InteroperabilityMethod;
 		internalMethod: InternalMethod;
 	}): void {
-		this._nftMethod = args.nftMethod;
-		this._tokenMethod = args.tokenMethod;
-		this._interoperabilityMethod = args.interoperabilityMethod;
 		this._internalMethod = args.internalMethod;
 	}
 
@@ -62,36 +56,29 @@ export class TransferCrossChainCommand extends BaseCommand {
 
 		validator.validate(this.schema, params);
 
-		if (params.receivingChainID.equals(context.chainID)) {
-			throw new Error('Receiving chain cannot be the sending chain');
-		}
+		try {
+			// perform checks that are common for same-chain and cross-chain transfers
+			await this._internalMethod.verifyTransfer(
+				context.getMethodContext(),
+				senderAddress,
+				params.nftID,
+			);
 
-		// perform checks that are common for same-chain and cross-chain transfers
-		await this._internalMethod.verifyTransfer(
-			context.getMethodContext(),
-			senderAddress,
-			params.nftID,
-		);
-
-		const nftChainID = this._nftMethod.getChainID(params.nftID);
-
-		if (!nftChainID.equals(context.chainID) && !nftChainID.equals(params.receivingChainID)) {
-			throw new Error('NFT must be native to either the sending or the receiving chain');
-		}
-
-		const messageFeeTokenID = await this._interoperabilityMethod.getMessageFeeTokenID(
-			context.getMethodContext(),
-			params.receivingChainID,
-		);
-
-		const availableBalance = await this._tokenMethod.getAvailableBalance(
-			context.getMethodContext(),
-			senderAddress,
-			messageFeeTokenID,
-		);
-
-		if (availableBalance < params.messageFee) {
-			throw new Error('Insufficient balance for the message fee');
+			await this._internalMethod.verifyTransferCrossChain(
+				context.getMethodContext(),
+				senderAddress,
+				params.nftID,
+				context.chainID,
+				params.receivingChainID,
+				params.messageFee,
+				params.messageFeeTokenID,
+				params.data,
+			);
+		} catch (error) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: error as Error,
+			};
 		}
 
 		return {
@@ -102,7 +89,7 @@ export class TransferCrossChainCommand extends BaseCommand {
 	public async execute(context: CommandExecuteContext<TransferCrossChainParams>): Promise<void> {
 		const { params } = context;
 
-		await this._internalMethod.transferCrossChainInternal(
+		await this._internalMethod.transferCrossChain(
 			context.getMethodContext(),
 			context.transaction.senderAddress,
 			params.recipientAddress,

@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { BaseMethod } from '../base_method';
-import { FeeMethod, InteroperabilityMethod, ModuleConfig, TokenMethod } from './types';
+import { FeeMethod, InteroperabilityMethod, ModuleConfig } from './types';
 import { NFTAttributes, NFTStore, NFTStoreData, nftStoreSchema } from './stores/nft';
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import {
@@ -25,8 +25,8 @@ import {
 	LENGTH_COLLECTION_ID,
 	LENGTH_INDEX,
 	LENGTH_NFT_ID,
-	MAX_LENGTH_DATA,
 	NFT_NOT_LOCKED,
+	NftErrorEventResult,
 	NftEventResult,
 } from './constants';
 import { UserStore } from './stores/user';
@@ -52,7 +52,6 @@ export class NFTMethod extends BaseMethod {
 	private _interoperabilityMethod!: InteroperabilityMethod;
 	private _internalMethod!: InternalMethod;
 	private _feeMethod!: FeeMethod;
-	private _tokenMethod!: TokenMethod;
 
 	public init(config: ModuleConfig): void {
 		this._config = config;
@@ -62,12 +61,10 @@ export class NFTMethod extends BaseMethod {
 		interoperabilityMethod: InteroperabilityMethod,
 		internalMethod: InternalMethod,
 		feeMethod: FeeMethod,
-		tokenMethod: TokenMethod,
 	) {
 		this._interoperabilityMethod = interoperabilityMethod;
 		this._internalMethod = internalMethod;
 		this._feeMethod = feeMethod;
-		this._tokenMethod = tokenMethod;
 	}
 
 	public getChainID(nftID: Buffer): Buffer {
@@ -462,9 +459,9 @@ export class NFTMethod extends BaseMethod {
 		recipientAddress: Buffer,
 		nftID: Buffer,
 	): Promise<void> {
-		const nftStore = this.stores.get(NFTStore);
-		const nftExists = await nftStore.has(methodContext, nftID);
-		if (!nftExists) {
+		try {
+			await this._internalMethod.verifyTransfer(methodContext, senderAddress, nftID);
+		} catch (error) {
 			this.events.get(TransferEvent).error(
 				methodContext,
 				{
@@ -472,54 +469,13 @@ export class NFTMethod extends BaseMethod {
 					recipientAddress,
 					nftID,
 				},
-				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+				this._getNftEventResult((error as Error).message),
 			);
-			throw new Error('NFT substore entry does not exist');
+
+			throw error;
 		}
 
-		const owner = await this.getNFTOwner(methodContext, nftID);
-		if (owner.length === LENGTH_CHAIN_ID) {
-			this.events.get(TransferEvent).error(
-				methodContext,
-				{
-					senderAddress,
-					recipientAddress,
-					nftID,
-				},
-				NftEventResult.RESULT_NFT_ESCROWED,
-			);
-			throw new Error('NFT is escrowed to another chain');
-		}
-
-		if (!owner.equals(senderAddress)) {
-			this.events.get(TransferEvent).error(
-				methodContext,
-				{
-					senderAddress,
-					recipientAddress,
-					nftID,
-				},
-				NftEventResult.RESULT_INITIATED_BY_NONOWNER,
-			);
-			throw new Error('Transfer not initiated by the NFT owner');
-		}
-
-		const userStore = this.stores.get(UserStore);
-		const userData = await userStore.get(methodContext, userStore.getKey(owner, nftID));
-		if (userData.lockingModule !== NFT_NOT_LOCKED) {
-			this.events.get(TransferEvent).error(
-				methodContext,
-				{
-					senderAddress,
-					recipientAddress,
-					nftID,
-				},
-				NftEventResult.RESULT_NFT_LOCKED,
-			);
-			throw new Error('Locked NFTs cannot be transferred');
-		}
-
-		await this._internalMethod.transferInternal(methodContext, recipientAddress, nftID);
+		await this._internalMethod.transfer(methodContext, recipientAddress, nftID);
 	}
 
 	public async transferCrossChain(
@@ -532,128 +488,25 @@ export class NFTMethod extends BaseMethod {
 		data: string,
 		includeAttributes: boolean,
 	): Promise<void> {
-		const ownChainID = this._internalMethod.getOwnChainID();
-		if (receivingChainID.equals(ownChainID)) {
-			this.events.get(TransferCrossChainEvent).error(
-				methodContext,
-				{
-					senderAddress,
-					recipientAddress,
-					receivingChainID,
-					nftID,
-					includeAttributes,
-				},
-				NftEventResult.INVALID_RECEIVING_CHAIN,
-			);
-			throw new Error('Receiving chain cannot be the sending chain');
-		}
-
-		if (data.length > MAX_LENGTH_DATA) {
-			this.events.get(TransferCrossChainEvent).error(
-				methodContext,
-				{
-					senderAddress,
-					recipientAddress,
-					receivingChainID,
-					nftID,
-					includeAttributes,
-				},
-				NftEventResult.RESULT_DATA_TOO_LONG,
-			);
-			throw new Error('Data field is too long');
-		}
-
-		const nftStore = this.stores.get(NFTStore);
-		const nftExists = await nftStore.has(methodContext, nftID);
-		if (!nftExists) {
-			this.events.get(TransferCrossChainEvent).error(
-				methodContext,
-				{
-					senderAddress,
-					recipientAddress,
-					receivingChainID,
-					nftID,
-					includeAttributes,
-				},
-				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
-			);
-			throw new Error('NFT substore entry does not exist');
-		}
-
-		const owner = await this.getNFTOwner(methodContext, nftID);
-		if (owner.length === LENGTH_CHAIN_ID) {
-			this.events.get(TransferCrossChainEvent).error(
-				methodContext,
-				{
-					senderAddress,
-					recipientAddress,
-					receivingChainID,
-					nftID,
-					includeAttributes,
-				},
-				NftEventResult.RESULT_NFT_ESCROWED,
-			);
-			throw new Error('NFT is escrowed to another chain');
-		}
-
-		const nftChainID = this.getChainID(nftID);
-		if (![ownChainID, receivingChainID].some(allowedChainID => nftChainID.equals(allowedChainID))) {
-			this.events.get(TransferCrossChainEvent).error(
-				methodContext,
-				{
-					senderAddress,
-					recipientAddress,
-					receivingChainID,
-					nftID,
-					includeAttributes,
-				},
-				NftEventResult.RESULT_NFT_NOT_NATIVE,
-			);
-			throw new Error('NFT must be native either to the sending chain or the receiving chain');
-		}
-
-		if (!owner.equals(senderAddress)) {
-			this.events.get(TransferCrossChainEvent).error(
-				methodContext,
-				{
-					senderAddress,
-					recipientAddress,
-					receivingChainID,
-					nftID,
-					includeAttributes,
-				},
-				NftEventResult.RESULT_INITIATED_BY_NONOWNER,
-			);
-			throw new Error('Transfer not initiated by the NFT owner');
-		}
-
-		const userStore = this.stores.get(UserStore);
-		const userData = await userStore.get(methodContext, userStore.getKey(owner, nftID));
-		if (userData.lockingModule !== NFT_NOT_LOCKED) {
-			this.events.get(TransferCrossChainEvent).error(
-				methodContext,
-				{
-					senderAddress,
-					recipientAddress,
-					receivingChainID,
-					nftID,
-					includeAttributes,
-				},
-				NftEventResult.RESULT_NFT_LOCKED,
-			);
-			throw new Error('Locked NFTs cannot be transferred');
-		}
-
 		const messageFeeTokenID = await this._interoperabilityMethod.getMessageFeeTokenID(
 			methodContext,
 			receivingChainID,
 		);
-		const availableBalance = await this._tokenMethod.getAvailableBalance(
-			methodContext,
-			senderAddress,
-			messageFeeTokenID,
-		);
-		if (availableBalance < messageFee) {
+
+		try {
+			await this._internalMethod.verifyTransfer(methodContext, senderAddress, nftID);
+
+			await this._internalMethod.verifyTransferCrossChain(
+				methodContext,
+				senderAddress,
+				nftID,
+				this._internalMethod.getOwnChainID(),
+				receivingChainID,
+				messageFee,
+				messageFeeTokenID,
+				data,
+			);
+		} catch (error) {
 			this.events.get(TransferCrossChainEvent).error(
 				methodContext,
 				{
@@ -663,12 +516,13 @@ export class NFTMethod extends BaseMethod {
 					nftID,
 					includeAttributes,
 				},
-				NftEventResult.RESULT_INSUFFICIENT_BALANCE,
+				this._getNftEventResult((error as Error).message),
 			);
-			throw new Error('Insufficient balance for the message fee');
+
+			throw error;
 		}
 
-		await this._internalMethod.transferCrossChainInternal(
+		await this._internalMethod.transferCrossChain(
 			methodContext,
 			senderAddress,
 			recipientAddress,
@@ -1013,5 +867,29 @@ export class NFTMethod extends BaseMethod {
 			nftID,
 			attributes,
 		});
+	}
+
+	private _getNftEventResult(message: string): NftErrorEventResult {
+		switch (message) {
+			case 'NFT substore entry does not exist':
+				return NftEventResult.RESULT_NFT_DOES_NOT_EXIST;
+			case 'NFT is escrowed to another chain':
+				return NftEventResult.RESULT_NFT_ESCROWED;
+			case 'Transfer not initiated by the NFT owner':
+				return NftEventResult.RESULT_INITIATED_BY_NONOWNER;
+			case 'Locked NFTs cannot be transferred':
+				return NftEventResult.RESULT_NFT_LOCKED;
+			case 'Receiving chain cannot be the sending chain':
+				return NftEventResult.INVALID_RECEIVING_CHAIN;
+			case 'Data field is too long':
+				return NftEventResult.RESULT_DATA_TOO_LONG;
+			case 'NFT must be native to either the sending or the receiving chain':
+				return NftEventResult.RESULT_NFT_NOT_NATIVE;
+			case 'Insufficient balance for the message fee':
+				return NftEventResult.RESULT_INSUFFICIENT_BALANCE;
+
+			default:
+				return NftEventResult.UNKNOWN_ERROR;
+		}
 	}
 }

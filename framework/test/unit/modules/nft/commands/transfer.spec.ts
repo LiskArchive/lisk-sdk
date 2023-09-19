@@ -32,14 +32,15 @@ import { InternalMethod } from '../../../../../src/modules/nft/internal_method';
 import { UserStore } from '../../../../../src/modules/nft/stores/user';
 import { EventQueue } from '../../../../../src/state_machine';
 import { TransferEvent } from '../../../../../src/modules/nft/events/transfer';
-import { InteroperabilityMethod } from '../../../../../src/modules/nft/types';
+import { InteroperabilityMethod, TokenMethod } from '../../../../../src/modules/nft/types';
 
 describe('Transfer command', () => {
 	const module = new NFTModule();
 	const nftMethod = new NFTMethod(module.stores, module.events);
 	let interoperabilityMethod!: InteroperabilityMethod;
+	let tokenMethod!: TokenMethod;
 	const internalMethod = new InternalMethod(module.stores, module.events);
-	internalMethod.addDependencies(nftMethod, interoperabilityMethod);
+	internalMethod.addDependencies(nftMethod, interoperabilityMethod, tokenMethod);
 
 	let command: TransferCommand;
 
@@ -147,9 +148,11 @@ describe('Transfer command', () => {
 				nftID: Buffer.alloc(LENGTH_NFT_ID, 0),
 			});
 
-			await expect(
-				command.verify(nftIDNotExistingContext.createCommandVerifyContext(transferParamsSchema)),
-			).rejects.toThrow('NFT substore entry does not exist');
+			const nftIDNotExistingVerification = await command.verify(
+				nftIDNotExistingContext.createCommandVerifyContext(transferParamsSchema),
+			);
+			expect(nftIDNotExistingVerification.status).toBe(VerifyStatus.FAIL);
+			expect(nftIDNotExistingVerification.error?.message).toBe('NFT substore entry does not exist');
 		});
 
 		it('should fail if NFT is escrowed to another chain', async () => {
@@ -162,9 +165,11 @@ describe('Transfer command', () => {
 				attributesArray: [],
 			});
 
-			await expect(
-				command.verify(nftEscrowedContext.createCommandVerifyContext(transferParamsSchema)),
-			).rejects.toThrow('NFT is escrowed to another chain');
+			const nftEscrowedVerification = await command.verify(
+				nftEscrowedContext.createCommandVerifyContext(transferParamsSchema),
+			);
+			expect(nftEscrowedVerification.status).toBe(VerifyStatus.FAIL);
+			expect(nftEscrowedVerification.error?.message).toBe('NFT is escrowed to another chain');
 		});
 
 		it('should fail if owner of the NFT is not the sender', async () => {
@@ -177,9 +182,13 @@ describe('Transfer command', () => {
 				attributesArray: [],
 			});
 
-			await expect(
-				command.verify(nftIncorrectOwnerContext.createCommandVerifyContext(transferParamsSchema)),
-			).rejects.toThrow('Transfer not initiated by the NFT owner');
+			const nftIncorrectOwnerVerification = await command.verify(
+				nftIncorrectOwnerContext.createCommandVerifyContext(transferParamsSchema),
+			);
+			expect(nftIncorrectOwnerVerification.status).toBe(VerifyStatus.FAIL);
+			expect(nftIncorrectOwnerVerification.error?.message).toBe(
+				'Transfer not initiated by the NFT owner',
+			);
 		});
 
 		it('should fail if NFT exists and is locked by its owner', async () => {
@@ -201,9 +210,11 @@ describe('Transfer command', () => {
 				},
 			);
 
-			await expect(
-				command.verify(lockedNFTContext.createCommandVerifyContext(transferParamsSchema)),
-			).rejects.toThrow('Locked NFTs cannot be transferred');
+			const lockedNFTVerification = await command.verify(
+				lockedNFTContext.createCommandVerifyContext(transferParamsSchema),
+			);
+			expect(lockedNFTVerification.status).toBe(VerifyStatus.FAIL);
+			expect(lockedNFTVerification.error?.message).toBe('Locked NFTs cannot be transferred');
 		});
 
 		it('should verify if unlocked NFT exists and its owner is performing the transfer', async () => {

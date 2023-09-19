@@ -133,9 +133,9 @@ describe('NFTMethod', () => {
 	let escrowedNFT: { nftID: any; owner: any };
 
 	beforeEach(async () => {
-		method.addDependencies(interopMethod, internalMethod, feeMethod, tokenMethod);
+		method.addDependencies(interopMethod, internalMethod, feeMethod);
 		method.init(config);
-		internalMethod.addDependencies(method, interopMethod);
+		internalMethod.addDependencies(method, interopMethod, tokenMethod);
 		internalMethod.init(config);
 		owner = utils.getRandomBytes(LENGTH_ADDRESS);
 
@@ -547,7 +547,7 @@ describe('NFTMethod', () => {
 		const address = utils.getRandomBytes(LENGTH_ADDRESS);
 
 		beforeEach(() => {
-			method.addDependencies(interopMethod, internalMethod, feeMethod, tokenMethod);
+			method.addDependencies(interopMethod, internalMethod, feeMethod);
 			jest.spyOn(feeMethod, 'payFee');
 		});
 
@@ -584,6 +584,7 @@ describe('NFTMethod', () => {
 			expect(nftStoreData.owner).toStrictEqual(address);
 			expect(nftStoreData.attributesArray).toEqual(attributesArray2);
 			expect(userStoreData.lockingModule).toEqual(NFT_NOT_LOCKED);
+
 			checkEventResult(methodContext.eventQueue, 1, CreateEvent, 0, {
 				address,
 				nftID: expectedKey,
@@ -616,6 +617,7 @@ describe('NFTMethod', () => {
 			expect(nftStoreData.owner).toStrictEqual(address);
 			expect(nftStoreData.attributesArray).toEqual(attributesArray2);
 			expect(userStoreData.lockingModule).toEqual(NFT_NOT_LOCKED);
+
 			checkEventResult(methodContext.eventQueue, 1, CreateEvent, 0, {
 				address,
 				nftID: expectedKey,
@@ -807,6 +809,7 @@ describe('NFTMethod', () => {
 			await expect(
 				method.transfer(methodContext, senderAddress, recipientAddress, nftID),
 			).rejects.toThrow('NFT substore entry does not exist');
+
 			checkEventResult<TransferEventData>(
 				methodContext.eventQueue,
 				1,
@@ -825,6 +828,7 @@ describe('NFTMethod', () => {
 			await expect(
 				method.transfer(methodContext, senderAddress, recipientAddress, escrowedNFT.nftID),
 			).rejects.toThrow('NFT is escrowed to another chain');
+
 			checkEventResult<TransferEventData>(
 				methodContext.eventQueue,
 				1,
@@ -843,6 +847,7 @@ describe('NFTMethod', () => {
 			await expect(
 				method.transfer(methodContext, senderAddress, recipientAddress, existingNFT.nftID),
 			).rejects.toThrow('Transfer not initiated by the NFT owner');
+
 			checkEventResult<TransferEventData>(
 				methodContext.eventQueue,
 				1,
@@ -866,6 +871,7 @@ describe('NFTMethod', () => {
 					lockedExistingNFT.nftID,
 				),
 			).rejects.toThrow('Locked NFTs cannot be transferred');
+
 			checkEventResult<TransferEventData>(
 				methodContext.eventQueue,
 				1,
@@ -881,12 +887,12 @@ describe('NFTMethod', () => {
 		});
 
 		it('should resolve if all params are valid', async () => {
-			jest.spyOn(internalMethod, 'transferInternal');
+			jest.spyOn(internalMethod, 'transfer');
 
 			await expect(
 				method.transfer(methodContext, existingNFT.owner, recipientAddress, existingNFT.nftID),
 			).resolves.toBeUndefined();
-			expect(internalMethod['transferInternal']).toHaveBeenCalledWith(
+			expect(internalMethod['transfer']).toHaveBeenCalledWith(
 				methodContext,
 				recipientAddress,
 				existingNFT.nftID,
@@ -920,6 +926,7 @@ describe('NFTMethod', () => {
 					includeAttributes,
 				),
 			).rejects.toThrow('Receiving chain cannot be the sending chain');
+
 			checkEventResult<TransferCrossChainEventData>(
 				methodContext.eventQueue,
 				1,
@@ -951,6 +958,7 @@ describe('NFTMethod', () => {
 					includeAttributes,
 				),
 			).rejects.toThrow('NFT substore entry does not exist');
+
 			checkEventResult<TransferCrossChainEventData>(
 				methodContext.eventQueue,
 				1,
@@ -981,6 +989,7 @@ describe('NFTMethod', () => {
 					includeAttributes,
 				),
 			).rejects.toThrow('NFT is escrowed to another chain');
+
 			checkEventResult<TransferCrossChainEventData>(
 				methodContext.eventQueue,
 				1,
@@ -998,28 +1007,41 @@ describe('NFTMethod', () => {
 		});
 
 		it('should throw and emit error transfer cross chain event if nft chain id is equal to neither own chain id or receiving chain id', async () => {
+			const randomAddress = utils.getRandomBytes(LENGTH_ADDRESS);
+			const randomNftID = utils.getRandomBytes(LENGTH_NFT_ID);
+
+			await nftStore.save(methodContext, randomNftID, {
+				owner: randomAddress,
+				attributesArray: [],
+			});
+
+			await userStore.set(methodContext, userStore.getKey(randomAddress, randomNftID), {
+				lockingModule: NFT_NOT_LOCKED,
+			});
+
 			await expect(
 				method.transferCrossChain(
 					methodContext,
-					lockedExistingNFT.owner,
+					randomAddress,
 					recipientAddress,
-					lockedExistingNFT.nftID,
+					randomNftID,
 					receivingChainID,
 					messageFee,
 					data,
 					includeAttributes,
 				),
-			).rejects.toThrow('NFT must be native either to the sending chain or the receiving chain');
+			).rejects.toThrow('NFT must be native to either the sending or the receiving chain');
+
 			checkEventResult<TransferCrossChainEventData>(
 				methodContext.eventQueue,
 				1,
 				TransferCrossChainEvent,
 				0,
 				{
-					senderAddress: lockedExistingNFT.owner,
+					senderAddress: randomAddress,
 					recipientAddress,
 					receivingChainID,
-					nftID: lockedExistingNFT.nftID,
+					nftID: randomNftID,
 					includeAttributes,
 				},
 				NftEventResult.RESULT_NFT_NOT_NATIVE,
@@ -1039,6 +1061,7 @@ describe('NFTMethod', () => {
 					includeAttributes,
 				),
 			).rejects.toThrow('Transfer not initiated by the NFT owner');
+
 			checkEventResult<TransferCrossChainEventData>(
 				methodContext.eventQueue,
 				1,
@@ -1069,6 +1092,7 @@ describe('NFTMethod', () => {
 					includeAttributes,
 				),
 			).rejects.toThrow('Locked NFTs cannot be transferred');
+
 			checkEventResult<TransferCrossChainEventData>(
 				methodContext.eventQueue,
 				1,
@@ -1102,6 +1126,7 @@ describe('NFTMethod', () => {
 					includeAttributes,
 				),
 			).rejects.toThrow('Insufficient balance for the message fee');
+
 			checkEventResult<TransferCrossChainEventData>(
 				methodContext.eventQueue,
 				1,
@@ -1119,7 +1144,7 @@ describe('NFTMethod', () => {
 		});
 
 		it('should resolve if all params are valid', async () => {
-			jest.spyOn(internalMethod, 'transferCrossChainInternal');
+			jest.spyOn(internalMethod, 'transferCrossChain');
 			when(tokenMethod.getAvailableBalance)
 				.calledWith(methodContext, existingNFT.owner, messageFeeTokenID)
 				.mockResolvedValue(messageFee + BigInt(10));
@@ -1136,7 +1161,7 @@ describe('NFTMethod', () => {
 					includeAttributes,
 				),
 			).resolves.toBeUndefined();
-			expect(internalMethod['transferCrossChainInternal']).toHaveBeenCalledWith(
+			expect(internalMethod['transferCrossChain']).toHaveBeenCalledWith(
 				methodContext,
 				existingNFT.owner,
 				recipientAddress,
@@ -1613,6 +1638,7 @@ describe('NFTMethod', () => {
 			await expect(
 				method.recover(methodContext, terminatedChainID, Buffer.alloc(2, 2), storeKey, storeValue),
 			).rejects.toThrow('Invalid inputs');
+
 			checkEventResult<RecoverEventData>(
 				methodContext.eventQueue,
 				1,
@@ -1655,6 +1681,7 @@ describe('NFTMethod', () => {
 					Buffer.from('asfas'),
 				),
 			).rejects.toThrow('Invalid inputs');
+
 			checkEventResult<RecoverEventData>(
 				methodContext.eventQueue,
 				1,
@@ -1672,6 +1699,7 @@ describe('NFTMethod', () => {
 			await expect(
 				method.recover(methodContext, terminatedChainID, substorePrefix, storeKey, storeValue),
 			).rejects.toThrow('Recovery called by a foreign chain');
+
 			checkEventResult<RecoverEventData>(
 				methodContext.eventQueue,
 				1,
@@ -1695,6 +1723,7 @@ describe('NFTMethod', () => {
 			await expect(
 				method.recover(methodContext, terminatedChainID, substorePrefix, newStoreKey, storeValue),
 			).rejects.toThrow('NFT was not escrowed to terminated chain');
+
 			checkEventResult<RecoverEventData>(
 				methodContext.eventQueue,
 				1,
@@ -1718,6 +1747,7 @@ describe('NFTMethod', () => {
 			await expect(
 				method.recover(methodContext, terminatedChainID, substorePrefix, newStoreKey, storeValue),
 			).rejects.toThrow('Invalid account information');
+
 			checkEventResult<RecoverEventData>(
 				methodContext.eventQueue,
 				1,
@@ -1753,6 +1783,7 @@ describe('NFTMethod', () => {
 					newStoreValue,
 				),
 			).resolves.toBeUndefined();
+
 			checkEventResult<RecoverEventData>(
 				methodContext.eventQueue,
 				1,
@@ -1788,6 +1819,7 @@ describe('NFTMethod', () => {
 			await expect(
 				method.setAttributes(methodContext, module.name, nftID, attributes),
 			).rejects.toThrow('NFT substore entry does not exist');
+
 			checkEventResult<SetAttributesEventData>(
 				methodContext.eventQueue,
 				1,
@@ -1807,6 +1839,7 @@ describe('NFTMethod', () => {
 			await expect(
 				method.setAttributes(methodContext, module.name, existingNFT.nftID, attributes),
 			).resolves.toBeUndefined();
+
 			checkEventResult<SetAttributesEventData>(
 				methodContext.eventQueue,
 				1,
@@ -1845,6 +1878,7 @@ describe('NFTMethod', () => {
 					newAttributes,
 				),
 			).resolves.toBeUndefined();
+
 			checkEventResult<SetAttributesEventData>(
 				methodContext.eventQueue,
 				1,
