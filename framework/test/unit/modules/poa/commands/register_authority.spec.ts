@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { address, utils } from '@liskhq/lisk-cryptography';
 import { TransactionAttrs } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
@@ -32,6 +33,7 @@ import {
 	LENGTH_GENERATOR_KEY,
 	MODULE_NAME_POA,
 	POA_VALIDATOR_NAME_REGEX,
+	MAX_LENGTH_NAME,
 } from '../../../../../src/modules/poa/constants';
 
 import { registerAuthoritySchema } from '../../../../../src/modules/poa/schemas';
@@ -99,6 +101,71 @@ describe('RegisterAuthority', () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		validatorStore = poaModule.stores.get(ValidatorStore);
 		nameStore = poaModule.stores.get(NameStore);
+	});
+
+	describe('verifySchema', () => {
+		it(`should throw error when name is longer than ${MAX_LENGTH_NAME}`, () => {
+			expect(() =>
+				validator.validate(registerAuthorityCommand.schema, {
+					...registerAuthorityTransactionParams,
+					name: 'aaaaaaaaaaaaaaaaaaaaaaa',
+				}),
+			).toThrow(`Property '.name' must NOT have more than 20 characters`);
+		});
+
+		it(`should throw error when bls key shorter than ${LENGTH_BLS_KEY}`, () => {
+			expect(() =>
+				validator.validate(registerAuthorityCommand.schema, {
+					...registerAuthorityTransactionParams,
+					blsKey: utils.getRandomBytes(LENGTH_BLS_KEY - 1),
+				}),
+			).toThrow(`Property '.blsKey' minLength not satisfied`);
+		});
+
+		it(`should throw error when bls key longer than ${LENGTH_BLS_KEY}`, () => {
+			expect(() =>
+				validator.validate(registerAuthorityCommand.schema, {
+					...registerAuthorityTransactionParams,
+					blsKey: utils.getRandomBytes(LENGTH_BLS_KEY + 1),
+				}),
+			).toThrow(`Property '.blsKey' maxLength exceeded`);
+		});
+
+		it(`should throw error when proof of possession shorter than ${LENGTH_PROOF_OF_POSSESSION}`, () => {
+			expect(() =>
+				validator.validate(registerAuthorityCommand.schema, {
+					...registerAuthorityTransactionParams,
+					proofOfPossession: utils.getRandomBytes(LENGTH_PROOF_OF_POSSESSION - 1),
+				}),
+			).toThrow(`Property '.proofOfPossession' minLength not satisfied`);
+		});
+
+		it(`should throw error when proof of possession longer than ${LENGTH_PROOF_OF_POSSESSION}`, () => {
+			expect(() =>
+				validator.validate(registerAuthorityCommand.schema, {
+					...registerAuthorityTransactionParams,
+					proofOfPossession: utils.getRandomBytes(LENGTH_PROOF_OF_POSSESSION + 1),
+				}),
+			).toThrow(`Property '.proofOfPossession' maxLength exceeded`);
+		});
+
+		it(`should throw error when generator key shorter than ${LENGTH_GENERATOR_KEY}`, () => {
+			expect(() =>
+				validator.validate(registerAuthorityCommand.schema, {
+					...registerAuthorityTransactionParams,
+					generatorKey: utils.getRandomBytes(LENGTH_GENERATOR_KEY - 1),
+				}),
+			).toThrow(`Property '.generatorKey' minLength not satisfied`);
+		});
+
+		it(`should throw error when generator key longer than ${LENGTH_GENERATOR_KEY}`, () => {
+			expect(() =>
+				validator.validate(registerAuthorityCommand.schema, {
+					...registerAuthorityTransactionParams,
+					generatorKey: utils.getRandomBytes(LENGTH_GENERATOR_KEY + 1),
+				}),
+			).toThrow(`Property '.generatorKey' maxLength exceeded`);
+		});
 	});
 
 	describe('verify', () => {

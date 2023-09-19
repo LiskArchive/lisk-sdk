@@ -70,12 +70,11 @@ import {
 	equalUnlocking,
 	isUsername,
 	selectStandbyValidators,
-	shuffleValidatorList,
 	sortUnlocking,
 	getModuleConfig,
 	getValidatorWeight,
-	ValidatorWeight,
 	isSharingCoefficientSorted,
+	ValidatorWeight,
 } from './utils';
 import { ValidatorStore } from './stores/validator';
 import { GenesisDataStore } from './stores/genesis';
@@ -93,6 +92,7 @@ import { CommissionChangeEvent } from './events/commission_change';
 import { ClaimRewardsCommand } from './commands/claim_rewards';
 import { getMainchainID } from '../interoperability/utils';
 import { RewardsAssignedEvent } from './events/rewards_assigned';
+import { shuffleValidatorList } from '../utils';
 
 export class PoSModule extends BaseModule {
 	public method = new PoSMethod(this.stores, this.events);

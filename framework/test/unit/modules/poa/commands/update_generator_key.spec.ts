@@ -1,3 +1,18 @@
+/*
+ * Copyright © 2023 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { TransactionAttrs } from '@liskhq/lisk-chain';
 import { utils, address } from '@liskhq/lisk-cryptography';
@@ -73,6 +88,24 @@ describe('UpdateGeneratorKey', () => {
 				name: 'validator',
 			},
 		);
+	});
+
+	describe('verifySchema', () => {
+		it(`should throw error when generator key shorter than ${LENGTH_GENERATOR_KEY}`, () => {
+			expect(() =>
+				validator.validate(updateGeneratorKeyCommand.schema, {
+					generatorKey: utils.getRandomBytes(LENGTH_GENERATOR_KEY - 1),
+				}),
+			).toThrow(`Property '.generatorKey' minLength not satisfied`);
+		});
+
+		it(`should throw error when generator key longer than ${LENGTH_GENERATOR_KEY}`, () => {
+			expect(() =>
+				validator.validate(updateGeneratorKeyCommand.schema, {
+					generatorKey: utils.getRandomBytes(LENGTH_GENERATOR_KEY + 1),
+				}),
+			).toThrow(`Property '.generatorKey' maxLength exceeded`);
+		});
 	});
 
 	describe('verify', () => {
