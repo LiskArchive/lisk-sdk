@@ -25,10 +25,10 @@ export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
 	// Union type arguments on overloaded functions do not work in typescript.
 	// Relevant discussion: https://github.com/Microsoft/TypeScript/issues/23155
 	if (typeof input === 'string') {
-		return reverse(Buffer.from(input).slice(0, BUFFER_SIZE));
+		return reverse(Buffer.from(input).subarray(0, BUFFER_SIZE));
 	}
 
-	return reverse(Buffer.from(input).slice(0, BUFFER_SIZE));
+	return reverse(Buffer.from(input).subarray(0, BUFFER_SIZE));
 };
 
 export const getLegacyAddressFromPublicKey = (publicKey: Buffer): string => {

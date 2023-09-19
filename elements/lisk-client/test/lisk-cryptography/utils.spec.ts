@@ -214,7 +214,7 @@ describe('buffer', () => {
 			});
 
 			it('should be able to calculate the checkpoint from another checkpoint', () => {
-				const firstDistanceHashes = hashOnion(hashOnionBuffers[1].slice(), 1000, 1);
+				const firstDistanceHashes = hashOnion(hashOnionBuffers[1].subarray(), 1000, 1);
 				expect(firstDistanceHashes[0]).toEqual(hashOnionBuffers[0]);
 				expect(firstDistanceHashes[1000]).toEqual(hashOnionBuffers[1]);
 			});

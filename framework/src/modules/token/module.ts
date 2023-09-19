@@ -399,7 +399,7 @@ export class TokenModule extends BaseInteroperableModule {
 						);
 					}
 					for (const tokenID of supportedTokenIDsData.supportedTokenIDs) {
-						if (!tokenID.slice(0, CHAIN_ID_LENGTH).equals(supportedTokenIDsData.chainID)) {
+						if (!tokenID.subarray(0, CHAIN_ID_LENGTH).equals(supportedTokenIDsData.chainID)) {
 							throw new Error('supportedTokensSubstore tokenIDs must match the chainID.');
 						}
 					}
@@ -418,7 +418,7 @@ export class TokenModule extends BaseInteroperableModule {
 			lte: Buffer.alloc(ADDRESS_LENGTH + TOKEN_ID_LENGTH, 255),
 		});
 		for (const { key, value: user } of allUsers) {
-			const tokenID = key.slice(ADDRESS_LENGTH);
+			const tokenID = key.subarray(ADDRESS_LENGTH);
 			const [chainID] = splitTokenID(tokenID);
 			if (chainID.equals(context.chainID)) {
 				const existingSupply = computedSupply.get(tokenID) ?? BigInt(0);
@@ -435,7 +435,7 @@ export class TokenModule extends BaseInteroperableModule {
 			lte: Buffer.alloc(CHAIN_ID_LENGTH + TOKEN_ID_LENGTH, 255),
 		});
 		for (const { key, value } of allEscrows) {
-			const tokenID = key.slice(CHAIN_ID_LENGTH);
+			const tokenID = key.subarray(CHAIN_ID_LENGTH);
 			const existingSupply = computedSupply.get(tokenID) ?? BigInt(0);
 			computedSupply.set(tokenID, existingSupply + value.amount);
 		}
