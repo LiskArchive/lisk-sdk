@@ -38,7 +38,7 @@ export const createEventSchema = {
 		},
 		result: {
 			dataType: 'uint32',
-			fieldNumber: 4,
+			fieldNumber: 3,
 		},
 	},
 };
