@@ -176,7 +176,7 @@ describe('PoAModuleEndpoint', () => {
 
 			// Checking against name-sorted values
 			expect(validators[0].weight).toBe(currentSnapshot.validators[0].weight.toString());
-			expect(validators[1].weight).toBe('');
+			expect(validators[1].weight).toBe('0');
 		});
 	});
 

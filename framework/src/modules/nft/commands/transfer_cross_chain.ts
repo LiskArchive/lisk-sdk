@@ -33,7 +33,6 @@ export interface Params {
 	recipientAddress: Buffer;
 	data: string;
 	messageFee: bigint;
-	messageFeeTokenID: Buffer;
 	includeAttributes: boolean;
 }
 
@@ -90,10 +89,6 @@ export class TransferCrossChainCommand extends BaseCommand {
 			params.receivingChainID,
 		);
 
-		if (!params.messageFeeTokenID.equals(messageFeeTokenID)) {
-			throw new Error('Mismatching message fee Token ID');
-		}
-
 		if (!owner.equals(context.transaction.senderAddress)) {
 			throw new Error('Transfer not initiated by the NFT owner');
 		}
@@ -110,7 +105,7 @@ export class TransferCrossChainCommand extends BaseCommand {
 		const availableBalance = await this._tokenMethod.getAvailableBalance(
 			context.getMethodContext(),
 			context.transaction.senderAddress,
-			params.messageFeeTokenID,
+			messageFeeTokenID,
 		);
 
 		if (availableBalance < params.messageFee) {

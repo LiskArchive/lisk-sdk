@@ -13,13 +13,12 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { ValidatorWeightWithRoundHash } from './types';
-import { Validator } from './stores';
+import { ValidatorWeightWithRoundHash, ActiveValidator } from './types';
 
 // Same as pos/utils/shuffleValidatorList
 export const shuffleValidatorList = (
 	roundSeed: Buffer,
-	validators: Validator[],
+	validators: ActiveValidator[],
 ): ValidatorWeightWithRoundHash[] => {
 	const validatorsWithRoundHash: ValidatorWeightWithRoundHash[] = [];
 	for (const validator of validators) {
