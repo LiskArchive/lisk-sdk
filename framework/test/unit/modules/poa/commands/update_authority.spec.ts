@@ -120,6 +120,29 @@ describe('UpdateAuthority', () => {
 		});
 	});
 
+	describe('verifySchema', () => {
+		it('should throw error when length of newValidators is less than 1', () => {
+			expect(() =>
+				validator.validate(updateAuthorityCommand.schema, {
+					...updateAuthorityValidatorParams,
+					newValidators: [],
+				}),
+			).toThrow('must NOT have fewer than 1 items');
+		});
+
+		it('should throw error when length of newValidators is greater than MAX_NUM_VALIDATORS', () => {
+			expect(() =>
+				validator.validate(updateAuthorityCommand.schema, {
+					...updateAuthorityValidatorParams,
+					newValidators: Array.from(Array(MAX_NUM_VALIDATORS + 1).keys()).map(_ => ({
+						address: utils.getRandomBytes(20),
+						weight: BigInt(1),
+					})),
+				}),
+			).toThrow(`must NOT have more than ${MAX_NUM_VALIDATORS} items`);
+		});
+	});
+
 	describe('verify', () => {
 		let context: CommandVerifyContext<UpdateAuthorityParams>;
 		beforeEach(() => {
@@ -130,27 +153,6 @@ describe('UpdateAuthority', () => {
 					chainID,
 				})
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
-		});
-
-		it('should throw error when length of newValidators is less than 1', () => {
-			expect(() =>
-				validator.validate(updateAuthorityCommand.schema, {
-					...updateAuthorityValidatorParams,
-					newValidators: [],
-				}),
-			).toThrow('must NOT have fewer than 1 items');
-		});
-
-		it('should throw error when length of newValidators is greater than MAX_NUM_VALIDATORS', async () => {
-			expect(() =>
-				validator.validate(updateAuthorityCommand.schema, {
-					...updateAuthorityValidatorParams,
-					newValidators: Array.from(Array(MAX_NUM_VALIDATORS + 1).keys()).map(_ => ({
-						address: utils.getRandomBytes(20),
-						weight: BigInt(1),
-					})),
-				}),
-			).toThrow(`must NOT have more than ${MAX_NUM_VALIDATORS} items`);
 		});
 
 		it('should return error when newValidators are not lexicographically ordered', async () => {

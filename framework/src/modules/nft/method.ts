@@ -23,6 +23,7 @@ import {
 	LENGTH_ADDRESS,
 	LENGTH_CHAIN_ID,
 	LENGTH_COLLECTION_ID,
+	LENGTH_INDEX,
 	LENGTH_NFT_ID,
 	MAX_LENGTH_DATA,
 	NFT_NOT_LOCKED,
@@ -184,16 +185,8 @@ export class NFTMethod extends BaseMethod {
 		});
 	}
 
-	public async getCollectionID(
-		methodContext: ImmutableMethodContext,
-		nftID: Buffer,
-	): Promise<Buffer> {
-		const nftStore = this.stores.get(NFTStore);
-		const nftExists = await nftStore.has(methodContext, nftID);
-		if (!nftExists) {
-			throw new Error('NFT substore entry does not exist');
-		}
-		return nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
+	public getCollectionID(nftID: Buffer): Buffer {
+		return nftID.subarray(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
 	}
 
 	public async isNFTSupported(
@@ -220,7 +213,7 @@ export class NFTMethod extends BaseMethod {
 			if (supportedNFTsStoreData.supportedCollectionIDArray.length === 0) {
 				return true;
 			}
-			const collectionID = await this.getCollectionID(methodContext, nftID);
+			const collectionID = this.getCollectionID(nftID);
 			if (
 				supportedNFTsStoreData.supportedCollectionIDArray.some(id =>
 					collectionID.equals(id.collectionID),
@@ -273,12 +266,11 @@ export class NFTMethod extends BaseMethod {
 		methodContext: MethodContext,
 		collectionID: Buffer,
 	): Promise<bigint> {
-		const indexLength = LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID;
 		const nftStore = this.stores.get(NFTStore);
 
 		const nftStoreData = await nftStore.iterate(methodContext, {
-			gte: Buffer.concat([this._config.ownChainID, collectionID, Buffer.alloc(indexLength, 0)]),
-			lte: Buffer.concat([this._config.ownChainID, collectionID, Buffer.alloc(indexLength, 255)]),
+			gte: Buffer.concat([this._config.ownChainID, collectionID, Buffer.alloc(LENGTH_INDEX, 0)]),
+			lte: Buffer.concat([this._config.ownChainID, collectionID, Buffer.alloc(LENGTH_INDEX, 255)]),
 		});
 
 		if (nftStoreData.length === 0) {
@@ -312,7 +304,7 @@ export class NFTMethod extends BaseMethod {
 		}
 
 		const index = await this.getNextAvailableIndex(methodContext, collectionID);
-		const indexBytes = Buffer.alloc(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID);
+		const indexBytes = Buffer.alloc(LENGTH_INDEX);
 		indexBytes.writeBigInt64BE(index);
 
 		const nftID = Buffer.concat([this._config.ownChainID, collectionID, indexBytes]);
@@ -337,6 +329,10 @@ export class NFTMethod extends BaseMethod {
 	}
 
 	public async lock(methodContext: MethodContext, module: string, nftID: Buffer): Promise<void> {
+		if (module === NFT_NOT_LOCKED) {
+			throw new Error('Cannot be locked by NFT module');
+		}
+
 		const nftStore = this.stores.get(NFTStore);
 
 		const nftExists = await nftStore.has(methodContext, nftID);
