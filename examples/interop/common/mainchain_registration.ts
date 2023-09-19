@@ -130,7 +130,7 @@ export const registerMainchain = async (
 		enable: true,
 		password: 'lisk',
 	});
-	console.log('Authorize Mainchain:', authorizeMainchainResult);
+	console.log('Authorize Mainchain completed, result:', authorizeMainchainResult);
 
 	process.exit(0);
 };

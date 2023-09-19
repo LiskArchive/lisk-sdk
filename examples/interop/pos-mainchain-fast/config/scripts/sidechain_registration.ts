@@ -78,7 +78,7 @@ import { sidechainRegParams } from 'lisk-framework';
 			enable: true,
 			password: 'lisk',
 		});
-		console.log('Authorize Sidechain:', authorizeSideChainResult);
+		console.log('Authorize Sidechain completed, result:', authorizeSideChainResult);
 	}
 
 	process.exit(0);
