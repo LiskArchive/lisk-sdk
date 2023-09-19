@@ -92,6 +92,7 @@ describe('NFTMethod', () => {
 
 	let methodContext!: MethodContext;
 
+	const lockingModule = 'token';
 	const nftStore = module.stores.get(NFTStore);
 	const userStore = module.stores.get(UserStore);
 	const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
@@ -252,8 +253,6 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return the lockingModule for the owner of the NFT', async () => {
-			const lockingModule = 'nft';
-
 			await nftStore.save(methodContext, nftID, {
 				owner,
 				attributesArray: [],
@@ -626,8 +625,14 @@ describe('NFTMethod', () => {
 	});
 
 	describe('lock', () => {
+		it('should throw if provided locking module is "nft"', async () => {
+			await expect(method.lock(methodContext, NFT_NOT_LOCKED, existingNFT.nftID)).rejects.toThrow(
+				'Cannot be locked by NFT module',
+			);
+		});
+
 		it('should throw and log LockEvent if NFT does not exist', async () => {
-			await expect(method.lock(methodContext, module.name, nftID)).rejects.toThrow(
+			await expect(method.lock(methodContext, lockingModule, nftID)).rejects.toThrow(
 				'NFT substore entry does not exist',
 			);
 
@@ -637,7 +642,7 @@ describe('NFTMethod', () => {
 				LockEvent,
 				0,
 				{
-					module: module.name,
+					module: lockingModule,
 					nftID,
 				},
 				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
@@ -645,7 +650,7 @@ describe('NFTMethod', () => {
 		});
 
 		it('should throw and log LockEvent if NFT is escrowed', async () => {
-			await expect(method.lock(methodContext, module.name, escrowedNFT.nftID)).rejects.toThrow(
+			await expect(method.lock(methodContext, lockingModule, escrowedNFT.nftID)).rejects.toThrow(
 				'NFT is escrowed to another chain',
 			);
 
@@ -655,7 +660,7 @@ describe('NFTMethod', () => {
 				LockEvent,
 				0,
 				{
-					module: module.name,
+					module: lockingModule,
 					nftID: escrowedNFT.nftID,
 				},
 				NftEventResult.RESULT_NFT_ESCROWED,
@@ -664,7 +669,7 @@ describe('NFTMethod', () => {
 
 		it('should throw and log LockEvent if NFT is locked', async () => {
 			await expect(
-				method.lock(methodContext, module.name, lockedExistingNFT.nftID),
+				method.lock(methodContext, lockingModule, lockedExistingNFT.nftID),
 			).rejects.toThrow('NFT is already locked');
 
 			checkEventResult<LockEventData>(
@@ -673,7 +678,7 @@ describe('NFTMethod', () => {
 				LockEvent,
 				0,
 				{
-					module: module.name,
+					module: lockingModule,
 					nftID: lockedExistingNFT.nftID,
 				},
 				NftEventResult.RESULT_NFT_LOCKED,
@@ -698,12 +703,12 @@ describe('NFTMethod', () => {
 				NftEventResult.RESULT_SUCCESSFUL,
 			);
 
-			const { lockingModule } = await userStore.get(
+			const { lockingModule: actualLockingModule } = await userStore.get(
 				methodContext,
 				userStore.getKey(existingNFT.owner, existingNFT.nftID),
 			);
 
-			expect(lockingModule).toEqual(expectedLockingModule);
+			expect(actualLockingModule).toEqual(expectedLockingModule);
 		});
 	});
 
@@ -785,12 +790,12 @@ describe('NFTMethod', () => {
 				NftEventResult.RESULT_SUCCESSFUL,
 			);
 
-			const { lockingModule } = await userStore.get(
+			const { lockingModule: expectedLockingModule } = await userStore.get(
 				methodContext,
 				userStore.getKey(lockedExistingNFT.owner, lockedExistingNFT.nftID),
 			);
 
-			expect(lockingModule).toEqual(NFT_NOT_LOCKED);
+			expect(expectedLockingModule).toEqual(NFT_NOT_LOCKED);
 		});
 	});
 
