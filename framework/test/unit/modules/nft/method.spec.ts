@@ -1180,12 +1180,15 @@ describe('NFTMethod', () => {
 	describe('removeSupportAllNFTs', () => {
 		it('should remove all existing entries and log AllNFTsSupportRemovedEvent', async () => {
 			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-
-			await supportedNFTsStore.save(methodContext, utils.getRandomBytes(LENGTH_CHAIN_ID), {
+			await supportedNFTsStore.save(methodContext, chainID, {
 				supportedCollectionIDArray: [],
 			});
 
+			await expect(supportedNFTsStore.has(methodContext, chainID)).resolves.toBeTrue();
 			await expect(method.removeSupportAllNFTs(methodContext)).resolves.toBeUndefined();
+			await expect(
+				supportedNFTsStore.has(methodContext, ALL_SUPPORTED_NFTS_KEY),
+			).resolves.toBeFalse();
 
 			await expect(supportedNFTsStore.has(methodContext, chainID)).resolves.toBeFalse();
 
