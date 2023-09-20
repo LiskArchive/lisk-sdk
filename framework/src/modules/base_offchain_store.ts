@@ -42,14 +42,14 @@ export abstract class BaseOffchainStore<T> {
 
 	public constructor(moduleName: string, version = 0) {
 		this._version = version;
-		this._storePrefix = utils.hash(Buffer.from(moduleName, 'utf-8')).slice(0, 4);
+		this._storePrefix = utils.hash(Buffer.from(moduleName, 'utf-8')).subarray(0, 4);
 		// eslint-disable-next-line no-bitwise
 		this._storePrefix[0] &= 0x7f;
 		const versionBuffer = Buffer.alloc(2);
 		versionBuffer.writeUInt16BE(this._version, 0);
 		this._subStorePrefix = utils
 			.hash(Buffer.concat([Buffer.from(this.name, 'utf-8'), versionBuffer]))
-			.slice(0, 2);
+			.subarray(0, 2);
 	}
 
 	public async get(ctx: ImmutableOffchainStoreGetter, key: Buffer): Promise<T> {

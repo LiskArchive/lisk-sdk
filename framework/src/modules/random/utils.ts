@@ -35,7 +35,7 @@ export const isSeedValidInput = (
 	if (!lastSeed) {
 		return !previousSeedRequired;
 	}
-	return lastSeed.seedReveal.equals(utils.hash(seedReveal).slice(0, SEED_LENGTH));
+	return lastSeed.seedReveal.equals(utils.hash(seedReveal).subarray(0, SEED_LENGTH));
 };
 
 export const getRandomSeed = (
@@ -51,7 +51,7 @@ export const getRandomSeed = (
 	}
 
 	const initRandomBuffer = utils.intToBuffer(height + numberOfSeeds, 4);
-	const currentSeeds = [utils.hash(initRandomBuffer).slice(0, 16)];
+	const currentSeeds = [utils.hash(initRandomBuffer).subarray(0, 16)];
 	let isInFuture = true;
 
 	for (const validatorReveal of validatorsReveal) {
