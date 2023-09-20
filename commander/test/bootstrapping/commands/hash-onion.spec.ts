@@ -44,7 +44,7 @@ describe('hash-onion command', () => {
 			for (let i = 0; i < result.hashes.length - 1; i += 1) {
 				let nextHash = Buffer.from(result.hashes[i + 1], 'hex');
 				for (let j = 0; j < result.distance; j += 1) {
-					nextHash = cryptography.utils.hash(nextHash).slice(0, 16);
+					nextHash = cryptography.utils.hash(nextHash).subarray(0, 16);
 				}
 				expect(result.hashes[i]).toBe(nextHash.toString('hex'));
 			}

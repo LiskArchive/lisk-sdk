@@ -374,7 +374,7 @@ describe('PoSMethod', () => {
 			const eligibleValidators = await pos.stores
 				.get(EligibleValidatorsStore)
 				.getAll(methodContext);
-			expect(eligibleValidators.find(v => v.key.slice(8).equals(address))).toBeDefined();
+			expect(eligibleValidators.find(v => v.key.subarray(8).equals(address))).toBeDefined();
 		});
 
 		it('should reject changing status if the validator does not exist', async () => {

@@ -19,8 +19,8 @@ export const splitTokenID = (tokenID: TokenID): [Buffer, Buffer] => {
 	if (tokenID.length !== TOKEN_ID_LENGTH) {
 		throw new Error(`Token ID must have length ${TOKEN_ID_LENGTH}`);
 	}
-	const chainID = tokenID.slice(0, CHAIN_ID_LENGTH);
-	const localID = tokenID.slice(CHAIN_ID_LENGTH);
+	const chainID = tokenID.subarray(0, CHAIN_ID_LENGTH);
+	const localID = tokenID.subarray(CHAIN_ID_LENGTH);
 
 	return [chainID, localID];
 };
