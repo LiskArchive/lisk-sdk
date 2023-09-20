@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+/* eslint-disable max-classes-per-file */
 import { codec } from '@liskhq/lisk-codec';
 import { BaseMethod } from '../base_method';
 import { NFTStore, NFTAttributes } from './stores/nft';
@@ -25,10 +26,21 @@ import {
 	MAX_LENGTH_DATA,
 	MODULE_NAME_NFT,
 	NFT_NOT_LOCKED,
+	NftErrorEventResult,
+	NftEventResult,
 } from './constants';
 import { EscrowStore } from './stores/escrow';
 import { TransferCrossChainEvent } from './events/transfer_cross_chain';
 import { crossChainNFTTransferMessageParamsSchema } from './schemas';
+
+export class TransferVerifyError extends Error {
+	public code: NftErrorEventResult;
+
+	public constructor(message: string, code: NftErrorEventResult) {
+		super(message);
+		this.code = code;
+	}
+}
 
 export class InternalMethod extends BaseMethod {
 	private _config!: ModuleConfig;
@@ -102,17 +114,26 @@ export class InternalMethod extends BaseMethod {
 		const owner = await this._nftMethod.getNFTOwner(immutableMethodContext, nftID);
 
 		if (owner.length === LENGTH_CHAIN_ID) {
-			throw new Error('NFT is escrowed to another chain');
+			throw new TransferVerifyError(
+				'NFT is escrowed to another chain',
+				NftEventResult.RESULT_NFT_ESCROWED,
+			);
 		}
 
 		if (!owner.equals(senderAddress)) {
-			throw new Error('Transfer not initiated by the NFT owner');
+			throw new TransferVerifyError(
+				'Transfer not initiated by the NFT owner',
+				NftEventResult.RESULT_INITIATED_BY_NONOWNER,
+			);
 		}
 
 		const lockingModule = await this._nftMethod.getLockingModule(immutableMethodContext, nftID);
 
 		if (lockingModule !== NFT_NOT_LOCKED) {
-			throw new Error('Locked NFTs cannot be transferred');
+			throw new TransferVerifyError(
+				'Locked NFTs cannot be transferred',
+				NftEventResult.RESULT_NFT_LOCKED,
+			);
 		}
 	}
 
@@ -126,19 +147,25 @@ export class InternalMethod extends BaseMethod {
 		data: string,
 	) {
 		if (receivingChainID.equals(sendingChainID)) {
-			throw new Error('Receiving chain cannot be the sending chain');
+			throw new TransferVerifyError(
+				'Receiving chain cannot be the sending chain',
+				NftEventResult.INVALID_RECEIVING_CHAIN,
+			);
 		}
 
 		// perform checks that are common for same-chain and cross-chain transfers
 		await this.verifyTransfer(immutableMethodContext, senderAddress, nftID);
 
 		if (data.length > MAX_LENGTH_DATA) {
-			throw new Error('Data field is too long');
+			throw new TransferVerifyError('Data field is too long', NftEventResult.RESULT_DATA_TOO_LONG);
 		}
 
 		const nftChainID = this._nftMethod.getChainID(nftID);
 		if (!nftChainID.equals(sendingChainID) && !nftChainID.equals(receivingChainID)) {
-			throw new Error('NFT must be native to either the sending or the receiving chain');
+			throw new TransferVerifyError(
+				'NFT must be native to either the sending or the receiving chain',
+				NftEventResult.RESULT_NFT_NOT_NATIVE,
+			);
 		}
 
 		const messageFeeTokenID = await this._interoperabilityMethod.getMessageFeeTokenID(
@@ -152,7 +179,10 @@ export class InternalMethod extends BaseMethod {
 			messageFeeTokenID,
 		);
 		if (availableBalance < messageFee) {
-			throw new Error('Insufficient balance for the message fee');
+			throw new TransferVerifyError(
+				'Insufficient balance for the message fee',
+				NftEventResult.RESULT_INSUFFICIENT_BALANCE,
+			);
 		}
 	}
 

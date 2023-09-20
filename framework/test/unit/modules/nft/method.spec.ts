@@ -86,8 +86,8 @@ describe('NFTMethod', () => {
 	};
 	const config = {
 		ownChainID: Buffer.alloc(LENGTH_CHAIN_ID, 1),
-		escrowAccountInitializationFee: BigInt(50000000),
-		userAccountInitializationFee: BigInt(50000000),
+		escrowAccountInitializationFee: BigInt(50_000_000),
+		userAccountInitializationFee: BigInt(50_000_000),
 	};
 
 	let methodContext!: MethodContext;
@@ -114,12 +114,13 @@ describe('NFTMethod', () => {
 		expectedResult: EventDataType,
 		result: any = 0,
 	) => {
-		expect(eventQueue.getEvents()).toHaveLength(length);
-		expect(eventQueue.getEvents()[index].toObject().name).toEqual(new EventClass('nft').name);
+		const events = eventQueue.getEvents();
+		expect(events).toHaveLength(length);
+		expect(events[index].toObject().name).toEqual(new EventClass('nft').name);
 
 		const eventData = codec.decode<Record<string, unknown>>(
 			new EventClass('nft').schema,
-			eventQueue.getEvents()[index].toObject().data,
+			events[index].toObject().data,
 		);
 
 		if (result !== null) {

@@ -26,7 +26,6 @@ import {
 	LENGTH_INDEX,
 	LENGTH_NFT_ID,
 	NFT_NOT_LOCKED,
-	NftErrorEventResult,
 	NftEventResult,
 } from './constants';
 import { UserStore } from './stores/user';
@@ -35,7 +34,7 @@ import { SupportedNFTsStore } from './stores/supported_nfts';
 import { CreateEvent } from './events/create';
 import { LockEvent } from './events/lock';
 import { TransferEvent } from './events/transfer';
-import { InternalMethod } from './internal_method';
+import { InternalMethod, TransferVerifyError } from './internal_method';
 import { TransferCrossChainEvent } from './events/transfer_cross_chain';
 import { AllNFTsSupportedEvent } from './events/all_nfts_supported';
 import { AllNFTsSupportRemovedEvent } from './events/all_nfts_support_removed';
@@ -463,7 +462,7 @@ export class NFTMethod extends BaseMethod {
 					recipientAddress,
 					nftID,
 				},
-				this._getNftEventResult((error as Error).message),
+				(error as TransferVerifyError).code,
 			);
 
 			throw error;
@@ -504,7 +503,7 @@ export class NFTMethod extends BaseMethod {
 					nftID,
 					includeAttributes,
 				},
-				this._getNftEventResult((error as Error).message),
+				(error as TransferVerifyError).code,
 			);
 
 			throw error;
@@ -855,29 +854,5 @@ export class NFTMethod extends BaseMethod {
 			nftID,
 			attributes,
 		});
-	}
-
-	private _getNftEventResult(message: string): NftErrorEventResult {
-		switch (message) {
-			case 'NFT substore entry does not exist':
-				return NftEventResult.RESULT_NFT_DOES_NOT_EXIST;
-			case 'NFT is escrowed to another chain':
-				return NftEventResult.RESULT_NFT_ESCROWED;
-			case 'Transfer not initiated by the NFT owner':
-				return NftEventResult.RESULT_INITIATED_BY_NONOWNER;
-			case 'Locked NFTs cannot be transferred':
-				return NftEventResult.RESULT_NFT_LOCKED;
-			case 'Receiving chain cannot be the sending chain':
-				return NftEventResult.INVALID_RECEIVING_CHAIN;
-			case 'Data field is too long':
-				return NftEventResult.RESULT_DATA_TOO_LONG;
-			case 'NFT must be native to either the sending or the receiving chain':
-				return NftEventResult.RESULT_NFT_NOT_NATIVE;
-			case 'Insufficient balance for the message fee':
-				return NftEventResult.RESULT_INSUFFICIENT_BALANCE;
-
-			default:
-				return NftEventResult.UNKNOWN_ERROR;
-		}
 	}
 }
