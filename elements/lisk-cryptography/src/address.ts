@@ -54,7 +54,7 @@ const convertUInt5ToBase32 = (uint5Array: number[]): string =>
 
 export const getAddressFromPublicKey = (publicKey: Buffer): Buffer => {
 	const buffer = hash(publicKey);
-	const truncatedBuffer = buffer.slice(0, BINARY_ADDRESS_LENGTH);
+	const truncatedBuffer = buffer.subarray(0, BINARY_ADDRESS_LENGTH);
 
 	if (truncatedBuffer.length !== BINARY_ADDRESS_LENGTH) {
 		throw new Error(`Lisk address must contain exactly ${BINARY_ADDRESS_LENGTH} bytes`);
