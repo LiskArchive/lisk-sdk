@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseMethod } from '../base_method';
 import { FeeMethod, InteroperabilityMethod, ModuleConfig, TokenMethod } from './types';
@@ -895,18 +896,19 @@ export class NFTMethod extends BaseMethod {
 	): Promise<void> {
 		const nftStore = this.stores.get(NFTStore);
 		const nftID = storeKey;
-		let isDecodable = true;
+		let isValidInput = true;
 		let decodedValue: NFTStoreData;
 		try {
 			decodedValue = codec.decode<NFTStoreData>(nftStoreSchema, storeValue);
+			validator.validate(nftStoreSchema, decodedValue);
 		} catch (error) {
-			isDecodable = false;
+			isValidInput = false;
 		}
 
 		if (
 			!substorePrefix.equals(nftStore.subStorePrefix) ||
 			storeKey.length !== LENGTH_NFT_ID ||
-			!isDecodable
+			!isValidInput
 		) {
 			this.events.get(RecoverEvent).error(
 				methodContext,
