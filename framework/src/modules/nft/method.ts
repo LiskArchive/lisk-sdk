@@ -74,12 +74,15 @@ export class NFTMethod extends BaseMethod {
 		const nftExists = await nftStore.has(methodContext, nftID);
 
 		if (!nftExists) {
-			throw new Error('NFT substore entry does not exist');
+			throw new TransferVerifyError(
+				'NFT substore entry does not exist',
+				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+			);
 		}
 
-		const data = await nftStore.get(methodContext, nftID);
+		const nft = await nftStore.get(methodContext, nftID);
 
-		return data.owner;
+		return nft.owner;
 	}
 
 	public async getLockingModule(
@@ -226,8 +229,8 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('NFT substore entry does not exist');
 		}
 
-		const storeData = await nftStore.get(methodContext, nftID);
-		return storeData.attributesArray;
+		const nft = await nftStore.get(methodContext, nftID);
+		return nft.attributesArray;
 	}
 
 	public async getAttributes(
@@ -241,9 +244,9 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('NFT substore entry does not exist');
 		}
 
-		const storeData = await nftStore.get(methodContext, nftID);
+		const nft = await nftStore.get(methodContext, nftID);
 
-		for (const nftAttributes of storeData.attributesArray) {
+		for (const nftAttributes of nft.attributesArray) {
 			if (nftAttributes.module === module) {
 				return nftAttributes.attributes;
 			}
@@ -400,14 +403,14 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('NFT substore entry does not exist');
 		}
 
-		const nftData = await nftStore.get(methodContext, nftID);
+		const nft = await nftStore.get(methodContext, nftID);
 
-		if (nftData.owner.length === LENGTH_CHAIN_ID) {
+		if (nft.owner.length === LENGTH_CHAIN_ID) {
 			throw new Error('NFT is escrowed to another chain');
 		}
 
 		const userStore = this.stores.get(UserStore);
-		const userKey = userStore.getKey(nftData.owner, nftID);
+		const userKey = userStore.getKey(nft.owner, nftID);
 		const userData = await userStore.get(methodContext, userKey);
 
 		if (userData.lockingModule === NFT_NOT_LOCKED) {
@@ -774,8 +777,8 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('Recovery called by a foreign chain');
 		}
 
-		const nftData = await nftStore.get(methodContext, nftID);
-		if (!nftData.owner.equals(terminatedChainID)) {
+		const nft = await nftStore.get(methodContext, nftID);
+		if (!nft.owner.equals(terminatedChainID)) {
 			this.events.get(RecoverEvent).error(
 				methodContext,
 				{
@@ -802,17 +805,17 @@ export class NFTMethod extends BaseMethod {
 		}
 
 		const escrowStore = this.stores.get(EscrowStore);
-		nftData.owner = storeValueOwner;
-		const storedAttributes = nftData.attributesArray;
+		nft.owner = storeValueOwner;
+		const storedAttributes = nft.attributesArray;
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const receivedAttributes = decodedValue!.attributesArray;
-		nftData.attributesArray = this._internalMethod.getNewAttributes(
+		nft.attributesArray = this._internalMethod.getNewAttributes(
 			nftID,
 			storedAttributes,
 			receivedAttributes,
 		);
-		await nftStore.save(methodContext, nftID, nftData);
-		await this._internalMethod.createUserEntry(methodContext, nftData.owner, nftID);
+		await nftStore.save(methodContext, nftID, nft);
+		await this._internalMethod.createUserEntry(methodContext, nft.owner, nftID);
 		await escrowStore.del(methodContext, escrowStore.getKey(terminatedChainID, nftID));
 
 		this.events.get(RecoverEvent).log(methodContext, {
@@ -841,14 +844,14 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('NFT substore entry does not exist');
 		}
 
-		const nftData = await nftStore.get(methodContext, nftID);
-		const index = nftData.attributesArray.findIndex(attr => attr.module === module);
+		const nft = await nftStore.get(methodContext, nftID);
+		const index = nft.attributesArray.findIndex(attr => attr.module === module);
 		if (index > -1) {
-			nftData.attributesArray[index] = { module, attributes };
+			nft.attributesArray[index] = { module, attributes };
 		} else {
-			nftData.attributesArray.push({ module, attributes });
+			nft.attributesArray.push({ module, attributes });
 		}
-		await nftStore.save(methodContext, nftID, nftData);
+		await nftStore.save(methodContext, nftID, nft);
 
 		this.events.get(SetAttributesEvent).log(methodContext, {
 			nftID,
