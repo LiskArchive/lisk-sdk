@@ -711,6 +711,8 @@ export class NFTMethod extends BaseMethod {
 			await supportedNFTsStore.del(methodContext, key);
 		}
 
+		await supportedNFTsStore.del(methodContext, ALL_SUPPORTED_NFTS_KEY);
+
 		this.events.get(AllNFTsSupportRemovedEvent).log(methodContext);
 	}
 
