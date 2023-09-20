@@ -76,7 +76,7 @@ export class NFTMethod extends BaseMethod {
 			throw new Error(`NFT ID must have length ${LENGTH_NFT_ID}`);
 		}
 
-		return nftID.slice(0, LENGTH_CHAIN_ID);
+		return nftID.subarray(0, LENGTH_CHAIN_ID);
 	}
 
 	public async getNFTOwner(methodContext: ImmutableMethodContext, nftID: Buffer): Promise<Buffer> {
@@ -279,7 +279,7 @@ export class NFTMethod extends BaseMethod {
 		}
 
 		const latestKey = nftStoreData[nftStoreData.length - 1].key;
-		const indexBytes = latestKey.slice(LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID, LENGTH_NFT_ID);
+		const indexBytes = latestKey.subarray(LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID, LENGTH_NFT_ID);
 		const index = indexBytes.readBigUInt64BE();
 		const largestIndex = BigInt(BigInt(2 ** 64) - BigInt(1));
 

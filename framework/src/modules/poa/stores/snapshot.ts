@@ -15,10 +15,6 @@ import { BaseStore } from '../../base_store';
 import { NUM_BYTES_ADDRESS } from '../constants';
 import { ActiveValidator } from '../types';
 
-export interface Validator {
-	address: Buffer;
-	weight: bigint;
-}
 export interface SnapshotObject {
 	validators: ActiveValidator[];
 	threshold: bigint;

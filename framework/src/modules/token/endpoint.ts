@@ -52,7 +52,7 @@ export class TokenEndpoint extends BaseEndpoint {
 
 		return {
 			balances: userData.map(({ key, value: user }) => ({
-				tokenID: key.slice(20).toString('hex'),
+				tokenID: key.subarray(20).toString('hex'),
 				availableBalance: user.availableBalance.toString(),
 				lockedBalances: user.lockedBalances.map(b => ({
 					amount: b.amount.toString(),
@@ -120,7 +120,7 @@ export class TokenEndpoint extends BaseEndpoint {
 
 		// main chain token
 		const mainchainTokenID = Buffer.concat([
-			context.chainID.slice(0, 1),
+			context.chainID.subarray(0, 1),
 			Buffer.alloc(TOKEN_ID_LENGTH - 1, 0),
 		]);
 		supportedTokens.push(mainchainTokenID.toString('hex'));
@@ -168,8 +168,8 @@ export class TokenEndpoint extends BaseEndpoint {
 		});
 		return {
 			escrowedAmounts: escrowData.map(({ key, value: escrow }) => {
-				const escrowChainID = key.slice(0, CHAIN_ID_LENGTH);
-				const tokenID = key.slice(CHAIN_ID_LENGTH);
+				const escrowChainID = key.subarray(0, CHAIN_ID_LENGTH);
+				const tokenID = key.subarray(CHAIN_ID_LENGTH);
 				return {
 					escrowChainID: escrowChainID.toString('hex'),
 					amount: escrow.amount.toString(),
