@@ -11,6 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import { MAX_SINT32, MAX_SINT64, MAX_UINT32, MAX_UINT64 } from '@liskhq/lisk-validator';
+
 import {
 	writeUInt32,
 	writeSInt32,
@@ -24,6 +27,22 @@ import {
 
 describe('varint', () => {
 	describe('writer', () => {
+		it('should fail to encode uint32 when input is out of range', () => {
+			expect(() => writeUInt32(MAX_UINT32 + 1)).toThrow('Value out of range of uint32');
+		});
+
+		it('should fail to encode uint64 when input is out of range', () => {
+			expect(() => writeUInt64(MAX_UINT64 + BigInt(1))).toThrow('Value out of range of uint64');
+		});
+
+		it('should fail to encode sint32 when input is out of range', () => {
+			expect(() => writeSInt32(MAX_SINT32 + 1)).toThrow('Value out of range of sint32');
+		});
+
+		it('should fail to encode sint64 when input is out of range', () => {
+			expect(() => writeSInt64(MAX_SINT64 + BigInt(1))).toThrow('Value out of range of sint64');
+		});
+
 		it('should encode uint32', () => {
 			expect(writeUInt32(0)).toEqual(Buffer.from('00', 'hex'));
 			expect(writeUInt32(300)).toEqual(Buffer.from('ac02', 'hex'));

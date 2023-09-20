@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator } from '@liskhq/lisk-validator';
 import { crossChainTransferParamsSchema } from '../schemas';
 import { NFTMethod } from '../method';
 import { InteroperabilityMethod, TokenMethod } from '../types';
@@ -53,8 +52,6 @@ export class TransferCrossChainCommand extends BaseCommand {
 	): Promise<VerificationResult> {
 		const { params } = context;
 		const { senderAddress } = context.transaction;
-
-		validator.validate(this.schema, params);
 
 		try {
 			// perform checks that are common for same-chain and cross-chain transfers
