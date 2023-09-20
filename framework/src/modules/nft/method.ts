@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { BaseMethod } from '../base_method';
-import { FeeMethod, InteroperabilityMethod, ModuleConfig } from './types';
+import { FeeMethod, ModuleConfig } from './types';
 import { NFTAttributes, NFTStore, NFTStoreData, nftStoreSchema } from './stores/nft';
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import {
@@ -49,7 +49,6 @@ import { SetAttributesEvent } from './events/set_attributes';
 
 export class NFTMethod extends BaseMethod {
 	private _config!: ModuleConfig;
-	private _interoperabilityMethod!: InteroperabilityMethod;
 	private _internalMethod!: InternalMethod;
 	private _feeMethod!: FeeMethod;
 
@@ -57,12 +56,7 @@ export class NFTMethod extends BaseMethod {
 		this._config = config;
 	}
 
-	public addDependencies(
-		interoperabilityMethod: InteroperabilityMethod,
-		internalMethod: InternalMethod,
-		feeMethod: FeeMethod,
-	) {
-		this._interoperabilityMethod = interoperabilityMethod;
+	public addDependencies(internalMethod: InternalMethod, feeMethod: FeeMethod) {
 		this._internalMethod = internalMethod;
 		this._feeMethod = feeMethod;
 	}
@@ -488,11 +482,6 @@ export class NFTMethod extends BaseMethod {
 		data: string,
 		includeAttributes: boolean,
 	): Promise<void> {
-		const messageFeeTokenID = await this._interoperabilityMethod.getMessageFeeTokenID(
-			methodContext,
-			receivingChainID,
-		);
-
 		try {
 			await this._internalMethod.verifyTransfer(methodContext, senderAddress, nftID);
 
@@ -503,7 +492,6 @@ export class NFTMethod extends BaseMethod {
 				this._internalMethod.getOwnChainID(),
 				receivingChainID,
 				messageFee,
-				messageFeeTokenID,
 				data,
 			);
 		} catch (error) {

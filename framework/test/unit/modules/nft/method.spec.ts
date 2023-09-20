@@ -133,7 +133,7 @@ describe('NFTMethod', () => {
 	let escrowedNFT: { nftID: any; owner: any };
 
 	beforeEach(async () => {
-		method.addDependencies(interopMethod, internalMethod, feeMethod);
+		method.addDependencies(internalMethod, feeMethod);
 		method.init(config);
 		internalMethod.addDependencies(method, interopMethod, tokenMethod);
 		internalMethod.init(config);
@@ -547,7 +547,7 @@ describe('NFTMethod', () => {
 		const address = utils.getRandomBytes(LENGTH_ADDRESS);
 
 		beforeEach(() => {
-			method.addDependencies(interopMethod, internalMethod, feeMethod);
+			method.addDependencies(internalMethod, feeMethod);
 			jest.spyOn(feeMethod, 'payFee');
 		});
 

@@ -134,7 +134,7 @@ export class NFTModule extends BaseInteroperableModule {
 		this._interoperabilityMethod = interoperabilityMethod;
 		this._feeMethod = feeMethod;
 		this._tokenMethod = tokenMethod;
-		this.method.addDependencies(interoperabilityMethod, this._internalMethod, feeMethod);
+		this.method.addDependencies(this._internalMethod, feeMethod);
 		this._internalMethod.addDependencies(this.method, this._interoperabilityMethod, tokenMethod);
 		this.crossChainMethod.addDependencies(interoperabilityMethod);
 		this.endpoint.addDependencies(this.method);

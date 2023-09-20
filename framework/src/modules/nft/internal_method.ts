@@ -123,7 +123,6 @@ export class InternalMethod extends BaseMethod {
 		sendingChainID: Buffer,
 		receivingChainID: Buffer,
 		messageFee: bigint,
-		messageFeeTokenID: Buffer,
 		data: string,
 	) {
 		if (receivingChainID.equals(sendingChainID)) {
@@ -142,13 +141,10 @@ export class InternalMethod extends BaseMethod {
 			throw new Error('NFT must be native to either the sending or the receiving chain');
 		}
 
-		const expectedMessageFeeTokenID = await this._interoperabilityMethod.getMessageFeeTokenID(
+		const messageFeeTokenID = await this._interoperabilityMethod.getMessageFeeTokenID(
 			immutableMethodContext,
 			receivingChainID,
 		);
-		if (!messageFeeTokenID.equals(expectedMessageFeeTokenID)) {
-			throw new Error('Mismatching message fee Token ID');
-		}
 
 		const availableBalance = await this._tokenMethod.getAvailableBalance(
 			immutableMethodContext,

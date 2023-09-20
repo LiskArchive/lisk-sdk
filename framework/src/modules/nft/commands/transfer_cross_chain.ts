@@ -71,7 +71,6 @@ export class TransferCrossChainCommand extends BaseCommand {
 				context.chainID,
 				params.receivingChainID,
 				params.messageFee,
-				params.messageFeeTokenID,
 				params.data,
 			);
 		} catch (error) {
