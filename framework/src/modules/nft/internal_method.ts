@@ -16,7 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { BaseMethod } from '../base_method';
 import { NFTStore, NFTAttributes } from './stores/nft';
 import { InteroperabilityMethod, ModuleConfig, NFTMethod } from './types';
-import { MethodContext } from '../../state_machine';
+import { GenesisBlockExecuteContext, MethodContext } from '../../state_machine';
 import { TransferEvent } from './events/transfer';
 import { UserStore } from './stores/user';
 import { CROSS_CHAIN_COMMAND_NAME_TRANSFER, MODULE_NAME_NFT, NFT_NOT_LOCKED } from './constants';
@@ -39,7 +39,7 @@ export class InternalMethod extends BaseMethod {
 	}
 
 	public async createEscrowEntry(
-		methodContext: MethodContext,
+		methodContext: MethodContext | GenesisBlockExecuteContext,
 		receivingChainID: Buffer,
 		nftID: Buffer,
 	): Promise<void> {
@@ -49,7 +49,7 @@ export class InternalMethod extends BaseMethod {
 	}
 
 	public async createUserEntry(
-		methodContext: MethodContext,
+		methodContext: MethodContext | GenesisBlockExecuteContext,
 		address: Buffer,
 		nftID: Buffer,
 	): Promise<void> {
@@ -61,17 +61,13 @@ export class InternalMethod extends BaseMethod {
 	}
 
 	public async createNFTEntry(
-		methodContext: MethodContext,
+		methodContext: MethodContext | GenesisBlockExecuteContext,
 		address: Buffer,
 		nftID: Buffer,
 		attributesArray: NFTAttributes[],
 	): Promise<void> {
-		const moduleNames = [];
-		for (const item of attributesArray) {
-			moduleNames.push(item.module);
-		}
-
-		if (new Set(moduleNames).size !== attributesArray.length) {
+		const hasDuplicates = this.hasDuplicateModuleNames(attributesArray);
+		if (hasDuplicates) {
 			throw new Error('Invalid attributes array provided');
 		}
 
@@ -80,6 +76,15 @@ export class InternalMethod extends BaseMethod {
 			owner: address,
 			attributesArray,
 		});
+	}
+
+	public hasDuplicateModuleNames(attributesArray: NFTAttributes[]): boolean {
+		const moduleNames = [];
+		for (const item of attributesArray) {
+			moduleNames.push(item.module);
+		}
+
+		return new Set(moduleNames).size !== attributesArray.length;
 	}
 
 	public async transferInternal(
