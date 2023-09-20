@@ -37,8 +37,8 @@ export const getPublicKeyFromPrivateKey = (pk: Buffer): Buffer => getPublicKey(p
 const getMasterKeyFromSeed = (seed: Buffer) => {
 	const hmac = crypto.createHmac('sha512', ED25519_CURVE);
 	const digest = hmac.update(seed).digest();
-	const leftBytes = digest.slice(0, 32);
-	const rightBytes = digest.slice(32);
+	const leftBytes = digest.subarray(0, 32);
+	const rightBytes = digest.subarray(32);
 	return {
 		key: leftBytes,
 		chainCode: rightBytes,
@@ -50,8 +50,8 @@ const getChildKey = (node: { key: Buffer; chainCode: Buffer }, index: number) =>
 	indexBuffer.writeUInt32BE(index, 0);
 	const data = Buffer.concat([Buffer.alloc(1, 0), node.key, indexBuffer]);
 	const digest = crypto.createHmac('sha512', node.chainCode).update(data).digest();
-	const leftBytes = digest.slice(0, 32);
-	const rightBytes = digest.slice(32);
+	const leftBytes = digest.subarray(0, 32);
+	const rightBytes = digest.subarray(32);
 
 	return {
 		key: leftBytes,

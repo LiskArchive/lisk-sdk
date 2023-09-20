@@ -42,8 +42,8 @@ export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpo
 		validator.validate(isChainIDAvailableRequestSchema, context.params);
 		const chainID = Buffer.from(context.params.chainID as string, 'hex');
 		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
-		const networkID = chainID.slice(0, 1);
-		const ownChainNetworkID = ownChainAccount.chainID.slice(0, 1);
+		const networkID = chainID.subarray(0, 1);
+		const ownChainNetworkID = ownChainAccount.chainID.subarray(0, 1);
 		// Only mainchain network IDs are available
 		if (!networkID.equals(ownChainNetworkID)) {
 			return {

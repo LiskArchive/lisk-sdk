@@ -131,7 +131,7 @@ describe('token module', () => {
 		const escrowStore = tokenModule.stores.get(EscrowStore);
 		await escrowStore.set(
 			methodContext,
-			Buffer.concat([defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH), defaultTokenID]),
+			Buffer.concat([defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH), defaultTokenID]),
 			{ amount: defaultEscrowAmount },
 		);
 	});
@@ -202,7 +202,7 @@ describe('token module', () => {
 			await expect(
 				method.getEscrowedAmount(
 					methodContext,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					defaultForeignTokenID,
 				),
 			).rejects.toThrow('Only native token can have escrow amount');
@@ -218,7 +218,7 @@ describe('token module', () => {
 			await expect(
 				method.getEscrowedAmount(
 					methodContext,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					Buffer.from([0, 0, 0, 1, 0, 0, 0, 1]),
 				),
 			).resolves.toBe(BigInt(0));
@@ -228,7 +228,7 @@ describe('token module', () => {
 			await expect(
 				method.getEscrowedAmount(
 					methodContext,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					defaultTokenID,
 				),
 			).resolves.toEqual(defaultEscrowAmount);
@@ -511,7 +511,7 @@ describe('token module', () => {
 			await expect(
 				method.initializeEscrowAccount(
 					methodContext,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					defaultTokenID,
 				),
 			).resolves.toBeUndefined();
@@ -678,7 +678,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt('100'),
@@ -744,7 +744,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					newAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt('100'),
@@ -783,7 +783,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					newAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt('100'),
@@ -812,7 +812,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					newAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt('100'),
@@ -847,7 +847,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					unknownToken,
 					BigInt(100000),
@@ -887,7 +887,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt('100000'),
@@ -901,7 +901,7 @@ describe('token module', () => {
 			const escrowStore = tokenModule.stores.get(EscrowStore);
 			const { amount } = await escrowStore.get(
 				methodContext,
-				escrowStore.getKey(defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH), defaultTokenID),
+				escrowStore.getKey(defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH), defaultTokenID),
 			);
 			expect(amount).toEqual(defaultEscrowAmount + BigInt('100000'));
 			checkEventResult(
@@ -917,7 +917,7 @@ describe('token module', () => {
 			await method.transferCrossChain(
 				methodContext,
 				defaultAddress,
-				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+				defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 				recipient,
 				defaultTokenID,
 				BigInt('100000'),
@@ -930,7 +930,7 @@ describe('token module', () => {
 				defaultAddress,
 				'token',
 				CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+				defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 				BigInt('10000'),
 				codec.encode(crossChainTransferMessageParams, {
 					tokenID: defaultTokenID,
@@ -952,7 +952,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt(0),
@@ -967,7 +967,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt(-1),
@@ -982,7 +982,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt('100000'),
@@ -1193,7 +1193,7 @@ describe('token module', () => {
 				method.payMessageFee(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					BigInt(-1),
 				),
 			).rejects.toThrow('Invalid Message Fee');
@@ -1204,7 +1204,7 @@ describe('token module', () => {
 				method.payMessageFee(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					defaultAccount.availableBalance + BigInt(1),
 				),
 			).rejects.toThrow('does not have sufficient balance');
@@ -1215,14 +1215,14 @@ describe('token module', () => {
 				method.payMessageFee(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					BigInt(100),
 				),
 			).resolves.toBeUndefined();
 			const escrowStore = tokenModule.stores.get(EscrowStore);
 			const { amount } = await escrowStore.get(
 				methodContext,
-				escrowStore.getKey(defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH), defaultTokenID),
+				escrowStore.getKey(defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH), defaultTokenID),
 			);
 			expect(amount).toEqual(defaultEscrowAmount + BigInt('100'));
 		});
@@ -1232,7 +1232,7 @@ describe('token module', () => {
 				method.payMessageFee(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					BigInt(100),
 				),
 			).resolves.toBeUndefined();
@@ -1506,7 +1506,7 @@ describe('token module', () => {
 	});
 
 	describe('escrowSubstoreExists', () => {
-		const escrowChainID = defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH);
+		const escrowChainID = defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH);
 
 		it('should return false if escrow subStore does not exist for the given chain id and token id', async () => {
 			const escrowStore = tokenModule.stores.get(EscrowStore);
