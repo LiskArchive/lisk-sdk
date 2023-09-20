@@ -53,7 +53,6 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			crossChainNFTTransferMessageParamsSchema,
 			ccm.params,
 		);
-		validator.validate(crossChainNFTTransferMessageParamsSchema, params);
 
 		if (ccm.status > MAX_RESERVED_ERROR_STATUS) {
 			throw new Error('Invalid CCM error code');

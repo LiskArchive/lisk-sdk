@@ -183,40 +183,6 @@ describe('CrossChain Transfer Command', () => {
 			await expect(command.verify(context)).resolves.toBeUndefined();
 		});
 
-		it('throw for if validation fails', async () => {
-			params = codec.encode(crossChainNFTTransferMessageParamsSchema, {
-				nftID: Buffer.alloc(LENGTH_NFT_ID + 1, 1),
-				senderAddress,
-				recipientAddress,
-				attributesArray,
-				data: '',
-			});
-			ccm = {
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-				module: module.name,
-				nonce: BigInt(1),
-				sendingChainID,
-				receivingChainID,
-				fee: BigInt(30000),
-				status: CCM_STATUS_OK,
-				params,
-			};
-			context = {
-				ccm,
-				transaction: defaultTransaction,
-				header: defaultHeader,
-				stateStore,
-				contextStore,
-				getMethodContext,
-				eventQueue,
-				getStore,
-				logger: fakeLogger,
-				chainID,
-			};
-
-			await expect(command.verify(context)).rejects.toThrow(`Property '.nftID' maxLength exceeded`);
-		});
-
 		it('throw for invalid ccm status', async () => {
 			ccm = {
 				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,

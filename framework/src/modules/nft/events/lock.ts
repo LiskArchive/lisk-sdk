@@ -61,6 +61,6 @@ export class LockEvent extends BaseEvent<LockEventData & { result: NftEventResul
 	}
 
 	public error(ctx: EventQueuer, data: LockEventData, result: NftErrorEventResult) {
-		this.add(ctx, { ...data, result }, [Buffer.from(data.module), data.nftID]);
+		this.add(ctx, { ...data, result }, [Buffer.from(data.module), data.nftID], true);
 	}
 }
