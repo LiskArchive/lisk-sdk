@@ -25,3 +25,35 @@ export const configSchema = {
 	},
 	required: [...rewardConfigSchema.required, 'factorMinimumRewardActiveValidators'],
 };
+
+export const getExpectedValidatorRewardsRequestSchema = {
+	$id: '/dynamicReward/endpoint/getExpectedValidatorRewardsRequestSchema',
+	type: 'object',
+	required: ['validatorAddress'],
+	properties: {
+		validatorAddress: {
+			type: 'string',
+			format: 'lisk32',
+		},
+	},
+};
+
+export const getExpectedValidatorRewardsResponseSchema = {
+	$id: '/dynamicReward/endpoint/getExpectedValidatorRewardsResponseSchema',
+	type: 'object',
+	required: ['blockReward', 'dailyReward', 'monthlyReward', 'yearlyReward'],
+	properties: {
+		blockReward: {
+			type: 'string',
+		},
+		dailyReward: {
+			type: 'string',
+		},
+		monthlyReward: {
+			type: 'string',
+		},
+		yearlyReward: {
+			type: 'string',
+		},
+	},
+};
