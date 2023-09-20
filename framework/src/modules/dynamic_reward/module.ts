@@ -44,7 +44,11 @@ import {
 } from '../../state_machine';
 import { DynamicRewardMethod } from './method';
 import { DynamicRewardEndpoint } from './endpoint';
-import { configSchema } from './schemas';
+import {
+	configSchema,
+	getExpectedValidatorRewardsRequestSchema,
+	getExpectedValidatorRewardsResponseSchema,
+} from './schemas';
 import { RewardMintedEvent } from '../reward/events/reward_minted';
 import { EndOfRoundTimestampStore } from './stores/end_of_round_timestamp';
 import {
@@ -61,10 +65,6 @@ import {
 	getAnnualInflationRequestSchema,
 } from '../reward/schemas';
 import { getMinimalRewardActiveValidators, getStakeRewardActiveValidators } from './utils';
-import {
-	getExpectedSharedRewardsRequestSchema,
-	getExpectedSharedRewardsResponseSchema,
-} from '../pos/schemas';
 
 export class DynamicRewardModule extends BaseModule {
 	public method = new DynamicRewardMethod(this.stores, this.events);
@@ -116,8 +116,8 @@ export class DynamicRewardModule extends BaseModule {
 				},
 				{
 					name: this.endpoint.getExpectedValidatorRewards.name,
-					request: getExpectedSharedRewardsRequestSchema,
-					response: getExpectedSharedRewardsResponseSchema,
+					request: getExpectedValidatorRewardsRequestSchema,
+					response: getExpectedValidatorRewardsResponseSchema,
 				},
 			],
 		};
