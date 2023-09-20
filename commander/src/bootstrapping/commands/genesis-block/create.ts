@@ -18,9 +18,10 @@ import { Application, PartialApplicationConfig } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
 import { Command, Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
-import { join, resolve } from 'path';
+import { isAbsolute, join, resolve } from 'path';
 import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
+import { homedir } from 'os';
 import { GenesisAssetsInput, genesisAssetsSchema } from '../../../utils/genesis_creation';
 import { flagsWithParser } from '../../../utils/flags';
 import { getNetworkConfigFilesPath } from '../../../utils/path';
@@ -46,6 +47,10 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			char: 'f',
 			description: 'Path to file which contains genesis block asset in JSON format',
 			required: true,
+		}),
+		'export-json': flagParser.boolean({
+			description: 'Export genesis block as JSON format along with blob',
+			default: false,
 		}),
 		height: flagParser.integer({
 			char: 'h',
@@ -74,6 +79,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 				height,
 				timestamp,
 				'previous-block-id': previousBlockIDString,
+				'export-json': exportJSON,
 			},
 		} = await this.parse(BaseGenesisBlockCommand);
 		// validate folder name to not include camelcase or whitespace
@@ -95,7 +101,13 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			config = objects.mergeDeep(config, customConfig);
 		}
 		// determine proper path
-		const configPath = join(process.cwd(), output);
+		let tempPath = output;
+		if (output.includes('~')) {
+			tempPath = tempPath.replace('~', homedir());
+		} else if (!isAbsolute(output)) {
+			tempPath = join(process.cwd(), output);
+		}
+		const configPath = tempPath;
 		const app = this.getApplication(config);
 		// If assetsFile exist, create from assetsFile and default config/accounts are not needed
 		const assetsJSON = (await fs.readJSON(resolve(assetsFile))) as GenesisAssetsInput;
@@ -118,6 +130,15 @@ export abstract class BaseGenesisBlockCommand extends Command {
 		fs.writeFileSync(resolve(configPath, 'genesis_block.blob'), genesisBlock.getBytes(), {
 			mode: OWNER_READ_WRITE,
 		});
+		if (exportJSON) {
+			fs.writeFileSync(
+				resolve(configPath, 'genesis_block.json'),
+				JSON.stringify(genesisBlock.toJSON()),
+				{
+					mode: OWNER_READ_WRITE,
+				},
+			);
+		}
 		this.log(`Genesis block files saved at: ${configPath}`);
 	}
 
