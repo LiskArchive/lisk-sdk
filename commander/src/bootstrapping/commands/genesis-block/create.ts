@@ -101,13 +101,12 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			config = objects.mergeDeep(config, customConfig);
 		}
 		// determine proper path
-		let tempPath = output;
+		let configPath = output;
 		if (output.includes('~')) {
-			tempPath = tempPath.replace('~', homedir());
+			configPath = configPath.replace('~', homedir());
 		} else if (!isAbsolute(output)) {
-			tempPath = join(process.cwd(), output);
+			configPath = join(process.cwd(), output);
 		}
-		const configPath = tempPath;
 		const app = this.getApplication(config);
 		// If assetsFile exist, create from assetsFile and default config/accounts are not needed
 		const assetsJSON = (await fs.readJSON(resolve(assetsFile))) as GenesisAssetsInput;
@@ -133,7 +132,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 		if (exportJSON) {
 			fs.writeFileSync(
 				resolve(configPath, 'genesis_block.json'),
-				JSON.stringify(genesisBlock.toJSON()),
+				JSON.stringify(genesisBlock.toJSON(), undefined, '  '),
 				{
 					mode: OWNER_READ_WRITE,
 				},
