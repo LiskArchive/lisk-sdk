@@ -35,6 +35,7 @@ import {
 	LENGTH_GENERATOR_KEY,
 } from '../../../../src/modules/poa/constants';
 import {
+	ActiveValidator,
 	FeeMethod,
 	ModuleConfigJSON,
 	RandomMethod,
@@ -55,7 +56,7 @@ import {
 	SnapshotObject,
 	ChainProperties,
 } from '../../../../src/modules/poa/stores';
-import { shuffleValidatorList } from '../../../../src/modules/poa/utils';
+import { shuffleValidatorList } from '../../../../src/modules/utils';
 
 describe('PoA module', () => {
 	let poaModule: PoAModule;
@@ -306,7 +307,7 @@ describe('PoA module', () => {
 			for (const validator of snapshot1.validators) {
 				validators.push(validator);
 			}
-			const nextValidators = shuffleValidatorList(randomSeed, validators);
+			const nextValidators = shuffleValidatorList<ActiveValidator>(randomSeed, validators);
 			await poaModule.afterTransactionsExecute(context);
 			expect(poaModule.stores.get(SnapshotStore).set).toHaveBeenCalledWith(
 				context,

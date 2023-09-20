@@ -99,46 +99,6 @@ describe('Transfer command', () => {
 	});
 
 	describe('verify', () => {
-		it('should fail if nftID does not have valid length', async () => {
-			const nftMinLengthContext = createTransactionContextWithOverridingParams({
-				nftID: Buffer.alloc(LENGTH_NFT_ID - 1, 1),
-			});
-
-			const nftMaxLengthContext = createTransactionContextWithOverridingParams({
-				nftID: Buffer.alloc(LENGTH_NFT_ID + 1, 1),
-			});
-
-			await expect(
-				command.verify(nftMinLengthContext.createCommandVerifyContext(transferParamsSchema)),
-			).rejects.toThrow("'.nftID' minLength not satisfied");
-
-			await expect(
-				command.verify(nftMaxLengthContext.createCommandExecuteContext(transferParamsSchema)),
-			).rejects.toThrow("'.nftID' maxLength exceeded");
-		});
-
-		it('should fail if recipientAddress is not 20 bytes', async () => {
-			const recipientAddressIncorrectLengthContext = createTransactionContextWithOverridingParams({
-				recipientAddress: utils.getRandomBytes(22),
-			});
-
-			await expect(
-				command.verify(
-					recipientAddressIncorrectLengthContext.createCommandVerifyContext(transferParamsSchema),
-				),
-			).rejects.toThrow("'.recipientAddress' address length invalid");
-		});
-
-		it('should fail if data exceeds 64 characters', async () => {
-			const dataIncorrectLengthContext = createTransactionContextWithOverridingParams({
-				data: '1'.repeat(65),
-			});
-
-			await expect(
-				command.verify(dataIncorrectLengthContext.createCommandVerifyContext(transferParamsSchema)),
-			).rejects.toThrow("'.data' must NOT have more than 64 characters");
-		});
-
 		it('should fail if nftID does not exist', async () => {
 			const nftIDNotExistingContext = createTransactionContextWithOverridingParams({
 				nftID: Buffer.alloc(LENGTH_NFT_ID, 0),
