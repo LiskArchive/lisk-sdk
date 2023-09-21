@@ -37,7 +37,7 @@
 	"dependencies": {
 		"@liskhq/lisk-codec": "^0.4.0-rc.0",
 		"@liskhq/lisk-cryptography": "^4.0.0-rc.0",
-		"@liskhq/lisk-db": "0.3.8",
+		"@liskhq/lisk-db": "0.3.10",
 		"@liskhq/lisk-tree": "^0.4.0-rc.0",
 		"@liskhq/lisk-utils": "^0.4.0-rc.0",
 		"@liskhq/lisk-validator": "^0.8.0-rc.0",
