@@ -53,7 +53,6 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			crossChainNFTTransferMessageParamsSchema,
 			ccm.params,
 		);
-		validator.validate(crossChainNFTTransferMessageParamsSchema, params);
 
 		if (ccm.status > MAX_RESERVED_ERROR_STATUS) {
 			throw new Error('Invalid CCM error code');
@@ -132,13 +131,16 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 						senderAddress,
 						recipientAddress,
 						nftID,
+						receivingChainID: ccm.receivingChainID,
+						sendingChainID: ccm.sendingChainID,
 					},
 					NftEventResult.RESULT_NFT_NOT_SUPPORTED,
 				);
 				throw new Error('Non-supported NFT');
 			}
+			this._feeMethod.payFee(getMethodContext(), BigInt(FEE_CREATE_NFT));
+
 			if (status === CCM_STATUS_CODE_OK) {
-				this._feeMethod.payFee(getMethodContext(), BigInt(FEE_CREATE_NFT));
 				await nftStore.save(getMethodContext(), nftID, {
 					owner: recipientAddress,
 					attributesArray: receivedAttributes as NFTAttributes[],
@@ -158,6 +160,8 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			senderAddress,
 			recipientAddress,
 			nftID,
+			receivingChainID: ccm.receivingChainID,
+			sendingChainID: ccm.sendingChainID,
 		});
 	}
 }

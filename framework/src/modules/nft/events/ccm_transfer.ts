@@ -13,18 +13,27 @@
  */
 
 import { BaseEvent, EventQueuer } from '../../base_event';
-import { LENGTH_NFT_ID, NftEventResult } from '../constants';
+import { LENGTH_CHAIN_ID, LENGTH_NFT_ID, NftEventResult } from '../constants';
 
 export interface CCMTransferEventData {
 	senderAddress: Buffer;
 	recipientAddress: Buffer;
 	nftID: Buffer;
+	receivingChainID: Buffer;
+	sendingChainID: Buffer;
 }
 
 export const ccmTransferEventSchema = {
 	$id: '/nft/events/ccmTransfer',
 	type: 'object',
-	required: ['senderAddress', 'recipientAddress', 'nftID', 'result'],
+	required: [
+		'senderAddress',
+		'recipientAddress',
+		'nftID',
+		'receivingChainID',
+		'sendingChainID',
+		'result',
+	],
 	properties: {
 		senderAddress: {
 			dataType: 'bytes',
@@ -42,9 +51,21 @@ export const ccmTransferEventSchema = {
 			maxLength: LENGTH_NFT_ID,
 			fieldNumber: 3,
 		},
+		receivingChainID: {
+			dataType: 'bytes',
+			minLength: LENGTH_CHAIN_ID,
+			maxLength: LENGTH_CHAIN_ID,
+			fieldNumber: 4,
+		},
+		sendingChainID: {
+			dataType: 'bytes',
+			minLength: LENGTH_CHAIN_ID,
+			maxLength: LENGTH_CHAIN_ID,
+			fieldNumber: 5,
+		},
 		result: {
 			dataType: 'uint32',
-			fieldNumber: 4,
+			fieldNumber: 6,
 		},
 	},
 };

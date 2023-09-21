@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator } from '@liskhq/lisk-validator';
 import { crossChainTransferParamsSchema } from '../schemas';
 import { NFTStore } from '../stores/nft';
 import { NFTMethod } from '../method';
@@ -58,8 +57,6 @@ export class TransferCrossChainCommand extends BaseCommand {
 
 	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
 		const { params } = context;
-
-		validator.validate(this.schema, params);
 
 		const nftStore = this.stores.get(NFTStore);
 		const nftExists = await nftStore.has(context.getMethodContext(), params.nftID);

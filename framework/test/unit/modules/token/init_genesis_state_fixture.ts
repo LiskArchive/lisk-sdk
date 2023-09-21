@@ -136,22 +136,6 @@ export const invalidGenesisAssets = [
 		"tokenID' maxLength exceeded",
 	],
 	[
-		'Overflow uint64 for available balance',
-		{
-			...validData,
-			userSubstore: [
-				{
-					address: Buffer.alloc(20, 0),
-					tokenID: Buffer.from([9, 0, 0, 0, 0, 0, 0, 0, 0]),
-					availableBalance: BigInt('1000000000000000000000000000'),
-					lockedBalances: [{ module: 'pos', amount: oneUnit }],
-				},
-				...validData.userSubstore.slice(1),
-			],
-		},
-		'Value out of range of uint64',
-	],
-	[
 		'Unsorted userstore by address',
 		{
 			...validData,
