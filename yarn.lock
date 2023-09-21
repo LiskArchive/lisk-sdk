@@ -1803,10 +1803,10 @@
   dependencies:
     "@types/node" "11.11.2"
 
-"@liskhq/lisk-db@0.3.8":
-  version "0.3.8"
-  resolved "https://registry.yarnpkg.com/@liskhq/lisk-db/-/lisk-db-0.3.8.tgz#672b83ae86f1d2280eefde945985ec6f96ee6193"
-  integrity sha512-iNn5xLfyJCs1Ly1ge+6Z0Dt8sAyKDVdysk2I5N94JPJu3h/FpzseesEiF+WBCOIA9itb/JwDFPre66EnqBTdyQ==
+"@liskhq/lisk-db@0.3.10":
+  version "0.3.10"
+  resolved "https://registry.yarnpkg.com/@liskhq/lisk-db/-/lisk-db-0.3.10.tgz#af0a96925a3a76a6b05bef0a31dacc2b2357bfb0"
+  integrity sha512-1vG6qCCbSw016peckgcl8vxwJMke0kUi9a4OCUmp+OgzcroNmc/EHR/psOVaBqW3Jrmcg7BNpY4d3vGsFy1tsg==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.9"
     "@types/node" "^16 || ^18"
