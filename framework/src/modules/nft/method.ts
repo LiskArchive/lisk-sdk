@@ -839,7 +839,7 @@ export class NFTMethod extends BaseMethod {
 		collectionID: Buffer,
 	): Promise<void> {
 		if (chainID.equals(this._config.ownChainID)) {
-			return;
+			throw new Error('Invalid operation. Support for native NFTs cannot be removed');
 		}
 
 		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
