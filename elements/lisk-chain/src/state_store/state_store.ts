@@ -186,14 +186,14 @@ export class StateStore {
 		for (const data of cachedValues) {
 			existingKey[data.key.toString('binary')] = true;
 			result.push({
-				key: data.key.slice(this._prefix.length),
+				key: data.key.subarray(this._prefix.length),
 				value: data.value,
 			});
 		}
 		for (const data of storedData) {
 			if (existingKey[data.key.toString('binary')] === undefined) {
 				result.push({
-					key: data.key.slice(this._prefix.length),
+					key: data.key.subarray(this._prefix.length),
 					value: data.value,
 				});
 			}

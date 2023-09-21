@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { address } from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
 import { BaseCommand } from '../../base_command';
 import { registerAuthoritySchema } from '../schemas';
 import {
@@ -50,26 +48,19 @@ export class RegisterAuthorityCommand extends BaseCommand {
 		context: CommandVerifyContext<RegisterAuthorityParams>,
 	): Promise<VerificationResult> {
 		const { name } = context.params;
-		try {
-			validator.validate(registerAuthoritySchema, context.params);
-		} catch (err) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: err as Error,
-			};
-		}
 
 		if (!POA_VALIDATOR_NAME_REGEX.test(name)) {
 			throw new Error(`Name does not comply with format ${POA_VALIDATOR_NAME_REGEX.toString()}.`);
 		}
 
-		const nameExists = await this.stores.get(NameStore).has(context, Buffer.from(name));
+		const nameExists = await this.stores.get(NameStore).has(context, Buffer.from(name, 'utf-8'));
 		if (nameExists) {
 			throw new Error('Name already exists.');
 		}
 
-		const senderAddress = address.getAddressFromPublicKey(context.transaction.senderPublicKey);
-		const validatorExists = await this.stores.get(ValidatorStore).has(context, senderAddress);
+		const validatorExists = await this.stores
+			.get(ValidatorStore)
+			.has(context, context.transaction.senderAddress);
 		if (validatorExists) {
 			throw new Error('Validator already exists.');
 		}
@@ -82,20 +73,19 @@ export class RegisterAuthorityCommand extends BaseCommand {
 	public async execute(context: CommandExecuteContext<RegisterAuthorityParams>): Promise<void> {
 		const { params } = context;
 
-		const senderAddress = address.getAddressFromPublicKey(context.transaction.senderPublicKey);
 		this._feeMethod.payFee(context, this._authorityRegistrationFee);
 
-		await this.stores.get(ValidatorStore).set(context, senderAddress, {
+		await this.stores.get(ValidatorStore).set(context, context.transaction.senderAddress, {
 			name: params.name,
 		});
 
-		await this.stores.get(NameStore).set(context, Buffer.from(params.name), {
-			address: senderAddress,
+		await this.stores.get(NameStore).set(context, Buffer.from(params.name, 'utf-8'), {
+			address: context.transaction.senderAddress,
 		});
 
 		await this._validatorsMethod.registerValidatorKeys(
 			context,
-			senderAddress,
+			context.transaction.senderAddress,
 			params.blsKey,
 			params.generatorKey,
 			params.proofOfPossession,

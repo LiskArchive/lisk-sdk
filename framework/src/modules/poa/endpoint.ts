@@ -12,14 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseEndpoint } from '../base_endpoint';
 import { ValidatorStore } from './stores/validator';
 import { ModuleEndpointContext } from '../../types';
-import { KEY_SNAPSHOT_0 } from './constants';
+import { KEY_SNAPSHOT_0, NUM_BYTES_ADDRESS } from './constants';
 import { SnapshotStore } from './stores';
 import { Validator } from './types';
+import { getValidatorRequestSchema } from './schemas';
 
 export class PoAEndpoint extends BaseEndpoint {
 	private _authorityRegistrationFee!: bigint;
@@ -30,10 +32,10 @@ export class PoAEndpoint extends BaseEndpoint {
 
 	public async getValidator(context: ModuleEndpointContext): Promise<Validator> {
 		const validatorSubStore = this.stores.get(ValidatorStore);
-		const { address } = context.params;
-		if (typeof address !== 'string') {
-			throw new Error('Parameter address must be a string.');
-		}
+
+		validator.validate(getValidatorRequestSchema, context.params);
+		const address = context.params.address as string;
+
 		cryptoAddress.validateLisk32Address(address);
 
 		let validatorName: { name: string };
@@ -70,8 +72,8 @@ export class PoAEndpoint extends BaseEndpoint {
 		context: ModuleEndpointContext,
 	): Promise<{ validators: Validator[] }> {
 		const validatorStore = this.stores.get(ValidatorStore);
-		const startBuf = Buffer.alloc(20);
-		const endBuf = Buffer.alloc(20, 255);
+		const startBuf = Buffer.alloc(NUM_BYTES_ADDRESS);
+		const endBuf = Buffer.alloc(NUM_BYTES_ADDRESS, 255);
 		const validatorStoreData = await validatorStore.iterate(context, {
 			gte: startBuf,
 			lte: endBuf,
@@ -83,18 +85,17 @@ export class PoAEndpoint extends BaseEndpoint {
 		const validatorsData: Validator[] = [];
 		for (const data of validatorStoreData) {
 			const address = cryptoAddress.getLisk32AddressFromAddress(data.key);
-			// `name` comes from type `ValidatorName`
-			const { name } = await validatorStore.get(context, data.key);
+			const { value } = data;
 			const activeValidator = currentRoundSnapshot.validators.find(
 				v => cryptoAddress.getLisk32AddressFromAddress(v.address) === address,
 			);
 
-			const validator: Validator = {
-				name,
+			const v: Validator = {
+				name: value.name,
 				address,
-				weight: activeValidator ? activeValidator.weight.toString() : '',
+				weight: activeValidator ? activeValidator.weight.toString() : '0',
 			};
-			validatorsData.push(validator);
+			validatorsData.push(v);
 		}
 
 		// This is needed since response from this endpoint is returning data in unexpected sorting order on next execution

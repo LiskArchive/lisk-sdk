@@ -14,10 +14,16 @@
 /* eslint-disable no-bitwise */
 /* eslint-disable no-param-reassign */
 
+import { MAX_SINT32, MAX_SINT64, MAX_UINT32, MAX_UINT64 } from '@liskhq/lisk-validator';
+
 const msg = 0x80;
 const rest = 0x7f;
 
 export const writeUInt32 = (value: number): Buffer => {
+	if (value > MAX_UINT32) {
+		throw new Error('Value out of range of uint32');
+	}
+
 	const result: number[] = [];
 	let index = 0;
 	while (value > rest) {
@@ -32,6 +38,10 @@ export const writeUInt32 = (value: number): Buffer => {
 };
 
 export const writeSInt32 = (value: number): Buffer => {
+	if (value > MAX_SINT32) {
+		throw new Error('Value out of range of sint32');
+	}
+
 	if (value >= 0) {
 		return writeUInt32(2 * value);
 	}
@@ -39,6 +49,10 @@ export const writeSInt32 = (value: number): Buffer => {
 };
 
 export const writeUInt64 = (value: bigint): Buffer => {
+	if (value > MAX_UINT64) {
+		throw new Error('Value out of range of uint64');
+	}
+
 	const result: number[] = [];
 	let index = 0;
 	while (value > BigInt(rest)) {
@@ -53,6 +67,10 @@ export const writeUInt64 = (value: bigint): Buffer => {
 };
 
 export const writeSInt64 = (value: bigint): Buffer => {
+	if (value > MAX_SINT64) {
+		throw new Error('Value out of range of sint64');
+	}
+
 	if (value >= BigInt(0)) {
 		return writeUInt64(BigInt(2) * value);
 	}

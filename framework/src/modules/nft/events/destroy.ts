@@ -54,6 +54,6 @@ export class DestroyEvent extends BaseEvent<DestroyEventData & { result: NftEven
 	}
 
 	public error(ctx: EventQueuer, data: DestroyEventData, result: NftErrorEventResult): void {
-		this.add(ctx, { ...data, result }, [data.address, data.nftID]);
+		this.add(ctx, { ...data, result }, [data.address, data.nftID], true);
 	}
 }
