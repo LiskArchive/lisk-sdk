@@ -415,6 +415,8 @@ describe('CrossChain Transfer Command', () => {
 				senderAddress,
 				recipientAddress,
 				nftID,
+				receivingChainID: ccm.receivingChainID,
+				sendingChainID: ccm.sendingChainID,
 			});
 		});
 
@@ -465,6 +467,8 @@ describe('CrossChain Transfer Command', () => {
 				senderAddress,
 				recipientAddress: senderAddress,
 				nftID,
+				receivingChainID: ccm.receivingChainID,
+				sendingChainID: ccm.sendingChainID,
 			});
 		});
 
@@ -514,6 +518,8 @@ describe('CrossChain Transfer Command', () => {
 					senderAddress,
 					recipientAddress,
 					nftID: newNftID,
+					receivingChainID: ccm.receivingChainID,
+					sendingChainID: ccm.sendingChainID,
 				},
 				NftEventResult.RESULT_NFT_NOT_SUPPORTED,
 			);
@@ -560,6 +566,8 @@ describe('CrossChain Transfer Command', () => {
 				senderAddress,
 				recipientAddress,
 				nftID,
+				receivingChainID: ccm.receivingChainID,
+				sendingChainID: ccm.sendingChainID,
 			});
 		});
 
@@ -610,7 +618,7 @@ describe('CrossChain Transfer Command', () => {
 				methodContext,
 				userStore.getKey(senderAddress, nftID),
 			);
-			expect(feeMethod.payFee).not.toHaveBeenCalled();
+			expect(feeMethod.payFee).toHaveBeenCalledWith(methodContext, BigInt(FEE_CREATE_NFT));
 			expect(nftStoreData.owner).toStrictEqual(senderAddress);
 			expect(nftStoreData.attributesArray).toEqual(attributesArray);
 			expect(userAccountExistsForRecipient).toBe(false);
@@ -619,6 +627,8 @@ describe('CrossChain Transfer Command', () => {
 				senderAddress,
 				recipientAddress: senderAddress,
 				nftID,
+				receivingChainID: ccm.receivingChainID,
+				sendingChainID: ccm.sendingChainID,
 			});
 		});
 	});
