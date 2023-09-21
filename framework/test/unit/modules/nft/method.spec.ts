@@ -1189,6 +1189,20 @@ describe('NFTMethod', () => {
 
 			checkEventResult(methodContext.eventQueue, 1, AllNFTsSupportRemovedEvent, 0, {}, null);
 		});
+
+		it('should remove all existing entries even if the ALL_SUPPORTED_NFTS_KEY entry exists', async () => {
+			await supportedNFTsStore.save(methodContext, ALL_SUPPORTED_NFTS_KEY, {
+				supportedCollectionIDArray: [],
+			});
+
+			await expect(method.removeSupportAllNFTs(methodContext)).resolves.toBeUndefined();
+			await expect(
+				supportedNFTsStore.has(methodContext, ALL_SUPPORTED_NFTS_KEY),
+			).resolves.toBeFalse();
+
+			checkEventResult(methodContext.eventQueue, 1, AllNFTsSupportRemovedEvent, 0, {}, null);
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
+		});
 	});
 
 	describe('supportAllNFTsFromChain', () => {
