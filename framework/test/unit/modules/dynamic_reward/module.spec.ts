@@ -51,7 +51,6 @@ import {
 
 describe('DynamicRewardModule', () => {
 	const defaultRoundLength = 103;
-	const defaultNumberOfActiveValidators = 101;
 
 	let rewardModule: DynamicRewardModule;
 	let tokenMethod: TokenMethod;
@@ -72,7 +71,6 @@ describe('DynamicRewardModule', () => {
 			getValidatorsParams: jest.fn(),
 		};
 		posMethod = {
-			getNumberOfActiveValidators: jest.fn().mockReturnValue(defaultNumberOfActiveValidators),
 			getRoundLength: jest.fn().mockReturnValue(defaultRoundLength),
 			updateSharedRewards: jest.fn(),
 			isEndOfRound: jest.fn(),
@@ -187,7 +185,6 @@ describe('DynamicRewardModule', () => {
 			];
 
 			(validatorsMethod.getValidatorsParams as jest.Mock).mockResolvedValue({ validators });
-			(posMethod.getNumberOfActiveValidators as jest.Mock).mockReturnValue(activeValidator);
 		});
 
 		it('should store minimal reward for active validators when full round is forged', async () => {
@@ -226,7 +223,7 @@ describe('DynamicRewardModule', () => {
 
 			// generatorAddress has 20% of total weight
 			expect(blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REWARD)).toEqual(
-				minimumReward + ratioReward / BigInt(5),
+				minimumReward + ratioReward / BigInt(5), // 20 / 100 for generator address
 			);
 			expect(
 				blockExecuteContext.contextStore.get(CONTEXT_STORE_KEY_DYNAMIC_BLOCK_REDUCTION),
@@ -316,7 +313,6 @@ describe('DynamicRewardModule', () => {
 			(validatorsMethod.getGeneratorsBetweenTimestamps as jest.Mock).mockResolvedValue(
 				generatorMap,
 			);
-			(posMethod.getNumberOfActiveValidators as jest.Mock).mockReturnValue(activeValidator);
 			when(tokenMethod.userSubstoreExists)
 				.calledWith(
 					expect.anything(),

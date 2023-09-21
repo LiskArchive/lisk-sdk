@@ -280,9 +280,9 @@ export class DynamicRewardModule extends BaseModule {
 		if (!bftValidator) {
 			throw new Error('Invalid generator. Validator params does not include the validator.');
 		}
-		const stakeRewardActiveValidators = getStakeRewardActiveValidators(
+		const stakeRewardActiveValidators = await getStakeRewardActiveValidators(
 			context,
-			this._posMethod,
+			this._validatorMethod,
 			defaultReward,
 			minimalRewardActiveValidators,
 		);

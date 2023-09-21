@@ -135,11 +135,12 @@ describe('DynamicRewardModuleEndpoint', () => {
 				}),
 			);
 
+			// total reward for active validators is 9LSK (5LSK - 0.5LSK) * 2, which will be distributed by weight
 			expect(response).toEqual({
-				blockReward: '20957000000',
-				dailyReward: '2511351993600',
-				monthlyReward: '75340559808000',
-				yearlyReward: '916643477664000',
+				blockReward: '464000000', // 9 * (230/500) + 0.5
+				dailyReward: '55602720000',
+				monthlyReward: '1668081600000',
+				yearlyReward: '20294992800000',
 			});
 		});
 	});
