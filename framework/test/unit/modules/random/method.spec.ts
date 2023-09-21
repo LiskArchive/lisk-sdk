@@ -31,7 +31,7 @@ import {
 } from '../../../../src/modules/random/stores/validator_reveals';
 
 const strippedHashOfIntegerBuffer = (num: number) =>
-	cryptography.utils.hash(cryptography.utils.intToBuffer(num, 4)).slice(0, SEED_LENGTH);
+	cryptography.utils.hash(cryptography.utils.intToBuffer(num, 4)).subarray(0, SEED_LENGTH);
 
 describe('RandomModuleMethod', () => {
 	let randomMethod: RandomMethod;

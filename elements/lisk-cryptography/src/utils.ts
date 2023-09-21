@@ -176,7 +176,7 @@ const defaultCount = 1000000;
 const defaultDistance = 1000;
 
 export const generateHashOnionSeed = (): Buffer =>
-	hash(getRandomBytes(INPUT_SIZE)).slice(0, HASH_SIZE);
+	hash(getRandomBytes(INPUT_SIZE)).subarray(0, HASH_SIZE);
 
 export const hashOnion = (
 	seed: Buffer,
@@ -195,7 +195,7 @@ export const hashOnion = (
 	const hashes = [seed];
 
 	for (let i = 1; i <= count; i += 1) {
-		const nextHash = hash(previousHash).slice(0, HASH_SIZE);
+		const nextHash = hash(previousHash).subarray(0, HASH_SIZE);
 		if (i % distance === 0) {
 			hashes.push(nextHash);
 		}

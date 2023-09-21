@@ -71,7 +71,7 @@ describe('event', () => {
 				const { key } = pairs[i];
 				expect(key).toHaveLength(EVENT_TOPIC_HASH_LENGTH_BYTES + EVENT_TOTAL_INDEX_LENGTH_BYTES);
 
-				const index = key.slice(EVENT_TOPIC_HASH_LENGTH_BYTES);
+				const index = key.subarray(EVENT_TOPIC_HASH_LENGTH_BYTES);
 
 				// Check index
 				const indexNum = index.readUInt32BE(0);

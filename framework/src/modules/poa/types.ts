@@ -27,8 +27,8 @@ export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 export interface RegisterAuthorityParams {
 	name: string;
 	blsKey: Buffer;
-	generatorKey: Buffer;
 	proofOfPossession: Buffer;
+	generatorKey: Buffer;
 }
 
 export interface UpdateAuthorityParams {
@@ -40,12 +40,6 @@ export interface UpdateAuthorityParams {
 	validatorsUpdateNonce: number;
 	signature: Buffer;
 	aggregationBits: Buffer;
-}
-
-export interface ValidatorWeightWithRoundHash {
-	readonly address: Buffer;
-	weight: bigint;
-	roundHash: Buffer;
 }
 
 export interface ValidatorsMethod {
