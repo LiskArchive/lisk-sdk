@@ -92,6 +92,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		senderPublicKey,
 		signatures: [],
 	};
+	const minReturnFeePerByte = BigInt(10000000);
 
 	const certificate = codec.encode(certificateSchema, {
 		blockID: utils.getRandomBytes(32),
@@ -253,7 +254,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		command.init(
 			{
 				getMessageFeeTokenID: jest.fn().mockResolvedValue(messageFeeTokenID),
-				getMinReturnFeePerByte: jest.fn().mockResolvedValue(BigInt(10000000)),
+				getMinReturnFeePerByte: jest.fn().mockResolvedValue(minReturnFeePerByte),
 			} as any,
 			{
 				initializeUserAccount: jest.fn(),
@@ -1497,6 +1498,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	describe('bounce', () => {
 		const ccmStatus = CCMStatusCode.MODULE_NOT_SUPPORTED;
 		const ccmProcessedEventCode = CCMProcessedCode.MODULE_NOT_SUPPORTED;
+		const ccmSize = 100;
 		let stateStore: PrefixedStateReadWriter;
 
 		beforeEach(async () => {
@@ -1518,7 +1520,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			await expect(
-				command['bounce'](context, 100, ccmStatus, ccmProcessedEventCode),
+				command['bounce'](context, ccmSize, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
@@ -1535,17 +1537,18 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should log event when ccm.fee is less than min fee', async () => {
+			const minFee = minReturnFeePerByte * BigInt(ccmSize);
 			context = createCrossChainMessageContext({
 				ccm: {
 					...defaultCCM,
 					status: CCMStatusCode.OK,
-					fee: BigInt(1),
+					fee: minFee - BigInt(1),
 				},
 				stateStore,
 			});
 
 			await expect(
-				command['bounce'](context, 100, ccmStatus, ccmProcessedEventCode),
+				command['bounce'](context, ccmSize, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
 			expect(context.eventQueue.getEvents()).toHaveLength(1);
@@ -1575,7 +1578,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			await expect(
-				command['bounce'](context, 100, ccmStatus, ccmProcessedEventCode),
+				command['bounce'](context, ccmSize, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
 			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(
@@ -1611,7 +1614,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			await expect(
-				command['bounce'](context, 100, ccmStatus, ccmProcessedEventCode),
+				command['bounce'](context, ccmSize, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
 			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(
@@ -1641,7 +1644,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			await expect(
-				command['bounce'](context, 100, ccmStatus, ccmProcessedEventCode),
+				command['bounce'](context, ccmSize, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
 			expect(internalMethod.addToOutbox).toHaveBeenCalledWith(
@@ -1668,7 +1671,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			});
 
 			await expect(
-				command['bounce'](context, 100, ccmStatus, ccmProcessedEventCode),
+				command['bounce'](context, ccmSize, ccmStatus, ccmProcessedEventCode),
 			).resolves.toBeUndefined();
 
 			expect(context.eventQueue.getEvents()).toHaveLength(2);
