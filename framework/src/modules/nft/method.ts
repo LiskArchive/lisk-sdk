@@ -891,15 +891,14 @@ export class NFTMethod extends BaseMethod {
 		methodContext: MethodContext,
 		terminatedChainID: Buffer,
 		substorePrefix: Buffer,
-		storeKey: Buffer,
-		storeValue: Buffer,
+		nftID: Buffer,
+		nft: Buffer,
 	): Promise<void> {
 		const nftStore = this.stores.get(NFTStore);
-		const nftID = storeKey;
 		let isValidInput = true;
 		let decodedValue: NFTStoreData;
 		try {
-			decodedValue = codec.decode<NFTStoreData>(nftStoreSchema, storeValue);
+			decodedValue = codec.decode<NFTStoreData>(nftStoreSchema, nft);
 			validator.validate(nftStoreSchema, decodedValue);
 		} catch (error) {
 			isValidInput = false;
@@ -907,7 +906,7 @@ export class NFTMethod extends BaseMethod {
 
 		if (
 			!substorePrefix.equals(nftStore.subStorePrefix) ||
-			storeKey.length !== LENGTH_NFT_ID ||
+			nftID.length !== LENGTH_NFT_ID ||
 			!isValidInput
 		) {
 			this.events.get(RecoverEvent).error(
