@@ -286,12 +286,6 @@ export class TokenModule extends BaseInteroperableModule {
 					)} has duplicate module in locked balances.`,
 				);
 			}
-			// Validate userSubstore not to be empty
-			if (userData.lockedBalances.length === 0 && userData.availableBalance === BigInt(0)) {
-				throw new Error(
-					`Address ${address.getLisk32AddressFromAddress(userData.address)} has empty data.`,
-				);
-			}
 
 			await userStore.save(context, userData.address, userData.tokenID, userData);
 		}
