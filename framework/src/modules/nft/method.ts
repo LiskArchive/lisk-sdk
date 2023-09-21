@@ -935,6 +935,20 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('Recovery called by a foreign chain');
 		}
 
+		const nftExists = await nftStore.has(methodContext, nftID);
+		if (!nftExists) {
+			this.events.get(RecoverEvent).error(
+				methodContext,
+				{
+					terminatedChainID,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+			);
+
+			throw new Error('NFT substore entry does not exist');
+		}
+
 		const nftData = await nftStore.get(methodContext, nftID);
 		if (!nftData.owner.equals(terminatedChainID)) {
 			this.events.get(RecoverEvent).error(

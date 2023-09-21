@@ -1710,6 +1710,28 @@ describe('NFTMethod', () => {
 			);
 		});
 
+		it('should throw and emit error recover event if nft does not exist', async () => {
+			const unknownNftID = Buffer.concat([
+				config.ownChainID,
+				utils.getRandomBytes(LENGTH_NFT_ID - LENGTH_CHAIN_ID),
+			]);
+
+			await expect(
+				method.recover(methodContext, terminatedChainID, substorePrefix, unknownNftID, storeValue),
+			).rejects.toThrow('NFT substore entry does not exist');
+			checkEventResult<RecoverEventData>(
+				methodContext.eventQueue,
+				1,
+				RecoverEvent,
+				0,
+				{
+					terminatedChainID,
+					nftID: unknownNftID,
+				},
+				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+			);
+		});
+
 		it('should throw and emit error recover event if nft is not escrowed to terminated chain', async () => {
 			const newStoreKey = Buffer.alloc(LENGTH_NFT_ID, 1);
 			await nftStore.save(methodContext, newStoreKey, {
