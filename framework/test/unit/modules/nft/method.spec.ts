@@ -587,7 +587,6 @@ describe('NFTMethod', () => {
 			checkEventResult(methodContext.eventQueue, 1, CreateEvent, 0, {
 				address,
 				nftID: expectedKey,
-				collectionID,
 			});
 		});
 
@@ -619,7 +618,6 @@ describe('NFTMethod', () => {
 			checkEventResult(methodContext.eventQueue, 1, CreateEvent, 0, {
 				address,
 				nftID: expectedKey,
-				collectionID,
 			});
 		});
 	});
@@ -1194,6 +1192,20 @@ describe('NFTMethod', () => {
 
 			checkEventResult(methodContext.eventQueue, 1, AllNFTsSupportRemovedEvent, 0, {}, null);
 		});
+
+		it('should remove all existing entries even if the ALL_SUPPORTED_NFTS_KEY entry exists', async () => {
+			await supportedNFTsStore.save(methodContext, ALL_SUPPORTED_NFTS_KEY, {
+				supportedCollectionIDArray: [],
+			});
+
+			await expect(method.removeSupportAllNFTs(methodContext)).resolves.toBeUndefined();
+			await expect(
+				supportedNFTsStore.has(methodContext, ALL_SUPPORTED_NFTS_KEY),
+			).resolves.toBeFalse();
+
+			checkEventResult(methodContext.eventQueue, 1, AllNFTsSupportRemovedEvent, 0, {}, null);
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
+		});
 	});
 
 	describe('supportAllNFTsFromChain', () => {
@@ -1474,9 +1486,7 @@ describe('NFTMethod', () => {
 					config.ownChainID,
 					utils.getRandomBytes(LENGTH_CHAIN_ID),
 				),
-			).resolves.toBeUndefined();
-
-			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+			).rejects.toThrow('Invalid operation. Support for native NFTs cannot be removed');
 		});
 
 		it('should throw if all NFTs are supported', async () => {
@@ -1657,6 +1667,31 @@ describe('NFTMethod', () => {
 					storeKey,
 					Buffer.from('asfas'),
 				),
+			).rejects.toThrow('Invalid inputs');
+			checkEventResult<RecoverEventData>(
+				methodContext.eventQueue,
+				1,
+				RecoverEvent,
+				0,
+				{
+					terminatedChainID,
+					nftID: storeKey,
+				},
+				NftEventResult.RESULT_RECOVER_FAIL_INVALID_INPUTS,
+			);
+		});
+
+		it('should throw and emit error recover event if module name length in attributes array is not valid', async () => {
+			const newStoreValue = codec.encode(nftStoreSchema, {
+				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
+				attributesArray: [
+					{ module: 'customMod1', attributes: Buffer.alloc(5) },
+					{ module: '', attributes: Buffer.alloc(2) },
+				],
+			});
+
+			await expect(
+				method.recover(methodContext, terminatedChainID, substorePrefix, storeKey, newStoreValue),
 			).rejects.toThrow('Invalid inputs');
 			checkEventResult<RecoverEventData>(
 				methodContext.eventQueue,

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -44,8 +43,6 @@ export class TransferCommand extends BaseCommand {
 
 	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
 		const { params } = context;
-
-		validator.validate<Params>(this.schema, params);
 
 		const nftStore = this.stores.get(NFTStore);
 
