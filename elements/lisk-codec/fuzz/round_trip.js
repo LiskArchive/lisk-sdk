@@ -72,7 +72,7 @@ function mutateRandomByte(buffer) {
 	else if (mutationType < 0.66) {
 		const index = Math.floor(Math.random() * (buffer.length + 1));
 		const mutation = utils.getRandomBytes(1);
-		buffer = Buffer.concat([buffer.slice(0, index), mutation, buffer.slice(index)]);
+		buffer = Buffer.concat([buffer.subarray(0, index), mutation, buffer.subarray(index)]);
 	}
 	// Remove a byte
 	else {
@@ -80,7 +80,7 @@ function mutateRandomByte(buffer) {
 			return buffer; // Can't remove byte from buffer of length 1
 		}
 		const index = Math.floor(Math.random() * buffer.length);
-		buffer = Buffer.concat([buffer.slice(0, index), buffer.slice(index + 1)]);
+		buffer = Buffer.concat([buffer.subarray(0, index), buffer.subarray(index + 1)]);
 	}
 
 	return buffer;

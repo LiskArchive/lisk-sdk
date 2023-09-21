@@ -20,7 +20,7 @@ export interface DestroyEventData {
 	nftID: Buffer;
 }
 
-export const createEventSchema = {
+export const destroyEventSchema = {
 	$id: '/nft/events/destroy',
 	type: 'object',
 	required: ['address', 'nftID', 'result'],
@@ -44,7 +44,7 @@ export const createEventSchema = {
 };
 
 export class DestroyEvent extends BaseEvent<DestroyEventData & { result: NftEventResult }> {
-	public schema = createEventSchema;
+	public schema = destroyEventSchema;
 
 	public log(ctx: EventQueuer, data: DestroyEventData): void {
 		this.add(ctx, { ...data, result: NftEventResult.RESULT_SUCCESSFUL }, [
@@ -54,6 +54,6 @@ export class DestroyEvent extends BaseEvent<DestroyEventData & { result: NftEven
 	}
 
 	public error(ctx: EventQueuer, data: DestroyEventData, result: NftErrorEventResult): void {
-		this.add(ctx, { ...data, result }, [data.address, data.nftID]);
+		this.add(ctx, { ...data, result }, [data.address, data.nftID], true);
 	}
 }

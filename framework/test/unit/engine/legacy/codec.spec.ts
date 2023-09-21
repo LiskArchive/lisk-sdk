@@ -36,7 +36,7 @@ describe('Legacy codec', () => {
 			});
 
 			it('should fail to decode invalid block', () => {
-				expect(() => decodeBlock(encodedBlock.slice(2))).toThrow();
+				expect(() => decodeBlock(encodedBlock.subarray(2))).toThrow();
 			});
 		});
 

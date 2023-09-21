@@ -68,7 +68,7 @@ describe('TerminateSidechainForLivenessCommand', () => {
 				lastCertificate: {
 					height: 10,
 					stateRoot: utils.getRandomBytes(32),
-					timestamp: Date.now(),
+					timestamp: Math.floor(Date.now() / 1000),
 					validatorsHash: utils.getRandomBytes(32),
 				},
 				name: 'staleSidechain',
