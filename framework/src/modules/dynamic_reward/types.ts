@@ -55,7 +55,6 @@ export interface ValidatorsMethod {
 
 export interface PoSMethod {
 	getRoundLength(methodContext: ImmutableMethodContext): number;
-	getNumberOfActiveValidators(methodContext: ImmutableMethodContext): number;
 	updateSharedRewards(
 		methodContext: MethodContext,
 		generatorAddress: Buffer,
