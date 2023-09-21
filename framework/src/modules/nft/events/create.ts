@@ -13,18 +13,17 @@
  */
 
 import { BaseEvent, EventQueuer } from '../../base_event';
-import { LENGTH_COLLECTION_ID, LENGTH_NFT_ID, NftEventResult } from '../constants';
+import { LENGTH_NFT_ID, NftEventResult } from '../constants';
 
 export interface CreateEventData {
 	address: Buffer;
 	nftID: Buffer;
-	collectionID: Buffer;
 }
 
 export const createEventSchema = {
 	$id: '/nft/events/create',
 	type: 'object',
-	required: ['address', 'nftID', 'collectionID', 'result'],
+	required: ['address', 'nftID', 'result'],
 	properties: {
 		address: {
 			dataType: 'bytes',
@@ -37,15 +36,9 @@ export const createEventSchema = {
 			maxLength: LENGTH_NFT_ID,
 			fieldNumber: 2,
 		},
-		collectionID: {
-			dataType: 'bytes',
-			minLength: LENGTH_COLLECTION_ID,
-			maxLength: LENGTH_COLLECTION_ID,
-			fieldNumber: 3,
-		},
 		result: {
 			dataType: 'uint32',
-			fieldNumber: 4,
+			fieldNumber: 3,
 		},
 	},
 };
