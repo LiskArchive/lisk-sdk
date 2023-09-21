@@ -47,7 +47,7 @@ describe('Random module utils', () => {
 	describe('isSeedValidInput', () => {
 		const generatorAddress = utils.getRandomBytes(ADDRESS_LENGTH);
 		const seed = utils.getRandomBytes(SEED_LENGTH);
-		const previousSeed = utils.hash(seed).slice(0, SEED_LENGTH);
+		const previousSeed = utils.hash(seed).subarray(0, SEED_LENGTH);
 		let validatorSeedReveals: ValidatorSeedReveal[];
 
 		beforeEach(() => {

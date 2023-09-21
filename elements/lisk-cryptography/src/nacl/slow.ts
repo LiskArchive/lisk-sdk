@@ -83,7 +83,7 @@ const PRIVATE_KEY_LENGTH = 32;
 
 export const getPublicKey: NaclInterface['getPublicKey'] = privateKey => {
 	const { publicKey } = tweetnacl.sign.keyPair.fromSeed(
-		Uint8Array.from(privateKey.slice(0, PRIVATE_KEY_LENGTH)),
+		Uint8Array.from(privateKey.subarray(0, PRIVATE_KEY_LENGTH)),
 	);
 
 	return Buffer.from(publicKey);

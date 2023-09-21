@@ -181,7 +181,7 @@ const hkdfSHA256 = (ikm: Buffer, length: number, salt: Buffer, info: Buffer) => 
 		t = hmacSHA256(PRK, Buffer.concat([t, info, Buffer.from([1 + i])]), SHA256);
 		OKM = Buffer.concat([OKM, t]);
 	}
-	return OKM.slice(0, length);
+	return OKM.subarray(0, length);
 };
 
 const toLamportSK = (IKM: Buffer, salt: Buffer) => {
@@ -190,7 +190,7 @@ const toLamportSK = (IKM: Buffer, salt: Buffer) => {
 
 	const lamportSK = [];
 	for (let i = 0; i < 255; i += 1) {
-		lamportSK.push(OKM.slice(i * 32, (i + 1) * 32));
+		lamportSK.push(OKM.subarray(i * 32, (i + 1) * 32));
 	}
 	return lamportSK;
 };
