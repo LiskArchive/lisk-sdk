@@ -458,15 +458,17 @@ export class NFTMethod extends BaseMethod {
 		try {
 			await this._internalMethod.verifyTransfer(methodContext, senderAddress, nftID);
 		} catch (error) {
-			this.events.get(TransferEvent).error(
-				methodContext,
-				{
-					senderAddress,
-					recipientAddress,
-					nftID,
-				},
-				(error as TransferVerifyError).code,
-			);
+			if (error instanceof TransferVerifyError) {
+				this.events.get(TransferEvent).error(
+					methodContext,
+					{
+						senderAddress,
+						recipientAddress,
+						nftID,
+					},
+					error.code,
+				);
+			}
 
 			throw error;
 		}
@@ -497,17 +499,19 @@ export class NFTMethod extends BaseMethod {
 				data,
 			);
 		} catch (error) {
-			this.events.get(TransferCrossChainEvent).error(
-				methodContext,
-				{
-					senderAddress,
-					recipientAddress,
-					receivingChainID,
-					nftID,
-					includeAttributes,
-				},
-				(error as TransferVerifyError).code,
-			);
+			if (error instanceof TransferVerifyError) {
+				this.events.get(TransferCrossChainEvent).error(
+					methodContext,
+					{
+						senderAddress,
+						recipientAddress,
+						receivingChainID,
+						nftID,
+						includeAttributes,
+					},
+					error.code,
+				);
+			}
 
 			throw error;
 		}

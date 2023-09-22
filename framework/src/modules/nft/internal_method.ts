@@ -153,9 +153,6 @@ export class InternalMethod extends BaseMethod {
 			);
 		}
 
-		// perform checks that are common for same-chain and cross-chain transfers
-		await this.verifyTransfer(immutableMethodContext, senderAddress, nftID);
-
 		if (data.length > MAX_LENGTH_DATA) {
 			throw new TransferVerifyError('Data field is too long', NftEventResult.RESULT_DATA_TOO_LONG);
 		}
