@@ -275,12 +275,17 @@ export class NFTModule extends BaseInteroperableModule {
 		for (const nft of genesisStore.nftSubstore) {
 			const { owner, nftID, attributesArray } = nft;
 
-			await this._internalMethod.createNFTEntry(context, owner, nftID, attributesArray);
+			await this._internalMethod.createNFTEntry(
+				context.getMethodContext(),
+				owner,
+				nftID,
+				attributesArray,
+			);
 
 			if (owner.length === LENGTH_CHAIN_ID) {
-				await this._internalMethod.createEscrowEntry(context, owner, nftID);
+				await this._internalMethod.createEscrowEntry(context.getMethodContext(), owner, nftID);
 			} else {
-				await this._internalMethod.createUserEntry(context, owner, nftID);
+				await this._internalMethod.createUserEntry(context.getMethodContext(), owner, nftID);
 			}
 		}
 
