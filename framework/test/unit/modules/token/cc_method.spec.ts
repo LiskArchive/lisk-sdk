@@ -710,7 +710,9 @@ describe('TokenInteroperableMethod', () => {
 					substorePrefix: userStore.subStorePrefix,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance,
-						lockedBalances: [{ module: ''.repeat(MIN_MODULE_NAME_LENGTH - 1), amount: BigInt(10) }],
+						lockedBalances: [
+							{ module: 'token'.repeat(MIN_MODULE_NAME_LENGTH - 1), amount: BigInt(10) },
+						],
 					}),
 					terminatedChainID: sendingChainID,
 				}),
