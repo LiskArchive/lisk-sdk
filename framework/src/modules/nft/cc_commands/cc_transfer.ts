@@ -120,7 +120,12 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			}
 
 			storeData.owner = recipientAddress;
-			await nftStore.save(getMethodContext(), nftID, storeData);
+			await this._internalMethod.createNFTEntry(
+				getMethodContext(),
+				recipientAddress,
+				nftID,
+				storeData.attributesArray,
+			);
 			await this._internalMethod.createUserEntry(getMethodContext(), recipientAddress, nftID);
 			await escrowStore.del(getMethodContext(), escrowStore.getKey(sendingChainID, nftID));
 		} else {

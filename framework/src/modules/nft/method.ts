@@ -957,7 +957,12 @@ export class NFTMethod extends BaseMethod {
 			storedAttributes,
 			receivedAttributes,
 		);
-		await nftStore.save(methodContext, nftID, nftData);
+		await this._internalMethod.createNFTEntry(
+			methodContext,
+			nftData.owner,
+			nftID,
+			nftData.attributesArray,
+		);
 		await this._internalMethod.createUserEntry(methodContext, nftData.owner, nftID);
 		await escrowStore.del(methodContext, escrowStore.getKey(terminatedChainID, nftID));
 
@@ -994,7 +999,13 @@ export class NFTMethod extends BaseMethod {
 		} else {
 			nftData.attributesArray.push({ module, attributes });
 		}
-		await nftStore.save(methodContext, nftID, nftData);
+
+		await this._internalMethod.createNFTEntry(
+			methodContext,
+			nftData.owner,
+			nftID,
+			nftData.attributesArray,
+		);
 
 		this.events.get(SetAttributesEvent).log(methodContext, {
 			nftID,
