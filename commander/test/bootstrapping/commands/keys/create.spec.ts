@@ -91,6 +91,7 @@ describe('keys:create command', () => {
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(cryptography.ed, 'getPrivateKeyFromPhraseAndPath');
+		jest.spyOn(cryptography.legacy, 'getPrivateAndPublicKeyFromPassphrase');
 		jest.spyOn(cryptography.ed, 'getPublicKeyFromPrivateKey');
 		jest.spyOn(cryptography.address, 'getAddressFromPublicKey');
 		jest.spyOn(cryptography.bls, 'getPrivateKeyFromPhraseAndPath');
@@ -163,6 +164,71 @@ describe('keys:create command', () => {
 
 			expect(loggedData).toMatchObject({
 				keys: defaultKeys,
+			});
+			expect(loggedData.keys[0].encrypted).toBeDefined();
+			expect(loggedData.keys[0].encrypted).toHaveProperty('ciphertext');
+			expect(loggedData.keys[0].encrypted).toHaveProperty('mac');
+			expect(loggedData.keys[0].encrypted).toHaveProperty('cipherparams');
+			expect(loggedData.keys[0].encrypted).toHaveProperty('kdfparams');
+			expect(loggedData.keys[0].encrypted.cipher).toBe('aes-128-gcm');
+			expect(loggedData.keys[0].encrypted.kdf).toBe('argon2id');
+			expect(loggedData.keys[0].encrypted.version).toBe('1');
+			expect(consoleWarnSpy).toHaveBeenCalledTimes(0);
+		});
+	});
+
+	describe('keys:create --add-legacy --passphrase', () => {
+		it('should create valid keys', async () => {
+			const legacyKeys =
+				cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(defaultPassphrase);
+			const legacyBLSKeyPath = 'm/12381/134/0/99999';
+			const legacyBLSPrivateKey = await cryptography.bls.getPrivateKeyFromPhraseAndPath(
+				defaultPassphrase,
+				legacyBLSKeyPath,
+			);
+			await CreateCommand.run(['--add-legacy', '--passphrase', defaultPassphrase], config);
+			const loggedData = JSON.parse(stdout[0]);
+
+			expect(cryptography.legacy.getPrivateAndPublicKeyFromPassphrase).toHaveBeenCalledWith(
+				defaultPassphrase,
+			);
+			expect(cryptography.address.getAddressFromPublicKey).toHaveBeenCalledWith(
+				legacyKeys.publicKey,
+			);
+			expect(cryptography.ed.getPublicKeyFromPrivateKey).not.toHaveBeenCalledWith(
+				defaultAccountPrivateKey,
+			);
+			expect(cryptography.ed.getPrivateKeyFromPhraseAndPath).not.toHaveBeenCalledWith(
+				defaultPassphrase,
+				defaultGeneratorKeyPath,
+			);
+			expect(cryptography.ed.getPublicKeyFromPrivateKey).not.toHaveBeenCalledWith(
+				defaultGeneratorPrivateKey,
+			);
+			expect(cryptography.bls.getPrivateKeyFromPhraseAndPath).toHaveBeenCalledWith(
+				defaultPassphrase,
+				legacyBLSKeyPath,
+			);
+			expect(cryptography.bls.getPublicKeyFromPrivateKey).toHaveBeenCalledWith(legacyBLSPrivateKey);
+			expect(readerUtils.getPassphraseFromPrompt).not.toHaveBeenCalledWith('passphrase', true);
+			expect(readerUtils.getPasswordFromPrompt).toHaveBeenCalledWith('password', true);
+
+			expect(loggedData).toMatchObject({
+				keys: [
+					{
+						address: cryptography.address.getLisk32AddressFromPublicKey(legacyKeys.publicKey),
+						keyPath: 'legacy',
+						publicKey: legacyKeys.publicKey.toString('hex'),
+						privateKey: legacyKeys.privateKey.toString('hex'),
+						plain: {
+							generatorKeyPath: 'legacy',
+							generatorKey: legacyKeys.publicKey.toString('hex'),
+							generatorPrivateKey: legacyKeys.privateKey.toString('hex'),
+							blsKeyPath: legacyBLSKeyPath,
+							blsPrivateKey: legacyBLSPrivateKey.toString('hex'),
+						},
+					},
+				],
 			});
 			expect(loggedData.keys[0].encrypted).toBeDefined();
 			expect(loggedData.keys[0].encrypted).toHaveProperty('ciphertext');

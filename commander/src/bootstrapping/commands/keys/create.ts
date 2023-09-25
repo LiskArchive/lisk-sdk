@@ -14,7 +14,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { bls, address as addressUtil, ed, encrypt } from '@liskhq/lisk-cryptography';
+import { bls, address as addressUtil, ed, encrypt, legacy } from '@liskhq/lisk-cryptography';
 import { Command, Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -60,6 +60,9 @@ export class CreateCommand extends Command {
 			description: 'Chain id',
 			default: 0,
 		}),
+		'add-legacy': flagParser.boolean({
+			description: 'Add legacy key derivation path to the result',
+		}),
 	};
 
 	async run(): Promise<void> {
@@ -72,6 +75,7 @@ export class CreateCommand extends Command {
 				count,
 				offset,
 				chainid,
+				'add-legacy': addLegacy,
 			},
 		} = await this.parse(CreateCommand);
 
@@ -86,7 +90,37 @@ export class CreateCommand extends Command {
 		}
 
 		const keys = [];
-		for (let i = 0; i < count; i += 1) {
+		let i = 0;
+		if (addLegacy) {
+			const legacyKeyPath = 'legacy';
+			const { privateKey: accountPrivateKey, publicKey: accountPublicKey } =
+				legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+			const address = addressUtil.getAddressFromPublicKey(accountPublicKey);
+			const generatorPrivateKey = accountPrivateKey;
+			const generatorPublicKey = ed.getPublicKeyFromPrivateKey(generatorPrivateKey);
+			const blsKeyPath = `m/12381/134/${chainid}/99999`;
+			const blsPrivateKey = await bls.getPrivateKeyFromPhraseAndPath(passphrase, blsKeyPath);
+			const blsPublicKey = bls.getPublicKeyFromPrivateKey(blsPrivateKey);
+			const result = await this._createEncryptedObject(
+				{
+					address,
+					keyPath: legacyKeyPath,
+					accountPrivateKey,
+					accountPublicKey,
+					generatorKeyPath: legacyKeyPath,
+					generatorPrivateKey,
+					generatorPublicKey,
+					blsKeyPath,
+					blsPrivateKey,
+					blsPublicKey,
+					password,
+				},
+				noEncrypt,
+			);
+			keys.push(result);
+			i += 1;
+		}
+		for (; i < count; i += 1) {
 			const accountKeyPath = `m/44'/134'/${offset + i}'`;
 			const generatorKeyPath = `m/25519'/134'/${chainid}'/${offset + i}'`;
 			const blsKeyPath = `m/12381/134/${chainid}/${offset + i}`;
@@ -102,37 +136,23 @@ export class CreateCommand extends Command {
 			const blsPrivateKey = await bls.getPrivateKeyFromPhraseAndPath(passphrase, blsKeyPath);
 			const blsPublicKey = bls.getPublicKeyFromPrivateKey(blsPrivateKey);
 
-			let encryptedMessageObject = {};
-			if (!noEncrypt) {
-				const plainGeneratorKeyData = {
-					generatorKey: generatorPublicKey,
-					generatorPrivateKey,
-					blsKey: blsPublicKey,
-					blsPrivateKey,
-				};
-				const encodedGeneratorKeys = codec.encode(plainGeneratorKeysSchema, plainGeneratorKeyData);
-				encryptedMessageObject = await encrypt.encryptMessageWithPassword(
-					encodedGeneratorKeys,
-					password,
-				);
-			}
-
-			keys.push({
-				address: addressUtil.getLisk32AddressFromAddress(address),
-				keyPath: accountKeyPath,
-				publicKey: accountPublicKey.toString('hex'),
-				privateKey: accountPrivateKey.toString('hex'),
-				plain: {
+			const result = await this._createEncryptedObject(
+				{
+					address,
+					keyPath: accountKeyPath,
+					accountPrivateKey,
+					accountPublicKey,
 					generatorKeyPath,
-					generatorKey: generatorPublicKey.toString('hex'),
-					generatorPrivateKey: generatorPrivateKey.toString('hex'),
+					generatorPrivateKey,
+					generatorPublicKey,
 					blsKeyPath,
-					blsKey: blsPublicKey.toString('hex'),
-					blsProofOfPossession: bls.popProve(blsPrivateKey).toString('hex'),
-					blsPrivateKey: blsPrivateKey.toString('hex'),
+					blsPrivateKey,
+					blsPublicKey,
+					password,
 				},
-				encrypted: encryptedMessageObject,
-			});
+				noEncrypt,
+			);
+			keys.push(result);
 		}
 
 		if (output) {
@@ -140,5 +160,53 @@ export class CreateCommand extends Command {
 		} else {
 			this.log(JSON.stringify({ keys }, undefined, '  '));
 		}
+	}
+	private async _createEncryptedObject(
+		input: {
+			address: Buffer;
+			keyPath: string;
+			accountPublicKey: Buffer;
+			accountPrivateKey: Buffer;
+			generatorKeyPath: string;
+			generatorPublicKey: Buffer;
+			generatorPrivateKey: Buffer;
+			blsKeyPath: string;
+			blsPublicKey: Buffer;
+			blsPrivateKey: Buffer;
+			password: string;
+		},
+		noEncrypt: boolean,
+	) {
+		let encryptedMessageObject = {};
+		if (!noEncrypt) {
+			const plainGeneratorKeyData = {
+				generatorKey: input.generatorPublicKey,
+				generatorPrivateKey: input.generatorPrivateKey,
+				blsKey: input.blsPublicKey,
+				blsPrivateKey: input.blsPrivateKey,
+			};
+			const encodedGeneratorKeys = codec.encode(plainGeneratorKeysSchema, plainGeneratorKeyData);
+			encryptedMessageObject = await encrypt.encryptMessageWithPassword(
+				encodedGeneratorKeys,
+				input.password,
+			);
+		}
+
+		return {
+			address: addressUtil.getLisk32AddressFromAddress(input.address),
+			keyPath: input.keyPath,
+			publicKey: input.accountPublicKey.toString('hex'),
+			privateKey: input.accountPrivateKey.toString('hex'),
+			plain: {
+				generatorKeyPath: input.generatorKeyPath,
+				generatorKey: input.generatorPublicKey.toString('hex'),
+				generatorPrivateKey: input.generatorPrivateKey.toString('hex'),
+				blsKeyPath: input.blsKeyPath,
+				blsKey: input.blsPublicKey.toString('hex'),
+				blsProofOfPossession: bls.popProve(input.blsPrivateKey).toString('hex'),
+				blsPrivateKey: input.blsPrivateKey.toString('hex'),
+			},
+			encrypted: encryptedMessageObject,
+		};
 	}
 }
