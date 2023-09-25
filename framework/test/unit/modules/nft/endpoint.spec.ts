@@ -38,8 +38,8 @@ import { NFT } from '../../../../src/modules/nft/types';
 import { JSONObject } from '../../../../src';
 import { SupportedNFTsStore } from '../../../../src/modules/nft/stores/supported_nfts';
 import {
-	collectionExistsResponseSchema,
-	getCollectionIDsResponseSchema,
+	isCollectionIDSupportedResponseSchema,
+	getSupportedCollectionIDsResponseSchema,
 	getEscrowedNFTIDsResponseSchema,
 	getNFTResponseSchema,
 	getNFTsResponseSchema,
@@ -360,80 +360,7 @@ describe('NFTEndpoint', () => {
 		});
 	});
 
-	describe('getCollectionIDs', () => {
-		it('should fail if provided chainID has invalid length', async () => {
-			const minLengthContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID - 1).toString('hex'),
-				},
-			});
-
-			const maxLengthContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID + 1).toString('hex'),
-				},
-			});
-
-			await expect(endpoint.getCollectionIDs(minLengthContext)).rejects.toThrow(
-				`'.chainID' must NOT have fewer than 8 characters`,
-			);
-
-			await expect(endpoint.getCollectionIDs(maxLengthContext)).rejects.toThrow(
-				`'.chainID' must NOT have more than 8 characters`,
-			);
-		});
-
-		it('should return empty list if provided chainID does not exist', async () => {
-			const context = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
-				},
-			});
-
-			await expect(endpoint.getCollectionIDs(context)).resolves.toEqual({ collectionIDs: [] });
-		});
-
-		it('should return supported collections of the provided chain', async () => {
-			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-
-			const supportedCollections = [
-				{
-					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID),
-				},
-				{
-					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID),
-				},
-			];
-
-			await supportedNFTsStore.save(methodContext, chainID, {
-				supportedCollectionIDArray: supportedCollections,
-			});
-
-			const context = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: chainID.toString('hex'),
-				},
-			});
-
-			const expectedSupportedCollection = {
-				collectionIDs: supportedCollections.map(collection =>
-					collection.collectionID.toString('hex'),
-				),
-			};
-
-			await expect(endpoint.getCollectionIDs(context)).resolves.toEqual(
-				expectedSupportedCollection,
-			);
-
-			validator.validate(getCollectionIDsResponseSchema, expectedSupportedCollection);
-		});
-	});
-
-	describe('collectionExists', () => {
+	describe('getSupportedCollectionIDs', () => {
 		it('should fail if provided chainID has invalid length', async () => {
 			const minLengthContext = createTransientModuleEndpointContext({
 				stateStore,
@@ -447,15 +374,14 @@ describe('NFTEndpoint', () => {
 				stateStore,
 				params: {
 					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID + 1).toString('hex'),
-					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID).toString('hex'),
 				},
 			});
 
-			await expect(endpoint.collectionExists(minLengthContext)).rejects.toThrow(
+			await expect(endpoint.getSupportedCollectionIDs(minLengthContext)).rejects.toThrow(
 				`'.chainID' must NOT have fewer than 8 characters`,
 			);
 
-			await expect(endpoint.collectionExists(maxLengthContext)).rejects.toThrow(
+			await expect(endpoint.getSupportedCollectionIDs(maxLengthContext)).rejects.toThrow(
 				`'.chainID' must NOT have more than 8 characters`,
 			);
 		});
@@ -477,13 +403,169 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			await expect(endpoint.collectionExists(minLengthContext)).rejects.toThrow(
+			await expect(endpoint.getSupportedCollectionIDs(minLengthContext)).rejects.toThrow(
 				`'.collectionID' must NOT have fewer than 8 characters`,
 			);
 
-			await expect(endpoint.collectionExists(maxLengthContext)).rejects.toThrow(
+			await expect(endpoint.getSupportedCollectionIDs(maxLengthContext)).rejects.toThrow(
 				`'.collectionID' must NOT have more than 8 characters`,
 			);
+		});
+
+		it('should return an empty array when NFT is not supported', async () => {
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
+					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID).toString('hex'),
+				},
+			});
+
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
+				collectionIDs: [],
+			});
+		});
+
+		it('should return an array of collection IDs when NFT is supported', async () => {
+			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+			const collectionID = utils.getRandomBytes(LENGTH_COLLECTION_ID);
+
+			await supportedNFTsStore.save(methodContext, chainID, {
+				supportedCollectionIDArray: [
+					{
+						collectionID,
+					},
+				],
+			});
+
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: chainID.toString('hex'),
+					collectionID: collectionID.toString('hex'),
+				},
+			});
+
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
+				collectionIDs: [collectionID.toString('hex')],
+			});
+		});
+
+		it('should return empty list if provided chainID does not exist', async () => {
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
+					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID).toString('hex'),
+				},
+			});
+
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
+				collectionIDs: [],
+			});
+		});
+
+		it('should return supported collections of the provided chain', async () => {
+			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+			const collectionID = utils.getRandomBytes(LENGTH_COLLECTION_ID);
+
+			const supportedCollections = [
+				{
+					collectionID,
+				},
+			];
+
+			await supportedNFTsStore.save(methodContext, chainID, {
+				supportedCollectionIDArray: supportedCollections,
+			});
+
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: chainID.toString('hex'),
+					collectionID: collectionID.toString('hex'),
+				},
+			});
+
+			const expectedSupportedCollection = {
+				collectionIDs: supportedCollections.map(collection =>
+					collection.collectionID.toString('hex'),
+				),
+			};
+
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual(
+				expectedSupportedCollection,
+			);
+
+			validator.validate(getSupportedCollectionIDsResponseSchema, expectedSupportedCollection);
+		});
+	});
+
+	describe('isCollectionIDSupported', () => {
+		it('should fail if provided chainID has invalid length', async () => {
+			const minLengthContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID - 1).toString('hex'),
+					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID).toString('hex'),
+				},
+			});
+
+			const maxLengthContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID + 1).toString('hex'),
+					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID).toString('hex'),
+				},
+			});
+
+			await expect(endpoint.isCollectionIDSupported(minLengthContext)).rejects.toThrow(
+				`'.chainID' must NOT have fewer than 8 characters`,
+			);
+
+			await expect(endpoint.isCollectionIDSupported(maxLengthContext)).rejects.toThrow(
+				`'.chainID' must NOT have more than 8 characters`,
+			);
+		});
+
+		it('should fail if provided collectionID has invalid length', async () => {
+			const minLengthContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
+					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID - 1).toString('hex'),
+				},
+			});
+
+			const maxLengthContext = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
+					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID + 1).toString('hex'),
+				},
+			});
+
+			await expect(endpoint.isCollectionIDSupported(minLengthContext)).rejects.toThrow(
+				`'.collectionID' must NOT have fewer than 8 characters`,
+			);
+
+			await expect(endpoint.isCollectionIDSupported(maxLengthContext)).rejects.toThrow(
+				`'.collectionID' must NOT have more than 8 characters`,
+			);
+		});
+
+		it('should return false if NFT is not supported', async () => {
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
+					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID).toString('hex'),
+				},
+			});
+
+			await expect(endpoint.isCollectionIDSupported(context)).resolves.toEqual({
+				isCollectionIDSupported: false,
+			});
 		});
 
 		it('should return false if provided chainID does not exist', async () => {
@@ -495,11 +577,11 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			await expect(endpoint.collectionExists(context)).resolves.toEqual({
-				collectionExists: false,
+			await expect(endpoint.isCollectionIDSupported(context)).resolves.toEqual({
+				isCollectionIDSupported: false,
 			});
 
-			validator.validate(collectionExistsResponseSchema, { collectionExists: false });
+			validator.validate(isCollectionIDSupportedResponseSchema, { isCollectionIDSupported: false });
 		});
 
 		it('should return false if provided collectionID does not exist for the provided chainID', async () => {
@@ -520,8 +602,8 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			await expect(endpoint.collectionExists(context)).resolves.toEqual({
-				collectionExists: false,
+			await expect(endpoint.isCollectionIDSupported(context)).resolves.toEqual({
+				isCollectionIDSupported: false,
 			});
 		});
 
@@ -544,9 +626,11 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			await expect(endpoint.collectionExists(context)).resolves.toEqual({ collectionExists: true });
+			await expect(endpoint.isCollectionIDSupported(context)).resolves.toEqual({
+				isCollectionIDSupported: true,
+			});
 
-			validator.validate(collectionExistsResponseSchema, { collectionExists: true });
+			validator.validate(isCollectionIDSupportedResponseSchema, { isCollectionIDSupported: true });
 		});
 	});
 

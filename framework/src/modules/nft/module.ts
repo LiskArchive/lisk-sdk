@@ -39,10 +39,10 @@ import { UnlockEvent } from './events/unlock';
 import { InternalMethod } from './internal_method';
 import { NFTMethod } from './method';
 import {
-	collectionExistsRequestSchema,
-	collectionExistsResponseSchema,
-	getCollectionIDsRequestSchema,
-	getCollectionIDsResponseSchema,
+	isCollectionIDSupportedRequestSchema,
+	isCollectionIDSupportedResponseSchema,
+	getSupportedCollectionIDsRequestSchema,
+	getSupportedCollectionIDsResponseSchema,
 	getEscrowedNFTIDsRequestSchema,
 	getEscrowedNFTIDsResponseSchema,
 	getNFTRequestSchema,
@@ -150,14 +150,14 @@ export class NFTModule extends BaseInteroperableModule {
 			...this.baseMetadata(),
 			endpoints: [
 				{
-					name: this.endpoint.collectionExists.name,
-					request: collectionExistsRequestSchema,
-					response: collectionExistsResponseSchema,
+					name: this.endpoint.isCollectionIDSupported.name,
+					request: isCollectionIDSupportedRequestSchema,
+					response: isCollectionIDSupportedResponseSchema,
 				},
 				{
-					name: this.endpoint.getCollectionIDs.name,
-					request: getCollectionIDsRequestSchema,
-					response: getCollectionIDsResponseSchema,
+					name: this.endpoint.getSupportedCollectionIDs.name,
+					request: getSupportedCollectionIDsRequestSchema,
+					response: getSupportedCollectionIDsResponseSchema,
 				},
 				{
 					name: this.endpoint.getEscrowedNFTIDs.name,

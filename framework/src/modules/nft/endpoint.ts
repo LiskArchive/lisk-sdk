@@ -17,8 +17,8 @@ import { validator } from '@liskhq/lisk-validator';
 import { BaseEndpoint } from '../base_endpoint';
 import { JSONObject, ModuleEndpointContext } from '../../types';
 import {
-	collectionExistsRequestSchema,
-	getCollectionIDsRequestSchema,
+	isCollectionIDSupportedRequestSchema,
+	getSupportedCollectionIDsRequestSchema,
 	getEscrowedNFTIDsRequestSchema,
 	getNFTRequestSchema,
 	getNFTsRequestSchema,
@@ -136,56 +136,71 @@ export class NFTEndpoint extends BaseEndpoint {
 		};
 	}
 
-	public async getCollectionIDs(
+	public async getSupportedCollectionIDs(
 		context: ModuleEndpointContext,
 	): Promise<{ collectionIDs: string[] }> {
 		const { params } = context;
 
-		validator.validate<{ chainID: string }>(getCollectionIDsRequestSchema, params);
-
-		const chainID = Buffer.from(params.chainID, 'hex');
-
-		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
-
-		const chainExists = await supportedNFTsStore.has(context.getImmutableMethodContext(), chainID);
-
-		if (!chainExists) {
-			return { collectionIDs: [] };
-		}
-
-		const supportedNFTsData = await supportedNFTsStore.get(
-			context.getImmutableMethodContext(),
-			chainID,
-		);
-
-		return {
-			collectionIDs: supportedNFTsData.supportedCollectionIDArray.map(collection =>
-				collection.collectionID.toString('hex'),
-			),
-		};
-	}
-
-	public async collectionExists(
-		context: ModuleEndpointContext,
-	): Promise<{ collectionExists: boolean }> {
-		const { params } = context;
-
 		validator.validate<{ chainID: string; collectionID: string }>(
-			collectionExistsRequestSchema,
+			getSupportedCollectionIDsRequestSchema,
 			params,
 		);
 
 		const chainID = Buffer.from(params.chainID, 'hex');
+		const collectionID = Buffer.from(params.collectionID, 'hex');
+		const nftID = Buffer.concat([chainID, collectionID, Buffer.alloc(8)]);
+
+		const isNFTSupported = await this._nftMethod.isNFTSupported(
+			context.getImmutableMethodContext(),
+			nftID,
+		);
+
+		if (!isNFTSupported) {
+			return { collectionIDs: [] };
+		}
 
 		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
 
-		const chainExists = await supportedNFTsStore.has(context.getImmutableMethodContext(), chainID);
+		const supportedNFTsData = await supportedNFTsStore.get(
+			context.getImmutableMethodContext(),
+			chainID,
+		);
 
-		if (!chainExists) {
-			return { collectionExists: false };
+		if (supportedNFTsData.supportedCollectionIDArray.length) {
+			return {
+				collectionIDs: supportedNFTsData.supportedCollectionIDArray.map(collection =>
+					collection.collectionID.toString('hex'),
+				),
+			};
 		}
 
+		return { collectionIDs: [] };
+	}
+
+	public async isCollectionIDSupported(
+		context: ModuleEndpointContext,
+	): Promise<{ isCollectionIDSupported: boolean }> {
+		const { params } = context;
+
+		validator.validate<{ chainID: string; collectionID: string }>(
+			isCollectionIDSupportedRequestSchema,
+			params,
+		);
+
+		const chainID = Buffer.from(params.chainID, 'hex');
 		const collectionID = Buffer.from(params.collectionID, 'hex');
+		const nftID = Buffer.concat([chainID, collectionID, Buffer.alloc(8)]);
+
+		const isNFTSupported = await this._nftMethod.isNFTSupported(
+			context.getImmutableMethodContext(),
+			nftID,
+		);
+
+		if (!isNFTSupported) {
+			return { isCollectionIDSupported: false };
+		}
+
+		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
 
 		const supportedNFTsData = await supportedNFTsStore.get(
 			context.getImmutableMethodContext(),
@@ -193,8 +208,8 @@ export class NFTEndpoint extends BaseEndpoint {
 		);
 
 		return {
-			collectionExists: supportedNFTsData.supportedCollectionIDArray.some(supportedCollection =>
-				supportedCollection.collectionID.equals(collectionID),
+			isCollectionIDSupported: supportedNFTsData.supportedCollectionIDArray.some(
+				supportedCollection => supportedCollection.collectionID.equals(collectionID),
 			),
 		};
 	}

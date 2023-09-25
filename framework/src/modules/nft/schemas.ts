@@ -270,8 +270,8 @@ export const getNFTResponseSchema = {
 	},
 };
 
-export const getCollectionIDsRequestSchema = {
-	$id: '/nft/endpoint/getCollectionIDsRequest',
+export const getSupportedCollectionIDsRequestSchema = {
+	$id: '/nft/endpoint/getSupportedCollectionIDsRequest',
 	type: 'object',
 	properties: {
 		chainID: {
@@ -280,12 +280,18 @@ export const getCollectionIDsRequestSchema = {
 			minLength: LENGTH_CHAIN_ID * 2,
 			maxLength: LENGTH_CHAIN_ID * 2,
 		},
+		collectionID: {
+			type: 'string',
+			format: 'hex',
+			minLength: LENGTH_COLLECTION_ID * 2,
+			maxLength: LENGTH_COLLECTION_ID * 2,
+		},
 	},
 	required: ['chainID'],
 };
 
-export const getCollectionIDsResponseSchema = {
-	$id: '/nft/endpoint/getCollectionIDsRespone',
+export const getSupportedCollectionIDsResponseSchema = {
+	$id: '/nft/endpoint/getSupportedCollectionIDsRespone',
 	type: 'object',
 	properties: {
 		collectionIDs: {
@@ -298,8 +304,8 @@ export const getCollectionIDsResponseSchema = {
 	},
 };
 
-export const collectionExistsRequestSchema = {
-	$id: '/nft/endpoint/collectionExistsRequest',
+export const isCollectionIDSupportedRequestSchema = {
+	$id: '/nft/endpoint/isCollectionIDSupportedRequest',
 	type: 'object',
 	properties: {
 		chainID: {
@@ -318,11 +324,11 @@ export const collectionExistsRequestSchema = {
 	required: ['chainID', 'collectionID'],
 };
 
-export const collectionExistsResponseSchema = {
-	$id: '/nft/endpoint/collectionExistsResponse',
+export const isCollectionIDSupportedResponseSchema = {
+	$id: '/nft/endpoint/isCollectionIDSupportedResponse',
 	type: 'object',
 	properties: {
-		collectionExists: {
+		isCollectionIDSupported: {
 			type: 'boolean',
 		},
 	},
