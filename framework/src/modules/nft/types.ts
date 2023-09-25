@@ -58,6 +58,12 @@ export interface NFTAttributes {
 }
 
 export interface NFT {
+	owner: Buffer;
+	attributesArray: NFTAttributes[];
+	lockingModule?: string;
+}
+
+export interface NFTOutputEndpoint {
 	owner: string;
 	attributesArray: NFTAttributes[];
 	lockingModule?: string;
