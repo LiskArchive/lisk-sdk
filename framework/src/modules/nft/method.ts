@@ -87,6 +87,7 @@ export class NFTMethod extends BaseMethod {
 		if (!nft.lockingModule) {
 			return false;
 		}
+
 		return nft.lockingModule !== NFT_NOT_LOCKED;
 	}
 

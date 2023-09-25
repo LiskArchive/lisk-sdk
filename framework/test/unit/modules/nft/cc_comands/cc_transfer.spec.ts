@@ -272,6 +272,31 @@ describe('CrossChain Transfer Command', () => {
 			await expect(command.verify(context)).rejects.toThrow('NFT has not been properly escrowed');
 		});
 
+		it('throw if nft chain id is not equal to own chain id and entry already exists in nft substore for the nft id', async () => {
+			const newConfig = {
+				ownChainID: utils.getRandomBytes(LENGTH_CHAIN_ID),
+				escrowAccountInitializationFee: BigInt(50000000),
+				userAccountInitializationFee: BigInt(50000000),
+			};
+			method.init(newConfig);
+			internalMethod.addDependencies(method, interopMethod);
+			internalMethod.init(newConfig);
+			context = {
+				ccm,
+				transaction: defaultTransaction,
+				header: defaultHeader,
+				stateStore,
+				contextStore,
+				getMethodContext,
+				eventQueue: new EventQueue(0),
+				getStore,
+				logger: fakeLogger,
+				chainID: newConfig.ownChainID,
+			};
+
+			await expect(command.verify(context)).rejects.toThrow('NFT substore entry already exists');
+		});
+
 		it('should not throw if nft chain id is not equal to own chain id and no entry exists in nft substore for the nft id', async () => {
 			const newConfig = {
 				ownChainID: utils.getRandomBytes(LENGTH_CHAIN_ID),
@@ -296,31 +321,6 @@ describe('CrossChain Transfer Command', () => {
 			await nftStore.del(methodContext, nftID);
 
 			await expect(command.verify(context)).resolves.toBeUndefined();
-		});
-
-		it('throw if nft chain id is not equal to own chain id and entry already exists in nft substore for the nft id', async () => {
-			const newConfig = {
-				ownChainID: utils.getRandomBytes(LENGTH_CHAIN_ID),
-				escrowAccountInitializationFee: BigInt(50000000),
-				userAccountInitializationFee: BigInt(50000000),
-			};
-			method.init(newConfig);
-			internalMethod.addDependencies(method, interopMethod);
-			internalMethod.init(newConfig);
-			context = {
-				ccm,
-				transaction: defaultTransaction,
-				header: defaultHeader,
-				stateStore,
-				contextStore,
-				getMethodContext,
-				eventQueue: new EventQueue(0),
-				getStore,
-				logger: fakeLogger,
-				chainID: newConfig.ownChainID,
-			};
-
-			await expect(command.verify(context)).rejects.toThrow('NFT substore entry already exists');
 		});
 	});
 
