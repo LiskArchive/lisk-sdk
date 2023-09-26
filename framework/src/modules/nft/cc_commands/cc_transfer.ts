@@ -144,9 +144,7 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 				throw new Error('Non-supported NFT');
 			}
 
-			if (status === CCM_STATUS_CODE_OK) {
-				this._feeMethod.payFee(getMethodContext(), BigInt(FEE_CREATE_NFT));
-			}
+			this._feeMethod.payFee(getMethodContext(), BigInt(FEE_CREATE_NFT));
 
 			if (status !== CCM_STATUS_CODE_OK) {
 				recipientAddress = senderAddress;
@@ -158,6 +156,7 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 				nftID,
 				receivedAttributes as NFTAttributes[],
 			);
+
 			await this._internalMethod.createUserEntry(getMethodContext(), recipientAddress, nftID);
 		}
 
