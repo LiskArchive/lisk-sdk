@@ -26,7 +26,7 @@ const generateValidators = (num, fixedNum) => {
 	for (let i = 0; i < num; i += 1) {
 		const passphrase = Mnemonic.generateMnemonic();
 		const { publicKey } = ed.getKeys(passphrase);
-		const address = utils.hash(Buffer.from(publicKey, 'hex')).slice(0, 20);
+		const address = utils.hash(Buffer.from(publicKey, 'hex')).subarray(0, 20);
 		const buf = crypto.randomBytes(8);
 		const randomNumber = buf.readBigUInt64BE() / BigInt(10) ** BigInt(8);
 		const validatorWeight = fixedValue

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils, ed } from '@liskhq/lisk-cryptography';
+import { ed } from '@liskhq/lisk-cryptography';
 import { math } from '@liskhq/lisk-utils';
 import {
 	ModuleConfig,
@@ -97,31 +97,6 @@ export const pickStandByValidator = (
 	}
 
 	return -1;
-};
-
-export const shuffleValidatorList = (
-	previousRoundSeed1: Buffer,
-	addresses: ValidatorWeight[],
-): ValidatorWeight[] => {
-	const validatorList = [...addresses].map(validator => ({
-		...validator,
-	})) as { address: Buffer; roundHash: Buffer; weight: bigint }[];
-
-	for (const validator of validatorList) {
-		const seedSource = Buffer.concat([previousRoundSeed1, validator.address]);
-		validator.roundHash = utils.hash(seedSource);
-	}
-
-	validatorList.sort((validator1, validator2) => {
-		const diff = validator1.roundHash.compare(validator2.roundHash);
-		if (diff !== 0) {
-			return diff;
-		}
-
-		return validator1.address.compare(validator2.address);
-	});
-
-	return validatorList;
 };
 
 export const selectStandbyValidators = (

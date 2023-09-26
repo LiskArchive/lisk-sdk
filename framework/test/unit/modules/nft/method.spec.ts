@@ -211,7 +211,7 @@ describe('NFTMethod', () => {
 		});
 
 		it('should return the first bytes of length LENGTH_CHAIN_ID from provided nftID', () => {
-			expect(method.getChainID(nftID)).toEqual(nftID.slice(0, LENGTH_CHAIN_ID));
+			expect(method.getChainID(nftID)).toEqual(nftID.subarray(0, LENGTH_CHAIN_ID));
 		});
 	});
 
@@ -415,7 +415,7 @@ describe('NFTMethod', () => {
 				attributesArray: [],
 			});
 
-			await supportedNFTsStore.set(methodContext, foreignNFT.slice(0, LENGTH_CHAIN_ID), {
+			await supportedNFTsStore.set(methodContext, foreignNFT.subarray(0, LENGTH_CHAIN_ID), {
 				supportedCollectionIDArray: [
 					{ collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID) },
 					{ collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID) },
@@ -489,7 +489,7 @@ describe('NFTMethod', () => {
 			{ module: 'customMod1', attributes: Buffer.alloc(5) },
 			{ module: 'customMod2', attributes: Buffer.alloc(2) },
 		];
-		const collectionID = nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
+		const collectionID = nftID.subarray(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
 
 		beforeEach(async () => {
 			await nftStore.save(methodContext, nftID, {
@@ -543,7 +543,7 @@ describe('NFTMethod', () => {
 	describe('create', () => {
 		const attributesArray1 = [{ module: 'customMod3', attributes: Buffer.alloc(7) }];
 		const attributesArray2 = [{ module: 'customMod3', attributes: Buffer.alloc(9) }];
-		const collectionID = nftID.slice(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
+		const collectionID = nftID.subarray(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
 		const address = utils.getRandomBytes(LENGTH_ADDRESS);
 
 		beforeEach(() => {
@@ -587,7 +587,6 @@ describe('NFTMethod', () => {
 			checkEventResult(methodContext.eventQueue, 1, CreateEvent, 0, {
 				address,
 				nftID: expectedKey,
-				collectionID,
 			});
 		});
 
@@ -619,7 +618,6 @@ describe('NFTMethod', () => {
 			checkEventResult(methodContext.eventQueue, 1, CreateEvent, 0, {
 				address,
 				nftID: expectedKey,
-				collectionID,
 			});
 		});
 	});
@@ -938,7 +936,7 @@ describe('NFTMethod', () => {
 
 		it('should throw and emit error transfer cross chain event if nft does not exist', async () => {
 			const nonExistingNFTID = utils.getRandomBytes(LENGTH_NFT_ID);
-			receivingChainID = nonExistingNFTID.slice(0, LENGTH_CHAIN_ID);
+			receivingChainID = nonExistingNFTID.subarray(0, LENGTH_CHAIN_ID);
 			await expect(
 				method.transferCrossChain(
 					methodContext,
@@ -1180,16 +1178,33 @@ describe('NFTMethod', () => {
 	describe('removeSupportAllNFTs', () => {
 		it('should remove all existing entries and log AllNFTsSupportRemovedEvent', async () => {
 			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-
-			await supportedNFTsStore.save(methodContext, utils.getRandomBytes(LENGTH_CHAIN_ID), {
+			await supportedNFTsStore.save(methodContext, chainID, {
 				supportedCollectionIDArray: [],
 			});
 
+			await expect(supportedNFTsStore.has(methodContext, chainID)).resolves.toBeTrue();
 			await expect(method.removeSupportAllNFTs(methodContext)).resolves.toBeUndefined();
+			await expect(
+				supportedNFTsStore.has(methodContext, ALL_SUPPORTED_NFTS_KEY),
+			).resolves.toBeFalse();
 
 			await expect(supportedNFTsStore.has(methodContext, chainID)).resolves.toBeFalse();
 
 			checkEventResult(methodContext.eventQueue, 1, AllNFTsSupportRemovedEvent, 0, {}, null);
+		});
+
+		it('should remove all existing entries even if the ALL_SUPPORTED_NFTS_KEY entry exists', async () => {
+			await supportedNFTsStore.save(methodContext, ALL_SUPPORTED_NFTS_KEY, {
+				supportedCollectionIDArray: [],
+			});
+
+			await expect(method.removeSupportAllNFTs(methodContext)).resolves.toBeUndefined();
+			await expect(
+				supportedNFTsStore.has(methodContext, ALL_SUPPORTED_NFTS_KEY),
+			).resolves.toBeFalse();
+
+			checkEventResult(methodContext.eventQueue, 1, AllNFTsSupportRemovedEvent, 0, {}, null);
+			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 		});
 	});
 
@@ -1471,9 +1486,7 @@ describe('NFTMethod', () => {
 					config.ownChainID,
 					utils.getRandomBytes(LENGTH_CHAIN_ID),
 				),
-			).resolves.toBeUndefined();
-
-			expect(methodContext.eventQueue.getEvents()).toHaveLength(0);
+			).rejects.toThrow('Invalid operation. Support for native NFTs cannot be removed');
 		});
 
 		it('should throw if all NFTs are supported', async () => {
@@ -1654,6 +1667,31 @@ describe('NFTMethod', () => {
 					storeKey,
 					Buffer.from('asfas'),
 				),
+			).rejects.toThrow('Invalid inputs');
+			checkEventResult<RecoverEventData>(
+				methodContext.eventQueue,
+				1,
+				RecoverEvent,
+				0,
+				{
+					terminatedChainID,
+					nftID: storeKey,
+				},
+				NftEventResult.RESULT_RECOVER_FAIL_INVALID_INPUTS,
+			);
+		});
+
+		it('should throw and emit error recover event if module name length in attributes array is not valid', async () => {
+			const newStoreValue = codec.encode(nftStoreSchema, {
+				owner: utils.getRandomBytes(LENGTH_CHAIN_ID),
+				attributesArray: [
+					{ module: 'customMod1', attributes: Buffer.alloc(5) },
+					{ module: '', attributes: Buffer.alloc(2) },
+				],
+			});
+
+			await expect(
+				method.recover(methodContext, terminatedChainID, substorePrefix, storeKey, newStoreValue),
 			).rejects.toThrow('Invalid inputs');
 			checkEventResult<RecoverEventData>(
 				methodContext.eventQueue,

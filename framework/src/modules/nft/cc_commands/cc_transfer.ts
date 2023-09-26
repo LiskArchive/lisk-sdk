@@ -53,7 +53,6 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			crossChainNFTTransferMessageParamsSchema,
 			ccm.params,
 		);
-		validator.validate(crossChainNFTTransferMessageParamsSchema, params);
 
 		if (ccm.status > MAX_RESERVED_ERROR_STATUS) {
 			throw new Error('Invalid CCM error code');
@@ -137,6 +136,8 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 						senderAddress,
 						recipientAddress,
 						nftID,
+						receivingChainID: ccm.receivingChainID,
+						sendingChainID: ccm.sendingChainID,
 					},
 					NftEventResult.RESULT_NFT_NOT_SUPPORTED,
 				);
@@ -164,6 +165,8 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			senderAddress,
 			recipientAddress,
 			nftID,
+			receivingChainID: ccm.receivingChainID,
+			sendingChainID: ccm.sendingChainID,
 		});
 	}
 }

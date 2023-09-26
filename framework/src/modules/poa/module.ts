@@ -35,7 +35,7 @@ import {
 	SUBSTORE_PREFIX_NAME_INDEX,
 	SUBSTORE_PREFIX_SNAPSHOT_INDEX,
 } from './constants';
-import { shuffleValidatorList } from './utils';
+import { shuffleValidatorList } from '../utils';
 import { NextValidatorsSetter, MethodContext } from '../../state_machine/types';
 import {
 	configSchema,
@@ -52,6 +52,7 @@ import {
 	RandomMethod,
 	ModuleConfigJSON,
 	ModuleConfig,
+	ActiveValidator,
 } from './types';
 import { RegisterAuthorityCommand } from './commands/register_authority';
 import { UpdateAuthorityCommand } from './commands/update_authority';
@@ -179,7 +180,10 @@ export class PoAModule extends BaseModule {
 				previousLengthValidators,
 			);
 
-			const nextValidators = shuffleValidatorList(randomSeed, snapshot1.validators);
+			const nextValidators = shuffleValidatorList<ActiveValidator>(
+				randomSeed,
+				snapshot1.validators,
+			);
 
 			await this._validatorsMethod.setValidatorsParams(
 				context as MethodContext,
@@ -220,23 +224,18 @@ export class PoAModule extends BaseModule {
 			throw new Error('`address` property of all entries in validators must be distinct.');
 		}
 
-		const sortedValidatorsByAddress = [...validatorAddresses].sort((a, b) => a.compare(b));
-		for (let i = 0; i < validators.length; i += 1) {
-			// Check that entries in the validators array are ordered lexicographically according to address.
-			if (!validatorAddresses[i].equals(sortedValidatorsByAddress[i])) {
-				throw new Error('`validators` must be ordered lexicographically by address.');
-			}
+		if (!objects.isBufferArrayOrdered(validatorAddresses)) {
+			throw new Error('`validators` must be ordered lexicographically by address.');
+		}
 
-			if (!POA_VALIDATOR_NAME_REGEX.test(validators[i].name)) {
+		for (const poaValidator of validators) {
+			if (!POA_VALIDATOR_NAME_REGEX.test(poaValidator.name)) {
 				throw new Error('`name` property is invalid. Must contain only characters a-z0-9!@$&_.');
 			}
 		}
 
 		const { activeValidators, threshold } = snapshotSubstore;
 		const activeValidatorAddresses = activeValidators.map(v => v.address);
-		const sortedActiveValidatorsByAddress = [...activeValidatorAddresses].sort((a, b) =>
-			a.compare(b),
-		);
 		const validatorAddressesString = validatorAddresses.map(a => a.toString('hex'));
 		let totalWeight = BigInt(0);
 
@@ -245,25 +244,21 @@ export class PoAModule extends BaseModule {
 			throw new Error('`address` properties in `activeValidators` must be distinct.');
 		}
 
-		for (let i = 0; i < activeValidators.length; i += 1) {
-			// Check that entries in the snapshotSubstore.activeValidators array are ordered lexicographically according to address.
-			if (!activeValidators[i].address.equals(sortedActiveValidatorsByAddress[i])) {
-				throw new Error(
-					'`activeValidators` must be ordered lexicographically by address property.',
-				);
-			}
-
+		if (!objects.isBufferArrayOrdered(activeValidatorAddresses)) {
+			throw new Error('`activeValidators` must be ordered lexicographically by address property.');
+		}
+		for (const activeValidator of activeValidators) {
 			// Check that for every element activeValidator in the snapshotSubstore.activeValidators array, there is an entry validator in the validators array with validator.address == activeValidator.address.
-			if (!validatorAddressesString.includes(activeValidators[i].address.toString('hex'))) {
+			if (!validatorAddressesString.includes(activeValidator.address.toString('hex'))) {
 				throw new Error('`activeValidator` address is missing from validators array.');
 			}
 
 			// Check that the weight property of every entry in the snapshotSubstore.activeValidators array is a positive integer.
-			if (activeValidators[i].weight <= BigInt(0)) {
+			if (activeValidator.weight <= BigInt(0)) {
 				throw new Error('`activeValidators` weight must be positive integer.');
 			}
 
-			totalWeight += activeValidators[i].weight;
+			totalWeight += activeValidator.weight;
 		}
 
 		if (totalWeight > MAX_UINT64) {

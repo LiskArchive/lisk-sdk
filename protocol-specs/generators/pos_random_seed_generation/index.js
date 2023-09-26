@@ -35,7 +35,7 @@ const strippedHash = data => {
 		throw new Error('Hash input is not a valid type');
 	}
 
-	return utils.hash(data).slice(0, 16);
+	return utils.hash(data).subarray(0, 16);
 };
 
 const bitwiseXOR = bufferArray => {

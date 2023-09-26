@@ -183,40 +183,6 @@ describe('CrossChain Transfer Command', () => {
 			await expect(command.verify(context)).resolves.toBeUndefined();
 		});
 
-		it('throw for if validation fails', async () => {
-			params = codec.encode(crossChainNFTTransferMessageParamsSchema, {
-				nftID: Buffer.alloc(LENGTH_NFT_ID + 1, 1),
-				senderAddress,
-				recipientAddress,
-				attributesArray,
-				data: '',
-			});
-			ccm = {
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-				module: module.name,
-				nonce: BigInt(1),
-				sendingChainID,
-				receivingChainID,
-				fee: BigInt(30000),
-				status: CCM_STATUS_OK,
-				params,
-			};
-			context = {
-				ccm,
-				transaction: defaultTransaction,
-				header: defaultHeader,
-				stateStore,
-				contextStore,
-				getMethodContext,
-				eventQueue,
-				getStore,
-				logger: fakeLogger,
-				chainID,
-			};
-
-			await expect(command.verify(context)).rejects.toThrow(`Property '.nftID' maxLength exceeded`);
-		});
-
 		it('throw for invalid ccm status', async () => {
 			ccm = {
 				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
@@ -449,6 +415,8 @@ describe('CrossChain Transfer Command', () => {
 				senderAddress,
 				recipientAddress,
 				nftID,
+				receivingChainID: ccm.receivingChainID,
+				sendingChainID: ccm.sendingChainID,
 			});
 		});
 
@@ -499,6 +467,8 @@ describe('CrossChain Transfer Command', () => {
 				senderAddress,
 				recipientAddress: senderAddress,
 				nftID,
+				receivingChainID: ccm.receivingChainID,
+				sendingChainID: ccm.sendingChainID,
 			});
 		});
 
@@ -548,6 +518,8 @@ describe('CrossChain Transfer Command', () => {
 					senderAddress,
 					recipientAddress,
 					nftID: newNftID,
+					receivingChainID: ccm.receivingChainID,
+					sendingChainID: ccm.sendingChainID,
 				},
 				NftEventResult.RESULT_NFT_NOT_SUPPORTED,
 			);
@@ -594,6 +566,8 @@ describe('CrossChain Transfer Command', () => {
 				senderAddress,
 				recipientAddress,
 				nftID,
+				receivingChainID: ccm.receivingChainID,
+				sendingChainID: ccm.sendingChainID,
 			});
 		});
 
@@ -644,7 +618,7 @@ describe('CrossChain Transfer Command', () => {
 				methodContext,
 				userStore.getKey(senderAddress, nftID),
 			);
-			expect(feeMethod.payFee).not.toHaveBeenCalled();
+			expect(feeMethod.payFee).toHaveBeenCalledWith(methodContext, BigInt(FEE_CREATE_NFT));
 			expect(nftStoreData.owner).toStrictEqual(senderAddress);
 			expect(nftStoreData.attributesArray).toEqual(attributesArray);
 			expect(userAccountExistsForRecipient).toBe(false);
@@ -653,6 +627,8 @@ describe('CrossChain Transfer Command', () => {
 				senderAddress,
 				recipientAddress: senderAddress,
 				nftID,
+				receivingChainID: ccm.receivingChainID,
+				sendingChainID: ccm.sendingChainID,
 			});
 		});
 	});

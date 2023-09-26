@@ -127,7 +127,7 @@ export const encryptAES128GCMWithPassword = async (
 		key = getKeyFromPassword(password, salt, iterations);
 	}
 
-	const cipher = crypto.createCipheriv('aes-128-gcm', key.slice(0, 16), iv);
+	const cipher = crypto.createCipheriv('aes-128-gcm', key.subarray(0, 16), iv);
 	const firstBlock = Buffer.isBuffer(plainText)
 		? cipher.update(plainText)
 		: cipher.update(plainText, 'utf8');
@@ -136,7 +136,7 @@ export const encryptAES128GCMWithPassword = async (
 
 	return {
 		ciphertext: encrypted.toString('hex'),
-		mac: crypto.createHash('sha256').update(key.slice(16, 32)).update(encrypted).digest('hex'),
+		mac: crypto.createHash('sha256').update(key.subarray(16, 32)).update(encrypted).digest('hex'),
 		kdf,
 		kdfparams: {
 			parallelism,
@@ -227,7 +227,11 @@ export async function decryptAES128GCMWithPassword(
 	} else {
 		key = getKeyFromPassword(password, hexToBuffer(salt, 'Salt'), iterations);
 	}
-	const decipher = crypto.createDecipheriv('aes-128-gcm', key.slice(0, 16), hexToBuffer(iv, 'IV'));
+	const decipher = crypto.createDecipheriv(
+		'aes-128-gcm',
+		key.subarray(0, 16),
+		hexToBuffer(iv, 'IV'),
+	);
 	decipher.setAuthTag(tagBuffer);
 	const firstBlock = decipher.update(hexToBuffer(ciphertext, 'Cipher text'));
 	const decrypted = Buffer.concat([firstBlock, decipher.final()]);

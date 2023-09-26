@@ -79,7 +79,7 @@ export class TokenMethod extends BaseMethod {
 	}
 
 	public getTokenIDLSK(): Buffer {
-		const networkID = this._config.ownChainID.slice(0, 1);
+		const networkID = this._config.ownChainID.subarray(0, 1);
 		// 3 bytes for remaining chainID bytes
 		return Buffer.concat([networkID, Buffer.alloc(3 + LOCAL_ID_LENGTH, 0)]);
 	}
