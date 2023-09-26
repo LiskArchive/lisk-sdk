@@ -126,9 +126,13 @@ describe('Utils', () => {
 		});
 
 		it('should throw error when certificate.timestamp is equal to header.timestamp', () => {
-			expect(() => checkCertificateTimestamp(txParams, certificate, header)).toThrow(
-				'Certificate is invalid due to invalid timestamp.',
-			);
+			expect(() =>
+				checkCertificateTimestamp(
+					txParams,
+					{ ...certificate, timestamp: header.timestamp },
+					header,
+				),
+			).toThrow('Certificate is invalid due to invalid timestamp.');
 		});
 
 		it('should return undefined certificate.timestamp is less than header.timestamp', () => {
