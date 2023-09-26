@@ -26,7 +26,7 @@ import {
 import { InternalMethod } from '../internal_method';
 import { BaseCCCommand } from '../../interoperability/base_cc_command';
 import { CrossChainMessageContext } from '../../interoperability/types';
-import { MAX_RESERVED_ERROR_STATUS } from '../../interoperability/constants';
+import { CCMStatusCode, MAX_RESERVED_ERROR_STATUS } from '../../interoperability/constants';
 import { FeeMethod } from '../types';
 import { EscrowStore } from '../stores/escrow';
 import { CcmTransferEvent } from '../events/ccm_transfer';
@@ -82,6 +82,14 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			if (!nft.owner.equals(sendingChainID)) {
 				throw new Error('NFT has not been properly escrowed');
 			}
+		}
+
+		if (
+			!nftChainID.equals(ownChainID) &&
+			(ccm.status === CCMStatusCode.MODULE_NOT_SUPPORTED ||
+				ccm.status === CCMStatusCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED)
+		) {
+			throw new Error('Module or cross-chain command not supported');
 		}
 
 		if (!nftChainID.equals(ownChainID) && nft) {
