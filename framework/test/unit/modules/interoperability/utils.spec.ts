@@ -33,10 +33,7 @@ import {
 } from '../../../../src/modules/interoperability/types';
 import {
 	checkCertificateTimestamp,
-	checkCertificateValidity,
-	checkLivenessRequirementFirstCCU,
-	checkValidatorsHashWithCertificate,
-	computeValidatorsHash,
+	checkLivenessRequirement,
 	validateFormat,
 	verifyLivenessConditionForRegisteredChains,
 	isValidName,
@@ -61,22 +58,11 @@ describe('Utils', () => {
 		signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
 	};
 
-	const defaultActiveValidatorsUpdate = {
-		blsKeysUpdate: [
-			utils.getRandomBytes(48),
-			utils.getRandomBytes(48),
-			utils.getRandomBytes(48),
-			utils.getRandomBytes(48),
-		].sort((v1, v2) => v1.compare(v2)),
-		bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
-		bftWeightsUpdateBitmap: Buffer.from([1, 0, 2]),
-	};
-
 	beforeEach(() => {
 		jest.spyOn(validator, 'validate');
 	});
 
-	describe('checkLivenessRequirementFirstCCU', () => {
+	describe('checkLivenessRequirement', () => {
 		const partnerChainAccount = {
 			status: ChainStatus.REGISTERED,
 		};
@@ -91,7 +77,7 @@ describe('Utils', () => {
 		};
 
 		it(`should return VerifyStatus.FAIL status when chain status ${ChainStatus.REGISTERED} && certificate is empty`, () => {
-			const result = checkLivenessRequirementFirstCCU(
+			const result = checkLivenessRequirement(
 				partnerChainAccount as ChainAccount,
 				txParamsEmptyCertificate as CrossChainUpdateTransactionParams,
 			);
@@ -99,79 +85,11 @@ describe('Utils', () => {
 		});
 
 		it(`should return status VerifyStatus.OK status when chain status ${ChainStatus.REGISTERED} && certificate is non-empty`, () => {
-			const result = checkLivenessRequirementFirstCCU(
+			const result = checkLivenessRequirement(
 				partnerChainAccount as ChainAccount,
 				txParamsNonEmptyCertificate as CrossChainUpdateTransactionParams,
 			);
 			expect(result.status).toEqual(VerifyStatus.OK);
-		});
-	});
-
-	describe('checkCertificateValidity', () => {
-		const partnerChainAccount = {
-			lastCertificate: {
-				height: 20,
-			},
-		};
-
-		const partnerChainAccountWithHigherHeight = {
-			lastCertificate: {
-				height: 40,
-			},
-		};
-
-		const certificate = {
-			...defaultCertificate,
-		};
-
-		const certificateWithEmptyValues = {
-			...defaultCertificate,
-			stateRoot: EMPTY_BYTES,
-			validatorsHash: EMPTY_BYTES,
-			aggregationBits: EMPTY_BYTES,
-			signature: EMPTY_BYTES,
-		};
-
-		const encodedCertificate = codec.encode(certificateSchema, certificate);
-		const encodedWithEmptyValuesCertificate = codec.encode(
-			certificateSchema,
-			certificateWithEmptyValues,
-		);
-
-		it('should return VerifyStatus.FAIL when certificate required properties are missing', () => {
-			const { status, error } = checkCertificateValidity(
-				partnerChainAccount as ChainAccount,
-				encodedWithEmptyValuesCertificate,
-			);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toBe('Certificate is missing required values.');
-		});
-
-		it('should return VerifyStatus.FAIL when certificate height is less than or equal to last certificate height', () => {
-			const { status, error } = checkCertificateValidity(
-				partnerChainAccountWithHigherHeight as ChainAccount,
-				encodedCertificate,
-			);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toBe(
-				'Certificate height should be greater than last certificate height.',
-			);
-		});
-
-		it('should return VerifyStatus.OK when certificate has all values and height greater than last certificate height', () => {
-			const { status, error } = checkCertificateValidity(
-				partnerChainAccount as ChainAccount,
-				encodedCertificate,
-			);
-
-			expect(status).toEqual(VerifyStatus.OK);
-			expect(error).toBeUndefined();
-			expect(validator.validate).toHaveBeenCalledWith(
-				certificateSchema,
-				expect.toBeObject() as Certificate,
-			);
 		});
 	});
 
@@ -207,157 +125,14 @@ describe('Utils', () => {
 			).toThrow('Certificate is invalid due to invalid timestamp.');
 		});
 
+		it('should throw error when certificate.timestamp is equal to header.timestamp', () => {
+			expect(() => checkCertificateTimestamp(txParams, certificate, header)).toThrow(
+				'Certificate is invalid due to invalid timestamp.',
+			);
+		});
+
 		it('should return undefined certificate.timestamp is less than header.timestamp', () => {
 			expect(checkCertificateTimestamp(txParams, certificate, header)).toBeUndefined();
-		});
-	});
-
-	describe('checkValidatorsHashWithCertificate', () => {
-		const activeValidatorsUpdate = { ...defaultActiveValidatorsUpdate };
-		const partnerValidators: any = {
-			certificateThreshold: BigInt(10),
-			activeValidators: activeValidatorsUpdate.blsKeysUpdate.map((v, i) => ({
-				blsKey: v,
-				bftWeight: activeValidatorsUpdate.bftWeightsUpdate[i] + BigInt(1),
-			})),
-		};
-		const validatorsHash = computeValidatorsHash(
-			partnerValidators.activeValidators,
-			partnerValidators.certificateThreshold,
-		);
-
-		const certificate: Certificate = {
-			...defaultCertificate,
-			validatorsHash,
-		};
-
-		const encodedCertificate = codec.encode(certificateSchema, certificate);
-
-		const txParams: any = {
-			certificate: encodedCertificate,
-			activeValidatorsUpdate,
-			certificateThreshold: BigInt(10),
-		};
-
-		beforeEach(() => {
-			jest
-				.spyOn(interopUtils, 'calculateNewActiveValidators')
-				.mockReturnValue(partnerValidators.activeValidators);
-		});
-
-		it('should return VerifyStatus.FAIL when certificate is empty', () => {
-			const txParamsWithIncorrectHash = { ...txParams, certificate: EMPTY_BYTES };
-			const { status, error } = checkValidatorsHashWithCertificate(
-				txParamsWithIncorrectHash,
-				partnerValidators,
-			);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toBe(
-				'Certificate cannot be empty when activeValidatorsUpdate or certificateThreshold has a non-empty value.',
-			);
-		});
-
-		it('should return VerifyStatus.FAIL when certificate has missing fields', () => {
-			const txParamsWithIncorrectHash = { ...txParams, certificate: Buffer.alloc(2) };
-			const { status, error } = checkValidatorsHashWithCertificate(
-				txParamsWithIncorrectHash,
-				partnerValidators,
-			);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toBe(
-				'Certificate should have all required values when activeValidatorsUpdate or certificateThreshold has a non-empty value.',
-			);
-		});
-
-		it('should return VerifyStatus.FAIL when validators hash is incorrect', () => {
-			const certificateInvalidValidatorHash: Certificate = {
-				...certificate,
-				validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
-			};
-			const invalidEncodedCertificate = codec.encode(
-				certificateSchema,
-				certificateInvalidValidatorHash,
-			);
-
-			const txParamsWithIncorrectHash = { ...txParams, certificate: invalidEncodedCertificate };
-			const { status, error } = checkValidatorsHashWithCertificate(
-				txParamsWithIncorrectHash,
-				partnerValidators,
-			);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toBe('Validators hash given in the certificate is incorrect.');
-		});
-
-		it('should return VerifyStatus.OK when validators hash is correct', () => {
-			const txParamsWithCorrectHash = { ...txParams };
-			const { status, error } = checkValidatorsHashWithCertificate(
-				txParamsWithCorrectHash,
-				partnerValidators,
-			);
-
-			expect(status).toEqual(VerifyStatus.OK);
-			expect(error).toBeUndefined();
-			expect(validator.validate).toHaveBeenCalledWith(
-				certificateSchema,
-				expect.toBeObject() as Certificate,
-			);
-		});
-
-		it('should return VerifyStatus.OK when activeValidatorsUpdate is empty and certificateThreshold === 0', () => {
-			const ineligibleTxParams = {
-				...txParams,
-				activeValidatorsUpdate: {
-					bftWeightsUpdate: [],
-					bftWeightsUpdateBitmap: Buffer.from([]),
-					blsKeysUpdate: [],
-				},
-				certificateThreshold: BigInt(0),
-			};
-			const { status, error } = checkValidatorsHashWithCertificate(
-				ineligibleTxParams,
-				partnerValidators,
-			);
-
-			expect(status).toEqual(VerifyStatus.OK);
-			expect(error).toBeUndefined();
-		});
-
-		it('should return VerifyStatus.OK when certificateThreshold === 0 but activeValidatorsUpdate.length > 0', () => {
-			const { status, error } = checkValidatorsHashWithCertificate(
-				{ ...txParams, certificateThreshold: BigInt(0) },
-				partnerValidators,
-			);
-
-			expect(status).toEqual(VerifyStatus.OK);
-			expect(error).toBeUndefined();
-			expect(validator.validate).toHaveBeenCalledWith(
-				certificateSchema,
-				expect.toBeObject() as Certificate,
-			);
-		});
-
-		it('should return VerifyStatus.OK when certificateThreshold > 0 but activeValidatorsUpdate is empty', () => {
-			const { status, error } = checkValidatorsHashWithCertificate(
-				{
-					...txParams,
-					activeValidatorsUpdate: {
-						bftWeightsUpdate: [],
-						bftWeightsUpdateBitmap: Buffer.from([]),
-						blsKeysUpdate: [],
-					},
-				},
-				partnerValidators,
-			);
-
-			expect(status).toEqual(VerifyStatus.OK);
-			expect(error).toBeUndefined();
-			expect(validator.validate).toHaveBeenCalledWith(
-				certificateSchema,
-				expect.toBeObject() as Certificate,
-			);
 		});
 	});
 

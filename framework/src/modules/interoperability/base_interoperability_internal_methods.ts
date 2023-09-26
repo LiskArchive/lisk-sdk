@@ -26,6 +26,7 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 	EMPTY_HASH,
 	MAX_NUM_VALIDATORS,
+	MAX_UINT64,
 } from './constants';
 import { ccmSchema } from './schemas';
 import { CCMsg, CrossChainUpdateTransactionParams, ChainAccount, ChainValidators } from './types';
@@ -369,8 +370,27 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			);
 		}
 
+		let totalWeight = BigInt(0);
+		for (const currentValidator of newActiveValidators) {
+			if (currentValidator.bftWeight === BigInt(0)) {
+				throw new Error('Validator bft weight must be positive integer.');
+			}
+			totalWeight += currentValidator.bftWeight;
+			if (totalWeight > MAX_UINT64) {
+				throw new Error('Total BFT weight exceeds maximum value.');
+			}
+		}
 		const certificate = codec.decode<Certificate>(certificateSchema, ccu.certificate);
 		validator.validate(certificateSchema, certificate);
+
+		const { certificateThreshold } = ccu;
+
+		if (certificateThreshold < totalWeight / BigInt(3) + BigInt(1)) {
+			throw new Error('Certificate threshold is too small.');
+		}
+		if (certificateThreshold > totalWeight) {
+			throw new Error('Certificate threshold is too large.');
+		}
 
 		const newValidatorsHash = computeValidatorsHash(newActiveValidators, ccu.certificateThreshold);
 		if (!certificate.validatorsHash.equals(newValidatorsHash)) {

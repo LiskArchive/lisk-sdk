@@ -22,7 +22,6 @@ import {
 	CCMsg,
 	ChainAccount,
 	CrossChainUpdateTransactionParams,
-	ChainValidators,
 	InboxUpdate,
 	OutboxRootWitness,
 	ActiveValidatorsUpdate,
@@ -119,7 +118,7 @@ export const isInboxUpdateEmpty = (inboxUpdate: InboxUpdate) =>
 export const isOutboxRootWitnessEmpty = (outboxRootWitness: OutboxRootWitness) =>
 	outboxRootWitness.siblingHashes.length === 0 || outboxRootWitness.bitmap.length === 0;
 
-export const checkLivenessRequirementFirstCCU = (
+export const checkLivenessRequirement = (
 	partnerChainAccount: ChainAccount,
 	txParams: CrossChainUpdateTransactionParams,
 ): VerificationResult => {
@@ -142,39 +141,6 @@ export const checkLivenessRequirementFirstCCU = (
 	};
 };
 
-export const checkCertificateValidity = (
-	partnerChainAccount: ChainAccount,
-	encodedCertificate: Buffer,
-): VerificationResult => {
-	if (encodedCertificate.equals(EMPTY_BYTES)) {
-		return {
-			status: VerifyStatus.OK,
-		};
-	}
-
-	const certificate = codec.decode<Certificate>(certificateSchema, encodedCertificate);
-	try {
-		validator.validate(certificateSchema, certificate);
-	} catch (err) {
-		return {
-			status: VerifyStatus.FAIL,
-			error: new Error('Certificate is missing required values.'),
-		};
-	}
-
-	// Last certificate height should be less than new certificate height
-	if (partnerChainAccount.lastCertificate.height >= certificate.height) {
-		return {
-			status: VerifyStatus.FAIL,
-			error: new Error('Certificate height should be greater than last certificate height.'),
-		};
-	}
-
-	return {
-		status: VerifyStatus.OK,
-	};
-};
-
 export const checkCertificateTimestamp = (
 	txParams: CrossChainUpdateTransactionParams,
 	certificate: Certificate,
@@ -188,60 +154,6 @@ export const checkCertificateTimestamp = (
 	if (certificate.timestamp >= header.timestamp) {
 		throw Error('Certificate is invalid due to invalid timestamp.');
 	}
-};
-
-export const checkValidatorsHashWithCertificate = (
-	txParams: CrossChainUpdateTransactionParams,
-	partnerValidators: ChainValidators,
-): VerificationResult => {
-	if (
-		!emptyActiveValidatorsUpdate(txParams.activeValidatorsUpdate) ||
-		txParams.certificateThreshold > BigInt(0)
-	) {
-		if (txParams.certificate.equals(EMPTY_BYTES)) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error(
-					'Certificate cannot be empty when activeValidatorsUpdate or certificateThreshold has a non-empty value.',
-				),
-			};
-		}
-		let certificate: Certificate;
-		try {
-			certificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-			validator.validate(certificateSchema, certificate);
-		} catch (error) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error(
-					'Certificate should have all required values when activeValidatorsUpdate or certificateThreshold has a non-empty value.',
-				),
-			};
-		}
-
-		const newActiveValidators = calculateNewActiveValidators(
-			partnerValidators.activeValidators,
-			txParams.activeValidatorsUpdate.blsKeysUpdate,
-			txParams.activeValidatorsUpdate.bftWeightsUpdate,
-			txParams.activeValidatorsUpdate.bftWeightsUpdateBitmap,
-		);
-
-		const validatorsHash = computeValidatorsHash(
-			newActiveValidators,
-			txParams.certificateThreshold || partnerValidators.certificateThreshold,
-		);
-
-		if (!certificate.validatorsHash.equals(validatorsHash)) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Validators hash given in the certificate is incorrect.'),
-			};
-		}
-	}
-
-	return {
-		status: VerifyStatus.OK,
-	};
 };
 
 export const chainAccountToJSON = (chainAccount: ChainAccount) => {
