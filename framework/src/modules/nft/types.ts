@@ -13,6 +13,7 @@
  */
 
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
+import { JSONObject } from '../../types';
 import { CCMsg } from '../interoperability';
 
 export interface ModuleConfig {
@@ -62,6 +63,8 @@ export interface NFT {
 	attributesArray: NFTAttributes[];
 	lockingModule?: string;
 }
+
+export type NFTJSON = JSONObject<NFT>;
 
 export interface NFTOutputEndpoint {
 	owner: string;

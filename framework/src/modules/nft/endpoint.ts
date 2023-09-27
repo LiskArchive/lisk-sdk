@@ -28,7 +28,7 @@ import {
 import { NFTStore } from './stores/nft';
 import { ALL_SUPPORTED_NFTS_KEY, LENGTH_ADDRESS, LENGTH_NFT_ID } from './constants';
 import { UserStore } from './stores/user';
-import { NFTOutputEndpoint } from './types';
+import { NFTJSON } from './types';
 import { SupportedNFTsStore } from './stores/supported_nfts';
 import { NFTMethod } from './method';
 
@@ -41,7 +41,7 @@ export class NFTEndpoint extends BaseEndpoint {
 
 	public async getNFTs(
 		context: ModuleEndpointContext,
-	): Promise<{ nfts: JSONObject<Omit<NFTOutputEndpoint, 'owner'> & { id: string }>[] }> {
+	): Promise<{ nfts: JSONObject<Omit<NFTJSON, 'owner'> & { id: string }>[] }> {
 		validator.validate<{ address: string }>(getNFTsRequestSchema, context.params);
 
 		const nftStore = this.stores.get(NFTStore);
@@ -97,7 +97,7 @@ export class NFTEndpoint extends BaseEndpoint {
 		return { hasNFT: nftData.owner.equals(owner) };
 	}
 
-	public async getNFT(context: ModuleEndpointContext): Promise<JSONObject<NFTOutputEndpoint>> {
+	public async getNFT(context: ModuleEndpointContext): Promise<JSONObject<NFTJSON>> {
 		const { params } = context;
 		validator.validate<{ id: string }>(getNFTRequestSchema, params);
 
