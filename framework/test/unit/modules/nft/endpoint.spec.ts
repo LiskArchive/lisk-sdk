@@ -366,7 +366,6 @@ describe('NFTEndpoint', () => {
 				stateStore,
 				params: {
 					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID - 1).toString('hex'),
-					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID).toString('hex'),
 				},
 			});
 
@@ -386,38 +385,11 @@ describe('NFTEndpoint', () => {
 			);
 		});
 
-		it('should fail if provided collectionID has invalid length', async () => {
-			const minLengthContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
-					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID - 1).toString('hex'),
-				},
-			});
-
-			const maxLengthContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
-					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID + 1).toString('hex'),
-				},
-			});
-
-			await expect(endpoint.getSupportedCollectionIDs(minLengthContext)).rejects.toThrow(
-				`'.collectionID' must NOT have fewer than 8 characters`,
-			);
-
-			await expect(endpoint.getSupportedCollectionIDs(maxLengthContext)).rejects.toThrow(
-				`'.collectionID' must NOT have more than 8 characters`,
-			);
-		});
-
-		it('should return an empty array when NFT is not supported', async () => {
+		it('should return empty list if provided chainID does not exist', async () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
 					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
-					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID).toString('hex'),
 				},
 			});
 
@@ -426,37 +398,26 @@ describe('NFTEndpoint', () => {
 			});
 		});
 
-		it('should return an array of collection IDs when NFT is supported', async () => {
-			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-			const collectionID = utils.getRandomBytes(LENGTH_COLLECTION_ID);
-
-			await supportedNFTsStore.save(methodContext, chainID, {
-				supportedCollectionIDArray: [
-					{
-						collectionID,
-					},
-				],
+		it('should return an empty array if all NFTs are not supported', async () => {
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
+				},
 			});
+
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
+				collectionIDs: [],
+			});
+		});
+
+		it('should return an empty array if no collections are supported', async () => {
+			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
 					chainID: chainID.toString('hex'),
-					collectionID: collectionID.toString('hex'),
-				},
-			});
-
-			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
-				collectionIDs: [collectionID.toString('hex')],
-			});
-		});
-
-		it('should return empty list if provided chainID does not exist', async () => {
-			const context = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
-					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID).toString('hex'),
 				},
 			});
 
@@ -467,11 +428,17 @@ describe('NFTEndpoint', () => {
 
 		it('should return supported collections of the provided chain', async () => {
 			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-			const collectionID = utils.getRandomBytes(LENGTH_COLLECTION_ID);
+
+			await supportedNFTsStore.save(methodContext, ALL_SUPPORTED_NFTS_KEY, {
+				supportedCollectionIDArray: [],
+			});
 
 			const supportedCollections = [
 				{
-					collectionID,
+					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID),
+				},
+				{
+					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID),
 				},
 			];
 
@@ -483,7 +450,6 @@ describe('NFTEndpoint', () => {
 				stateStore,
 				params: {
 					chainID: chainID.toString('hex'),
-					collectionID: collectionID.toString('hex'),
 				},
 			});
 

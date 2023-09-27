@@ -141,14 +141,10 @@ export class NFTEndpoint extends BaseEndpoint {
 	): Promise<{ collectionIDs: string[] }> {
 		const { params } = context;
 
-		validator.validate<{ chainID: string; collectionID: string }>(
-			getSupportedCollectionIDsRequestSchema,
-			params,
-		);
+		validator.validate<{ chainID: string }>(getSupportedCollectionIDsRequestSchema, params);
 
 		const chainID = Buffer.from(params.chainID, 'hex');
-		const collectionID = Buffer.from(params.collectionID, 'hex');
-		const nftID = Buffer.concat([chainID, collectionID, Buffer.alloc(8)]);
+		const nftID = Buffer.concat([chainID, Buffer.alloc(12)]);
 
 		const isNFTSupported = await this._nftMethod.isNFTSupported(
 			context.getImmutableMethodContext(),
@@ -160,7 +156,6 @@ export class NFTEndpoint extends BaseEndpoint {
 		}
 
 		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
-
 		const supportedNFTsData = await supportedNFTsStore.get(
 			context.getImmutableMethodContext(),
 			chainID,

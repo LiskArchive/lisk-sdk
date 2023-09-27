@@ -280,12 +280,6 @@ export const getSupportedCollectionIDsRequestSchema = {
 			minLength: LENGTH_CHAIN_ID * 2,
 			maxLength: LENGTH_CHAIN_ID * 2,
 		},
-		collectionID: {
-			type: 'string',
-			format: 'hex',
-			minLength: LENGTH_COLLECTION_ID * 2,
-			maxLength: LENGTH_COLLECTION_ID * 2,
-		},
 	},
 	required: ['chainID'],
 };
