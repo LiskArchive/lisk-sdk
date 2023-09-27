@@ -47,19 +47,10 @@ export class StateStore {
 		this._latestSnapshotId = -1;
 	}
 
-	// TODO: Remove accepting number for subStorePrefix
-	public getStore(storePrefix: Buffer, subStorePrefix: Buffer | number): StateStore {
-		let storePrefixBuffer: Buffer;
-		if (typeof subStorePrefix === 'number') {
-			storePrefixBuffer = Buffer.alloc(2);
-			storePrefixBuffer.writeUInt16BE(subStorePrefix, 0);
-		} else {
-			storePrefixBuffer = subStorePrefix;
-		}
-
+	public getStore(storePrefix: Buffer, subStorePrefix: Buffer): StateStore {
 		const subStore = new StateStore(
 			this._db,
-			Buffer.concat([DB_KEY_STATE_STORE, storePrefix, storePrefixBuffer]),
+			Buffer.concat([DB_KEY_STATE_STORE, storePrefix, subStorePrefix]),
 			this._cache,
 		);
 
