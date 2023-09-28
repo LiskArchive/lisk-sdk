@@ -237,9 +237,9 @@ export class NFTEndpoint extends BaseEndpoint {
 	): Promise<{ isNFTSupported: boolean }> {
 		const { params } = context;
 
-		validator.validate<{ id: string }>(isNFTSupportedRequestSchema, params);
+		validator.validate<{ nftID: string }>(isNFTSupportedRequestSchema, params);
 
-		const nftID = Buffer.from(params.id, 'hex');
+		const nftID = Buffer.from(params.nftID, 'hex');
 		let isNFTSupported = false;
 
 		try {

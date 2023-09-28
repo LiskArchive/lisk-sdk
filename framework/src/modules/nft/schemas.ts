@@ -360,14 +360,14 @@ export const isNFTSupportedRequestSchema = {
 	$id: '/nft/endpoint/isNFTSupportedRequest',
 	type: 'object',
 	properties: {
-		id: {
+		nftID: {
 			type: 'string',
 			format: 'hex',
 			minLength: LENGTH_NFT_ID * 2,
 			maxLength: LENGTH_NFT_ID * 2,
 		},
 	},
-	required: ['id'],
+	required: ['nftID'],
 };
 
 export const isNFTSupportedResponseSchema = {

@@ -652,27 +652,27 @@ describe('NFTEndpoint', () => {
 	});
 
 	describe('isNFTSupported', () => {
-		it('should fail if id does not have valid length', async () => {
+		it('should fail if nftID does not have valid length', async () => {
 			const minLengthContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: utils.getRandomBytes(LENGTH_NFT_ID - 1).toString('hex'),
+					nftID: utils.getRandomBytes(LENGTH_NFT_ID - 1).toString('hex'),
 				},
 			});
 
 			const maxLengthContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: utils.getRandomBytes(LENGTH_NFT_ID + 1).toString('hex'),
+					nftID: utils.getRandomBytes(LENGTH_NFT_ID + 1).toString('hex'),
 				},
 			});
 
 			await expect(endpoint.isNFTSupported(minLengthContext)).rejects.toThrow(
-				`'.id' must NOT have fewer than 32 characters`,
+				`'.nftID' must NOT have fewer than 32 characters`,
 			);
 
 			await expect(endpoint.isNFTSupported(maxLengthContext)).rejects.toThrow(
-				`'.id' must NOT have more than 32 characters`,
+				`'.nftID' must NOT have more than 32 characters`,
 			);
 		});
 
@@ -680,7 +680,7 @@ describe('NFTEndpoint', () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: utils.getRandomBytes(LENGTH_NFT_ID).toString('hex'),
+					nftID: utils.getRandomBytes(LENGTH_NFT_ID).toString('hex'),
 				},
 			});
 
@@ -700,7 +700,7 @@ describe('NFTEndpoint', () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: nftID.toString('hex'),
+					nftID: nftID.toString('hex'),
 				},
 			});
 
@@ -724,7 +724,7 @@ describe('NFTEndpoint', () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: nftID.toString('hex'),
+					nftID: nftID.toString('hex'),
 				},
 			});
 
@@ -747,7 +747,7 @@ describe('NFTEndpoint', () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: nftID.toString('hex'),
+					nftID: nftID.toString('hex'),
 				},
 			});
 
@@ -779,7 +779,7 @@ describe('NFTEndpoint', () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: nftID.toString('hex'),
+					nftID: nftID.toString('hex'),
 				},
 			});
 
@@ -811,7 +811,7 @@ describe('NFTEndpoint', () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: nftID.toString('hex'),
+					nftID: nftID.toString('hex'),
 				},
 			});
 
