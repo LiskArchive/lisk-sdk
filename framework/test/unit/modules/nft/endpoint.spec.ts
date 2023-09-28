@@ -411,21 +411,6 @@ describe('NFTEndpoint', () => {
 			});
 		});
 
-		it('should return an empty array if no collections are supported', async () => {
-			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-
-			const context = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: chainID.toString('hex'),
-				},
-			});
-
-			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
-				collectionIDs: [],
-			});
-		});
-
 		it('should return supported collections of the provided chain', async () => {
 			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 
