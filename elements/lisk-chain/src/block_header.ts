@@ -263,7 +263,7 @@ export class BlockHeader {
 
 		if (header.aggregateCommit.height !== header.height) {
 			errors.push({
-				message: 'Genesis block header aggregateCommit.height must equal to the height',
+				message: 'Genesis block header aggregateCommit.height must equal to the genesis height',
 				keyword: 'const',
 				dataPath: 'aggregateCommit.height',
 				schemaPath: 'properties.aggregateCommit.height',
