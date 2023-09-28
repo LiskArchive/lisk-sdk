@@ -1,6 +1,6 @@
 {
 	"name": "lisk-framework",
-	"version": "0.9.2",
+	"version": "0.10.0-rc.0",
 	"description": "Framework to build blockchain applications according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -20,7 +20,7 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=16.14.1 <=16",
+		"node": ">=18.12.0 <=18",
 		"npm": ">=8.1.0"
 	},
 	"main": "dist-node/index.js",
@@ -40,19 +40,19 @@
 		"test:functional": "jest --config=./test/functional/jest.config.js --runInBand"
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "^5.1.6",
-		"@liskhq/lisk-bft": "^0.3.4",
-		"@liskhq/lisk-chain": "^0.3.4",
-		"@liskhq/lisk-codec": "^0.2.2",
-		"@liskhq/lisk-cryptography": "^3.2.1",
-		"@liskhq/lisk-db": "^0.2.1",
-		"@liskhq/lisk-genesis": "^0.2.4",
-		"@liskhq/lisk-p2p": "^0.7.3",
-		"@liskhq/lisk-transaction-pool": "^0.5.3",
-		"@liskhq/lisk-transactions": "^5.2.2",
-		"@liskhq/lisk-tree": "^0.2.2",
-		"@liskhq/lisk-utils": "^0.2.1",
-		"@liskhq/lisk-validator": "^0.6.2",
+		"@liskhq/lisk-api-client": "^5.2.0-rc.0",
+		"@liskhq/lisk-bft": "^0.4.0-rc.0",
+		"@liskhq/lisk-chain": "^0.4.0-rc.0",
+		"@liskhq/lisk-codec": "^0.3.0-rc.0",
+		"@liskhq/lisk-cryptography": "^3.3.0-rc.0",
+		"@liskhq/lisk-db": "^0.3.6",
+		"@liskhq/lisk-genesis": "^0.3.0-rc.0",
+		"@liskhq/lisk-p2p": "^0.8.0-rc.0",
+		"@liskhq/lisk-transaction-pool": "^0.6.0-rc.0",
+		"@liskhq/lisk-transactions": "^5.3.0-rc.0",
+		"@liskhq/lisk-tree": "^0.3.0-rc.0",
+		"@liskhq/lisk-utils": "^0.3.0-rc.0",
+		"@liskhq/lisk-validator": "^0.7.0-rc.0",
 		"bunyan": "1.8.15",
 		"debug": "4.3.4",
 		"eventemitter2": "6.4.5",
@@ -64,11 +64,11 @@
 		"ws": "7.5.7"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-passphrase": "^3.1.1",
+		"@liskhq/lisk-passphrase": "^3.2.0-rc.0",
 		"@types/bunyan": "1.8.6",
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",
-		"@types/node": "16.11.26",
+		"@types/node": "18.15.3",
 		"@typescript-eslint/eslint-plugin": "4.19.0",
 		"@typescript-eslint/parser": "4.19.0",
 		"copyfiles": "2.2.0",

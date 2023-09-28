@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BatchChain } from '@liskhq/lisk-db';
+import { Batch } from '@liskhq/lisk-db';
 import { DataAccess } from '../data_access';
 import { BlockHeader, StateDiff } from '../types';
 import { DB_KEY_CHAIN_STATE } from '../data_access/constants';
@@ -105,7 +105,7 @@ export class ChainStateStore {
 		this._updatedKeys.add(key);
 	}
 
-	public finalize(batch: BatchChain): StateDiff {
+	public finalize(batch: Batch): StateDiff {
 		const stateDiff = { updated: [], created: [], deleted: [] } as StateDiff;
 
 		if (this._updatedKeys.size === 0) {
@@ -115,7 +115,7 @@ export class ChainStateStore {
 		for (const key of Array.from(this._updatedKeys)) {
 			const dbKey = `${DB_KEY_CHAIN_STATE}:${key}`;
 			const updatedValue = this._data[key] as Buffer;
-			batch.put(dbKey, updatedValue);
+			batch.set(Buffer.from(dbKey), updatedValue);
 
 			const initialValue = this._initialValue[key];
 			if (initialValue !== undefined && !initialValue.equals(updatedValue)) {

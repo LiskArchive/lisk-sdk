@@ -14,7 +14,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { Storage } from '../../../src/data_access/storage';
 import {
@@ -26,7 +26,7 @@ import { DataAccess } from '../../../src/data_access';
 import { registeredBlockHeaders } from '../../utils/block';
 
 describe('dataAccess.transactions', () => {
-	let db: KVStore;
+	let db: Database;
 	let storage: Storage;
 	let dataAccess: DataAccess;
 	let accounts: any;
@@ -34,7 +34,7 @@ describe('dataAccess.transactions', () => {
 	beforeAll(() => {
 		const parentPath = path.join(__dirname, '../../tmp/accounts');
 		fs.ensureDirSync(parentPath);
-		db = new KVStore(path.join(parentPath, '/test-accounts.db'));
+		db = new Database(path.join(parentPath, '/test-accounts.db'));
 		storage = new Storage(db);
 		dataAccess = new DataAccess({
 			db,
@@ -61,14 +61,14 @@ describe('dataAccess.transactions', () => {
 				},
 			}),
 		];
-		const batch = db.batch();
+		const batch = new Batch();
 		for (const account of accounts) {
-			batch.put(
-				`accounts:address:${account.address.toString('binary')}`,
+			batch.set(
+				Buffer.from(`accounts:address:${account.address.toString('binary')}`),
 				encodeDefaultAccount(account),
 			);
 		}
-		await batch.write();
+		await db.write(batch);
 	});
 
 	afterEach(async () => {

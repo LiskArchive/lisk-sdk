@@ -14,7 +14,7 @@
 
 import { BFT } from '@liskhq/lisk-bft';
 import { codec } from '@liskhq/lisk-codec';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { when } from 'jest-when';
 import { InMemoryChannel } from '../../../src/controller/channels';
@@ -35,9 +35,9 @@ describe('Node', () => {
 	let node: Node;
 	let subscribedEvents: any;
 	const stubs: any = {};
-	let blockchainDB: KVStore;
-	let forgerDB: KVStore;
-	let nodeDB: KVStore;
+	let blockchainDB: Database;
+	let forgerDB: Database;
+	let nodeDB: Database;
 	let tokenModule: BaseModule;
 	let dposModule: BaseModule;
 
@@ -53,9 +53,9 @@ describe('Node', () => {
 		jest.spyOn(Processor.prototype, 'init').mockResolvedValue(undefined);
 		jest.spyOn(Synchronizer.prototype, 'init').mockResolvedValue(undefined);
 
-		blockchainDB = new KVStore('blockchain.db');
-		forgerDB = new KVStore('forger.db');
-		nodeDB = new KVStore('node.db');
+		blockchainDB = new Database('blockchain.db');
+		forgerDB = new Database('forger.db');
+		nodeDB = new Database('node.db');
 		tokenModule = new TokenModule(nodeOptions.genesisConfig);
 		dposModule = new DPoSModule(nodeOptions.genesisConfig);
 

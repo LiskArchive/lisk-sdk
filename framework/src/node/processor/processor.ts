@@ -349,7 +349,7 @@ export class Processor {
 				throw new TransactionApplyError(
 					(err as Error).message ?? 'Transaction verification failed',
 					transaction.id,
-					err,
+					err as Error,
 				);
 			}
 		}

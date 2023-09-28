@@ -13,7 +13,7 @@
  */
 
 import * as createDebug from 'debug';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import * as os from 'os';
 import { join } from 'path';
@@ -27,16 +27,16 @@ const debug = createDebug('plugin:forger:db');
 export const getDBInstance = async (
 	dataPath: string,
 	dbName = 'lisk-framework-forger-plugin.db',
-): Promise<KVStore> => {
+): Promise<Database> => {
 	const dirPath = join(dataPath.replace('~', os.homedir()), 'plugins/data', dbName);
 	await ensureDir(dirPath);
 
-	return new KVStore(dirPath);
+	return new Database(dirPath);
 };
 
-export const getForgerSyncInfo = async (db: KVStore): Promise<ForgetSyncInfo> => {
+export const getForgerSyncInfo = async (db: Database): Promise<ForgetSyncInfo> => {
 	try {
-		const encodedSyncInfo = await db.get(DB_KEY_FORGER_SYNC_INFO);
+		const encodedSyncInfo = await db.get(Buffer.from(DB_KEY_FORGER_SYNC_INFO));
 		return codec.decode<ForgetSyncInfo>(forgerSyncSchema, encodedSyncInfo);
 	} catch (error) {
 		debug('Forger sync info does not exists');
@@ -46,24 +46,24 @@ export const getForgerSyncInfo = async (db: KVStore): Promise<ForgetSyncInfo> =>
 	}
 };
 
-export const setForgerSyncInfo = async (db: KVStore, blockHeight: number): Promise<void> => {
+export const setForgerSyncInfo = async (db: Database, blockHeight: number): Promise<void> => {
 	const encodedSyncInfo = codec.encode(forgerSyncSchema, { syncUptoHeight: blockHeight });
-	await db.put(DB_KEY_FORGER_SYNC_INFO, encodedSyncInfo);
+	await db.set(Buffer.from(DB_KEY_FORGER_SYNC_INFO), encodedSyncInfo);
 };
 
 export const setForgerInfo = async (
-	db: KVStore,
+	db: Database,
 	forgerAddress: string,
 	forgerInfo: ForgerInfo,
 ): Promise<void> => {
 	const encodedForgerInfo = codec.encode(forgerInfoSchema, forgerInfo);
-	await db.put(`${DB_KEY_FORGER_INFO}:${forgerAddress}`, encodedForgerInfo);
+	await db.set(Buffer.from(`${DB_KEY_FORGER_INFO}:${forgerAddress}`), encodedForgerInfo);
 };
 
-export const getForgerInfo = async (db: KVStore, forgerAddress: string): Promise<ForgerInfo> => {
+export const getForgerInfo = async (db: Database, forgerAddress: string): Promise<ForgerInfo> => {
 	let forgerInfo;
 	try {
-		forgerInfo = await db.get(`${DB_KEY_FORGER_INFO}:${forgerAddress}`);
+		forgerInfo = await db.get(Buffer.from(`${DB_KEY_FORGER_INFO}:${forgerAddress}`));
 	} catch (error) {
 		debug(`Forger info does not exists for delegate: ${forgerAddress}`);
 		return {

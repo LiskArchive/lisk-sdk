@@ -13,7 +13,7 @@
  */
 
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { Database, NotFoundError } from '@liskhq/lisk-db';
 import * as createDebug from 'debug';
 import { EventEmitter } from 'events';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
@@ -66,7 +66,7 @@ import {
 import { Transaction } from './transaction';
 
 interface ChainConstructor {
-	readonly db: KVStore;
+	readonly db: Database;
 	// Unique requirements
 	readonly genesisBlock: GenesisBlock;
 	readonly accountSchemas: { [name: string]: AccountSchema };

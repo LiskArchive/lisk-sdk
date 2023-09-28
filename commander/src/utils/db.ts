@@ -16,5 +16,5 @@
 import * as db from '@liskhq/lisk-db';
 import { getBlockchainDBPath } from './path';
 
-export const getBlockchainDB = (dataPath: string): db.KVStore =>
-	new db.KVStore(getBlockchainDBPath(dataPath));
+export const getBlockchainDB = (dataPath: string): db.Database =>
+	new db.Database(getBlockchainDBPath(dataPath));

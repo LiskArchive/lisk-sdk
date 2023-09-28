@@ -16,7 +16,7 @@ import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';
 import { Block, Chain, Transaction } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	signDataWithPassphrase,
@@ -73,7 +73,7 @@ describe('Synchronizer', () => {
 		};
 		channelMock = new ChannelMock();
 
-		const blockchainDB = new KVStore('blockchain.db');
+		const blockchainDB = new Database('blockchain.db');
 
 		chainModule = new Chain({
 			networkIdentifier: defaultNetworkIdentifier,

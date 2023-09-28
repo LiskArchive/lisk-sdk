@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-chain",
-	"version": "0.3.4",
+	"version": "0.4.0-rc.0",
 	"description": "Blocks and state management implementation that are used for block processing according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -17,7 +17,7 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=16.14.1 <=16",
+		"node": ">=18.12.0 <=18",
 		"npm": ">=8.1.0"
 	},
 	"main": "dist-node/index.js",
@@ -36,21 +36,21 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-codec": "^0.2.2",
-		"@liskhq/lisk-cryptography": "^3.2.1",
-		"@liskhq/lisk-db": "^0.2.1",
-		"@liskhq/lisk-tree": "^0.2.2",
-		"@liskhq/lisk-utils": "^0.2.1",
-		"@liskhq/lisk-validator": "^0.6.2",
+		"@liskhq/lisk-codec": "^0.3.0-rc.0",
+		"@liskhq/lisk-cryptography": "^3.3.0-rc.0",
+		"@liskhq/lisk-db": "^0.3.6",
+		"@liskhq/lisk-tree": "^0.3.0-rc.0",
+		"@liskhq/lisk-utils": "^0.3.0-rc.0",
+		"@liskhq/lisk-validator": "^0.7.0-rc.0",
 		"debug": "4.3.4"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-passphrase": "^3.1.1",
+		"@liskhq/lisk-passphrase": "^3.2.0-rc.0",
 		"@types/debug": "4.1.7",
 		"@types/faker": "4.1.10",
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",
-		"@types/node": "16.11.26",
+		"@types/node": "18.15.3",
 		"@types/randomstring": "1.1.6",
 		"@typescript-eslint/eslint-plugin": "4.19.0",
 		"@typescript-eslint/parser": "4.19.0",

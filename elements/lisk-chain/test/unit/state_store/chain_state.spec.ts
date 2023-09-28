@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { KVStore, BatchChain } from '@liskhq/lisk-db';
+import { Database, Batch } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { StateStore } from '../../../src/state_store';
 import { DataAccess } from '../../../src/data_access';
@@ -31,7 +31,7 @@ describe('state store / chain_state', () => {
 	] as unknown) as ReadonlyArray<BlockHeader>;
 
 	beforeEach(() => {
-		db = new KVStore('temp');
+		db = new Database('temp');
 		const dataAccess = new DataAccess({
 			db,
 			accountSchema: defaultAccountSchema,
@@ -70,7 +70,7 @@ describe('state store / chain_state', () => {
 			// Arrange
 			await stateStore.chain.set('key1', Buffer.from('value1'));
 			when(db.get)
-				.calledWith('chain:key1')
+				.calledWith(Buffer.from('chain:key1'))
 				.mockResolvedValue('value5' as never);
 			// Act & Assert
 			expect(await stateStore.chain.get('key1')).toEqual(Buffer.from('value1'));
@@ -79,7 +79,7 @@ describe('state store / chain_state', () => {
 		it('should try to get value from database if not in cache', async () => {
 			// Arrange
 			when(db.get)
-				.calledWith('chain:key1')
+				.calledWith(Buffer.from('chain:key1'))
 				.mockResolvedValue('value5' as never);
 			// Act & Assert
 			expect(await stateStore.chain.get('key1')).toEqual('value5');
@@ -106,18 +106,18 @@ describe('state store / chain_state', () => {
 	});
 
 	describe('finalize', () => {
-		let batchStub: BatchChain;
+		let batchStub: Batch;
 		let stateDiff: StateDiff;
 
 		beforeEach(() => {
-			batchStub = { put: jest.fn() } as any;
+			batchStub = { set: jest.fn() } as any;
 		});
 
 		it('should not call storage if nothing is set', () => {
 			// Act
 			stateStore.chain.finalize(batchStub);
 			// Assert
-			expect(batchStub.put).not.toHaveBeenCalled();
+			expect(batchStub.set).not.toHaveBeenCalled();
 		});
 
 		it('should call storage for all the updated keys', async () => {
@@ -127,8 +127,8 @@ describe('state store / chain_state', () => {
 			await stateStore.chain.set('key4', Buffer.from('value5'));
 			stateDiff = stateStore.chain.finalize(batchStub);
 			// Assert
-			expect(batchStub.put).toHaveBeenCalledWith('chain:key3', Buffer.from('value4'));
-			expect(batchStub.put).toHaveBeenCalledWith('chain:key4', Buffer.from('value5'));
+			expect(batchStub.set).toHaveBeenCalledWith(Buffer.from('chain:key3'), Buffer.from('value4'));
+			expect(batchStub.set).toHaveBeenCalledWith(Buffer.from('chain:key4'), Buffer.from('value5'));
 		});
 
 		it('should return state diff with created and updated values after finalize', async () => {

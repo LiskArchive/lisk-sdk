@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-client",
-	"version": "5.2.2",
+	"version": "5.3.0-rc.0",
 	"description": "A default set of Elements for use by clients of the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -17,7 +17,7 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=16.14.1 <=16",
+		"node": ">=18.12.0 <=18",
 		"npm": ">=8.1.0"
 	},
 	"main": "dist-node/index.js",
@@ -55,20 +55,20 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "^5.1.6",
-		"@liskhq/lisk-codec": "^0.2.2",
-		"@liskhq/lisk-cryptography": "^3.2.1",
-		"@liskhq/lisk-passphrase": "^3.1.1",
-		"@liskhq/lisk-transactions": "^5.2.2",
-		"@liskhq/lisk-tree": "^0.2.2",
-		"@liskhq/lisk-utils": "^0.2.1",
-		"@liskhq/lisk-validator": "^0.6.2",
+		"@liskhq/lisk-api-client": "^5.2.0-rc.0",
+		"@liskhq/lisk-codec": "^0.3.0-rc.0",
+		"@liskhq/lisk-cryptography": "^3.3.0-rc.0",
+		"@liskhq/lisk-passphrase": "^3.2.0-rc.0",
+		"@liskhq/lisk-transactions": "^5.3.0-rc.0",
+		"@liskhq/lisk-tree": "^0.3.0-rc.0",
+		"@liskhq/lisk-utils": "^0.3.0-rc.0",
+		"@liskhq/lisk-validator": "^0.7.0-rc.0",
 		"buffer": "6.0.3"
 	},
 	"devDependencies": {
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",
-		"@types/node": "16.11.26",
+		"@types/node": "18.15.3",
 		"@typescript-eslint/eslint-plugin": "4.19.0",
 		"@typescript-eslint/parser": "4.19.0",
 		"browserify": "16.5.0",

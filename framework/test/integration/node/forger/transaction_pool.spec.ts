@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { Transaction } from '@liskhq/lisk-chain';
 import { nodeUtils } from '../../../utils';
 import { createDB, removeDB } from '../../../utils/kv_store';
@@ -22,8 +22,8 @@ import { createTransferTransaction } from '../../../utils/node/transaction';
 describe('Transaction pool', () => {
 	const dbName = 'transaction_pool';
 	let node: any;
-	let blockchainDB: KVStore;
-	let forgerDB: KVStore;
+	let blockchainDB: Database;
+	let forgerDB: Database;
 
 	beforeAll(async () => {
 		({ blockchainDB, forgerDB } = createDB(dbName));
@@ -32,8 +32,8 @@ describe('Transaction pool', () => {
 
 	afterAll(async () => {
 		await node.cleanup();
-		await blockchainDB.close();
-		await forgerDB.close();
+		blockchainDB.close();
+		forgerDB.close();
 		removeDB(dbName);
 	});
 

@@ -6,6 +6,9 @@ Object {
     "$id": "#/config",
     "additionalProperties": false,
     "default": Object {
+      "backup": Object {
+        "height": 0,
+      },
       "forging": Object {
         "delegates": Array [],
         "force": false,
@@ -60,6 +63,19 @@ Object {
       "version": "0.0.0",
     },
     "properties": Object {
+      "backup": Object {
+        "properties": Object {
+          "height": Object {
+            "description": "Height at which the DB backup should be taken.",
+            "minimum": 0,
+            "type": "integer",
+          },
+        },
+        "required": Array [
+          "height",
+        ],
+        "type": "object",
+      },
       "forging": Object {
         "properties": Object {
           "defaultPassword": Object {
@@ -451,6 +467,7 @@ Object {
     "required": Array [
       "version",
       "networkVersion",
+      "backup",
       "rpc",
       "genesisConfig",
       "forging",

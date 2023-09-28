@@ -41,11 +41,11 @@ describe('seed reveal', () => {
 
 	afterEach(async () => {
 		await forgerDB.forgerDB.clear();
-		await forgerDB.forgerDB.close();
+		forgerDB.forgerDB.close();
 		removeDB(dbName);
 	});
 
-	it('should pass for selecting the next seed reveal', async () => {
+	it('should pass for selecting the next seed reveal', () => {
 		const address = '9cabee3d27426676b852ce6b804cb2fdff7cd0b5';
 		// 2nd and 3rd Hash onion from config file for address 9cabee3d27426676b852ce6b804cb2fdff7cd0b5
 		const secondCheckpointStart = Buffer.from('f7a3fb976e50d882c709edb63bde4d9c', 'hex');

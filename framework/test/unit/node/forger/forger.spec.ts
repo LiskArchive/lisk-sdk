@@ -71,7 +71,7 @@ describe('forger', () => {
 		};
 		dbStub = {
 			get: jest.fn(),
-			put: jest.fn(),
+			set: jest.fn(),
 		};
 		bftModuleStub = {
 			getMaxHeightPrevoted: jest.fn().mockReturnValue(5),
@@ -151,7 +151,7 @@ describe('forger', () => {
 					maxHeightPrevoted: 10,
 				});
 				when(dbStub.get)
-					.calledWith(DB_KEY_FORGER_PREVIOUSLY_FORGED)
+					.calledWith(Buffer.from(DB_KEY_FORGER_PREVIOUSLY_FORGED))
 					.mockResolvedValue(
 						codec.encode(previouslyForgedInfoSchema, previouslyForgedStoreObject) as never,
 					);
@@ -253,7 +253,7 @@ describe('forger', () => {
 				describe('overwrite=false', () => {
 					it('should fail when forger info does not exist', async () => {
 						when(dbStub.get)
-							.calledWith(DB_KEY_FORGER_PREVIOUSLY_FORGED)
+							.calledWith(Buffer.from(DB_KEY_FORGER_PREVIOUSLY_FORGED))
 							.mockRejectedValue(new NotFoundError('data not found') as never);
 
 						await expect(
@@ -348,8 +348,8 @@ describe('forger', () => {
 							true,
 						);
 
-						expect(dbStub.put).toHaveBeenCalledWith(
-							DB_KEY_FORGER_PREVIOUSLY_FORGED,
+						expect(dbStub.set).toHaveBeenCalledWith(
+							Buffer.from(DB_KEY_FORGER_PREVIOUSLY_FORGED),
 							codec.encode(previouslyForgedInfoSchema, previouslyForgedStoreObject),
 						);
 
@@ -832,7 +832,7 @@ describe('forger', () => {
 
 				(forgeModule as any)._config.forging.delegates = delegates;
 				when(dbStub.get)
-					.calledWith(DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS)
+					.calledWith(Buffer.from(DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS))
 					.mockResolvedValue(registeredHashOnionsBuffer as never);
 
 				// Act
@@ -851,8 +851,8 @@ describe('forger', () => {
 				expect(loggerStub.warn).toHaveBeenCalledWith(
 					expect.stringContaining('Overwriting with new hash onion'),
 				);
-				expect(dbStub.put).toHaveBeenCalledWith(
-					DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
+				expect(dbStub.set).toHaveBeenCalledWith(
+					Buffer.from(DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS),
 					codec.encode(registeredHashOnionsStoreSchema, originalKey),
 				);
 			});
@@ -869,7 +869,7 @@ describe('forger', () => {
 					],
 				};
 				when(dbStub.get)
-					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
+					.calledWith(Buffer.from(DB_KEY_FORGER_USED_HASH_ONION))
 					.mockResolvedValue(codec.encode(usedHashOnionsStoreSchema, usedHashOnions) as never);
 
 				// Act
@@ -895,7 +895,7 @@ describe('forger', () => {
 					],
 				};
 				when(dbStub.get)
-					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
+					.calledWith(Buffer.from(DB_KEY_FORGER_USED_HASH_ONION))
 					.mockResolvedValue(codec.encode(usedHashOnionsStoreSchema, usedHashOnion) as never);
 
 				// Act
@@ -931,7 +931,7 @@ describe('forger', () => {
 				getSlotNumberStub = chainModuleStub.slots.getSlotNumber;
 
 				when(dbStub.get)
-					.calledWith(DB_KEY_FORGER_PREVIOUSLY_FORGED)
+					.calledWith(Buffer.from(DB_KEY_FORGER_PREVIOUSLY_FORGED))
 					.mockRejectedValue(new NotFoundError('not found') as never);
 				when(getSlotNumberStub).calledWith().mockReturnValue(currentSlot);
 				when(getSlotNumberStub)
@@ -979,7 +979,7 @@ describe('forger', () => {
 				chainModuleStub.slots.getSlotTime.mockReturnValue(futureSlotTime);
 
 				await expect(forgeModule.forge()).toResolve();
-				expect(dbStub.put).not.toHaveBeenCalled();
+				expect(dbStub.set).not.toHaveBeenCalled();
 				dateNowMockFn.mockRestore();
 			});
 
@@ -1096,7 +1096,7 @@ describe('forger', () => {
 				};
 
 				when(dbStub.get)
-					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
+					.calledWith(Buffer.from(DB_KEY_FORGER_USED_HASH_ONION))
 					.mockResolvedValue(codec.encode(usedHashOnionsStoreSchema, usedHashOnion) as never);
 
 				// Act
@@ -1164,14 +1164,14 @@ describe('forger', () => {
 				);
 
 				when(dbStub.get)
-					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
+					.calledWith(Buffer.from(DB_KEY_FORGER_USED_HASH_ONION))
 					.mockResolvedValue(usedHashOnionInputBuffer as never);
 
 				// Act
 				await forgeModule.forge();
 				// Assert
-				expect(dbStub.put).toHaveBeenCalledWith(
-					DB_KEY_FORGER_USED_HASH_ONION,
+				expect(dbStub.set).toHaveBeenCalledWith(
+					Buffer.from(DB_KEY_FORGER_USED_HASH_ONION),
 					usedHashOnionOutputBuffer,
 				);
 			});
@@ -1233,14 +1233,14 @@ describe('forger', () => {
 				);
 
 				when(dbStub.get)
-					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
+					.calledWith(Buffer.from(DB_KEY_FORGER_USED_HASH_ONION))
 					.mockResolvedValue(usedHashOnionInputBuffer as never);
 
 				// Act
 				await forgeModule.forge();
 				// Assert
-				expect(dbStub.put).toHaveBeenCalledWith(
-					DB_KEY_FORGER_USED_HASH_ONION,
+				expect(dbStub.set).toHaveBeenCalledWith(
+					Buffer.from(DB_KEY_FORGER_USED_HASH_ONION),
 					usedHashOnionOutputBuffer,
 				);
 			});
@@ -1294,15 +1294,15 @@ describe('forger', () => {
 				);
 
 				when(dbStub.get)
-					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
+					.calledWith(Buffer.from(DB_KEY_FORGER_USED_HASH_ONION))
 					.mockResolvedValue(usedHashOnionInputBuffer as never);
 				(forgeModule as any)._bftModule.finalizedHeight = 318;
 
 				// Act
 				await forgeModule.forge();
 				// Assert
-				expect(dbStub.put).toHaveBeenCalledWith(
-					DB_KEY_FORGER_USED_HASH_ONION,
+				expect(dbStub.set).toHaveBeenCalledWith(
+					Buffer.from(DB_KEY_FORGER_USED_HASH_ONION),
 					usedHashOnionOutputBuffer,
 				);
 			});
@@ -1353,7 +1353,7 @@ describe('forger', () => {
 				);
 
 				when(dbStub.get)
-					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
+					.calledWith(Buffer.from(DB_KEY_FORGER_USED_HASH_ONION))
 					.mockResolvedValue(usedHashOnionInputBuffer as never);
 
 				// Act
@@ -1362,8 +1362,8 @@ describe('forger', () => {
 				expect(loggerStub.warn).toHaveBeenCalledWith(
 					'All of the hash onion has been used already. Please update to the new hash onion.',
 				);
-				expect(dbStub.put).toHaveBeenCalledWith(
-					DB_KEY_FORGER_USED_HASH_ONION,
+				expect(dbStub.set).toHaveBeenCalledWith(
+					Buffer.from(DB_KEY_FORGER_USED_HASH_ONION),
 					usedHashOnionOutputBuffer,
 				);
 			});
@@ -1406,7 +1406,7 @@ describe('forger', () => {
 					} as unknown) as Block,
 				});
 				// Assert
-				expect(dbStub.get).toHaveBeenCalledWith('forger:previouslyForged');
+				expect(dbStub.get).toHaveBeenCalledWith(Buffer.from('forger:previouslyForged'));
 				// previousBlock.height + 1
 				expect(block.header.asset.maxHeightPreviouslyForged).toBe(0);
 			});
@@ -1429,7 +1429,7 @@ describe('forger', () => {
 					} as Block,
 				});
 				// Assert
-				expect(dbStub.get).toHaveBeenCalledWith('forger:previouslyForged');
+				expect(dbStub.get).toHaveBeenCalledWith(Buffer.from('forger:previouslyForged'));
 				expect(block.header.asset.maxHeightPreviouslyForged).toBe(previouslyForgedHeight);
 			});
 
@@ -1493,7 +1493,10 @@ describe('forger', () => {
 						},
 					],
 				});
-				expect(dbStub.put).toHaveBeenCalledWith('forger:previouslyForged', maxHeightResult);
+				expect(dbStub.set).toHaveBeenCalledWith(
+					Buffer.from('forger:previouslyForged'),
+					maxHeightResult,
+				);
 			});
 
 			it('should set maxPreviouslyForgedHeight to forging height', async () => {
@@ -1518,7 +1521,10 @@ describe('forger', () => {
 						},
 					],
 				});
-				expect(dbStub.put).toHaveBeenCalledWith('forger:previouslyForged', maxHeightResult);
+				expect(dbStub.set).toHaveBeenCalledWith(
+					Buffer.from('forger:previouslyForged'),
+					maxHeightResult,
+				);
 			});
 
 			it('should not set maxPreviouslyForgedHeight to next height if lower', async () => {
@@ -1545,7 +1551,7 @@ describe('forger', () => {
 						header: { height: 10 },
 					} as Block,
 				});
-				expect(dbStub.put).not.toHaveBeenCalled();
+				expect(dbStub.set).not.toHaveBeenCalled();
 			});
 
 			it('should include seed reveal as specified in the block', async () => {

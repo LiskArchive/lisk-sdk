@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { Account } from '@liskhq/lisk-chain';
 import { validator } from '@liskhq/lisk-validator';
 import { nodeUtils } from '../../utils';
@@ -25,8 +25,8 @@ describe('genesis block', () => {
 	const dbName = 'genesis_block';
 	const genesisBlock = getGenesisBlock();
 	let node: Node;
-	let blockchainDB: KVStore;
-	let forgerDB: KVStore;
+	let blockchainDB: Database;
+	let forgerDB: Database;
 
 	beforeAll(async () => {
 		({ blockchainDB, forgerDB } = createDB(dbName));
@@ -38,8 +38,8 @@ describe('genesis block', () => {
 
 	afterAll(async () => {
 		await node.cleanup();
-		await blockchainDB.close();
-		await forgerDB.close();
+		blockchainDB.close();
+		forgerDB.close();
 		removeDB(dbName);
 	});
 

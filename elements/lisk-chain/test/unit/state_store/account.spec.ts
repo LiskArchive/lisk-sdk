@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { KVStore, BatchChain, NotFoundError } from '@liskhq/lisk-db';
+import { Database, Batch, NotFoundError } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { objects } from '@liskhq/lisk-utils';
 import { StateStore } from '../../../src/state_store';
@@ -54,7 +54,7 @@ describe('state store / account', () => {
 	let db: any;
 
 	beforeEach(async () => {
-		db = new KVStore('temp');
+		db = new Database('temp');
 		const dataAccess = new DataAccess({
 			db,
 			accountSchema: defaultAccountSchema,
@@ -70,11 +70,11 @@ describe('state store / account', () => {
 		});
 		// Setting this as default behavior throws UnhandledPromiseRejection, so it is specifying the non-existing account
 		const dbGetMock = when(db.get)
-			.calledWith(`accounts:address:${Buffer.from('123L', 'utf8').toString('binary')}`)
+			.calledWith(Buffer.from(`accounts:address:${Buffer.from('123L', 'utf8').toString('binary')}`))
 			.mockRejectedValue(new NotFoundError('Data not found') as never);
 		for (const data of accountInDB) {
 			dbGetMock
-				.calledWith(`accounts:address:${data.key.toString('binary')}`)
+				.calledWith(Buffer.from(`accounts:address:${data.key.toString('binary')}`))
 				.mockResolvedValue(data.value as never);
 		}
 		for (const account of stateStoreAccounts) {
@@ -100,7 +100,7 @@ describe('state store / account', () => {
 			await stateStore.account.get(accountInDB[2].key);
 			// Assert
 			expect(db.get).toHaveBeenCalledWith(
-				`accounts:address:${accountInDB[2].key.toString('binary')}`,
+				Buffer.from(`accounts:address:${accountInDB[2].key.toString('binary')}`),
 			);
 		});
 
@@ -129,7 +129,7 @@ describe('state store / account', () => {
 			await stateStore.account.get(accountInDB[2].key);
 			// Assert
 			expect(db.get).toHaveBeenCalledWith(
-				`accounts:address:${accountInDB[2].key.toString('binary')}`,
+				Buffer.from(`accounts:address:${accountInDB[2].key.toString('binary')}`),
 			);
 		});
 
@@ -181,7 +181,7 @@ describe('state store / account', () => {
 			// Arrange
 			const inmemoryAccount = createFakeDefaultAccount({ token: { balance: BigInt(200000000) } });
 			when(db.get)
-				.calledWith(`accounts:address:${inmemoryAccount.address.toString('binary')}`)
+				.calledWith(Buffer.from(`accounts:address:${inmemoryAccount.address.toString('binary')}`))
 				.mockRejectedValue(new NotFoundError('Data not found') as never);
 			await stateStore.account.set(inmemoryAccount.address, inmemoryAccount);
 			// Act
@@ -216,10 +216,10 @@ describe('state store / account', () => {
 	describe('finalize', () => {
 		let existingAccount;
 		let updatedAccount: Account;
-		let batchStub: BatchChain;
+		let batchStub: Batch;
 
 		beforeEach(async () => {
-			batchStub = { put: jest.fn() } as any;
+			batchStub = { set: jest.fn() } as any;
 
 			existingAccount = await stateStore.account.get(accountInDB[0].key);
 			updatedAccount = objects.cloneDeep(existingAccount);
@@ -231,19 +231,19 @@ describe('state store / account', () => {
 		it('should save the account state in the database', () => {
 			stateStore.account.finalize(batchStub);
 
-			expect(batchStub.put).toHaveBeenCalledWith(
-				`accounts:address:${updatedAccount.address.toString('binary')}`,
+			expect(batchStub.set).toHaveBeenCalledWith(
+				Buffer.from(`accounts:address:${updatedAccount.address.toString('binary')}`),
 				expect.any(Buffer),
 			);
 		});
 	});
 
 	describe('diff', () => {
-		let batchStub: BatchChain;
+		let batchStub: Batch;
 		let stateDiff: StateDiff;
 
 		beforeEach(() => {
-			batchStub = { put: jest.fn(), del: jest.fn() } as any;
+			batchStub = { set: jest.fn(), del: jest.fn() } as any;
 		});
 
 		it('should have updated with initial values', async () => {

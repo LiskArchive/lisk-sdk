@@ -1,0 +1,14 @@
+name: 'Prepare: Checkout and Install'
+description: 'Prepares the repo for a job by checking out and installing dependencies'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Use Node.js 18
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: 'yarn'
+    - name: Install dependencies
+      shell: bash
+      run: yarn --prefer-offline

@@ -28,7 +28,7 @@ import { BFT } from '@liskhq/lisk-bft';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { HighFeeForgingStrategy } from './strategies';
 import { Processor } from '../processor';
 import { Logger } from '../../logger';
@@ -69,7 +69,7 @@ export interface RegisteredDelegate {
 interface ForgerConstructor {
 	readonly forgingStrategy?: HighFeeForgingStrategy;
 	readonly logger: Logger;
-	readonly db: KVStore;
+	readonly db: Database;
 	readonly processorModule: Processor;
 	readonly bftModule: BFT;
 	readonly transactionPoolModule: TransactionPool;
@@ -120,7 +120,7 @@ const IsEqualForgingInfo = (info1: ForgingInfo, info2: ForgingInfo): boolean =>
 
 export class Forger {
 	private readonly _logger: Logger;
-	private readonly _db: KVStore;
+	private readonly _db: Database;
 	private readonly _processorModule: Processor;
 	private readonly _bftModule: BFT;
 	private readonly _transactionPoolModule: TransactionPool;

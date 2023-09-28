@@ -13,7 +13,7 @@
  */
 
 import { BaseChannel, PluginCodec } from 'lisk-framework';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { getForgerInfo } from '../db';
 import { Forger, DPoSAccountJSON } from '../types';
 
@@ -29,7 +29,7 @@ interface ForgerInfo extends Forger {
 export const getForgingInfo = async (
 	channel: BaseChannel,
 	codec: PluginCodec,
-	db: KVStore,
+	db: Database,
 ): Promise<ForgerInfo[]> => {
 	const forgingDelegates = await channel.invoke<ReadonlyArray<Forger>>('app:getForgingStatus');
 	const encodedAccounts = await channel.invoke<string[]>('app:getAccounts', {

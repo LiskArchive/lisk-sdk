@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { getRandomBytes, getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';
@@ -70,7 +70,7 @@ describe('chain/process block', () => {
 	let block: Block;
 
 	beforeEach(() => {
-		db = new KVStore('temp');
+		db = new Database('temp');
 		chainInstance = new Chain({
 			db,
 			genesisBlock,
@@ -408,7 +408,7 @@ describe('chain/process block', () => {
 					validators: [{ address: getRandomBytes(20) }],
 				});
 				when(db.get)
-					.calledWith('consensus:validators')
+					.calledWith(Buffer.from('consensus:validators'))
 					.mockResolvedValue(validatorBuffer as never);
 
 				// Act & assert
@@ -429,7 +429,7 @@ describe('chain/process block', () => {
 					],
 				});
 				when(db.get)
-					.calledWith('consensus:validators')
+					.calledWith(Buffer.from('consensus:validators'))
 					.mockResolvedValue(validatorBuffer as never);
 
 				// Act & assert
@@ -504,7 +504,7 @@ describe('chain/process block', () => {
 					validators: [{ address: getAddressFromPublicKey(block.header.generatorPublicKey) }],
 				});
 				when(db.get)
-					.calledWith('consensus:validators')
+					.calledWith(Buffer.from('consensus:validators'))
 					.mockResolvedValue(validatorBuffer as never);
 
 				// Act & assert

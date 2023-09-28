@@ -13,7 +13,7 @@
  */
 
 import { BaseChannel, PluginCodec } from 'lisk-framework';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { Forger, DPoSAccountJSON } from '../types';
 import { getForgerInfo } from '../db';
 
@@ -30,7 +30,7 @@ interface Voter {
 export const getVoters = async (
 	channel: BaseChannel,
 	codec: PluginCodec,
-	db: KVStore,
+	db: Database,
 ): Promise<Voter[]> => {
 	const forgersList = await channel.invoke<Forger[]>('app:getForgingStatus');
 	const forgerAccounts = (

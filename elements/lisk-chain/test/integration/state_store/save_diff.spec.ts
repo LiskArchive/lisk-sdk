@@ -15,7 +15,7 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { codec } from '@liskhq/lisk-codec';
-import { KVStore } from '@liskhq/lisk-db';
+import { Batch, Database } from '@liskhq/lisk-db';
 import {
 	createFakeDefaultAccount,
 	defaultAccountSchema,
@@ -39,7 +39,7 @@ describe('stateStore.finalize.saveDiff', () => {
 	const defaultNetworkIdentifier = Buffer.from(
 		'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
 	);
-	let db: KVStore;
+	let db: Database;
 	let dataAccess: DataAccess;
 	let stateStore: StateStore;
 	let accounts: Account<AccountAsset>[];
@@ -47,7 +47,7 @@ describe('stateStore.finalize.saveDiff', () => {
 	beforeAll(() => {
 		const parentPath = path.join(__dirname, '../../tmp/diff');
 		fs.ensureDirSync(parentPath);
-		db = new KVStore(path.join(parentPath, '/test-diff.db'));
+		db = new Database(path.join(parentPath, '/test-diff.db'));
 		dataAccess = new DataAccess({
 			db,
 			accountSchema: defaultAccountSchema as any,
@@ -95,12 +95,12 @@ describe('stateStore.finalize.saveDiff', () => {
 				await stateStore.account.set(account.address, account);
 			}
 			const fakeHeight = '1';
-			const batch = db.batch();
+			const batch = new Batch();
 
 			// Act
 			stateStore.finalize(fakeHeight, batch);
-			await batch.write();
-			const diff = await db.get(`${DB_KEY_DIFF_STATE}:${fakeHeight}`);
+			await db.write(batch);
+			const diff = await db.get(Buffer.from(`${DB_KEY_DIFF_STATE}:${fakeHeight}`));
 			const decodedDiff = codec.decode(stateDiffSchema, diff);
 
 			// Assert
@@ -120,12 +120,12 @@ describe('stateStore.finalize.saveDiff', () => {
 				await stateStore.account.set(account.address, account);
 			}
 			const fakeHeight = '1';
-			const batch = db.batch();
+			const batch = new Batch();
 			// Act
 			await stateStore.account.del(accounts[0].address);
 			stateStore.finalize(fakeHeight, batch);
-			await batch.write();
-			const diff = await db.get(`${DB_KEY_DIFF_STATE}:${fakeHeight}`);
+			await db.write(batch);
+			const diff = await db.get(Buffer.from(`${DB_KEY_DIFF_STATE}:${fakeHeight}`));
 			const decodedDiff = codec.decode(stateDiffSchema, diff);
 
 			// Assert
@@ -142,9 +142,9 @@ describe('stateStore.finalize.saveDiff', () => {
 				await stateStore.account.set(account.address, account);
 			}
 			const fakeHeight = '1';
-			const batch = db.batch();
+			const batch = new Batch();
 			stateStore.finalize(fakeHeight, batch);
-			await batch.write();
+			await db.write(batch);
 
 			// Act
 			const nextHeight = '2';
@@ -160,12 +160,12 @@ describe('stateStore.finalize.saveDiff', () => {
 			const originalBuffer = encodeDefaultAccount(originalAccount);
 			originalAccount.token.balance = BigInt(777);
 			await newStateStore.account.set(accounts[0].address, originalAccount);
-			const nextBatch = db.batch();
+			const nextBatch = new Batch();
 			await newStateStore.account.del(accounts[0].address);
 			newStateStore.finalize(nextHeight, nextBatch);
-			await nextBatch.write();
+			await db.write(nextBatch);
 
-			const diff = await db.get(`${DB_KEY_DIFF_STATE}:${nextHeight}`);
+			const diff = await db.get(Buffer.from(`${DB_KEY_DIFF_STATE}:${nextHeight}`));
 			const decodedDiff = codec.decode(stateDiffSchema, diff);
 
 			// Assert
@@ -186,12 +186,12 @@ describe('stateStore.finalize.saveDiff', () => {
 			await stateStore.chain.set('key1', Buffer.from('value1'));
 			await stateStore.chain.set('key2', Buffer.from('value2'));
 			const fakeHeight = '2';
-			const batch = db.batch();
+			const batch = new Batch();
 
 			// Act
 			stateStore.finalize(fakeHeight, batch);
-			await batch.write();
-			const diff = await db.get(`${DB_KEY_DIFF_STATE}:${fakeHeight}`);
+			await db.write(batch);
+			const diff = await db.get(Buffer.from(`${DB_KEY_DIFF_STATE}:${fakeHeight}`));
 			const decodedDiff = codec.decode(stateDiffSchema, diff);
 
 			// Assert
@@ -207,12 +207,12 @@ describe('stateStore.finalize.saveDiff', () => {
 			await stateStore.consensus.set('key3', Buffer.from('value3'));
 			await stateStore.consensus.set('key4', Buffer.from('value4'));
 			const fakeHeight = '3';
-			const batch = db.batch();
+			const batch = new Batch();
 
 			// Act
 			stateStore.finalize(fakeHeight, batch);
-			await batch.write();
-			const diff = await db.get(`${DB_KEY_DIFF_STATE}:${fakeHeight}`);
+			await db.write(batch);
+			const diff = await db.get(Buffer.from(`${DB_KEY_DIFF_STATE}:${fakeHeight}`));
 			const decodedDiff = codec.decode(stateDiffSchema, diff);
 
 			// Assert
@@ -233,12 +233,12 @@ describe('stateStore.finalize.saveDiff', () => {
 			await stateStore.consensus.set('key3', Buffer.from('value3'));
 			await stateStore.consensus.set('key4', Buffer.from('value4'));
 			const fakeHeight = '4';
-			const batch = db.batch();
+			const batch = new Batch();
 
 			// Act
 			stateStore.finalize(fakeHeight, batch);
-			await batch.write();
-			const diff = await db.get(`${DB_KEY_DIFF_STATE}:${fakeHeight}`);
+			await db.write(batch);
+			const diff = await db.get(Buffer.from(`${DB_KEY_DIFF_STATE}:${fakeHeight}`));
 			const decodedDiff = codec.decode(stateDiffSchema, diff);
 
 			// Assert
@@ -262,9 +262,9 @@ describe('stateStore.finalize.saveDiff', () => {
 			await stateStore.consensus.set('key1', Buffer.from('value1'));
 			await stateStore.consensus.set('key2', Buffer.from('value2'));
 			const fakeHeight = '5';
-			const batch = db.batch();
+			const batch = new Batch();
 			stateStore.finalize(fakeHeight, batch);
-			await batch.write();
+			await db.write(batch);
 
 			// Update
 			stateStore = new StateStore(dataAccess, {
@@ -282,10 +282,10 @@ describe('stateStore.finalize.saveDiff', () => {
 			await stateStore.consensus.set('key1', updatedVal1);
 			await stateStore.consensus.set('key2', updatedVal2);
 			const updatedFakeHeight = '6';
-			const updateBatch = db.batch();
+			const updateBatch = new Batch();
 			stateStore.finalize(updatedFakeHeight, updateBatch);
-			await updateBatch.write();
-			const diff = await db.get(`${DB_KEY_DIFF_STATE}:${updatedFakeHeight}`);
+			await db.write(updateBatch);
+			const diff = await db.get(Buffer.from(`${DB_KEY_DIFF_STATE}:${updatedFakeHeight}`));
 			const decodedDiff = codec.decode(stateDiffSchema, diff);
 
 			// Assert
@@ -295,12 +295,12 @@ describe('stateStore.finalize.saveDiff', () => {
 		it('should save empty diff if state was not changed', async () => {
 			// Arrange
 			const fakeHeight = '3';
-			const batch = db.batch();
+			const batch = new Batch();
 
 			// Act
 			stateStore.finalize(fakeHeight, batch);
-			await batch.write();
-			const diff = await db.get(`${DB_KEY_DIFF_STATE}:${fakeHeight}`);
+			await db.write(batch);
+			const diff = await db.get(Buffer.from(`${DB_KEY_DIFF_STATE}:${fakeHeight}`));
 			const decodedDiff = codec.decode(stateDiffSchema, diff);
 
 			// Assert

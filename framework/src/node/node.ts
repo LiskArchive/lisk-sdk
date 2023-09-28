@@ -33,7 +33,7 @@ import {
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
 import { getNetworkIdentifier, hash } from '@liskhq/lisk-cryptography';
 import { TransactionPool, events as txPoolEvents } from '@liskhq/lisk-transaction-pool';
-import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { Database, NotFoundError } from '@liskhq/lisk-db';
 import { jobHandlers } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
 import {
@@ -71,6 +71,7 @@ import { EVENT_SYNCHRONIZER_SYNC_REQUIRED } from './synchronizer/base_synchroniz
 import { Network } from './network';
 import { BaseAsset, BaseModule } from '../modules';
 import { Bus } from '../controller/bus';
+import { backupDatabase } from './utils/backup';
 
 const forgeInterval = 1000;
 const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK, EVENT_VALIDATORS_CHANGED } = chainEvents;
@@ -88,9 +89,9 @@ interface NodeInitInput {
 	readonly genesisBlockJSON: Record<string, unknown>;
 	readonly logger: Logger;
 	readonly channel: InMemoryChannel;
-	readonly forgerDB: KVStore;
-	readonly blockchainDB: KVStore;
-	readonly nodeDB: KVStore;
+	readonly forgerDB: Database;
+	readonly blockchainDB: Database;
+	readonly nodeDB: Database;
 	readonly bus: Bus;
 }
 
@@ -104,11 +105,12 @@ export class Node {
 	private readonly _options: NodeOptions;
 	private readonly _registeredModules: BaseModule[] = [];
 	private _bus!: Bus;
+	private _dataPath!: string;
 	private _channel!: InMemoryChannel;
 	private _logger!: Logger;
-	private _nodeDB!: KVStore;
-	private _forgerDB!: KVStore;
-	private _blockchainDB!: KVStore;
+	private _nodeDB!: Database;
+	private _forgerDB!: Database;
+	private _blockchainDB!: Database;
 	private _networkIdentifier!: Buffer;
 	private _registeredAccountSchemas: { [moduleName: string]: AccountSchema } = {};
 	private _networkModule!: Network;
@@ -240,6 +242,7 @@ export class Node {
 		this._forgerDB = forgerDB;
 		this._nodeDB = nodeDB;
 		this._bus = bus;
+		this._dataPath = configPath;
 
 		// read from compiled genesis block if exist
 		const genesisBlock = this._readGenesisBlock(genesisBlockJSON, configPath);
@@ -511,6 +514,9 @@ export class Node {
 					...this._options.genesisConfig,
 				},
 				registeredModules: this.getRegisteredModules(),
+				backup: {
+					height: this._options.backup.height,
+				},
 				network: {
 					port: this._options.network.port,
 					hostIp: this._options.network.hostIp,
@@ -589,9 +595,9 @@ export class Node {
 				return this._processor.verifyTransactions(transactions, stateStore);
 			},
 			...this._options.transactionPool,
-			minEntranceFeePriority: BigInt(this._options.transactionPool.minEntranceFeePriority),
+			minEntranceFeePriority: BigInt(this._options.transactionPool.minEntranceFeePriority ?? 0),
 			minReplacementFeeDifference: BigInt(
-				this._options.transactionPool.minReplacementFeeDifference,
+				this._options.transactionPool.minReplacementFeeDifference ?? 0,
 			),
 			maxPayloadLength: this._options.genesisConfig.maxPayloadLength,
 		});
@@ -723,6 +729,18 @@ export class Node {
 						this._chain.dataAccess.encodeAccount(acc).toString('hex'),
 					),
 				});
+
+				if (
+					this._options.backup.height > 0 &&
+					this._options.backup.height === block.header.height
+				) {
+					backupDatabase(this._dataPath, this._blockchainDB).catch(err =>
+						this._logger.fatal(
+							{ err: err as Error, heght: this._options.backup.height },
+							'Failed to create backup',
+						),
+					);
+				}
 
 				// Remove any transactions from the pool on new block
 				if (block.payload.length) {
