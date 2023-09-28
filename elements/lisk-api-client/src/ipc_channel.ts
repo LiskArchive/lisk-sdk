@@ -20,8 +20,8 @@ import { Subscriber, Dealer } from 'zeromq';
 import { Channel, EventCallback, Defer, JSONRPCMessage, JSONRPCResponse } from './types';
 import { convertRPCError, defer, promiseWithTimeout } from './utils';
 
-const CONNECTION_TIME_OUT = 2000;
-const RESPONSE_TIMEOUT = 3000;
+const CONNECTION_TIME_OUT = 5000;
+const RESPONSE_TIMEOUT = 10000;
 
 const getSocketsPath = (dataPath: string) => {
 	const socketDir = path.join(path.resolve(dataPath.replace('~', homedir())), 'tmp', 'sockets');
