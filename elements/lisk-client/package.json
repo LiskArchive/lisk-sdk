@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-client",
-	"version": "5.3.0-rc.0",
+	"version": "5.3.0",
 	"description": "A default set of Elements for use by clients of the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -55,14 +55,14 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-api-client": "^5.2.0-rc.0",
-		"@liskhq/lisk-codec": "^0.3.0-rc.0",
-		"@liskhq/lisk-cryptography": "^3.3.0-rc.0",
-		"@liskhq/lisk-passphrase": "^3.2.0-rc.0",
-		"@liskhq/lisk-transactions": "^5.3.0-rc.0",
-		"@liskhq/lisk-tree": "^0.3.0-rc.0",
-		"@liskhq/lisk-utils": "^0.3.0-rc.0",
-		"@liskhq/lisk-validator": "^0.7.0-rc.0",
+		"@liskhq/lisk-api-client": "^5.2.0",
+		"@liskhq/lisk-codec": "^0.3.0",
+		"@liskhq/lisk-cryptography": "^3.3.0",
+		"@liskhq/lisk-passphrase": "^3.2.0",
+		"@liskhq/lisk-transactions": "^5.3.0",
+		"@liskhq/lisk-tree": "^0.3.0",
+		"@liskhq/lisk-utils": "^0.3.0",
+		"@liskhq/lisk-validator": "^0.7.0",
 		"buffer": "6.0.3"
 	},
 	"devDependencies": {

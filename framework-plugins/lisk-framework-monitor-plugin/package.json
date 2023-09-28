@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-framework-monitor-plugin",
-	"version": "0.3.0-rc.0",
+	"version": "0.3.0",
 	"description": "A plugin for lisk-framework that provides network statistics of the running node",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -37,16 +37,16 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-chain": "^0.4.0-rc.0",
-		"@liskhq/lisk-codec": "^0.3.0-rc.0",
-		"@liskhq/lisk-cryptography": "^3.3.0-rc.0",
-		"@liskhq/lisk-utils": "^0.3.0-rc.0",
-		"@liskhq/lisk-validator": "^0.7.0-rc.0",
+		"@liskhq/lisk-chain": "^0.4.0",
+		"@liskhq/lisk-codec": "^0.3.0",
+		"@liskhq/lisk-cryptography": "^3.3.0",
+		"@liskhq/lisk-utils": "^0.3.0",
+		"@liskhq/lisk-validator": "^0.7.0",
 		"cors": "2.8.5",
 		"express": "4.17.3",
 		"express-rate-limit": "5.1.3",
 		"ip": "1.1.5",
-		"lisk-framework": "^0.10.0-rc.0"
+		"lisk-framework": "^0.10.0"
 	},
 	"devDependencies": {
 		"@types/cors": "2.8.6",

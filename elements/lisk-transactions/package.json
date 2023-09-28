@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-transactions",
-	"version": "5.3.0-rc.0",
+	"version": "5.3.0",
 	"description": "Utility functions related to transactions according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -36,9 +36,9 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-codec": "^0.3.0-rc.0",
-		"@liskhq/lisk-cryptography": "^3.3.0-rc.0",
-		"@liskhq/lisk-validator": "^0.7.0-rc.0"
+		"@liskhq/lisk-codec": "^0.3.0",
+		"@liskhq/lisk-cryptography": "^3.3.0",
+		"@liskhq/lisk-validator": "^0.7.0"
 	},
 	"devDependencies": {
 		"@types/jest": "26.0.21",

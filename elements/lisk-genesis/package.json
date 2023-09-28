@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-genesis",
-	"version": "0.3.0-rc.0",
+	"version": "0.3.0",
 	"description": "Library containing genesis block creation functions according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -36,11 +36,11 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-chain": "^0.4.0-rc.0",
-		"@liskhq/lisk-codec": "^0.3.0-rc.0",
-		"@liskhq/lisk-cryptography": "^3.3.0-rc.0",
-		"@liskhq/lisk-utils": "^0.3.0-rc.0",
-		"@liskhq/lisk-validator": "^0.7.0-rc.0",
+		"@liskhq/lisk-chain": "^0.4.0",
+		"@liskhq/lisk-codec": "^0.3.0",
+		"@liskhq/lisk-cryptography": "^3.3.0",
+		"@liskhq/lisk-utils": "^0.3.0",
+		"@liskhq/lisk-validator": "^0.7.0",
 		"lodash.clonedeep": "4.5.0"
 	},
 	"devDependencies": {
