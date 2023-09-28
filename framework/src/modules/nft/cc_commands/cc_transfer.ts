@@ -67,18 +67,15 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			throw new Error('NFT is not native to either the sending chain or the receiving chain');
 		}
 
-		let nft;
-		try {
-			nft = await this._method.getNFT(getMethodContext(), nftID);
-		} catch (error) {
-			/* empty */
-		}
+		const nftStore = this.stores.get(NFTStore);
+		const nftExists = await nftStore.has(getMethodContext(), nftID);
 
 		if (nftChainID.equals(ownChainID)) {
-			if (!nft) {
+			if (!nftExists) {
 				throw new Error('Non-existent entry in the NFT substore');
 			}
 
+			const nft = await nftStore.get(getMethodContext(), nftID);
 			if (!nft.owner.equals(sendingChainID)) {
 				throw new Error('NFT has not been properly escrowed');
 			}
@@ -92,7 +89,7 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			throw new Error('Module or cross-chain command not supported');
 		}
 
-		if (!nftChainID.equals(ownChainID) && nft) {
+		if (!nftChainID.equals(ownChainID) && nftExists) {
 			throw new Error('NFT substore entry already exists');
 		}
 	}
