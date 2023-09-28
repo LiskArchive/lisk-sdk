@@ -319,7 +319,7 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			await expect(endpoint.getNFT(context)).rejects.toThrow('NFT does not exist');
+			await expect(endpoint.getNFT(context)).rejects.toThrow('NFT substore entry does not exist');
 		});
 
 		it('should return NFT details', async () => {
