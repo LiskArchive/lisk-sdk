@@ -385,7 +385,7 @@ describe('NFTEndpoint', () => {
 			);
 		});
 
-		it('should return empty list if provided chainID does not exist', async () => {
+		it('should return undefined if provided chainID does not exist', async () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
@@ -393,12 +393,27 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
-				collectionIDs: [],
-			});
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toBeUndefined();
 		});
 
-		it('should return an empty array if all NFTs are not supported', async () => {
+		it('should return undefined if chainID key exists and supportedCollectionIDArray is empty', async () => {
+			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+
+			await supportedNFTsStore.save(methodContext, chainID, {
+				supportedCollectionIDArray: [],
+			});
+
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: chainID.toString('hex'),
+				},
+			});
+
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toBeUndefined();
+		});
+
+		it('should return undefined if all NFTs are not supported', async () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
@@ -406,9 +421,7 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
-				collectionIDs: [],
-			});
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toBeUndefined();
 		});
 
 		it('should return supported collections of the provided chain', async () => {

@@ -138,7 +138,7 @@ export class NFTEndpoint extends BaseEndpoint {
 
 	public async getSupportedCollectionIDs(
 		context: ModuleEndpointContext,
-	): Promise<{ collectionIDs: string[] }> {
+	): Promise<{ collectionIDs: string[] } | undefined> {
 		const { params } = context;
 
 		validator.validate<{ chainID: string }>(getSupportedCollectionIDsRequestSchema, params);
@@ -152,7 +152,7 @@ export class NFTEndpoint extends BaseEndpoint {
 		);
 
 		if (!isNFTSupported) {
-			return { collectionIDs: [] };
+			return undefined;
 		}
 
 		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
@@ -169,7 +169,7 @@ export class NFTEndpoint extends BaseEndpoint {
 			};
 		}
 
-		return { collectionIDs: [] };
+		return undefined;
 	}
 
 	public async isCollectionIDSupported(
