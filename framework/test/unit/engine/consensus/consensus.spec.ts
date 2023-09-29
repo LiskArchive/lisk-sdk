@@ -73,6 +73,7 @@ describe('consensus', () => {
 			dataAccess: {
 				getBlockHeaderByHeight: jest.fn().mockResolvedValue(lastBlock.header),
 			},
+			genesisHeight: 0,
 		} as unknown as Chain;
 		network = {
 			registerEndpoint: jest.fn(),
@@ -218,6 +219,50 @@ describe('consensus', () => {
 				validatorsHash: utils.getRandomBytes(32),
 			} as never);
 			await expect(initConsensus()).rejects.toThrow('Genesis block validators hash is invalid');
+		});
+	});
+
+	describe('getMaxRemovalHeight', () => {
+		it('should return genesis height if the finalizedBlock.aggregateCommit.height is smaller', async () => {
+			const finalizedBlock = await createValidDefaultBlock({
+				header: {
+					height: 1,
+					aggregateCommit: {
+						height: 0,
+						aggregationBits: Buffer.alloc(0),
+						certificateSignature: Buffer.alloc(0),
+					},
+				},
+			});
+			(chain.dataAccess.getBlockHeaderByHeight as jest.Mock).mockResolvedValue(
+				finalizedBlock.header,
+			);
+			const genesisHeight = 25519;
+			(chain as any).genesisHeight = genesisHeight;
+
+			await expect(consensus.getMaxRemovalHeight()).resolves.toEqual(genesisHeight);
+		});
+
+		it('should return finalizedBlock.aggregateCommit.height if the genesis height is smaller', async () => {
+			const finalizedBlock = await createValidDefaultBlock({
+				header: {
+					height: 1,
+					aggregateCommit: {
+						height: 25520,
+						aggregationBits: Buffer.alloc(0),
+						certificateSignature: Buffer.alloc(0),
+					},
+				},
+			});
+			(chain.dataAccess.getBlockHeaderByHeight as jest.Mock).mockResolvedValue(
+				finalizedBlock.header,
+			);
+			const genesisHeight = 25519;
+			(chain as any).genesisHeight = genesisHeight;
+
+			await expect(consensus.getMaxRemovalHeight()).resolves.toEqual(
+				finalizedBlock.header.aggregateCommit.height,
+			);
 		});
 	});
 
