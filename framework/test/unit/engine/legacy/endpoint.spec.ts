@@ -26,13 +26,32 @@ import {
 import { LegacyBlockJSON, LegacyTransactionJSON } from '../../../../src/engine/legacy/types';
 
 const bufferToHex = (b: Buffer) => Buffer.from(b).toString('hex');
+const randomSnapshotBlockID = utils.getRandomBytes(20);
+const expectedSnapshotBlockID = utils.getRandomBytes(20);
 
 describe('Legacy endpoint', () => {
 	let encodedBlock: Buffer;
 	let legacyEndpoint: LegacyEndpoint;
 
 	beforeEach(() => {
-		legacyEndpoint = new LegacyEndpoint({ db: new InMemoryDatabase() as any });
+		legacyEndpoint = new LegacyEndpoint({
+			db: new InMemoryDatabase() as any,
+			legacyConfig: {
+				sync: true,
+				brackets: [
+					{
+						startHeight: 0,
+						snapshotBlockID: randomSnapshotBlockID.toString('hex'),
+						snapshotHeight: 100,
+					},
+					{
+						startHeight: 16270306,
+						snapshotBlockID: expectedSnapshotBlockID.toString('hex'),
+						snapshotHeight: 16270316,
+					},
+				],
+			},
+		});
 		encodedBlock = codec.encode(blockSchemaV2, {
 			header: codec.encode(blockHeaderSchemaV2, blockFixtures[0].header),
 			payload: blockFixtures[0].payload,

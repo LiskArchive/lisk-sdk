@@ -12,24 +12,30 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Database } from '@liskhq/lisk-db';
+import { Database, NotFoundError } from '@liskhq/lisk-db';
 import { isHexString } from '@liskhq/lisk-validator';
+import { codec } from '@liskhq/lisk-codec';
 import { RequestContext } from '../rpc/rpc_server';
-import { LegacyBlockJSON, LegacyTransactionJSON } from './types';
+import { LegacyBlockJSON, LegacyChainBracketInfo, LegacyTransactionJSON } from './types';
 import { Storage } from './storage';
 import { decodeBlockJSON, getLegacyTransactionJSONWithSchema } from './codec';
+import { LegacyConfig } from '../../types';
+import { legacyChainBracketInfoSchema } from './schemas';
 
 interface EndpointArgs {
 	db: Database;
+	legacyConfig: LegacyConfig;
 }
 
 export class LegacyEndpoint {
 	[key: string]: unknown;
 
 	public readonly storage: Storage;
+	private readonly _legacyConfig: LegacyConfig;
 
 	public constructor(args: EndpointArgs) {
 		this.storage = new Storage(args.db);
+		this._legacyConfig = args.legacyConfig;
 	}
 
 	public async getTransactionByID(context: RequestContext): Promise<LegacyTransactionJSON> {
@@ -76,5 +82,25 @@ export class LegacyEndpoint {
 		}
 
 		return decodeBlockJSON(await this.storage.getBlockByHeight(height)).block;
+	}
+
+	public async getLegacyBrackets(_context: RequestContext): Promise<LegacyChainBracketInfo[]> {
+		const legacyBracketInfos = [];
+		for (const bracket of this._legacyConfig.brackets) {
+			try {
+				const bracketInfo = await this.storage.getLegacyChainBracketInfo(
+					Buffer.from(bracket.snapshotBlockID, 'hex'),
+				);
+				legacyBracketInfos.push(
+					codec.decodeJSON<LegacyChainBracketInfo>(legacyChainBracketInfoSchema, bracketInfo),
+				);
+			} catch (error) {
+				if (!(error instanceof NotFoundError)) {
+					throw error;
+				}
+			}
+		}
+
+		return legacyBracketInfos;
 	}
 }

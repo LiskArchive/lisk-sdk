@@ -20,7 +20,7 @@ import { Network } from '../network';
 import { getBlocksFromIdResponseSchema } from '../consensus/schema';
 import { Storage } from './storage';
 import { LegacyBlock, LegacyBlockBracket, Peer, LegacyChainBracketInfo } from './types';
-import { decodeBlock, encodeBlock } from './codec';
+import { decodeBlock, encodeBlockHeader } from './codec';
 import { PeerNotFoundWithLegacyInfo } from './errors';
 import { validateLegacyBlock } from './validate';
 import { legacyChainBracketInfoSchema } from './schemas';
@@ -54,16 +54,50 @@ export class LegacyChainHandler {
 
 		for (const bracket of this._legacyConfig.brackets) {
 			try {
-				await this._storage.getLegacyChainBracketInfo(Buffer.from(bracket.snapshotBlockID, 'hex'));
+				const encodedBracketInfo = await this._storage.getLegacyChainBracketInfo(
+					Buffer.from(bracket.snapshotBlockID, 'hex'),
+				);
+
+				const decodedBracketInfo = codec.decode<LegacyChainBracketInfo>(
+					legacyChainBracketInfoSchema,
+					encodedBracketInfo,
+				);
+
+				// Update the existing legacyInfo
+				let startBlock;
+				try {
+					startBlock = await this._storage.getBlockByHeight(bracket.startHeight);
+				} catch (error) {
+					if (!(error instanceof NotFoundError)) {
+						throw error;
+					}
+				}
+
+				await this._storage.setLegacyChainBracketInfo(Buffer.from(bracket.snapshotBlockID, 'hex'), {
+					...decodedBracketInfo,
+					startHeight: bracket.startHeight,
+					snapshotBlockHeight: bracket.snapshotHeight,
+					// if start block already exists then assign to lastBlockHeight
+					lastBlockHeight: startBlock ? bracket.startHeight : bracket.snapshotHeight,
+				});
 			} catch (err) {
 				if (!(err instanceof NotFoundError)) {
 					throw err;
 				}
 				// Save config brackets in advance, these will be used in next step (`sync`)
-				await this._storage.setLegacyChainBracketInfo(Buffer.from(bracket.snapshotBlockID), {
+				let startBlock;
+				try {
+					startBlock = await this._storage.getBlockByHeight(bracket.startHeight);
+				} catch (error) {
+					if (!(error instanceof NotFoundError)) {
+						throw error;
+					}
+				}
+				await this._storage.setLegacyChainBracketInfo(Buffer.from(bracket.snapshotBlockID, 'hex'), {
 					startHeight: bracket.startHeight,
 					snapshotBlockHeight: bracket.snapshotHeight,
-					lastBlockHeight: bracket.snapshotHeight,
+					// if start block already exists then assign to lastBlockHeight
+					lastBlockHeight: startBlock ? bracket.startHeight : bracket.snapshotHeight,
 				});
 			}
 		}
@@ -191,7 +225,7 @@ export class LegacyChainHandler {
 				await this._storage.saveBlock(
 					block.header.id as Buffer,
 					block.header.height,
-					encodeBlock(block),
+					encodeBlockHeader(block.header),
 					payload,
 				);
 			}

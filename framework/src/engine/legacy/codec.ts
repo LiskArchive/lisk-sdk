@@ -29,6 +29,7 @@ import {
 	LegacyBlockHeaderWithID,
 	LegacyTransaction,
 	LegacyTransactionJSON,
+	LegacyBlockHeader,
 } from './types';
 
 interface LegacyBlockSchema {
@@ -65,6 +66,20 @@ export const decodeBlock = (
 			},
 		},
 		schema: blockSchema,
+	};
+};
+
+export const decodeBlockHeader = (blockHeaderBytes: Buffer): LegacyBlockHeaderWithID => {
+	const version = readVersion();
+	const blockSchema = blockSchemaMap[version];
+	if (!blockSchema) {
+		throw new Error(`Legacy block version ${version} is not registered.`);
+	}
+	const id = utils.hash(blockHeaderBytes);
+
+	return {
+		...codec.decode<LegacyBlockHeaderWithID>(blockSchema.header, blockHeaderBytes),
+		id,
 	};
 };
 
@@ -110,6 +125,14 @@ export const encodeBlock = (data: LegacyBlock): Buffer => {
 		header: headerBytes,
 		payload: data.payload,
 	});
+};
+
+export const encodeBlockHeader = (blockHeader: LegacyBlockHeader): Buffer => {
+	const blockSchema = blockSchemaMap[blockHeader.version];
+	if (!blockSchema) {
+		throw new Error(`Legacy block version ${blockHeader.version} is not registered.`);
+	}
+	return codec.encode(blockSchema.header, blockHeader);
 };
 
 export const encodeLegacyChainBracketInfo = (data: LegacyChainBracketInfo): Buffer =>

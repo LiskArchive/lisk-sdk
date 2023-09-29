@@ -15,6 +15,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { LegacyConfig } from '../../../../src';
 import { LegacyChainHandler } from '../../../../src/engine/legacy/legacy_chain_handler';
 import { Network } from '../../../../src/engine/network';
@@ -27,7 +28,6 @@ import { fakeLogger } from '../../../utils/mocks';
 const randomSnapshotBlockID = utils.getRandomBytes(20);
 const expectedSnapshotBlockID = utils.getRandomBytes(20);
 
-// https://lisk.observer/block/19583716
 describe('Legacy Chain Handler', () => {
 	let legacyChainHandler: LegacyChainHandler;
 	let legacyConfig: LegacyConfig;
@@ -74,29 +74,28 @@ describe('Legacy Chain Handler', () => {
 
 		legacyChainHandler = new LegacyChainHandler({ legacyConfig, network, logger: fakeLogger });
 		await legacyChainHandler.init({
-			db: { get: jest.fn(), write: jest.fn(), set: jest.fn() } as never,
+			db: new InMemoryDatabase() as never,
 		});
-
-		jest.spyOn(legacyChainHandler['_network'], 'getConnectedPeers').mockImplementation(() => {
-			return peers as any;
-		});
-
 		jest
 			.spyOn(legacyChainHandler['_storage'], 'getLegacyChainBracketInfo')
-			.mockReturnValueOnce(
+			.mockResolvedValueOnce(
 				encodeLegacyChainBracketInfo({
 					startHeight: 0,
 					snapshotBlockHeight: 0,
 					lastBlockHeight: 0,
 				}) as any, // this means this bracket is already synced, since it's lastBlockHeight equals bracket's startHeight
 			)
-			.mockReturnValueOnce(
+			.mockResolvedValueOnce(
 				encodeLegacyChainBracketInfo({
 					startHeight: 16270306,
 					snapshotBlockHeight: 16270316,
 					lastBlockHeight: 16270316,
 				}) as any,
 			);
+
+		jest.spyOn(legacyChainHandler['_network'], 'getConnectedPeers').mockImplementation(() => {
+			return peers as any;
+		});
 
 		jest
 			.spyOn(legacyChainHandler['_storage'], 'getBlockByHeight')

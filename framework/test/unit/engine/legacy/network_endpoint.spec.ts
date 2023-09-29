@@ -24,8 +24,8 @@ import {
 	getBlocksFromIdResponseSchema,
 } from '../../../../src/engine/consensus/schema';
 
-import { getLegacyBlocksRangeV2 } from './fixtures';
-import { decodeBlock, encodeBlock } from '../../../../src/engine/legacy/codec';
+import { getLegacyBlockHeadersRangeV2 } from './fixtures';
+import { decodeBlockHeader } from '../../../../src/engine/legacy/codec';
 
 describe('Legacy P2P network endpoint', () => {
 	const defaultPeerID = 'peer-id';
@@ -76,23 +76,15 @@ describe('Legacy P2P network endpoint', () => {
 		it('should return 100 blocks from the requested ID', async () => {
 			const startHeight = 110;
 			// 100 blocks including the requested block ID
-			const blocks = getLegacyBlocksRangeV2(startHeight, 99);
+			const blockHeaders = getLegacyBlockHeadersRangeV2(startHeight, 99);
 
-			const requestedBlock = decodeBlock(blocks[0]).block;
+			const requestedBlockHeader = decodeBlockHeader(blockHeaders[0]);
 
-			const {
-				header: { id, ...blockHeader },
-				payload,
-			} = requestedBlock;
-
-			const requestedBlockWithoutID = { header: { ...blockHeader }, payload };
-
-			const encodedBlockWithoutID = encodeBlock(requestedBlockWithoutID);
-			const requestedBlockID = utils.hash(encodedBlockWithoutID);
+			const { id: requestedBlockID } = requestedBlockHeader;
 
 			// Save blocks to the database
-			for (let i = 0; i < blocks.length; i += 1) {
-				const block = blocks[i];
+			for (let i = 0; i < blockHeaders.length; i += 1) {
+				const block = blockHeaders[i];
 				await endpoint['_storage'].saveBlock(utils.hash(block), startHeight + i, block, []);
 			}
 

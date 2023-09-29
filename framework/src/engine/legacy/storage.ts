@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Batch, Database } from '@liskhq/lisk-db';
+import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
 import { utils } from '@liskhq/lisk-cryptography';
+import { codec } from '@liskhq/lisk-codec';
 import { encodeLegacyChainBracketInfo } from './codec';
 import { LegacyChainBracketInfo } from './types';
 import {
@@ -23,6 +24,7 @@ import {
 	buildLegacyBracketDBKey,
 	buildTxsBlockIDDbKey,
 } from './utils';
+import { blockSchemaV2 } from './schemas';
 
 export class Storage {
 	private readonly _db: Database;
@@ -37,7 +39,20 @@ export class Storage {
 	}
 
 	public async getBlockByID(id: Buffer): Promise<Buffer> {
-		return this._db.get(buildBlockIDDbKey(id));
+		const blockHeader = await this._db.get(buildBlockIDDbKey(id));
+		let payload: Buffer[] = [];
+		try {
+			payload = await this.getTransactionsByBlockID(id);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+		}
+
+		return codec.encode(blockSchemaV2, {
+			header: blockHeader,
+			payload,
+		});
 	}
 
 	public async getBlockByHeight(height: number): Promise<Buffer> {
