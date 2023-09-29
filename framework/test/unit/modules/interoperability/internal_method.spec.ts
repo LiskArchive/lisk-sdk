@@ -24,6 +24,7 @@ import {
 	EMPTY_BYTES,
 	EMPTY_HASH,
 	HASH_LENGTH,
+	MAX_UINT64,
 	MESSAGE_TAG_CERTIFICATE,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 } from '../../../../src/modules/interoperability/constants';
@@ -149,7 +150,7 @@ describe('Base interoperability internal method', () => {
 				siblingHashes: [],
 			},
 		},
-		certificateThreshold: BigInt(99),
+		certificateThreshold: BigInt(9),
 		sendingChainID: cryptoUtils.getRandomBytes(4),
 	};
 	let mainchainInteroperabilityInternalMethod: MainchainInteroperabilityInternalMethod;
@@ -924,6 +925,134 @@ describe('Base interoperability internal method', () => {
 			await expect(
 				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
 			).rejects.toThrow('New validators must have a positive BFT weight.');
+		});
+
+		it('should reject if new active validator bft weight equals 0', async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, defaultCertificate),
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [
+						Buffer.from([0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 1]),
+						Buffer.from([0, 0, 3, 0]),
+					],
+					bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4)],
+					// 7 corresponds to 0111
+					bftWeightsUpdateBitmap: Buffer.from([7]),
+				},
+			};
+			const existingKey = Buffer.from([0, 2, 3, 0]);
+			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, {
+				activeValidators: [{ blsKey: existingKey, bftWeight: BigInt(2) }],
+				certificateThreshold: BigInt(1),
+			});
+			const newValidators = [
+				{ blsKey: Buffer.from([0, 0, 0, 0]), bftWeight: BigInt(1) },
+				{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(3) },
+				{ blsKey: Buffer.from([0, 0, 2, 0]), bftWeight: BigInt(0) },
+			];
+			jest.spyOn(utils, 'calculateNewActiveValidators').mockReturnValue(newValidators);
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).rejects.toThrow('Validator bft weight must be positive integer.');
+		});
+
+		it(`should reject if total bft weight > ${MAX_UINT64}`, async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, defaultCertificate),
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [
+						Buffer.from([0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 1]),
+						Buffer.from([0, 0, 3, 0]),
+					],
+					bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4)],
+					// 7 corresponds to 0111
+					bftWeightsUpdateBitmap: Buffer.from([7]),
+				},
+			};
+			const existingKey = Buffer.from([0, 2, 3, 0]);
+			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, {
+				activeValidators: [{ blsKey: existingKey, bftWeight: BigInt(2) }],
+				certificateThreshold: BigInt(1),
+			});
+			const newValidators = [
+				{ blsKey: Buffer.from([0, 0, 0, 0]), bftWeight: BigInt(1) },
+				{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(3) },
+				{ blsKey: Buffer.from([0, 0, 2, 0]), bftWeight: MAX_UINT64 },
+			];
+			jest.spyOn(utils, 'calculateNewActiveValidators').mockReturnValue(newValidators);
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).rejects.toThrow('Total BFT weight exceeds maximum value.');
+		});
+
+		it('should reject if certificate threshold is too small', async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, defaultCertificate),
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [
+						Buffer.from([0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 1]),
+						Buffer.from([0, 0, 3, 0]),
+					],
+					bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4)],
+					// 7 corresponds to 0111
+					bftWeightsUpdateBitmap: Buffer.from([7]),
+				},
+			};
+			const existingKey = Buffer.from([0, 2, 3, 0]);
+			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, {
+				activeValidators: [{ blsKey: existingKey, bftWeight: BigInt(2) }],
+				certificateThreshold: BigInt(1),
+			});
+			const newValidators = [
+				{ blsKey: Buffer.from([0, 0, 0, 0]), bftWeight: BigInt(1000000000000) },
+				{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(1000000000000) },
+				{ blsKey: Buffer.from([0, 0, 2, 0]), bftWeight: BigInt(1000000000000) },
+			];
+			jest.spyOn(utils, 'calculateNewActiveValidators').mockReturnValue(newValidators);
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).rejects.toThrow('Certificate threshold is too small.');
+		});
+
+		it('should reject if certificate threshold is too large', async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, defaultCertificate),
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [
+						Buffer.from([0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 1]),
+						Buffer.from([0, 0, 3, 0]),
+					],
+					bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4)],
+					// 7 corresponds to 0111
+					bftWeightsUpdateBitmap: Buffer.from([7]),
+				},
+			};
+			const existingKey = Buffer.from([0, 2, 3, 0]);
+			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, {
+				activeValidators: [{ blsKey: existingKey, bftWeight: BigInt(2) }],
+				certificateThreshold: BigInt(1),
+			});
+			const newValidators = [
+				{ blsKey: Buffer.from([0, 0, 0, 0]), bftWeight: BigInt(1) },
+				{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(1) },
+				{ blsKey: Buffer.from([0, 0, 2, 0]), bftWeight: BigInt(1) },
+			];
+			jest.spyOn(utils, 'calculateNewActiveValidators').mockReturnValue(newValidators);
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).rejects.toThrow('Certificate threshold is too large.');
 		});
 
 		it('should reject if new validatorsHash does not match with certificate', async () => {
