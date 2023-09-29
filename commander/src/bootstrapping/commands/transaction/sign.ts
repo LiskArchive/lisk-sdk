@@ -203,7 +203,7 @@ export abstract class SignCommand extends Command {
 		let signedTransaction: Record<string, unknown>;
 
 		if (flags.offline) {
-			const app = this.getApplication({}, {});
+			const app = this.getApplication({ genesis: { chainID: flags['chain-id'] } });
 			this._metadata = app.getMetadata();
 			this._schema = {
 				header: blockHeaderSchema,
@@ -266,8 +266,5 @@ export abstract class SignCommand extends Command {
 		}
 	}
 
-	abstract getApplication(
-		genesisBlock: Record<string, unknown>,
-		config: PartialApplicationConfig,
-	): Application;
+	abstract getApplication(config: PartialApplicationConfig): Application;
 }
