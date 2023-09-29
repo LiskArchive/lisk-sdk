@@ -21,7 +21,6 @@ import { createTransactionContext } from '../../../../../../src/testing';
 import { RegisterSidechainCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/register_sidechain';
 import {
 	EMPTY_HASH,
-	MAX_UINT64,
 	MAX_NUM_VALIDATORS,
 	MODULE_NAME_INTEROPERABILITY,
 	COMMAND_NAME_SIDECHAIN_REG,
@@ -37,7 +36,12 @@ import {
 	registrationCCMParamsSchema,
 	sidechainRegParams,
 } from '../../../../../../src/modules/interoperability/schemas';
-import { SidechainRegistrationParams } from '../../../../../../src/modules/interoperability/types';
+import {
+	SidechainRegistrationParams,
+	ChainAccount as ChainAccountType,
+	InboxOutbox,
+	ChannelData,
+} from '../../../../../../src/modules/interoperability/types';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -48,6 +52,7 @@ import {
 	getMainchainID,
 	getTokenIDLSK,
 	getEncodedCCMAndID,
+	validNameChars,
 } from '../../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
@@ -59,9 +64,11 @@ import { OutboxRootStore } from '../../../../../../src/modules/interoperability/
 import {
 	ChainAccount,
 	ChainAccountStore,
-	ChainStatus,
 } from '../../../../../../src/modules/interoperability/stores/chain_account';
-import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
+import {
+	ChainValidatorsStore,
+	ChainValidators,
+} from '../../../../../../src/modules/interoperability/stores/chain_validators';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 import { EMPTY_BYTES } from '../../../../../../src/modules/token/constants';
 import { ChainAccountUpdatedEvent } from '../../../../../../src/modules/interoperability/events/chain_account_updated';
@@ -258,12 +265,12 @@ describe('RegisterSidechainCommand', () => {
 			expect(result.status).toBe(VerifyStatus.OK);
 		});
 
-		it('should return error if name is invalid', async () => {
-			verifyContext.params.name = '*@#&$_2';
+		it(`should return error if name has chars outside [${validNameChars}] range`, async () => {
+			verifyContext.params.name = 'abc*123';
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(new InvalidNameError().message);
+			expect(result.error?.message).toInclude(new InvalidNameError('name').message);
 		});
 
 		it('should return error if store key name already exists in name store', async () => {
@@ -312,122 +319,11 @@ describe('RegisterSidechainCommand', () => {
 			expect(result.error?.message).toInclude('Chain ID cannot be the mainchain chain ID.');
 		});
 
-		it('should return error if bls keys are not lexicographically ordered', async () => {
-			verifyContext.params.sidechainValidators = [
-				{
-					blsKey: Buffer.from(
-						'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-						'hex',
-					),
-					bftWeight: BigInt(10),
-				},
-				{
-					blsKey: Buffer.from(
-						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-						'hex',
-					),
-					bftWeight: BigInt(10),
-				},
-			];
+		it('should check that verifyValidators is called', async () => {
+			jest.spyOn(sidechainRegistrationCommand, 'verifyValidators' as any);
 
-			const result = await sidechainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				'Validators blsKeys must be unique and lexicographically ordered',
-			);
-		});
-
-		it('should return error if duplicate bls keys', async () => {
-			verifyContext.params.sidechainValidators = [
-				{
-					blsKey: Buffer.from(
-						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-						'hex',
-					),
-					bftWeight: BigInt(10),
-				},
-				{
-					blsKey: Buffer.from(
-						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-						'hex',
-					),
-					bftWeight: BigInt(10),
-				},
-			];
-
-			const result = await sidechainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				'Validators blsKeys must be unique and lexicographically ordered',
-			);
-		});
-
-		it('should return error if invalid bft weight', async () => {
-			verifyContext.params.sidechainValidators = [
-				{
-					blsKey: Buffer.from(
-						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-						'hex',
-					),
-					bftWeight: BigInt(0),
-				},
-				{
-					blsKey: Buffer.from(
-						'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-						'hex',
-					),
-					bftWeight: BigInt(0),
-				},
-			];
-
-			const result = await sidechainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Validator bft weight must be greater than 0');
-		});
-
-		it(`should return error if totalBftWeight exceeds ${MAX_UINT64}`, async () => {
-			verifyContext.params.sidechainValidators = [
-				{
-					blsKey: Buffer.from(
-						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-						'hex',
-					),
-					bftWeight: MAX_UINT64,
-				},
-				{
-					blsKey: Buffer.from(
-						'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-						'hex',
-					),
-					bftWeight: BigInt(10),
-				},
-			];
-
-			const result = await sidechainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(`Validator bft weight must not exceed ${MAX_UINT64}`);
-		});
-
-		it('should return error if certificate theshold below minimum weight', async () => {
-			verifyContext.params.sidechainCertificateThreshold = BigInt(1);
-
-			const result = await sidechainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Certificate threshold below minimum bft weight');
-		});
-
-		it('should return error if certificate theshold exceeds maximum weight', async () => {
-			verifyContext.params.sidechainCertificateThreshold = BigInt(1000);
-
-			const result = await sidechainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Certificate threshold above maximum bft weight');
+			await sidechainRegistrationCommand.verify(verifyContext);
+			expect(sidechainRegistrationCommand['verifyValidators']).toHaveBeenCalledTimes(1);
 		});
 
 		it(`should return error if transaction fee is less than ${CHAIN_REGISTRATION_FEE}`, async () => {
@@ -438,7 +334,9 @@ describe('RegisterSidechainCommand', () => {
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Insufficient transaction fee.');
+			expect(result.error?.message).toInclude(
+				`Transaction fee has to be greater or equal than the registration fee ${CHAIN_REGISTRATION_FEE}.`,
+			);
 		});
 	});
 
@@ -446,6 +344,19 @@ describe('RegisterSidechainCommand', () => {
 		let context: CommandExecuteContext<SidechainRegistrationParams>;
 		let chainAccountUpdatedEvent: ChainAccountUpdatedEvent;
 		let ccmSendSuccessEvent: CcmSendSuccessEvent;
+		const sidechainAccount: ChainAccountType = {
+			name: 'sidechain',
+			lastCertificate: {
+				height: 0,
+				timestamp: 0,
+				stateRoot: EMPTY_HASH,
+				validatorsHash: computeValidatorsHash(
+					transactionParams.sidechainValidators,
+					transactionParams.sidechainCertificateThreshold,
+				),
+			},
+			status: CCMStatusCode.OK, // will be saved as REGISTERED
+		};
 
 		beforeEach(() => {
 			chainAccountUpdatedEvent = interopMod.events.get(ChainAccountUpdatedEvent);
@@ -460,37 +371,23 @@ describe('RegisterSidechainCommand', () => {
 		});
 
 		it('should add an entry to chain account substore', async () => {
-			// Arrange
-			const expectedValue = {
-				name: 'sidechain',
-				lastCertificate: {
-					height: 0,
-					timestamp: 0,
-					stateRoot: EMPTY_HASH,
-					validatorsHash: computeValidatorsHash(
-						transactionParams.sidechainValidators,
-						transactionParams.sidechainCertificateThreshold,
-					),
-				},
-				status: CCMStatusCode.OK,
-			};
-
 			// Act
 			await sidechainRegistrationCommand.execute(context);
 
 			// Assert
 			expect(chainAccountSubstore.set).toHaveBeenCalledWith(
 				expect.anything(),
-				newChainID,
-				expectedValue,
+				context.params.chainID,
+				sidechainAccount,
 			);
 		});
 
 		it('should add an entry to channel account substore', async () => {
 			// Arrange
-			const expectedValue = {
-				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
-				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
+			const inboxOutbox: InboxOutbox = { appendPath: [], size: 0, root: EMPTY_HASH };
+			const sidechainChannel: ChannelData = {
+				inbox: inboxOutbox,
+				outbox: inboxOutbox,
 				partnerChainOutboxRoot: EMPTY_HASH,
 				messageFeeTokenID: getTokenIDLSK(chainID),
 				minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
@@ -502,14 +399,14 @@ describe('RegisterSidechainCommand', () => {
 			// Assert
 			expect(channelDataSubstore.set).toHaveBeenCalledWith(
 				expect.anything(),
-				newChainID,
-				expectedValue,
+				context.params.chainID,
+				sidechainChannel,
 			);
 		});
 
 		it('should add an entry to chain validators substore', async () => {
 			// Arrange
-			const expectedValue = {
+			const chainValidators: ChainValidators = {
 				activeValidators: transactionParams.sidechainValidators,
 				certificateThreshold: transactionParams.sidechainCertificateThreshold,
 			};
@@ -518,8 +415,8 @@ describe('RegisterSidechainCommand', () => {
 			await sidechainRegistrationCommand.execute(context);
 			expect(chainValidatorsSubstore.set).toHaveBeenCalledWith(
 				expect.anything(),
-				newChainID,
-				expectedValue,
+				context.params.chainID,
+				chainValidators,
 			);
 		});
 
@@ -533,7 +430,7 @@ describe('RegisterSidechainCommand', () => {
 			// Assert
 			expect(outboxRootSubstore.set).toHaveBeenCalledWith(
 				expect.anything(),
-				newChainID,
+				context.params.chainID,
 				expectedValue,
 			);
 		});
@@ -553,33 +450,7 @@ describe('RegisterSidechainCommand', () => {
 			);
 		});
 
-		it(`should emit ${EVENT_NAME_CHAIN_ACCOUNT_UPDATED} event`, async () => {
-			const sidechainAccount = {
-				name: 'sidechain',
-				lastCertificate: {
-					height: 0,
-					timestamp: 0,
-					stateRoot: EMPTY_HASH,
-					validatorsHash: computeValidatorsHash(
-						transactionParams.sidechainValidators,
-						transactionParams.sidechainCertificateThreshold,
-					),
-				},
-				status: ChainStatus.REGISTERED,
-			};
-
-			// Act
-			await sidechainRegistrationCommand.execute(context);
-
-			// Assert
-			expect(chainAccountUpdatedEvent.log).toHaveBeenCalledWith(
-				expect.anything(),
-				newChainID,
-				sidechainAccount,
-			);
-		});
-
-		it('should pay fee', async () => {
+		it('should pay registration fee', async () => {
 			// Act
 			await sidechainRegistrationCommand.execute(context);
 
@@ -590,7 +461,7 @@ describe('RegisterSidechainCommand', () => {
 			);
 		});
 
-		it('should initialize escrow account', async () => {
+		it('should initialize escrow account for token used for message fees', async () => {
 			// Act
 			await sidechainRegistrationCommand.execute(context);
 
@@ -602,7 +473,19 @@ describe('RegisterSidechainCommand', () => {
 			);
 		});
 
-		it('should update nonce in own chain acount substore', async () => {
+		it(`should emit ${EVENT_NAME_CHAIN_ACCOUNT_UPDATED} event`, async () => {
+			// Act
+			await sidechainRegistrationCommand.execute(context);
+
+			// Assert
+			expect(chainAccountUpdatedEvent.log).toHaveBeenCalledWith(
+				expect.anything(),
+				context.params.chainID,
+				sidechainAccount,
+			);
+		});
+
+		it('should update nonce in own chain account substore', async () => {
 			// Arrange
 			const expectedValue = { name: 'lisk', chainID, nonce: BigInt(1) };
 
@@ -617,7 +500,9 @@ describe('RegisterSidechainCommand', () => {
 			);
 		});
 
-		it(`should emit ${EVENT_NAME_CCM_SEND_SUCCESS} event`, async () => {
+		it(`should add CCM to outbox & emit ${EVENT_NAME_CCM_SEND_SUCCESS} event`, async () => {
+			jest.spyOn(sidechainRegistrationCommand['internalMethod'], 'addToOutbox');
+
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				name: transactionParams.name,
 				chainID: newChainID,
@@ -639,11 +524,17 @@ describe('RegisterSidechainCommand', () => {
 			// Act
 			await sidechainRegistrationCommand.execute(context);
 
+			expect(sidechainRegistrationCommand['internalMethod'].addToOutbox).toHaveBeenCalledWith(
+				expect.anything(),
+				context.params.chainID,
+				ccm,
+			);
+
 			// Assert
 			expect(ccmSendSuccessEvent.log).toHaveBeenCalledWith(
 				expect.anything(),
 				chainID,
-				newChainID,
+				context.params.chainID,
 				ccmID,
 				{
 					ccm,

@@ -16,20 +16,11 @@ import { codec } from '@liskhq/lisk-codec';
 import { bls } from '@liskhq/lisk-cryptography';
 import {
 	EMPTY_HASH,
-	MODULE_NAME_INTEROPERABILITY,
 	EMPTY_BYTES,
-	CROSS_CHAIN_COMMAND_REGISTRATION,
-	CCMStatusCode,
-	MAX_UINT64,
 	MESSAGE_TAG_CHAIN_REG,
 	CHAIN_NAME_MAINCHAIN,
-	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 } from '../../constants';
-import {
-	mainchainRegParams,
-	registrationCCMParamsSchema,
-	registrationSignatureMessageSchema,
-} from '../../schemas';
+import { mainchainRegParams, registrationSignatureMessageSchema } from '../../schemas';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -38,26 +29,23 @@ import {
 } from '../../../../state_machine';
 import { MainchainRegistrationParams, ActiveValidators, ValidatorsMethod } from '../../types';
 import {
-	computeValidatorsHash,
 	getEncodedCCMAndID,
 	getMainchainID,
 	getTokenIDLSK,
-	isValidName,
 	sortValidatorsByBLSKey,
+	isValidName,
 } from '../../utils';
-import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
-import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
-import { ChannelDataStore } from '../../stores/channel_data';
-import { ChainValidatorsStore } from '../../stores/chain_validators';
-import { OutboxRootStore } from '../../stores/outbox_root';
+import { ChainAccountStore } from '../../stores/chain_account';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { ChainAccountUpdatedEvent } from '../../events/chain_account_updated';
 import { InvalidRegistrationSignatureEvent } from '../../events/invalid_registration_signature';
 import { CcmSendSuccessEvent } from '../../events/ccm_send_success';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 import { InvalidNameError } from '../../errors';
+import { BaseRegisterChainCommand } from '../../base_interoperability_register_chain_command';
 
-export class RegisterMainchainCommand extends BaseInteroperabilityCommand<SidechainInteroperabilityInternalMethod> {
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0043.md#mainchain-registration-command-1
+export class RegisterMainchainCommand extends BaseRegisterChainCommand<SidechainInteroperabilityInternalMethod> {
 	public schema = mainchainRegParams;
 
 	private _validatorsMethod!: ValidatorsMethod;
@@ -66,6 +54,7 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 		this._validatorsMethod = validatorsMethod;
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0043.md#verification-1
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(
 		context: CommandVerifyContext<MainchainRegistrationParams>,
@@ -73,6 +62,7 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 		const { ownName, mainchainValidators, mainchainCertificateThreshold, ownChainID } =
 			context.params;
 
+		// The mainchain account must not exist already.
 		const mainchainID = getMainchainID(context.chainID);
 		const chainAccountSubstore = this.stores.get(ChainAccountStore);
 		const mainchainAccountExists = await chainAccountSubstore.has(context, mainchainID);
@@ -83,6 +73,7 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 			};
 		}
 
+		// The ownChainID property has to match with the chain identifier.
 		if (!ownChainID.equals(context.chainID)) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -90,6 +81,7 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 			};
 		}
 
+		// The ownName property has to contain only characters from the set [a-z0-9!@$&_.].
 		if (!isValidName(ownName)) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -97,49 +89,12 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 			};
 		}
 
-		let totalWeight = BigInt(0);
-
-		for (let i = 0; i < mainchainValidators.length; i += 1) {
-			const currentValidator = mainchainValidators[i];
-
-			if (
-				mainchainValidators[i + 1] &&
-				currentValidator.blsKey.compare(mainchainValidators[i + 1].blsKey) > -1
-			) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error('Validators blsKeys must be unique and lexicographically ordered.'),
-				};
-			}
-
-			if (currentValidator.bftWeight <= 0) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error('Validator bft weight must be positive integer.'),
-				};
-			}
-
-			totalWeight += currentValidator.bftWeight;
-
-			if (totalWeight > MAX_UINT64) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error('Total BFT weight exceeds maximum value.'),
-				};
-			}
-		}
-
-		if (mainchainCertificateThreshold < totalWeight / BigInt(3) + BigInt(1)) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Certificate threshold is too small.'),
-			};
-		}
-		if (mainchainCertificateThreshold > totalWeight) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Certificate threshold is too large.'),
-			};
+		const verificationResult = this.verifyValidators(
+			mainchainValidators,
+			mainchainCertificateThreshold,
+		);
+		if (verificationResult.status === VerifyStatus.FAIL) {
+			return verificationResult;
 		}
 
 		return {
@@ -197,65 +152,38 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 			throw new Error('Invalid signature property.');
 		}
 
-		const mainchainTokenID = getTokenIDLSK(context.chainID);
-		const chainSubstore = this.stores.get(ChainAccountStore);
-		const mainchainAccount = {
-			name: CHAIN_NAME_MAINCHAIN,
-			lastCertificate: {
-				height: 0,
-				timestamp: 0,
-				stateRoot: EMPTY_HASH,
-				validatorsHash: computeValidatorsHash(mainchainValidators, mainchainCertificateThreshold),
-			},
-			status: ChainStatus.REGISTERED,
-		};
-
 		const mainchainID = getMainchainID(context.chainID);
-		await chainSubstore.set(context, mainchainID, mainchainAccount);
+		const mainchainTokenID = getTokenIDLSK(context.chainID);
+		const mainchainAccount = this.buildChainAccount(
+			CHAIN_NAME_MAINCHAIN,
+			mainchainValidators,
+			mainchainCertificateThreshold,
+		);
 
-		const channelSubstore = this.stores.get(ChannelDataStore);
-		await channelSubstore.set(context, mainchainID, {
-			inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
-			outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
-			partnerChainOutboxRoot: EMPTY_HASH,
-			messageFeeTokenID: mainchainTokenID,
-			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
-		});
-
-		const chainValidatorsSubstore = this.stores.get(ChainValidatorsStore);
-		await chainValidatorsSubstore.set(context, mainchainID, {
-			activeValidators: mainchainValidators,
-			certificateThreshold: mainchainCertificateThreshold,
-		});
-
-		const outboxRootSubstore = this.stores.get(OutboxRootStore);
-		await outboxRootSubstore.set(context, mainchainID, { root: EMPTY_HASH });
+		await this.saveChainAccount(context, mainchainID, mainchainAccount);
+		await this.saveChannelData(context, mainchainID, this.buildChannelData(mainchainTokenID));
+		await this.saveChainValidators(
+			context,
+			mainchainID,
+			mainchainValidators,
+			mainchainCertificateThreshold,
+		);
+		await this.saveOutboxRoot(context, mainchainID, EMPTY_HASH);
 
 		this.events.get(ChainAccountUpdatedEvent).log(methodContext, mainchainID, mainchainAccount);
 
-		const encodedParams = codec.encode(registrationCCMParamsSchema, {
-			name: CHAIN_NAME_MAINCHAIN,
-			chainID: mainchainID,
-			messageFeeTokenID: mainchainTokenID,
-			minReturnFeePerByte: MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
-		});
-
+		const encodedParams = this.buildEncodedParams(
+			CHAIN_NAME_MAINCHAIN,
+			mainchainID,
+			mainchainTokenID,
+		);
 		const ownChainAccount = {
 			name: ownName,
 			chainID: ownChainID,
 			nonce: BigInt(0),
 		};
 
-		const ccm = {
-			nonce: ownChainAccount.nonce,
-			module: MODULE_NAME_INTEROPERABILITY,
-			crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
-			sendingChainID: ownChainAccount.chainID,
-			receivingChainID: mainchainID,
-			fee: BigInt(0),
-			status: CCMStatusCode.OK,
-			params: encodedParams,
-		};
+		const ccm = this.buildCCM(ownChainAccount, mainchainID, encodedParams);
 		await this.internalMethod.addToOutbox(context, mainchainID, ccm);
 
 		ownChainAccount.nonce += BigInt(1);

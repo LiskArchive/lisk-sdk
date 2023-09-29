@@ -225,7 +225,7 @@ export interface OwnChainAccountJSON {
 	nonce: string;
 }
 
-type InboxOutbox = {
+export type InboxOutbox = {
 	appendPath: Buffer[];
 	size: number;
 	root: Buffer;

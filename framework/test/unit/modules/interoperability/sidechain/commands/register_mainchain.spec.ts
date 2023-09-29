@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
 import * as crypto from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { validator } from '@liskhq/lisk-validator';
@@ -31,7 +31,6 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
 	MESSAGE_TAG_CHAIN_REG,
-	MAX_UINT64,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	BLS_SIGNATURE_LENGTH,
 } from '../../../../../../src/modules/interoperability/constants';
@@ -245,60 +244,11 @@ describe('RegisterMainchainCommand', () => {
 			expect(result.error?.message).toInclude(new InvalidNameError('ownName').message);
 		});
 
-		it('should return error if bls keys are not lexicographically ordered', async () => {
-			[verifyContext.params.mainchainValidators[0], verifyContext.params.mainchainValidators[1]] = [
-				verifyContext.params.mainchainValidators[1],
-				verifyContext.params.mainchainValidators[0],
-			];
-			const result = await mainchainRegistrationCommand.verify(verifyContext);
+		it('should check that verifyValidators is called', async () => {
+			jest.spyOn(mainchainRegistrationCommand, 'verifyValidators' as any);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				'Validators blsKeys must be unique and lexicographically ordered',
-			);
-		});
-
-		it('should return error if duplicate bls keys', async () => {
-			verifyContext.params.mainchainValidators[0].blsKey =
-				verifyContext.params.mainchainValidators[1].blsKey;
-			const result = await mainchainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				'Validators blsKeys must be unique and lexicographically ordered',
-			);
-		});
-
-		it('should return error if invalid bft weight', async () => {
-			verifyContext.params.mainchainValidators[0].bftWeight = BigInt(0);
-			const result = await mainchainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Validator bft weight must be positive integer');
-		});
-
-		it(`should return error if total bft weight > ${MAX_UINT64}`, async () => {
-			verifyContext.params.mainchainValidators[0].bftWeight = BigInt(MAX_UINT64);
-			const result = await mainchainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Total BFT weight exceeds maximum value.');
-		});
-
-		it('should return error if certificate threshold is too small', async () => {
-			verifyContext.params.mainchainValidators[0].bftWeight = BigInt(10000000000);
-			const result = await mainchainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Certificate threshold is too small.');
-		});
-
-		it('should return error if certificate threshold is too large', async () => {
-			verifyContext.params.mainchainCertificateThreshold = BigInt(10000000000);
-			const result = await mainchainRegistrationCommand.verify(verifyContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Certificate threshold is too large.');
+			await mainchainRegistrationCommand.verify(verifyContext);
+			expect(mainchainRegistrationCommand['verifyValidators']).toHaveBeenCalledTimes(1);
 		});
 	});
 
