@@ -265,7 +265,7 @@ describe('block_header', () => {
 				});
 
 				expect(() => blockHeader.validateGenesis()).toThrow(
-					'Genesis block header aggregateCommit.height must equal to the height',
+					'Genesis block header aggregateCommit.height must equal to the genesis height',
 				);
 			});
 
