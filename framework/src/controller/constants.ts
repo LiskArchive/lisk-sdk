@@ -17,4 +17,4 @@ export const IPC_EVENTS = {
 	REGISTER_CHANNEL: 'registerChannel',
 	RPC_REQUEST_TIMEOUT: 10000,
 };
-export const IPC_CONNECTION_TIME_OUT = 5000;
+export const IPC_CONNECTION_TIMEOUT = 5000;
