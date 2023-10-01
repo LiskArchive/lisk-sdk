@@ -112,13 +112,10 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 					storedAttributes,
 					receivedAttributes,
 				);
-			}
-
-			if (status !== CCM_STATUS_CODE_OK) {
+			} else {
 				recipientAddress = senderAddress;
 			}
 
-			storeData.owner = recipientAddress;
 			await this._internalMethod.createNFTEntry(
 				getMethodContext(),
 				recipientAddress,

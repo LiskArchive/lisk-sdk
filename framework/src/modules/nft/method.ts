@@ -296,8 +296,6 @@ export class NFTMethod extends BaseMethod {
 		collectionID: Buffer,
 		attributesArray: NFTAttributes[],
 	): Promise<void> {
-		this._internalMethod.hasDuplicateModuleNames(attributesArray);
-
 		const index = await this.getNextAvailableIndex(methodContext, collectionID);
 		const indexBytes = Buffer.alloc(LENGTH_INDEX);
 		indexBytes.writeBigInt64BE(index);
