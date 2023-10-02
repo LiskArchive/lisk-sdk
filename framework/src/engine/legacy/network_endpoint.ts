@@ -95,7 +95,7 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 			});
 			throw error;
 		}
-		const { blockId: lastBlockID, snapshotBlockID } = rpcBlocksByIdData;
+		const { blockID: lastBlockID, snapshotBlockID } = rpcBlocksByIdData;
 
 		let bracketInfo;
 		try {

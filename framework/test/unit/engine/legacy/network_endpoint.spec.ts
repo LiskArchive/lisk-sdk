@@ -65,10 +65,10 @@ describe('Legacy P2P network endpoint', () => {
 		});
 
 		it("should return empty list if ID doesn't exist", async () => {
-			const blockId = utils.getRandomBytes(32);
+			const blockID = utils.getRandomBytes(32);
 			const snapshotBlockID = utils.getRandomBytes(32);
 			const requestPayload = codec.encode(getBlocksFromIdRequestSchema, {
-				blockId,
+				blockID,
 				snapshotBlockID,
 			});
 			await endpoint._storage.setLegacyChainBracketInfo(snapshotBlockID, {
@@ -102,7 +102,7 @@ describe('Legacy P2P network endpoint', () => {
 
 			const snapshotBlockID = utils.getRandomBytes(32);
 			const encodedRequest = codec.encode(getBlocksFromIdRequestSchema, {
-				blockId: requestedBlockID,
+				blockID: requestedBlockID,
 				snapshotBlockID,
 			} as never);
 			await endpoint._storage.setLegacyChainBracketInfo(snapshotBlockID, {

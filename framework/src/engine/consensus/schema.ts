@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 export interface RPCBlocksByIdData {
-	readonly blockId: Buffer;
+	readonly blockID: Buffer;
 	readonly snapshotBlockID: Buffer;
 }
 
@@ -20,9 +20,9 @@ export const getBlocksFromIdRequestSchema = {
 	$id: 'lisk/getBlocksFromIdRequest',
 	title: 'Get Blocks From Id Request',
 	type: 'object',
-	required: ['blockId', 'snapshotBlockID'],
+	required: ['blockID', 'snapshotBlockID'],
 	properties: {
-		blockId: {
+		blockID: {
 			fieldNumber: 1,
 			dataType: 'bytes',
 			minLength: 32,
