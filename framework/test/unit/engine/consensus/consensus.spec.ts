@@ -237,10 +237,10 @@ describe('consensus', () => {
 			(chain.dataAccess.getBlockHeaderByHeight as jest.Mock).mockResolvedValue(
 				finalizedBlock.header,
 			);
-			const genesisHeight = 25519;
-			(chain as any).genesisHeight = genesisHeight;
+			const minimumCertifyHeight = 25519;
+			consensus['_genesisConfig'].minimumCertifyHeight = minimumCertifyHeight;
 
-			await expect(consensus.getMaxRemovalHeight()).resolves.toEqual(genesisHeight);
+			await expect(consensus.getMaxRemovalHeight()).resolves.toEqual(minimumCertifyHeight - 1);
 		});
 
 		it('should return finalizedBlock.aggregateCommit.height if the genesis height is smaller', async () => {
@@ -257,8 +257,7 @@ describe('consensus', () => {
 			(chain.dataAccess.getBlockHeaderByHeight as jest.Mock).mockResolvedValue(
 				finalizedBlock.header,
 			);
-			const genesisHeight = 25519;
-			(chain as any).genesisHeight = genesisHeight;
+			consensus['_genesisConfig'].minimumCertifyHeight = 25519;
 
 			await expect(consensus.getMaxRemovalHeight()).resolves.toEqual(
 				finalizedBlock.header.aggregateCommit.height,
