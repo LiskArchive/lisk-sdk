@@ -19,7 +19,7 @@ import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { LegacyConfig } from '../../../../src';
 import { LegacyChainHandler } from '../../../../src/engine/legacy/legacy_chain_handler';
 import { Network } from '../../../../src/engine/network';
-import { encodeBlock, encodeLegacyChainBracketInfo } from '../../../../src/engine/legacy/codec';
+import { encodeBlock } from '../../../../src/engine/legacy/codec';
 import { Peer, LegacyBlock } from '../../../../src/engine/legacy/types';
 import { getBlocksFromIdResponseSchema } from '../../../../src/engine/consensus/schema';
 import { blockFixtures } from './fixtures';
@@ -39,11 +39,6 @@ describe('Legacy Chain Handler', () => {
 		legacyConfig = {
 			sync: true,
 			brackets: [
-				{
-					startHeight: 0,
-					snapshotBlockID: randomSnapshotBlockID.toString('hex'),
-					snapshotHeight: 100,
-				},
 				{
 					startHeight: 16270306,
 					snapshotBlockID: expectedSnapshotBlockID.toString('hex'),
@@ -76,22 +71,6 @@ describe('Legacy Chain Handler', () => {
 		await legacyChainHandler.init({
 			db: new InMemoryDatabase() as never,
 		});
-		jest
-			.spyOn(legacyChainHandler['_storage'], 'getLegacyChainBracketInfo')
-			.mockResolvedValueOnce(
-				encodeLegacyChainBracketInfo({
-					startHeight: 0,
-					snapshotBlockHeight: 0,
-					lastBlockHeight: 0,
-				}) as any, // this means this bracket is already synced, since it's lastBlockHeight equals bracket's startHeight
-			)
-			.mockResolvedValueOnce(
-				encodeLegacyChainBracketInfo({
-					startHeight: 16270306,
-					snapshotBlockHeight: 16270316,
-					lastBlockHeight: 16270316,
-				}) as any,
-			);
 
 		jest.spyOn(legacyChainHandler['_network'], 'getConnectedPeers').mockImplementation(() => {
 			return peers as any;
@@ -113,7 +92,10 @@ describe('Legacy Chain Handler', () => {
 				data: codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks }),
 			} as any)
 			.mockReturnValueOnce({
-				data: [],
+				data: codec.encode(getBlocksFromIdResponseSchema, { blocks: [] }),
+			} as any)
+			.mockReturnValueOnce({
+				data: codec.encode(getBlocksFromIdResponseSchema, { blocks: [] }),
 			} as any);
 	});
 

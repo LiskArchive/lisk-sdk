@@ -24,6 +24,7 @@ import {
 	transactionSchemaV2,
 } from '../../../../src/engine/legacy/schemas';
 import { LegacyBlockJSON, LegacyTransactionJSON } from '../../../../src/engine/legacy/types';
+import { Storage } from '../../../../src/engine/legacy/storage';
 
 const bufferToHex = (b: Buffer) => Buffer.from(b).toString('hex');
 const randomSnapshotBlockID = utils.getRandomBytes(20);
@@ -141,6 +142,44 @@ describe('Legacy endpoint', () => {
 
 			expect(transactions).toBeArray();
 			matchTxExpectations(transactions[0], tx, txId);
+		});
+
+		it('getLegacyBrackets', async () => {
+			const blockId = blockFixtures[0].header.id;
+			const legacyConfig = {
+				sync: true,
+				brackets: [
+					{
+						startHeight: blockFixtures[0].header.height - 200,
+						snapshotBlockID: blockId.toString('hex'),
+						snapshotHeight: blockFixtures[0].header.height,
+					},
+				],
+			};
+
+			const legacyStorage = new Storage(new InMemoryDatabase() as any);
+			await legacyStorage.setLegacyChainBracketInfo(blockId, {
+				startHeight: blockFixtures[0].header.height - 200,
+				lastBlockHeight: blockFixtures[0].header.height - 100,
+				snapshotBlockHeight: blockFixtures[0].header.height,
+			});
+			legacyEndpoint = new LegacyEndpoint({
+				db: legacyStorage as any,
+				legacyConfig,
+			});
+
+			(legacyEndpoint as any)['storage'] = legacyStorage;
+
+			const brackets = await legacyEndpoint.getLegacyBrackets({} as any);
+
+			expect(brackets).toEqual([
+				{
+					startHeight: legacyConfig.brackets[0].startHeight,
+					snapshotBlockID: legacyConfig.brackets[0].snapshotBlockID,
+					snapshotBlockHeight: blockFixtures[0].header.height,
+					lastBlockHeight: blockFixtures[0].header.height - 100,
+				},
+			]);
 		});
 	});
 });

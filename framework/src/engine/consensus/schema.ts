@@ -13,16 +13,23 @@
  */
 export interface RPCBlocksByIdData {
 	readonly blockId: Buffer;
+	readonly snapshotBlockID: Buffer;
 }
 
 export const getBlocksFromIdRequestSchema = {
 	$id: 'lisk/getBlocksFromIdRequest',
 	title: 'Get Blocks From Id Request',
 	type: 'object',
-	required: ['blockId'],
+	required: ['blockId', 'snapshotBlockID'],
 	properties: {
 		blockId: {
 			fieldNumber: 1,
+			dataType: 'bytes',
+			minLength: 32,
+			maxLength: 32,
+		},
+		snapshotBlockID: {
+			fieldNumber: 2,
 			dataType: 'bytes',
 			minLength: 32,
 			maxLength: 32,

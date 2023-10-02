@@ -15,11 +15,7 @@
 
 import { Batch, Database, InMemoryDatabase } from '@liskhq/lisk-db';
 import { utils } from '@liskhq/lisk-cryptography';
-import {
-	encodeBlock,
-	encodeBlockHeader,
-	encodeLegacyChainBracketInfo,
-} from '../../../../src/engine/legacy/codec';
+import { encodeBlock, encodeBlockHeader } from '../../../../src/engine/legacy/codec';
 import { Storage } from '../../../../src/engine/legacy/storage';
 import { blockFixtures } from './fixtures';
 import { buildBlockHeightDbKey, buildBlockIDDbKey } from '../../../../src/engine/legacy/utils';
@@ -175,7 +171,7 @@ describe('Legacy storage', () => {
 
 			const result = await storage.getLegacyChainBracketInfo(header.id);
 
-			expect(result).toEqual(encodeLegacyChainBracketInfo(bracketInfo));
+			expect(result).toEqual(bracketInfo);
 		});
 
 		it('should throw error if block with given id does not exist', async () => {

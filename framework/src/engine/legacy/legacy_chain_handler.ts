@@ -17,13 +17,12 @@ import { P2PRequestPacket } from '@liskhq/lisk-p2p/dist-node/types';
 import { Database, NotFoundError } from '@liskhq/lisk-db';
 import { LegacyConfig } from '../../types';
 import { Network } from '../network';
-import { getBlocksFromIdResponseSchema } from '../consensus/schema';
+import { getBlocksFromIdRequestSchema, getBlocksFromIdResponseSchema } from '../consensus/schema';
 import { Storage } from './storage';
-import { LegacyBlock, LegacyBlockBracket, Peer, LegacyChainBracketInfo } from './types';
+import { LegacyBlock, LegacyBlockBracket, Peer } from './types';
 import { decodeBlock, encodeBlockHeader } from './codec';
 import { PeerNotFoundWithLegacyInfo } from './errors';
 import { validateLegacyBlock } from './validate';
-import { legacyChainBracketInfoSchema } from './schemas';
 import { Logger } from '../../logger';
 
 interface LegacyChainHandlerArgs {
@@ -54,75 +53,64 @@ export class LegacyChainHandler {
 
 		for (const bracket of this._legacyConfig.brackets) {
 			try {
-				const encodedBracketInfo = await this._storage.getLegacyChainBracketInfo(
-					Buffer.from(bracket.snapshotBlockID, 'hex'),
-				);
+				const bracketStorageKey = Buffer.from(bracket.snapshotBlockID, 'hex');
+				const bracketExists = await this._storage.legacyChainBracketInfoExist(bracketStorageKey);
 
-				const decodedBracketInfo = codec.decode<LegacyChainBracketInfo>(
-					legacyChainBracketInfoSchema,
-					encodedBracketInfo,
-				);
-
-				// Update the existing legacyInfo
-				let startBlock;
-				try {
-					startBlock = await this._storage.getBlockByHeight(bracket.startHeight);
-				} catch (error) {
-					if (!(error instanceof NotFoundError)) {
-						throw error;
-					}
+				if (!bracketExists) {
+					await this._storage.setLegacyChainBracketInfo(bracketStorageKey, {
+						startHeight: bracket.startHeight,
+						snapshotBlockHeight: bracket.snapshotHeight,
+						// if start block already exists then assign to lastBlockHeight
+						lastBlockHeight: bracket.snapshotHeight,
+					});
+					continue;
 				}
 
-				await this._storage.setLegacyChainBracketInfo(Buffer.from(bracket.snapshotBlockID, 'hex'), {
-					...decodedBracketInfo,
+				const storedBracketInfo = await this._storage.getLegacyChainBracketInfo(bracketStorageKey);
+				const startBlock = await this._storage.getBlockByHeight(bracket.startHeight);
+
+				// In case a user wants to indirectly update the bracketInfo stored in legacyDB
+				await this._storage.setLegacyChainBracketInfo(bracketStorageKey, {
+					...storedBracketInfo,
 					startHeight: bracket.startHeight,
 					snapshotBlockHeight: bracket.snapshotHeight,
 					// if start block already exists then assign to lastBlockHeight
 					lastBlockHeight: startBlock ? bracket.startHeight : bracket.snapshotHeight,
 				});
-			} catch (err) {
-				if (!(err instanceof NotFoundError)) {
-					throw err;
+			} catch (error) {
+				if (!(error instanceof NotFoundError)) {
+					throw error;
 				}
-				// Save config brackets in advance, these will be used in next step (`sync`)
-				let startBlock;
-				try {
-					startBlock = await this._storage.getBlockByHeight(bracket.startHeight);
-				} catch (error) {
-					if (!(error instanceof NotFoundError)) {
-						throw error;
-					}
-				}
-				await this._storage.setLegacyChainBracketInfo(Buffer.from(bracket.snapshotBlockID, 'hex'), {
-					startHeight: bracket.startHeight,
-					snapshotBlockHeight: bracket.snapshotHeight,
-					// if start block already exists then assign to lastBlockHeight
-					lastBlockHeight: startBlock ? bracket.startHeight : bracket.snapshotHeight,
-				});
 			}
 		}
 	}
 
 	public async sync() {
 		for (const bracket of this._legacyConfig.brackets) {
-			const encodedBracketInfo = await this._storage.getLegacyChainBracketInfo(
+			const bracketInfo = await this._storage.getLegacyChainBracketInfo(
 				Buffer.from(bracket.snapshotBlockID, 'hex'),
-			);
-			const bracketInfo = codec.decode<LegacyChainBracketInfo>(
-				legacyChainBracketInfoSchema,
-				encodedBracketInfo,
 			);
 
 			// means this bracket is already synced/parsed (in next `syncBlocks` step)
 			if (bracket.startHeight === bracketInfo.lastBlockHeight) {
 				continue;
 			}
-			const lastBlock = decodeBlock(
-				await this._storage.getBlockByHeight(bracketInfo.lastBlockHeight),
-			).block;
+			let lastBlockID;
+			try {
+				const lastBlock = decodeBlock(
+					await this._storage.getBlockByHeight(bracketInfo.lastBlockHeight),
+				).block;
+				lastBlockID = lastBlock.header.id;
+			} catch (error) {
+				if (!(error instanceof NotFoundError)) {
+					throw error;
+				}
+				// If lastBlock does not exist then sync from the beginning
+				lastBlockID = Buffer.from(bracket.snapshotBlockID, 'hex');
+			}
 
 			// start parsing bracket from `lastBlock` height`
-			await this._trySyncBlocks(bracket, lastBlock);
+			await this._trySyncBlocks(bracket, lastBlockID);
 		}
 
 		// when ALL brackets are synced/parsed, finally update node with it's `legacy` property
@@ -135,14 +123,14 @@ export class LegacyChainHandler {
 		clearTimeout(this._syncTimeout);
 	}
 
-	private async _trySyncBlocks(bracket: LegacyBlockBracket, lastBlock: LegacyBlock) {
+	private async _trySyncBlocks(bracket: LegacyBlockBracket, lastBlockID: Buffer) {
 		try {
-			await this.syncBlocks(bracket, lastBlock);
+			await this.syncBlocks(bracket, lastBlockID);
 		} catch (err) {
 			if (err instanceof PeerNotFoundWithLegacyInfo) {
 				// eslint-disable-next-line @typescript-eslint/no-misused-promises
 				this._syncTimeout = setTimeout(async () => {
-					await this._trySyncBlocks(bracket, lastBlock);
+					await this._trySyncBlocks(bracket, lastBlockID);
 				}, 120000); // 2 mints = (60 * 2) * 1000
 			} else {
 				throw err;
@@ -166,7 +154,7 @@ export class LegacyChainHandler {
 	 * If last block height equals bracket.startHeight, simply save bracket with `lastBlockHeight: lastBlock?.header.height`
 	 */
 	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public async syncBlocks(bracket: LegacyBlockBracket, legacyBlock: LegacyBlock): Promise<void> {
+	public async syncBlocks(bracket: LegacyBlockBracket, lastBlockID: Buffer): Promise<void> {
 		const connectedPeers = this._network.getConnectedPeers() as unknown as Peer[];
 		const peersWithLegacyInfo = connectedPeers.filter(
 			peer =>
@@ -174,16 +162,20 @@ export class LegacyChainHandler {
 					snapshotBlockID.equals(Buffer.from(bracket.snapshotBlockID, 'hex')),
 				),
 		);
-		if (!peersWithLegacyInfo) {
+		if (peersWithLegacyInfo.length === 0) {
 			throw new PeerNotFoundWithLegacyInfo('No peer found with legacy info.');
 		}
 
 		const randomPeerIndex = Math.trunc(Math.random() * peersWithLegacyInfo.length - 1);
 		const { peerId } = peersWithLegacyInfo[randomPeerIndex];
 
+		const requestData = codec.encode(getBlocksFromIdRequestSchema, {
+			blockID: lastBlockID,
+			snapshotBlockID: Buffer.from(bracket.snapshotBlockID, 'hex'),
+		});
 		const p2PRequestPacket: P2PRequestPacket = {
 			procedure: 'getLegacyBlocksFromId',
-			data: legacyBlock.header.id,
+			data: requestData,
 		};
 
 		const response = await this._network.requestFromPeer({ ...p2PRequestPacket, peerId });
@@ -193,9 +185,9 @@ export class LegacyChainHandler {
 		let legacyBlocks: LegacyBlock[];
 
 		const applyPenaltyAndRepeat = async (msg: string) => {
-			this._logger.warn({ peerId }, `${msg} Applying a penalty to the peer`);
+			this._logger.warn({ peerId }, `${msg}: Applying a penalty to the peer`);
 			this._network.applyPenaltyOnPeer({ peerId, penalty: 100 });
-			await this.syncBlocks(bracket, legacyBlock);
+			await this.syncBlocks(bracket, lastBlockID);
 		};
 
 		try {
@@ -235,7 +227,7 @@ export class LegacyChainHandler {
 		const lastBlock = legacyBlocks[legacyBlocks.length - 1];
 		if (lastBlock && lastBlock.header.height > bracket.startHeight) {
 			await this._updateBracketInfo(lastBlock, bracket);
-			await this.syncBlocks(bracket, lastBlock);
+			await this.syncBlocks(bracket, lastBlockID);
 		}
 
 		await this._updateBracketInfo(lastBlock, bracket);

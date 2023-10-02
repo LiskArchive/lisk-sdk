@@ -14,17 +14,19 @@
 
 import { Database, NotFoundError } from '@liskhq/lisk-db';
 import { isHexString } from '@liskhq/lisk-validator';
-import { codec } from '@liskhq/lisk-codec';
 import { RequestContext } from '../rpc/rpc_server';
 import { LegacyBlockJSON, LegacyChainBracketInfo, LegacyTransactionJSON } from './types';
 import { Storage } from './storage';
 import { decodeBlockJSON, getLegacyTransactionJSONWithSchema } from './codec';
 import { LegacyConfig } from '../../types';
-import { legacyChainBracketInfoSchema } from './schemas';
 
 interface EndpointArgs {
 	db: Database;
 	legacyConfig: LegacyConfig;
+}
+
+interface GetBracketInfoEndpointResponse extends LegacyChainBracketInfo {
+	snapshotBlockID: string;
 }
 
 export class LegacyEndpoint {
@@ -84,16 +86,19 @@ export class LegacyEndpoint {
 		return decodeBlockJSON(await this.storage.getBlockByHeight(height)).block;
 	}
 
-	public async getLegacyBrackets(_context: RequestContext): Promise<LegacyChainBracketInfo[]> {
-		const legacyBracketInfos = [];
+	public async getLegacyBrackets(
+		_context: RequestContext,
+	): Promise<GetBracketInfoEndpointResponse[]> {
+		const legacyBracketInfos: GetBracketInfoEndpointResponse[] = [];
 		for (const bracket of this._legacyConfig.brackets) {
 			try {
 				const bracketInfo = await this.storage.getLegacyChainBracketInfo(
 					Buffer.from(bracket.snapshotBlockID, 'hex'),
 				);
-				legacyBracketInfos.push(
-					codec.decodeJSON<LegacyChainBracketInfo>(legacyChainBracketInfoSchema, bracketInfo),
-				);
+				legacyBracketInfos.push({
+					...bracketInfo,
+					snapshotBlockID: bracket.snapshotBlockID,
+				});
 			} catch (error) {
 				if (!(error instanceof NotFoundError)) {
 					throw error;

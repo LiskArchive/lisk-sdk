@@ -44,6 +44,14 @@ export const blockSchemaMap: Record<number, LegacyBlockSchema> = {
 	},
 };
 
+export const getBlockSchemaByVersion = (version: number) => {
+	const blockSchema = blockSchemaMap[version];
+	if (!blockSchema) {
+		throw new Error(`Legacy block version ${version} is not registered.`);
+	}
+	return blockSchema;
+};
+
 // Implement read version logic when adding more versions
 const readVersion = (): number => 2;
 
@@ -51,10 +59,7 @@ export const decodeBlock = (
 	data: Buffer,
 ): { block: LegacyBlockWithID; schema: LegacyBlockSchema } => {
 	const version = readVersion();
-	const blockSchema = blockSchemaMap[version];
-	if (!blockSchema) {
-		throw new Error(`Legacy block version ${version} is not registered.`);
-	}
+	const blockSchema = getBlockSchemaByVersion(version);
 	const rawBlock = codec.decode<RawLegacyBlock>(blockSchema.block, data);
 	const id = utils.hash(rawBlock.header);
 	return {
@@ -71,10 +76,7 @@ export const decodeBlock = (
 
 export const decodeBlockHeader = (blockHeaderBytes: Buffer): LegacyBlockHeaderWithID => {
 	const version = readVersion();
-	const blockSchema = blockSchemaMap[version];
-	if (!blockSchema) {
-		throw new Error(`Legacy block version ${version} is not registered.`);
-	}
+	const blockSchema = getBlockSchemaByVersion(version);
 	const id = utils.hash(blockHeaderBytes);
 
 	return {
@@ -115,10 +117,7 @@ export const getLegacyTransactionJSONWithSchema = (
 };
 
 export const encodeBlock = (data: LegacyBlock): Buffer => {
-	const blockSchema = blockSchemaMap[data.header.version];
-	if (!blockSchema) {
-		throw new Error(`Legacy block version ${data.header.version} is not registered.`);
-	}
+	const blockSchema = getBlockSchemaByVersion(data.header.version);
 	const headerBytes = codec.encode(blockSchema.header, data.header);
 
 	return codec.encode(blockSchema.block, {
@@ -128,12 +127,12 @@ export const encodeBlock = (data: LegacyBlock): Buffer => {
 };
 
 export const encodeBlockHeader = (blockHeader: LegacyBlockHeader): Buffer => {
-	const blockSchema = blockSchemaMap[blockHeader.version];
-	if (!blockSchema) {
-		throw new Error(`Legacy block version ${blockHeader.version} is not registered.`);
-	}
+	const blockSchema = getBlockSchemaByVersion(blockHeader.version);
 	return codec.encode(blockSchema.header, blockHeader);
 };
 
 export const encodeLegacyChainBracketInfo = (data: LegacyChainBracketInfo): Buffer =>
 	codec.encode(legacyChainBracketInfoSchema, data);
+
+export const decodeLegacyChainBracketInfo = (data: Buffer): LegacyChainBracketInfo =>
+	codec.decode<LegacyChainBracketInfo>(legacyChainBracketInfoSchema, data);

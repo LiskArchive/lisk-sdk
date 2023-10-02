@@ -66,17 +66,24 @@ describe('Legacy P2P network endpoint', () => {
 
 		it("should return empty list if ID doesn't exist", async () => {
 			const blockId = utils.getRandomBytes(32);
-			const blockIds = codec.encode(getBlocksFromIdRequestSchema, {
+			const snapshotBlockID = utils.getRandomBytes(32);
+			const requestPayload = codec.encode(getBlocksFromIdRequestSchema, {
 				blockId,
+				snapshotBlockID,
 			});
-			const blocks = await endpoint.handleRPCGetLegacyBlocksFromID(blockIds, defaultPeerID);
+			await endpoint._storage.setLegacyChainBracketInfo(snapshotBlockID, {
+				lastBlockHeight: 100,
+				snapshotBlockHeight: 200,
+				startHeight: 50,
+			});
+			const blocks = await endpoint.handleRPCGetLegacyBlocksFromID(requestPayload, defaultPeerID);
 			expect(blocks).toEqual(codec.encode(getBlocksFromIdResponseSchema, { blocks: [] }));
 		});
 
 		it('should return 100 blocks from the requested ID', async () => {
-			const startHeight = 110;
+			const requestedHeight = 110;
 			// 100 blocks including the requested block ID
-			const blockHeaders = getLegacyBlockHeadersRangeV2(startHeight, 99);
+			const blockHeaders = getLegacyBlockHeadersRangeV2(requestedHeight, 100);
 
 			const requestedBlockHeader = decodeBlockHeader(blockHeaders[0]);
 
@@ -84,13 +91,25 @@ describe('Legacy P2P network endpoint', () => {
 
 			// Save blocks to the database
 			for (let i = 0; i < blockHeaders.length; i += 1) {
-				const block = blockHeaders[i];
-				await endpoint['_storage'].saveBlock(utils.hash(block), startHeight + i, block, []);
+				const blockHeader = blockHeaders[i];
+				await endpoint['_storage'].saveBlock(
+					utils.hash(blockHeader),
+					requestedHeight - i,
+					blockHeader,
+					[],
+				);
 			}
 
+			const snapshotBlockID = utils.getRandomBytes(32);
 			const encodedRequest = codec.encode(getBlocksFromIdRequestSchema, {
 				blockId: requestedBlockID,
+				snapshotBlockID,
 			} as never);
+			await endpoint._storage.setLegacyChainBracketInfo(snapshotBlockID, {
+				lastBlockHeight: 100,
+				snapshotBlockHeight: 200,
+				startHeight: requestedHeight - 101,
+			});
 			const blocksReceived = await endpoint.handleRPCGetLegacyBlocksFromID(
 				encodedRequest,
 				defaultPeerID,

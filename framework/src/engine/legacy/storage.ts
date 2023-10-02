@@ -15,7 +15,7 @@
 import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { encodeLegacyChainBracketInfo } from './codec';
+import { decodeLegacyChainBracketInfo, encodeLegacyChainBracketInfo } from './codec';
 import { LegacyChainBracketInfo } from './types';
 import {
 	buildBlockIDDbKey,
@@ -117,8 +117,10 @@ export class Storage {
 		await this._db.write(batch);
 	}
 
-	public async getLegacyChainBracketInfo(snapshotBlockID: Buffer): Promise<Buffer> {
-		return this._db.get(buildLegacyBracketDBKey(snapshotBlockID));
+	public async getLegacyChainBracketInfo(snapshotBlockID: Buffer): Promise<LegacyChainBracketInfo> {
+		const encodedBracketInfo = await this._db.get(buildLegacyBracketDBKey(snapshotBlockID));
+
+		return decodeLegacyChainBracketInfo(encodedBracketInfo);
 	}
 
 	public async setLegacyChainBracketInfo(
@@ -129,6 +131,20 @@ export class Storage {
 			buildLegacyBracketDBKey(snapshotBlockID),
 			encodeLegacyChainBracketInfo(bracketInfo),
 		);
+	}
+
+	public async legacyChainBracketInfoExist(snapshotBlockID: Buffer): Promise<boolean> {
+		try {
+			const bracketInfo = await this.getLegacyChainBracketInfo(snapshotBlockID);
+
+			return !!bracketInfo;
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+
+			return false;
+		}
 	}
 
 	private async _getBlockIDsBetweenHeights(

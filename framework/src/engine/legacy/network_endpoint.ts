@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Database } from '@liskhq/lisk-db';
+import { Database, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { validator } from '@liskhq/lisk-validator';
 import { Logger } from '../../logger';
@@ -49,10 +49,10 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 
 	// return 100 blocks desc starting from the id
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async handleRPCGetLegacyBlocksFromID(data: unknown, peerID: string): Promise<Buffer> {
+	public async handleRPCGetLegacyBlocksFromID(data: unknown, peerId: string): Promise<Buffer> {
 		this.addRateLimit(
 			NETWORK_LEGACY_GET_BLOCKS_FROM_ID,
-			peerID,
+			peerId,
 			LEGACY_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY,
 		);
 
@@ -67,12 +67,12 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 				{
 					err: error as Error,
 					req: data,
-					peerID,
+					peerId,
 				},
 				`${NETWORK_LEGACY_GET_BLOCKS_FROM_ID} response failed on decoding. Applying a penalty to the peer`,
 			);
 			this._network.applyPenaltyOnPeer({
-				peerId: peerID,
+				peerId,
 				penalty: 100,
 			});
 			throw error;
@@ -85,32 +85,65 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 				{
 					err: error as Error,
 					req: data,
-					peerID,
+					peerId,
 				},
 				`${NETWORK_LEGACY_GET_BLOCKS_FROM_ID} response failed on validation. Applying a penalty to the peer`,
 			);
 			this._network.applyPenaltyOnPeer({
-				peerId: peerID,
+				peerId,
 				penalty: 100,
 			});
 			throw error;
 		}
-		const { blockId } = rpcBlocksByIdData;
+		const { blockId: lastBlockID, snapshotBlockID } = rpcBlocksByIdData;
 
-		let lastBlockHeader;
+		let bracketInfo;
 		try {
-			const block = await this._storage.getBlockByID(blockId);
-			lastBlockHeader = decodeBlock(block).block.header;
+			bracketInfo = await this._storage.getLegacyChainBracketInfo(snapshotBlockID);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			// Peer should be banned if the request is coming for invalid snapshotBlockID which does not exist
+			// Peers should always choose peers with snapshotBlockID present in their nodeInfo
+			this._logger.warn(
+				{ peerId },
+				`Received invalid snapshotBlockID: Applying a penalty to the peer`,
+			);
+			this._network.applyPenaltyOnPeer({ peerId, penalty: 100 });
+
+			throw error;
+		}
+		let fromBlockHeight;
+
+		try {
+			// if the requested blockID is the same as snapshotBlockID then start from a block before snapshotBlock
+			if (snapshotBlockID.equals(lastBlockID)) {
+				fromBlockHeight = bracketInfo.snapshotBlockHeight - 1;
+			} else {
+				const {
+					block: {
+						header: { height },
+					},
+				} = decodeBlock(await this._storage.getBlockByID(lastBlockID));
+				fromBlockHeight = height;
+			}
 		} catch (errors) {
 			return codec.encode(getBlocksFromIdResponseSchema, { blocks: [] });
 		}
 
-		const lastBlockHeight = lastBlockHeader.height;
-		const fetchUntilHeight = lastBlockHeight + 100;
+		// we have to sync backwards so if lastBlockHeight 171, then node responds with blocks from [71, 170]
+		// so lastBlockHeight = 170 and fetchFromHeight should be (lastBlockHeight - 99) = 71
+		// where blocks at 71 and 170 are inclusive so in total 100 blocks
+		const lastBlockHeight = fromBlockHeight - 1;
+		const fetchFromHeight =
+			bracketInfo.startHeight <= lastBlockHeight - 99
+				? bracketInfo.startHeight
+				: lastBlockHeight - 100;
 
 		const encodedBlocks = await this._storage.getBlocksByHeightBetween(
+			fetchFromHeight,
 			lastBlockHeight,
-			fetchUntilHeight,
 		);
 
 		return codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks });
