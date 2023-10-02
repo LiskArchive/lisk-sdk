@@ -17,13 +17,15 @@ import { P2PRequestPacket } from '@liskhq/lisk-p2p/dist-node/types';
 import { Database, NotFoundError } from '@liskhq/lisk-db';
 import { LegacyConfig } from '../../types';
 import { Network } from '../network';
-import { getBlocksFromIdRequestSchema, getBlocksFromIdResponseSchema } from '../consensus/schema';
+import { getBlocksFromIdResponseSchema } from '../consensus/schema';
 import { Storage } from './storage';
 import { LegacyBlock, LegacyBlockBracket, Peer } from './types';
 import { decodeBlock, encodeBlockHeader } from './codec';
 import { PeerNotFoundWithLegacyInfo } from './errors';
 import { validateLegacyBlock } from './validate';
 import { Logger } from '../../logger';
+import { NETWORK_LEGACY_GET_BLOCKS_FROM_ID } from '../consensus/constants';
+import { getLegacyBlocksFromIdRequestSchema } from './schemas';
 
 interface LegacyChainHandlerArgs {
 	legacyConfig: LegacyConfig;
@@ -158,8 +160,8 @@ export class LegacyChainHandler {
 		const connectedPeers = this._network.getConnectedPeers() as unknown as Peer[];
 		const peersWithLegacyInfo = connectedPeers.filter(
 			peer =>
-				!!(peer.options as { legacy: Buffer[] }).legacy.find(snapshotBlockID =>
-					snapshotBlockID.equals(Buffer.from(bracket.snapshotBlockID, 'hex')),
+				!!(peer.options as { legacy: string[] }).legacy.find(
+					snapshotBlockID => snapshotBlockID === bracket.snapshotBlockID,
 				),
 		);
 		if (peersWithLegacyInfo.length === 0) {
@@ -169,12 +171,12 @@ export class LegacyChainHandler {
 		const randomPeerIndex = Math.trunc(Math.random() * peersWithLegacyInfo.length - 1);
 		const { peerId } = peersWithLegacyInfo[randomPeerIndex];
 
-		const requestData = codec.encode(getBlocksFromIdRequestSchema, {
+		const requestData = codec.encode(getLegacyBlocksFromIdRequestSchema, {
 			blockID: lastBlockID,
 			snapshotBlockID: Buffer.from(bracket.snapshotBlockID, 'hex'),
 		});
 		const p2PRequestPacket: P2PRequestPacket = {
-			procedure: 'getLegacyBlocksFromId',
+			procedure: NETWORK_LEGACY_GET_BLOCKS_FROM_ID,
 			data: requestData,
 		};
 

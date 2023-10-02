@@ -19,13 +19,11 @@ import { Logger } from '../../logger';
 import { Network } from '../network';
 import { BaseNetworkEndpoint } from '../network/base_network_endpoint';
 import { NETWORK_LEGACY_GET_BLOCKS_FROM_ID } from '../consensus/constants';
-import {
-	getBlocksFromIdRequestSchema,
-	getBlocksFromIdResponseSchema,
-	RPCBlocksByIdData,
-} from '../consensus/schema';
+import { getBlocksFromIdResponseSchema } from '../consensus/schema';
 import { Storage } from './storage';
 import { decodeBlock } from './codec';
+import { getLegacyBlocksFromIdRequestSchema } from './schemas';
+import { RPCLegacyBlocksByIdData } from './types';
 
 const LEGACY_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY = 100;
 
@@ -56,10 +54,10 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 			LEGACY_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY,
 		);
 
-		let rpcBlocksByIdData: RPCBlocksByIdData;
+		let rpcBlocksByIdData: RPCLegacyBlocksByIdData;
 		try {
-			rpcBlocksByIdData = codec.decode<RPCBlocksByIdData>(
-				getBlocksFromIdRequestSchema,
+			rpcBlocksByIdData = codec.decode<RPCLegacyBlocksByIdData>(
+				getLegacyBlocksFromIdRequestSchema,
 				data as never,
 			);
 		} catch (error) {
@@ -79,7 +77,7 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 		}
 
 		try {
-			validator.validate(getBlocksFromIdRequestSchema, rpcBlocksByIdData);
+			validator.validate(getLegacyBlocksFromIdRequestSchema, rpcBlocksByIdData);
 		} catch (error) {
 			this._logger.warn(
 				{

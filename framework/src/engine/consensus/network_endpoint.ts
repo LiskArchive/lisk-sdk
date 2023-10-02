@@ -125,10 +125,10 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			throw error;
 		}
 
-		const { blockID } = decodedData;
+		const { blockId } = decodedData;
 
 		// Get height of block with supplied ID
-		const lastBlock = await this._chain.dataAccess.getBlockHeaderByID(blockID);
+		const lastBlock = await this._chain.dataAccess.getBlockHeaderByID(blockId);
 
 		const lastBlockHeight = lastBlock.height;
 

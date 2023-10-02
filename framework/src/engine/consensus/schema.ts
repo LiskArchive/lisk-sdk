@@ -12,24 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 export interface RPCBlocksByIdData {
-	readonly blockID: Buffer;
-	readonly snapshotBlockID: Buffer;
+	readonly blockId: Buffer;
 }
 
 export const getBlocksFromIdRequestSchema = {
 	$id: 'lisk/getBlocksFromIdRequest',
 	title: 'Get Blocks From Id Request',
 	type: 'object',
-	required: ['blockID', 'snapshotBlockID'],
+	required: ['blockId'],
 	properties: {
-		blockID: {
+		blockId: {
 			fieldNumber: 1,
-			dataType: 'bytes',
-			minLength: 32,
-			maxLength: 32,
-		},
-		snapshotBlockID: {
-			fieldNumber: 2,
 			dataType: 'bytes',
 			minLength: 32,
 			maxLength: 32,

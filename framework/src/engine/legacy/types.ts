@@ -76,6 +76,11 @@ export interface LegacyChainBracketInfo {
 export interface Peer {
 	readonly peerId: string;
 	readonly options: {
-		readonly legacy: Buffer[];
+		readonly legacy: string[];
 	};
+}
+
+export interface RPCLegacyBlocksByIdData {
+	readonly blockID: Buffer;
+	readonly snapshotBlockID: Buffer;
 }
