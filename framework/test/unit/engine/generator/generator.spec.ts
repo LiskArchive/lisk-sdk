@@ -39,6 +39,7 @@ import { ABI } from '../../../../src/abi';
 import { defaultConfig } from '../../../../src/testing/fixtures';
 import { testing } from '../../../../src';
 import { GeneratorStore } from '../../../../src/engine/generator/generator_store';
+import { CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED } from '../../../../src/engine/consensus/constants';
 
 describe('generator', () => {
 	const logger = fakeLogger;
@@ -806,6 +807,50 @@ describe('generator', () => {
 
 				// Assert
 				expect(generator['_consensus'].certifySingleCommit).not.toHaveBeenCalled();
+			});
+		});
+
+		describe('when previous finalized height change and maxRemovalHeight is non zero', () => {
+			beforeEach(async () => {
+				await generator.init({
+					blockchainDB,
+					generatorDB,
+					logger,
+					genesisHeight: 0,
+				});
+				await generator.start();
+				jest.spyOn(generator, '_handleFinalizedHeightChanged' as never);
+				jest.spyOn(generator, '_certifySingleCommitForChangedHeight' as never);
+			});
+
+			afterEach(async () => {
+				await generator.stop();
+			});
+
+			it('should not call certifySingleCommit when getMaxRemovalHeight is higher than next finalized height', async () => {
+				jest.spyOn(consensus, 'getMaxRemovalHeight').mockResolvedValue(30000);
+				generator['_consensus'].events.emit(CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED, {
+					from: 0,
+					to: 25520,
+				});
+				await new Promise(process.nextTick);
+
+				expect(generator['_handleFinalizedHeightChanged']).toHaveBeenCalledWith(30000, 25520);
+				expect(generator['_certifySingleCommitForChangedHeight']).not.toHaveBeenCalled();
+			});
+
+			it('should call certifySingleCommit when getMaxRemovalHeight is lower than next finalized height', async () => {
+				jest.spyOn(consensus, 'getMaxRemovalHeight').mockResolvedValue(30000);
+				generator['_consensus'].events.emit(CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED, {
+					from: 30001,
+					to: 30003,
+				});
+				await new Promise(process.nextTick);
+
+				expect(generator['_handleFinalizedHeightChanged']).toHaveBeenCalledWith(30001, 30003);
+				expect(generator['_certifySingleCommitForChangedHeight']).toHaveBeenCalledTimes(
+					1 * generator['_keypairs'].size,
+				);
 			});
 		});
 	});

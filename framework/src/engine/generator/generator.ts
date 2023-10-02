@@ -258,9 +258,12 @@ export class Generator {
 		this._consensus.events.on(
 			CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED,
 			({ from, to }: { from: number; to: number }) => {
-				Promise.all(this._handleFinalizedHeightChanged(from, to)).catch((err: Error) =>
-					this._logger.error({ err }, 'Fail to certify single commit'),
-				);
+				this._consensus
+					.getMaxRemovalHeight()
+					.then(async maxRemovalHeight =>
+						Promise.all(this._handleFinalizedHeightChanged(Math.max(maxRemovalHeight, from), to)),
+					)
+					.catch((err: Error) => this._logger.error({ err }, 'Fail to certify single commit'));
 			},
 		);
 	}
