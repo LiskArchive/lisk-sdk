@@ -812,15 +812,10 @@ describe('generator', () => {
 
 		describe('when previous finalized height change and maxRemovalHeight is non zero', () => {
 			beforeEach(async () => {
-				await generator.init({
-					blockchainDB,
-					generatorDB,
-					logger,
-					genesisHeight: 0,
-				});
 				await generator.start();
 				jest.spyOn(generator, '_handleFinalizedHeightChanged' as never);
 				jest.spyOn(generator, '_certifySingleCommitForChangedHeight' as never);
+				jest.spyOn(generator, '_certifySingleCommit' as never);
 			});
 
 			afterEach(async () => {
@@ -833,10 +828,11 @@ describe('generator', () => {
 					from: 0,
 					to: 25520,
 				});
-				await new Promise(process.nextTick);
+				await Promise.resolve();
 
 				expect(generator['_handleFinalizedHeightChanged']).toHaveBeenCalledWith(30000, 25520);
 				expect(generator['_certifySingleCommitForChangedHeight']).not.toHaveBeenCalled();
+				expect(generator['_certifySingleCommit']).not.toHaveBeenCalled();
 			});
 
 			it('should call certifySingleCommit when getMaxRemovalHeight is lower than next finalized height', async () => {
@@ -845,10 +841,13 @@ describe('generator', () => {
 					from: 30001,
 					to: 30003,
 				});
-				await new Promise(process.nextTick);
+				await Promise.resolve();
 
 				expect(generator['_handleFinalizedHeightChanged']).toHaveBeenCalledWith(30001, 30003);
 				expect(generator['_certifySingleCommitForChangedHeight']).toHaveBeenCalledTimes(
+					1 * generator['_keypairs'].size,
+				);
+				expect(generator['_certifySingleCommit']).toHaveBeenCalledTimes(
 					1 * generator['_keypairs'].size,
 				);
 			});

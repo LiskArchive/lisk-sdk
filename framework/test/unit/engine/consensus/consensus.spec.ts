@@ -223,7 +223,7 @@ describe('consensus', () => {
 	});
 
 	describe('getMaxRemovalHeight', () => {
-		it('should return genesis height if the finalizedBlock.aggregateCommit.height is smaller', async () => {
+		it('should return minCertifyHeight if the finalizedBlock.aggregateCommit.height is smaller', async () => {
 			const finalizedBlock = await createValidDefaultBlock({
 				header: {
 					height: 1,
@@ -243,7 +243,7 @@ describe('consensus', () => {
 			await expect(consensus.getMaxRemovalHeight()).resolves.toEqual(minimumCertifyHeight - 1);
 		});
 
-		it('should return finalizedBlock.aggregateCommit.height if the genesis height is smaller', async () => {
+		it('should return finalizedBlock.aggregateCommit.height if the minCertifyHeight is smaller', async () => {
 			const finalizedBlock = await createValidDefaultBlock({
 				header: {
 					height: 1,
