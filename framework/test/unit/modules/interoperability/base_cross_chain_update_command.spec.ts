@@ -835,8 +835,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 			it('should terminate the chain and add an event when CCM sending chain and ccu sending chain is not the same', async () => {
 				const ccm = {
 					...routingRulesCCM,
-					// must be same as `context.chainID` to pass `!context.chainID.equals(ccm.receivingChainID)` check
-					receivingChainID: chainID,
 					// this will fail for `!ccm.sendingChainID.equals(params.sendingChainID)`
 					// params.sendingChainID is `defaultSendingChainID` (line 158)
 					sendingChainID: Buffer.from([1, 2, 3, 4]),
