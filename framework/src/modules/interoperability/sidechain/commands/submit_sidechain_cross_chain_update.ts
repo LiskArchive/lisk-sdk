@@ -40,7 +40,7 @@ export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdate
 	public async execute(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	): Promise<void> {
-		const [decodedCCMs, ok] = await this.executeCommon(context, false);
+		const [decodedCCMs, ok] = await this.beforeCrossChainMessagesExecution(context, false);
 		if (!ok) {
 			return;
 		}
@@ -72,6 +72,6 @@ export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			context.contextStore.delete(CONTEXT_STORE_KEY_CCM_PROCESSING);
 		}
 
-		await this.afterExecuteCommon(context);
+		await this.afterCrossChainMessagesExecution(context);
 	}
 }

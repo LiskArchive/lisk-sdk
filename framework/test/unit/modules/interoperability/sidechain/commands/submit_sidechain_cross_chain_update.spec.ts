@@ -354,7 +354,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			jest.spyOn(sidechainCCUUpdateCommand, 'apply' as never).mockResolvedValue(undefined as never);
 		});
 
-		it('should call executeCommon', async () => {
+		it('should call beforeCrossChainMessagesExecution', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -367,12 +367,14 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 				}),
 			}).createCommandExecuteContext(sidechainCCUUpdateCommand.schema);
 			jest
-				.spyOn(sidechainCCUUpdateCommand, 'executeCommon' as never)
+				.spyOn(sidechainCCUUpdateCommand, 'beforeCrossChainMessagesExecution' as never)
 				.mockResolvedValue([[], true] as never);
 
 			await expect(sidechainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
-			expect(sidechainCCUUpdateCommand['executeCommon']).toHaveBeenCalledTimes(1);
-			expect(sidechainCCUUpdateCommand['executeCommon']).toHaveBeenCalledWith(
+			expect(sidechainCCUUpdateCommand['beforeCrossChainMessagesExecution']).toHaveBeenCalledTimes(
+				1,
+			);
+			expect(sidechainCCUUpdateCommand['beforeCrossChainMessagesExecution']).toHaveBeenCalledWith(
 				expect.anything(),
 				false,
 			);
