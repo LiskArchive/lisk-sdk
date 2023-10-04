@@ -37,14 +37,7 @@ import { getMainchainID } from './utils';
 export abstract class BaseInteroperabilityMethod<
 	T extends BaseInteroperabilityInternalMethod,
 > extends BaseMethod {
-	protected _tokenMethod!: TokenMethod & {
-		payMessageFee: (
-			context: MethodContext,
-			payFromAddress: Buffer,
-			fee: bigint,
-			receivingChainID: Buffer,
-		) => Promise<void>;
-	};
+	protected _tokenMethod!: TokenMethod;
 
 	public constructor(
 		stores: NamedRegistry,
@@ -55,17 +48,7 @@ export abstract class BaseInteroperabilityMethod<
 		super(stores, events);
 	}
 
-	public addDependencies(
-		tokenMethod: TokenMethod & {
-			// TODO: Remove this after token module update
-			payMessageFee: (
-				context: MethodContext,
-				payFromAddress: Buffer,
-				fee: bigint,
-				receivingChainID: Buffer,
-			) => Promise<void>;
-		},
-	) {
+	public addDependencies(tokenMethod: TokenMethod) {
 		this._tokenMethod = tokenMethod;
 	}
 

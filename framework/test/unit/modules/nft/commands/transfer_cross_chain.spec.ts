@@ -222,7 +222,7 @@ describe('TransferCrossChainComand', () => {
 
 			await expect(
 				command.verify(context.createCommandVerifyContext(crossChainTransferParamsSchema)),
-			).rejects.toThrow('NFT substore entry does not exist');
+			).rejects.toThrow('NFT does not exist');
 		});
 
 		it('should fail if NFT is escrowed', async () => {
@@ -236,7 +236,7 @@ describe('TransferCrossChainComand', () => {
 		});
 
 		it('should fail if NFT is not native to either the sending or receiving chain', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_ADDRESS);
+			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
 
 			const context = createTransactionContextWithOverridingParams({
 				nftID,
@@ -247,9 +247,13 @@ describe('TransferCrossChainComand', () => {
 				attributesArray: [],
 			});
 
+			await userStore.set(methodContext, userStore.getKey(owner, nftID), {
+				lockingModule: NFT_NOT_LOCKED,
+			});
+
 			await expect(
 				command.verify(context.createCommandVerifyContext(crossChainTransferParamsSchema)),
-			).rejects.toThrow('');
+			).rejects.toThrow('NFT must be native to either the sending or the receiving chain');
 		});
 
 		it('should fail if the owner of the NFT is not the sender', async () => {
@@ -258,8 +262,12 @@ describe('TransferCrossChainComand', () => {
 			});
 
 			const nft = await nftStore.get(methodContext, existingNFT.nftID);
-			nft.owner = utils.getRandomBytes(LENGTH_ADDRESS);
+			const newOwner = utils.getRandomBytes(LENGTH_ADDRESS);
+			nft.owner = newOwner;
 			await nftStore.save(methodContext, existingNFT.nftID, nft);
+			await userStore.set(methodContext, userStore.getKey(newOwner, existingNFT.nftID), {
+				lockingModule: NFT_NOT_LOCKED,
+			});
 
 			await expect(
 				command.verify(context.createCommandVerifyContext(crossChainTransferParamsSchema)),
