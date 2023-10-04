@@ -192,7 +192,7 @@ describe('TerminateSidechainForLivenessCommand', () => {
 		it('should successfully terminate chain', async () => {
 			await livenessTerminationCommand.execute(commandExecuteContext);
 			expect(interopMod['internalMethod'].terminateChainInternal).toHaveBeenCalledWith(
-				expect.anything(),
+				commandExecuteContext,
 				transactionParams.chainID,
 			);
 		});
