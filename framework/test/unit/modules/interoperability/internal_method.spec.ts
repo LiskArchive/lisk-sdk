@@ -211,6 +211,9 @@ describe('Base interoperability internal method', () => {
 				...channelData,
 				inbox: updatedInboxTree,
 			});
+
+			// TODO: tree corresponding to chainID was updated
+			// TODO: regularMerkleTree.calculateMerkleRoot was called with the expected arguments (sha256(appendData)).
 		});
 	});
 
@@ -228,6 +231,9 @@ describe('Base interoperability internal method', () => {
 				...channelData,
 				outbox: updatedOutboxTree,
 			});
+
+			// TODO: tree corresponding to chainID was updated
+			// TODO: regularMerkleTree.calculateMerkleRoot was called with the expected arguments (sha256(appendData)).
 		});
 	});
 
@@ -240,7 +246,13 @@ describe('Base interoperability internal method', () => {
 			expect(outboxRootSubstore.set).toHaveBeenCalledWith(expect.anything(), chainID, {
 				root: updatedOutboxTree.root,
 			});
+
+			// TODO: to test that the channel substore was updated
 		});
+	});
+
+	describe('sendInternal', () => {
+		// TODO: Add missing tests
 	});
 
 	describe('createTerminatedOutboxAccount', () => {
@@ -335,6 +347,9 @@ describe('Base interoperability internal method', () => {
 					initialized: true,
 				},
 			);
+
+			// TODO: Check chainAccount(chainID).status was set to CHAIN_STATUS_TERMINATED
+			// TODO: Check the entry for the key chainID was removed from the outbox root substore.
 		});
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id but state root is not provided', async () => {
@@ -355,6 +370,11 @@ describe('Base interoperability internal method', () => {
 				mainchainStateRoot: EMPTY_HASH,
 				initialized: true,
 			});
+
+			// TODO: Check chainAccount(chainID).status was set to CHAIN_STATUS_TERMINATED
+			// TODO: Check the entry for the key chainID was removed from the outbox root substore
+			// TODO: Check an EVENT_NAME_CHAIN_ACCOUNT_UPDATED event was created
+			// TODO: Check an EVENT_NAME_TERMINATED_STATE_CREATED event was created.
 		});
 
 		it('should throw error if chain account does not exist for the id and ownchain account id is mainchain id', async () => {
@@ -370,6 +390,8 @@ describe('Base interoperability internal method', () => {
 					chainIdNew,
 				),
 			).rejects.toThrow('Chain to be terminated is not valid');
+
+			// TODO: Check test that the corresponding terminated state account was NOT created.
 		});
 
 		it('should set appropriate terminated state for chain id if chain account does not exist for the id and stateRoot is EMPTY_HASH', async () => {
@@ -485,6 +507,7 @@ describe('Base interoperability internal method', () => {
 				),
 			).toBeUndefined();
 
+			// TODO: called with correct arguments
 			expect(mainchainInteroperabilityInternalMethod.sendInternal).toHaveBeenCalled();
 			expect(
 				mainchainInteroperabilityInternalMethod.createTerminatedStateAccount,
@@ -662,6 +685,17 @@ describe('Base interoperability internal method', () => {
 				certificate: codec.encode(certificateSchema, defaultCertificate),
 			};
 
+			// TODO: Use this
+			// {
+			// 	name: 'chain1',
+			// 		status: 1,
+			// 		lastCertificate: {
+			// 		height: certificate.height,
+			// 		stateRoot: certificate.stateRoot,
+			// 		timestamp: certificate.timestamp,
+			// 		validatorsHash: certificate.validatorsHash,
+			// },
+			// }
 			await interopMod.stores.get(ChainAccountStore).set(storeContext, ccuParams.sendingChainID, {
 				lastCertificate: {
 					height: 20,
@@ -767,6 +801,11 @@ describe('Base interoperability internal method', () => {
 			);
 		});
 	});
+
+	// TODO: Test is missing where the length of bftWeightsUpdateBitmap is too large, e.g. bftWeightsUpdateBitmap be equal to Buffer.from([0], [7])
+	// TODO: Test the validator list returned by calculateNewActiveValidators is empty
+	// TODO: Test is missing where the validator list returned by calculateNewActiveValidators has more than MAX_NUM_VALIDATORS entries
+	// TODO: In at least one of the tests, it should be checked that calculateNewActiveValidators was called with the correct arguments.
 
 	describe('verifyValidatorsUpdate', () => {
 		it('should reject if the certificate is empty', async () => {
@@ -1010,6 +1049,7 @@ describe('Base interoperability internal method', () => {
 	});
 
 	describe('verifyCertificate', () => {
+		// TODO: Use correct length
 		const txParams: CrossChainUpdateTransactionParams = {
 			certificate: Buffer.alloc(0),
 			activeValidatorsUpdate: {
@@ -1048,6 +1088,7 @@ describe('Base interoperability internal method', () => {
 				});
 		});
 
+		// TODO: However, there should be an additional test where the schema is not followed, e.g. by an incorrect length of a property, and verifyCertificate should fail due to this.
 		it('should reject when certificate height is lower than last certificate height', async () => {
 			const certificate: Certificate = {
 				...defaultCertificate,
@@ -1117,6 +1158,11 @@ describe('Base interoperability internal method', () => {
 			);
 		});
 
+		// (1): validatorsHash in certificate and state store are equal
+		// (2): there is a proper validators update in the CCU
+		// TODO: Replace by: chainAccount(ccu.params.sendingChainID) should exist
+		// TODO: 1. (1) is fulfilled,Expectation: verifyCertificate passes.
+		// TODO: 2. (1) not fulfilled, (2) fulfilled, Expectation: verifyCertificate passes
 		it('should resolve when certificate is valid', async () => {
 			const certificate: Certificate = {
 				...defaultCertificate,
@@ -1140,6 +1186,7 @@ describe('Base interoperability internal method', () => {
 		});
 	});
 
+	// TODO: test where the validator list in the validators store is NOT sorted
 	describe('verifyCertificateSignature', () => {
 		const activeValidators = [
 			{ blsKey: cryptoUtils.getRandomBytes(48), bftWeight: BigInt(1) },
@@ -1208,6 +1255,11 @@ describe('Base interoperability internal method', () => {
 			);
 
 			expect(interopMod.events.get(InvalidCertificateSignatureEvent).add).toHaveBeenCalledTimes(1);
+
+			// TODO: verifyWeightedAggSig should be expected to be called with the certificate threshold stored in the validators store for sendingChainID
+			// TODO: not with txParams.certificateThreshold.
+
+			// TODO: Should also test EVENT_NAME_INVALID_CERTIFICATE_SIGNATURE
 		});
 
 		it('should resolve when verifyWeightedAggSig return true', async () => {
@@ -1397,6 +1449,8 @@ describe('Base interoperability internal method', () => {
 					certificate: Buffer.alloc(0),
 				}),
 			).resolves.toBeUndefined();
+
+			// TODO: checked that calculateRootFromRightWitness is called with the correct arguments.
 		});
 
 		it('should resolve when certificate provides valid inclusion proof', async () => {
@@ -1410,6 +1464,7 @@ describe('Base interoperability internal method', () => {
 				}),
 			).resolves.toBeUndefined();
 
+			// TODO: Explicitly state: outboxKey = Buffer.concat([Buffer.from('83ed0d25', 'hex'), Buffer.from('0000', 'hex'), cryptoUtils.hash(OWN_CHAIN_ID)])
 			const outboxKey = Buffer.concat([
 				interopMod.stores.get(OutboxRootStore).key,
 				cryptoUtils.hash(ownChainAccount.chainID),
@@ -1432,6 +1487,12 @@ describe('Base interoperability internal method', () => {
 				certificateSchema,
 				expect.toBeObject() as Certificate,
 			);
+
+			// TODO: checked that calculateRootFromRightWitness is called with the correct arguments.
 		});
+
+		// TODO: There should be some test(s) where inboxUpdate.crossChainMessages is non empty
+		// TODO: checked that regularMerkleTree.calculateMerkleRoot is called for every ccm and that it is called with the correct arguments
+		// TODO: i.e. calculateMerkleRoot must be called two times
 	});
 });

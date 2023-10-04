@@ -71,6 +71,8 @@ describe('Sidechain interoperability store', () => {
 		);
 	});
 
+	// TODO: Tests are missing for status is ACTIVE, expectation: true
+	// TODO: Tests are missing for status is REGISTERED, expectation: true
 	describe('isLive', () => {
 		beforeEach(() => {
 			ownChainAccountStoreMock.get.mockResolvedValue({ chainID: EMPTY_BYTES });
@@ -100,7 +102,7 @@ describe('Sidechain interoperability store', () => {
 			expect(isLive).toBe(false);
 		});
 
-		it('should return true if chain is not terminated', async () => {
+		it('should return true if chain account and terminated chain account do not exist', async () => {
 			const isLive = await sidechainInteroperabilityInternalMethod.isLive(context, chainID);
 
 			expect(isLive).toBe(true);

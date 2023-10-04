@@ -145,4 +145,6 @@ describe('Mainchain interoperability internal method', () => {
 			expect(isLive).toBe(false);
 		});
 	});
+
+	// TODO: A test is missing for the case where the chain account exists, status is ACTIVE and liveness requirement IS fulfilled.
 });
