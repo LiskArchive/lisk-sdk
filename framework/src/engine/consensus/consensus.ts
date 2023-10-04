@@ -399,7 +399,10 @@ export class Consensus {
 		const finalizedBlockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(
 			this._chain.finalizedHeight,
 		);
-		return Math.max(finalizedBlockHeader.aggregateCommit.height, this._chain.genesisHeight);
+		return Math.max(
+			finalizedBlockHeader.aggregateCommit.height,
+			this._genesisConfig.minimumCertifyHeight - 1,
+		);
 	}
 
 	private async _execute(block: Block, peerID: string): Promise<void> {
