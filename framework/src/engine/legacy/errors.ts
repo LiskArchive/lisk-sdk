@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export class PeerNotFoundWithLegacyInfo extends Error {
+import { FAILED_SYNC_RETRY_TIMEOUT } from './constants';
+
+export class FailAndAttemptSyncError extends Error {
 	public constructor(message: string) {
-		super(message);
+		super(`${message}: Attempting to sync again after ${FAILED_SYNC_RETRY_TIMEOUT} ms`);
 		this.name = this.constructor.name;
 	}
 }

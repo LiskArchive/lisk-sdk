@@ -19,13 +19,11 @@ import { codec } from '@liskhq/lisk-codec';
 import { LegacyNetworkEndpoint } from '../../../../src/engine/legacy/network_endpoint';
 import { loggerMock } from '../../../../src/testing/mocks';
 import { Network } from '../../../../src/engine/network';
-import {
-	getBlocksFromIdRequestSchema,
-	getBlocksFromIdResponseSchema,
-} from '../../../../src/engine/consensus/schema';
+import { getBlocksFromIdResponseSchema } from '../../../../src/engine/consensus/schema';
 
 import { getLegacyBlockHeadersRangeV2 } from './fixtures';
 import { decodeBlockHeader } from '../../../../src/engine/legacy/codec';
+import { getLegacyBlocksFromIdRequestSchema } from '../../../../src/engine/legacy/schemas';
 
 describe('Legacy P2P network endpoint', () => {
 	const defaultPeerID = 'peer-id';
@@ -67,7 +65,7 @@ describe('Legacy P2P network endpoint', () => {
 		it("should return empty list if ID doesn't exist", async () => {
 			const blockID = utils.getRandomBytes(32);
 			const snapshotBlockID = utils.getRandomBytes(32);
-			const requestPayload = codec.encode(getBlocksFromIdRequestSchema, {
+			const requestPayload = codec.encode(getLegacyBlocksFromIdRequestSchema, {
 				blockID,
 				snapshotBlockID,
 			});
@@ -101,7 +99,7 @@ describe('Legacy P2P network endpoint', () => {
 			}
 
 			const snapshotBlockID = utils.getRandomBytes(32);
-			const encodedRequest = codec.encode(getBlocksFromIdRequestSchema, {
+			const encodedRequest = codec.encode(getLegacyBlocksFromIdRequestSchema, {
 				blockID: requestedBlockID,
 				snapshotBlockID,
 			} as never);

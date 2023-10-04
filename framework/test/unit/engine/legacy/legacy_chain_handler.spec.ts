@@ -50,13 +50,13 @@ describe('Legacy Chain Handler', () => {
 			{
 				peerId: 'peerId-1',
 				options: {
-					legacy: [expectedSnapshotBlockID],
+					legacy: [expectedSnapshotBlockID.toString('hex')],
 				},
 			},
 			{
 				peerId: 'peerId-2',
 				options: {
-					legacy: [randomSnapshotBlockID, expectedSnapshotBlockID],
+					legacy: [randomSnapshotBlockID.toString('hex'), expectedSnapshotBlockID.toString('hex')],
 				},
 			},
 		];
@@ -115,7 +115,7 @@ describe('Legacy Chain Handler', () => {
 
 			// starting from 16270316 (excluding) till 16270306 = 10,
 			// but we save blocks only if ```block.header.height > bracket.startHeight```
-			expect(legacyChainHandler['_storage'].saveBlock).toHaveBeenCalledTimes(9);
+			expect(legacyChainHandler['_storage'].saveBlock).toHaveBeenCalledTimes(10);
 
 			// should be 1, since if `lastBlock.header.height > bracket.startHeight` is skipped
 			// & only the final `_updateBracketInfo(...)` is called
