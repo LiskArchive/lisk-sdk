@@ -27,6 +27,20 @@ export interface MultiSignatureKeys {
 	readonly optionalKeys: Array<Buffer>;
 }
 
+const encodeParams = (transaction: Record<string, unknown>, paramsSchema?: object): Buffer => {
+	const validationErrors = validateTransaction(transaction, paramsSchema);
+	if (validationErrors) {
+		throw validationErrors;
+	}
+
+	const hasParams =
+		typeof transaction.params === 'object' && transaction.params !== null && paramsSchema;
+
+	return hasParams
+		? codec.encode(paramsSchema as unknown as Schema, transaction.params as object)
+		: Buffer.alloc(0);
+};
+
 /**
  * Validates transaction against schema and converts transaction to bytes for signing.
  *
@@ -36,7 +50,7 @@ export interface MultiSignatureKeys {
  *  const txBytes = getSigningBytes(TransferTrx, transferParamsSchema);
  *  ```
  *
- * @param transactionObject a decrypted transaction
+ * @param transaction a decrypted transaction
  * @param paramsSchema parameter schema for the transaction
  *
  * @returns Returns the encrypted transaction, if the provided transaction is valid.
@@ -47,34 +61,12 @@ export interface MultiSignatureKeys {
  * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
  */
 export const getSigningBytes = (
-	transactionObject: Record<string, unknown>,
+	transaction: Record<string, unknown>,
 	paramsSchema?: object,
 ): Buffer => {
-	const validationErrors = validateTransaction(transactionObject, paramsSchema);
-	if (validationErrors) {
-		throw validationErrors;
-	}
-	if (
-		typeof transactionObject.params !== 'object' ||
-		transactionObject.params === null ||
-		!paramsSchema
-	) {
-		const transactionBytes = codec.encode(baseTransactionSchema, {
-			...transactionObject,
-			params: Buffer.alloc(0),
-			signatures: [],
-		});
+	const params = encodeParams(transaction, paramsSchema);
 
-		return transactionBytes;
-	}
-	const paramsBytes = codec.encode(paramsSchema as unknown as Schema, transactionObject.params);
-	const transactionBytes = codec.encode(baseTransactionSchema, {
-		...transactionObject,
-		params: paramsBytes,
-		signatures: [],
-	});
-
-	return transactionBytes;
+	return codec.encode(baseTransactionSchema, { ...transaction, params, signatures: [] });
 };
 
 /**
@@ -86,7 +78,7 @@ export const getSigningBytes = (
  *  const txBytes = getBytes(TransferTrx, transferParamsSchema);
  *  ```
  *
- * @param transactionObject a decrypted transaction
+ * @param transaction a decrypted transaction
  * @param paramsSchema parameter schema for the transaction
  *
  * @returns Returns the encrypted transaction.
@@ -94,29 +86,10 @@ export const getSigningBytes = (
  * @see [LIP 0028 - Define schema and use generic serialization for transactions](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0028.md)
  * @see [LIP 0068 - Define new transaction schema](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0068.md)
  */
-export const getBytes = (
-	transactionObject: Record<string, unknown>,
-	paramsSchema?: object,
-): Buffer => {
-	if (
-		typeof transactionObject.params !== 'object' ||
-		transactionObject.params === null ||
-		!paramsSchema
-	) {
-		const transactionBytes = codec.encode(baseTransactionSchema, {
-			...transactionObject,
-			params: Buffer.alloc(0),
-		});
+export const getBytes = (transaction: Record<string, unknown>, paramsSchema?: object): Buffer => {
+	const params = encodeParams(transaction, paramsSchema);
 
-		return transactionBytes;
-	}
-	const paramsBytes = codec.encode(paramsSchema as unknown as Schema, transactionObject.params);
-	const transactionBytes = codec.encode(baseTransactionSchema, {
-		...transactionObject,
-		params: paramsBytes,
-	});
-
-	return transactionBytes;
+	return codec.encode(baseTransactionSchema, { ...transaction, params });
 };
 
 /**
