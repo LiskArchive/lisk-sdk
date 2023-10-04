@@ -100,7 +100,7 @@ describe('TerminateSidechainForLivenessCommand', () => {
 			jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(true);
 		});
 
-		it('should return error validation fails', async () => {
+		it('should return error when validation fails', async () => {
 			await expect(
 				livenessTerminationCommand.verify({
 					...commandVerifyContext,
