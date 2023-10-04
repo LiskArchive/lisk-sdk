@@ -20,9 +20,7 @@ import {
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
 import { transferParamsSchema } from '../schemas';
-import { NFTStore } from '../stores/nft';
 import { NFTMethod } from '../method';
-import { LENGTH_CHAIN_ID, NFT_NOT_LOCKED } from '../constants';
 import { InternalMethod } from '../internal_method';
 
 export interface Params {
@@ -43,31 +41,24 @@ export class TransferCommand extends BaseCommand {
 
 	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
 		const { params } = context;
+		const methodContext = context.getMethodContext();
 
-		const nftStore = this.stores.get(NFTStore);
-
-		const nftExists = await nftStore.has(context, params.nftID);
-
-		if (!nftExists) {
-			throw new Error('NFT substore entry does not exist');
+		let nft;
+		try {
+			nft = await this._method.getNFT(methodContext, params.nftID);
+		} catch (error) {
+			throw new Error('NFT does not exist');
 		}
 
-		const owner = await this._method.getNFTOwner(context.getMethodContext(), params.nftID);
-
-		if (owner.length === LENGTH_CHAIN_ID) {
+		if (this._method.isNFTEscrowed(nft)) {
 			throw new Error('NFT is escrowed to another chain');
 		}
 
-		if (!owner.equals(context.transaction.senderAddress)) {
+		if (!nft.owner.equals(context.transaction.senderAddress)) {
 			throw new Error('Transfer not initiated by the NFT owner');
 		}
 
-		const lockingModule = await this._method.getLockingModule(
-			context.getMethodContext(),
-			params.nftID,
-		);
-
-		if (lockingModule !== NFT_NOT_LOCKED) {
+		if (this._method.isNFTLocked(nft)) {
 			throw new Error('Locked NFTs cannot be transferred');
 		}
 
