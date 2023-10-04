@@ -137,7 +137,7 @@ export const legacyChainBracketInfoSchema = {
 };
 
 export const getLegacyBlocksFromIdRequestSchema = {
-	$id: 'lisk/getBlocksFromIdRequest',
+	$id: '/legacy/getBlocksFromIdRequest',
 	title: 'Get Blocks From Id Request',
 	type: 'object',
 	required: ['blockID', 'snapshotBlockID'],

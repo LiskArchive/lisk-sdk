@@ -24,8 +24,9 @@ import { decodeBlock, encodeBlockHeader } from './codec';
 import { PeerNotFoundWithLegacyInfo } from './errors';
 import { validateLegacyBlock } from './validate';
 import { Logger } from '../../logger';
-import { NETWORK_LEGACY_GET_BLOCKS_FROM_ID } from '../consensus/constants';
+import { FAILED_SYNC_RETRY_TIMEOUT, SUCCESS_SYNC_RETRY_TIMEOUT } from './constants';
 import { getLegacyBlocksFromIdRequestSchema } from './schemas';
+import { NETWORK_LEGACY_GET_BLOCKS_FROM_ID } from '../consensus/constants';
 
 interface LegacyChainHandlerArgs {
 	legacyConfig: LegacyConfig;
@@ -121,8 +122,6 @@ export class LegacyChainHandler {
 				Buffer.from(bracket.snapshotBlockID, 'hex'),
 			),
 		});
-
-		clearTimeout(this._syncTimeout);
 	}
 
 	private async _trySyncBlocks(bracket: LegacyBlockBracket, lastBlockID: Buffer) {
@@ -133,7 +132,7 @@ export class LegacyChainHandler {
 				// eslint-disable-next-line @typescript-eslint/no-misused-promises
 				this._syncTimeout = setTimeout(async () => {
 					await this._trySyncBlocks(bracket, lastBlockID);
-				}, 120000); // 2 mints = (60 * 2) * 1000
+				}, FAILED_SYNC_RETRY_TIMEOUT); // 2 mints = (60 * 2) * 1000
 			} else {
 				throw err;
 			}
@@ -214,7 +213,7 @@ export class LegacyChainHandler {
 
 		// @ts-expect-error Variable 'legacyBlocks' is used before being assigned.
 		for (const block of legacyBlocks) {
-			if (block.header.height > bracket.startHeight) {
+			if (block.header.height >= bracket.startHeight) {
 				const payload = block.payload.length ? block.payload : [];
 				await this._storage.saveBlock(
 					block.header.id as Buffer,
@@ -229,7 +228,13 @@ export class LegacyChainHandler {
 		const lastBlock = legacyBlocks[legacyBlocks.length - 1];
 		if (lastBlock && lastBlock.header.height > bracket.startHeight) {
 			await this._updateBracketInfo(lastBlock, bracket);
-			await this.syncBlocks(bracket, lastBlockID);
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
+			this._syncTimeout = setTimeout(async () => {
+				await this.syncBlocks(bracket, lastBlock.header.id as Buffer);
+			}, SUCCESS_SYNC_RETRY_TIMEOUT);
+		} else {
+			// Syncing is finished
+			clearTimeout(this._syncTimeout);
 		}
 
 		await this._updateBracketInfo(lastBlock, bracket);

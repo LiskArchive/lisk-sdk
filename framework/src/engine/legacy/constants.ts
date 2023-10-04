@@ -17,3 +17,6 @@ export const DB_KEY_BLOCKS_HEIGHT = 'blocks:height';
 export const DB_KEY_TRANSACTIONS_BLOCK_ID = 'transactions:blockID';
 export const DB_KEY_TRANSACTIONS_ID = 'transactions:id';
 export const DB_KEY_LEGACY_BRACKET = Buffer.from([2]);
+
+export const FAILED_SYNC_RETRY_TIMEOUT = 1200000; // When no peer was found then resyncing after 2 minutes
+export const SUCCESS_SYNC_RETRY_TIMEOUT = 5000; // To avoid syncing with the same peer frequently and get banned due to RPC limit

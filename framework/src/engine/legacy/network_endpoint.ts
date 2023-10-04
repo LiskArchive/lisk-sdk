@@ -117,7 +117,7 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 		try {
 			// if the requested blockID is the same as snapshotBlockID then start from a block before snapshotBlock
 			if (snapshotBlockID.equals(lastBlockID)) {
-				fromBlockHeight = bracketInfo.snapshotBlockHeight - 1;
+				fromBlockHeight = bracketInfo.snapshotBlockHeight;
 			} else {
 				const {
 					block: {
