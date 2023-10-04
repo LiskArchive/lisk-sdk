@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -31,6 +32,7 @@ export class TerminateSidechainForLivenessCommand extends BaseInteroperabilityCo
 		context: CommandVerifyContext<TerminateSidechainForLivenessParams>,
 	): Promise<VerificationResult> {
 		const { params } = context;
+		validator.validate(terminateSidechainForLivenessParamsSchema, params);
 
 		const chainAccount = await this.stores
 			.get(ChainAccountStore)

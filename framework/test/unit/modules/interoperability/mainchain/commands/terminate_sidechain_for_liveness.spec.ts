@@ -100,6 +100,18 @@ describe('TerminateSidechainForLivenessCommand', () => {
 			jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(true);
 		});
 
+		it('should return error validation fails', async () => {
+			await expect(
+				livenessTerminationCommand.verify({
+					...commandVerifyContext,
+					params: {
+						...commandVerifyContext.params,
+						chainID: Buffer.alloc(0),
+					},
+				}),
+			).rejects.toThrow("Property '.chainID' minLength not satisfied");
+		});
+
 		it('should return error when chain account does not exist', async () => {
 			await interopMod.stores
 				.get(ChainAccountStore)
