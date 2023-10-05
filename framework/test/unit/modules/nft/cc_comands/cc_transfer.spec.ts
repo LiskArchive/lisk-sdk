@@ -18,6 +18,7 @@ import { NFTModule } from '../../../../../src/modules/nft/module';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing';
 import {
 	ALL_SUPPORTED_NFTS_KEY,
+	CCM_STATUS_CODE_OK,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	FEE_CREATE_NFT,
 	LENGTH_CHAIN_ID,
@@ -623,6 +624,154 @@ describe('CrossChain Transfer Command', () => {
 			expect(nftStoreData.attributesArray).toEqual(attributesArray);
 			expect(userAccountExistsForRecipient).toBe(false);
 			expect(userAccountExistsForSender).toBe(true);
+			checkEventResult(context.eventQueue, 1, CcmTransferEvent, 0, {
+				senderAddress,
+				recipientAddress: senderAddress,
+				nftID,
+				receivingChainID: ccm.receivingChainID,
+				sendingChainID: ccm.sendingChainID,
+			});
+		});
+
+		it('should handle status === CCM_STATUS_CODE_OK', async () => {
+			const newConfig = {
+				ownChainID: utils.getRandomBytes(LENGTH_CHAIN_ID),
+				escrowAccountInitializationFee: BigInt(50000000),
+				userAccountInitializationFee: BigInt(50000000),
+			};
+			method.init(newConfig);
+			internalMethod.addDependencies(method, interopMethod);
+			internalMethod.init(newConfig);
+			ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: module.name,
+				nonce: BigInt(1),
+				sendingChainID,
+				receivingChainID,
+				fee: BigInt(30000),
+				status: CCM_STATUS_CODE_OK,
+				params,
+			};
+			context = {
+				ccm,
+				transaction: defaultTransaction,
+				header: defaultHeader,
+				stateStore,
+				contextStore,
+				getMethodContext,
+				eventQueue: new EventQueue(0),
+				getStore,
+				logger: fakeLogger,
+				chainID,
+			};
+			const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
+			await supportedNFTsStore.set(methodContext, ALL_SUPPORTED_NFTS_KEY, {
+				supportedCollectionIDArray: [],
+			});
+			jest.spyOn(feeMethod, 'payFee');
+			jest.spyOn(internalMethod, 'createNFTEntry');
+			jest.spyOn(internalMethod, 'createUserEntry');
+
+			await expect(command.execute(context)).resolves.toBeUndefined();
+			const nftStoreData = await nftStore.get(methodContext, nftID);
+			const userAccountExistsForRecipient = await userStore.has(
+				methodContext,
+				userStore.getKey(recipientAddress, nftID),
+			);
+			const userAccountExistsForSender = await userStore.has(
+				methodContext,
+				userStore.getKey(senderAddress, nftID),
+			);
+			expect(feeMethod.payFee).toHaveBeenCalledWith(methodContext, BigInt(FEE_CREATE_NFT));
+			expect(nftStoreData.owner).toStrictEqual(recipientAddress);
+			expect(nftStoreData.attributesArray).toEqual(attributesArray);
+			expect(userAccountExistsForRecipient).toBe(true);
+			expect(userAccountExistsForSender).toBe(false);
+			expect(internalMethod.createNFTEntry).toHaveBeenCalledWith(
+				methodContext,
+				recipientAddress,
+				nftID,
+				attributesArray,
+			);
+			expect(internalMethod.createUserEntry).toHaveBeenCalledWith(
+				methodContext,
+				recipientAddress,
+				nftID,
+			);
+			checkEventResult(context.eventQueue, 1, CcmTransferEvent, 0, {
+				senderAddress,
+				recipientAddress,
+				nftID,
+				receivingChainID: ccm.receivingChainID,
+				sendingChainID: ccm.sendingChainID,
+			});
+		});
+
+		it('should handle status !== CCM_STATUS_CODE_OK', async () => {
+			const newConfig = {
+				ownChainID: utils.getRandomBytes(LENGTH_CHAIN_ID),
+				escrowAccountInitializationFee: BigInt(50000000),
+				userAccountInitializationFee: BigInt(50000000),
+			};
+			method.init(newConfig);
+			internalMethod.addDependencies(method, interopMethod);
+			internalMethod.init(newConfig);
+			ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: module.name,
+				nonce: BigInt(1),
+				sendingChainID,
+				receivingChainID,
+				fee: BigInt(30000),
+				status: 12345,
+				params,
+			};
+			context = {
+				ccm,
+				transaction: defaultTransaction,
+				header: defaultHeader,
+				stateStore,
+				contextStore,
+				getMethodContext,
+				eventQueue: new EventQueue(0),
+				getStore,
+				logger: fakeLogger,
+				chainID,
+			};
+			const supportedNFTsStore = module.stores.get(SupportedNFTsStore);
+			await supportedNFTsStore.set(methodContext, ALL_SUPPORTED_NFTS_KEY, {
+				supportedCollectionIDArray: [],
+			});
+			jest.spyOn(feeMethod, 'payFee');
+			jest.spyOn(internalMethod, 'createNFTEntry');
+			jest.spyOn(internalMethod, 'createUserEntry');
+
+			await expect(command.execute(context)).resolves.toBeUndefined();
+			const nftStoreData = await nftStore.get(methodContext, nftID);
+			const userAccountExistsForRecipient = await userStore.has(
+				methodContext,
+				userStore.getKey(recipientAddress, nftID),
+			);
+			const userAccountExistsForSender = await userStore.has(
+				methodContext,
+				userStore.getKey(senderAddress, nftID),
+			);
+			expect(feeMethod.payFee).toHaveBeenCalledWith(methodContext, BigInt(FEE_CREATE_NFT));
+			expect(nftStoreData.owner).toStrictEqual(senderAddress);
+			expect(nftStoreData.attributesArray).toEqual(attributesArray);
+			expect(userAccountExistsForRecipient).toBe(false);
+			expect(userAccountExistsForSender).toBe(true);
+			expect(internalMethod.createNFTEntry).toHaveBeenCalledWith(
+				methodContext,
+				senderAddress,
+				nftID,
+				attributesArray,
+			);
+			expect(internalMethod.createUserEntry).toHaveBeenCalledWith(
+				methodContext,
+				senderAddress,
+				nftID,
+			);
 			checkEventResult(context.eventQueue, 1, CcmTransferEvent, 0, {
 				senderAddress,
 				recipientAddress: senderAddress,
