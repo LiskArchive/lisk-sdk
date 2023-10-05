@@ -42,13 +42,21 @@ interface LegacyHandlerInitArgs {
 	db: Database;
 }
 
+export async function wait(duration: number): Promise<NodeJS.Timeout> {
+	return new Promise(resolve => {
+		const timeout = setTimeout(() => {
+			resolve(timeout);
+		}, duration);
+	});
+}
+
 export class LegacyChainHandler {
 	private readonly _network: Network;
 	private _storage!: Storage;
 	private readonly _legacyConfig: LegacyConfig;
 	private readonly _logger: Logger;
-	private _syncTimeout!: NodeJS.Timeout;
 	private readonly _syncedBrackets: Buffer[] = [];
+	private _syncTimeout!: NodeJS.Timeout;
 
 	public constructor(args: LegacyChainHandlerArgs) {
 		this._legacyConfig = args.legacyConfig;
@@ -93,6 +101,10 @@ export class LegacyChainHandler {
 		}
 	}
 
+	public stop() {
+		clearTimeout(this._syncTimeout);
+	}
+
 	public async sync() {
 		for (const bracket of this._legacyConfig.brackets) {
 			const bracketInfo = await this._storage.getLegacyChainBracketInfo(
@@ -126,7 +138,7 @@ export class LegacyChainHandler {
 				`Started syncing legacy blocks for bracket with snapshotBlockID ${bracket.snapshotBlockID}`,
 			);
 			// start parsing bracket from `lastBlock` height`
-			await this._trySyncBlocks(bracket, lastBlockID);
+			this._trySyncBlocks(bracket, lastBlockID).catch(this._logger.error);
 		}
 	}
 
@@ -144,10 +156,8 @@ export class LegacyChainHandler {
 					`Retrying syncing legacy blocks for bracket with snapshotBlockID ${bracket.snapshotBlockID}`,
 				);
 				clearTimeout(this._syncTimeout);
-				// eslint-disable-next-line @typescript-eslint/no-misused-promises
-				this._syncTimeout = setTimeout(async () => {
-					await this._trySyncBlocks(bracket, lastBlockID);
-				}, FAILED_SYNC_RETRY_TIMEOUT); // 2 minutes
+				this._syncTimeout = await wait(FAILED_SYNC_RETRY_TIMEOUT);
+				await this._trySyncBlocks(bracket, lastBlockID);
 			} else {
 				throw err;
 			}
@@ -256,20 +266,17 @@ export class LegacyChainHandler {
 		}
 
 		const lastBlock = legacyBlocks[legacyBlocks.length - 1];
-		this._logger.debug(
-			{ engineModule: 'legacy' },
-			`Saved blocks from ${legacyBlocks[0].header.height} to ${lastBlock.header.height}`,
-		);
 		if (lastBlock && lastBlock.header.height > bracket.startHeight) {
+			this._logger.debug(
+				{ engineModule: 'legacy' },
+				`Saved blocks from ${legacyBlocks[0].header.height} to ${lastBlock.header.height}`,
+			);
 			await this._updateBracketInfo(lastBlock, bracket);
 			clearTimeout(this._syncTimeout);
-			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			this._syncTimeout = setTimeout(async () => {
-				await this._trySyncBlocks(bracket, lastBlock.header.id as Buffer, syncRetryCounter);
-			}, SUCCESS_SYNC_RETRY_TIMEOUT);
+			this._syncTimeout = await wait(SUCCESS_SYNC_RETRY_TIMEOUT);
+			await this._trySyncBlocks(bracket, lastBlock.header.id as Buffer, syncRetryCounter);
 		} else {
 			// Syncing is finished
-			clearTimeout(this._syncTimeout);
 			this._logger.info(
 				{ engineModule: 'legacy' },
 				`Finished syncing legacy blocks for bracket with snapshotBlockID ${bracket.snapshotBlockID}`,
