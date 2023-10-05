@@ -135,10 +135,14 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 		// where blocks at 71 and 170 are inclusive so in total 100 blocks
 		const lastBlockHeight = fromBlockHeight - 1;
 		const fetchFromHeight =
-			bracketInfo.startHeight <= lastBlockHeight - 99
+			bracketInfo.startHeight >= lastBlockHeight - 99
 				? bracketInfo.startHeight
 				: lastBlockHeight - 100;
 
+		this._logger.debug(
+			{ peerId, engineModule: 'legacy' },
+			`Responding to "${NETWORK_LEGACY_GET_BLOCKS_FROM_ID}" with blocks from height ${fetchFromHeight} to ${lastBlockHeight}`,
+		);
 		const encodedBlocks = await this._storage.getBlocksByHeightBetween(
 			fetchFromHeight,
 			lastBlockHeight,

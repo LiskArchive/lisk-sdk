@@ -85,7 +85,7 @@ export class Storage {
 		// each txID is hashed value of 32 length
 		const idLength = 32;
 		for (let i = 0; i < txIdsBuffer.length; i += idLength) {
-			const txId = txIdsBuffer.subarray(i, (i += idLength));
+			const txId = txIdsBuffer.subarray(i, i + idLength);
 			txIds.push(txId);
 		}
 

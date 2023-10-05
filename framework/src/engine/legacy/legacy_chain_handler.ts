@@ -130,15 +130,20 @@ export class LegacyChainHandler {
 		}
 	}
 
-	private async _trySyncBlocks(bracket: LegacyBlockBracket, lastBlockID: Buffer) {
+	private async _trySyncBlocks(
+		bracket: LegacyBlockBracket,
+		lastBlockID: Buffer,
+		syncRetryCounter = 0,
+	) {
 		try {
-			await this.syncBlocks(bracket, lastBlockID);
+			await this._syncBlocks(bracket, lastBlockID, syncRetryCounter);
 		} catch (err) {
 			if (err instanceof FailAndAttemptSyncError) {
 				this._logger.debug(
 					{ engineModule: 'legacy' },
 					`Retrying syncing legacy blocks for bracket with snapshotBlockID ${bracket.snapshotBlockID}`,
 				);
+				clearTimeout(this._syncTimeout);
 				// eslint-disable-next-line @typescript-eslint/no-misused-promises
 				this._syncTimeout = setTimeout(async () => {
 					await this._trySyncBlocks(bracket, lastBlockID);
@@ -165,7 +170,7 @@ export class LegacyChainHandler {
 	 * If last block height equals bracket.startHeight, simply save bracket with `lastBlockHeight: lastBlock?.header.height`
 	 */
 	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public async syncBlocks(
+	public async _syncBlocks(
 		bracket: LegacyBlockBracket,
 		lastBlockID: Buffer,
 		failedAttempts = 0,
@@ -210,9 +215,10 @@ export class LegacyChainHandler {
 					{ engineModule: 'legacy', peerId, method: 'requestFromPeer' },
 					errorMessage,
 				);
+
 				throw new FailAndAttemptSyncError(errorMessage);
 			}
-			await this.syncBlocks(bracket, lastBlockID, syncRetryCounter);
+			return this._trySyncBlocks(bracket, lastBlockID, syncRetryCounter);
 		}
 
 		// `data` is expected to hold blocks in DESC order
@@ -223,16 +229,18 @@ export class LegacyChainHandler {
 			// this part is needed to make sure `data` returns ONLY `{ blocks: Buffer[] }` & not any extra field(s)
 			const { blocks } = codec.decode<{ blocks: Buffer[] }>(getBlocksFromIdResponseSchema, data);
 			if (blocks.length === 0) {
-				throw new Error('Received empty response');
+				this.applyPenaltyAndRetrySync('Received empty response', peerId);
+
+				return this._trySyncBlocks(bracket, lastBlockID, syncRetryCounter);
 			}
 
 			this._applyValidation(blocks);
 
 			legacyBlocks = blocks.map(block => decodeBlock(block).block);
 		} catch (err) {
-			await this.applyPenaltyAndRetrySync((err as Error).message, peerId, bracket, lastBlockID);
+			this.applyPenaltyAndRetrySync((err as Error).message, peerId);
 
-			return;
+			return this._trySyncBlocks(bracket, lastBlockID, syncRetryCounter);
 		}
 
 		for (const block of legacyBlocks) {
@@ -248,11 +256,16 @@ export class LegacyChainHandler {
 		}
 
 		const lastBlock = legacyBlocks[legacyBlocks.length - 1];
+		this._logger.debug(
+			{ engineModule: 'legacy' },
+			`Saved blocks from ${legacyBlocks[0].header.height} to ${lastBlock.header.height}`,
+		);
 		if (lastBlock && lastBlock.header.height > bracket.startHeight) {
 			await this._updateBracketInfo(lastBlock, bracket);
+			clearTimeout(this._syncTimeout);
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			this._syncTimeout = setTimeout(async () => {
-				await this.syncBlocks(bracket, lastBlock.header.id as Buffer);
+				await this._trySyncBlocks(bracket, lastBlock.header.id as Buffer, syncRetryCounter);
 			}, SUCCESS_SYNC_RETRY_TIMEOUT);
 		} else {
 			// Syncing is finished
@@ -269,7 +282,7 @@ export class LegacyChainHandler {
 			});
 		}
 
-		await this._updateBracketInfo(lastBlock, bracket);
+		return this._updateBracketInfo(lastBlock, bracket);
 	}
 
 	private async _updateBracketInfo(lastBlock: LegacyBlock, bracket: LegacyBlockBracket) {
@@ -280,15 +293,9 @@ export class LegacyChainHandler {
 		});
 	}
 
-	private async applyPenaltyAndRetrySync(
-		msg: string,
-		peerId: string,
-		bracket: LegacyBlockBracket,
-		lastBlockID: Buffer,
-	) {
+	private applyPenaltyAndRetrySync(msg: string, peerId: string) {
 		this._logger.warn({ engineModule: 'legacy', peerId }, `${msg}: Applying a penalty to the peer`);
 		this._network.applyPenaltyOnPeer({ peerId, penalty: 100 });
-		await this.syncBlocks(bracket, lastBlockID);
 	}
 
 	private _applyValidation(blocks: Buffer[]) {
