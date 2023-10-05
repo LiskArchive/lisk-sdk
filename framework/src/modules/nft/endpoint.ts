@@ -28,12 +28,17 @@ import {
 import { NFTStore } from './stores/nft';
 import { ALL_SUPPORTED_NFTS_KEY, LENGTH_ADDRESS, LENGTH_NFT_ID } from './constants';
 import { UserStore } from './stores/user';
-import { NFT } from './types';
+import { ModuleConfig, NFT } from './types';
 import { SupportedNFTsStore } from './stores/supported_nfts';
 import { NFTMethod } from './method';
 
 export class NFTEndpoint extends BaseEndpoint {
+	private _config!: ModuleConfig;
 	private _nftMethod!: NFTMethod;
+
+	public init(config: ModuleConfig): void {
+		this._config = config;
+	}
 
 	public addDependencies(nftMethod: NFTMethod) {
 		this._nftMethod = nftMethod;
@@ -143,33 +148,30 @@ export class NFTEndpoint extends BaseEndpoint {
 
 		validator.validate<{ chainID: string }>(getSupportedCollectionIDsRequestSchema, params);
 
+		const { ownChainID } = this._config;
 		const chainID = Buffer.from(params.chainID, 'hex');
-		const nftID = Buffer.concat([chainID, Buffer.alloc(12)]);
+		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
 
-		const isNFTSupported = await this._nftMethod.isNFTSupported(
-			context.getImmutableMethodContext(),
-			nftID,
-		);
-
-		if (!isNFTSupported) {
-			return undefined;
+		const areAllNFTsSupported = await supportedNFTsStore.has(context, ALL_SUPPORTED_NFTS_KEY);
+		if (areAllNFTsSupported) {
+			return { collectionIDs: [] };
 		}
 
-		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
+		const isSupported = await supportedNFTsStore.has(context, chainID);
+		if (!isSupported) {
+			return chainID.equals(ownChainID) ? { collectionIDs: [] } : undefined;
+		}
+
 		const supportedNFTsData = await supportedNFTsStore.get(
 			context.getImmutableMethodContext(),
 			chainID,
 		);
 
-		if (supportedNFTsData.supportedCollectionIDArray.length) {
-			return {
-				collectionIDs: supportedNFTsData.supportedCollectionIDArray.map(collection =>
-					collection.collectionID.toString('hex'),
-				),
-			};
-		}
-
-		return undefined;
+		return {
+			collectionIDs: supportedNFTsData.supportedCollectionIDArray.map(collection =>
+				collection.collectionID.toString('hex'),
+			),
+		};
 	}
 
 	public async isCollectionIDSupported(

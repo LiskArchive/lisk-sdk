@@ -56,6 +56,7 @@ describe('NFTEndpoint', () => {
 	const endpoint = new NFTEndpoint(module.stores, module.events);
 	const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 	method.init({ ownChainID });
+	endpoint.init({ ownChainID });
 
 	endpoint.addDependencies(method);
 
@@ -385,52 +386,53 @@ describe('NFTEndpoint', () => {
 			);
 		});
 
-		it('should return undefined if provided chainID does not exist', async () => {
-			const context = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
-				},
-			});
-
-			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toBeUndefined();
-		});
-
-		it('should return undefined if chainID key exists and supportedCollectionIDArray is empty', async () => {
-			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-
-			await supportedNFTsStore.save(methodContext, chainID, {
-				supportedCollectionIDArray: [],
-			});
-
-			const context = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: chainID.toString('hex'),
-				},
-			});
-
-			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toBeUndefined();
-		});
-
-		it('should return undefined if all NFTs are not supported', async () => {
-			const context = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
-				},
-			});
-
-			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toBeUndefined();
-		});
-
-		it('should return supported collections of the provided chain', async () => {
-			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-
+		it('should return empty collection if ALL_SUPPORTED_NFTS_KEY is present', async () => {
 			await supportedNFTsStore.save(methodContext, ALL_SUPPORTED_NFTS_KEY, {
 				supportedCollectionIDArray: [],
 			});
 
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
+				},
+			});
+
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
+				collectionIDs: [],
+			});
+
+			validator.validate(getSupportedCollectionIDsResponseSchema, { collectionIDs: [] });
+		});
+
+		it('should return undefined if chainID is not equal to ownChainID and is not supported', async () => {
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
+				},
+			});
+
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toBeUndefined();
+		});
+
+		it('should return empty collection if chainID is equal to ownChainID and is not supported', async () => {
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: ownChainID.toString('hex'),
+				},
+			});
+
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
+				collectionIDs: [],
+			});
+
+			validator.validate(getSupportedCollectionIDsResponseSchema, { collectionIDs: [] });
+		});
+
+		it('should return collectionIDs if chainID is not equal to ownChainID and is supported', async () => {
+			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 			const supportedCollections = [
 				{
 					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID),
@@ -448,6 +450,40 @@ describe('NFTEndpoint', () => {
 				stateStore,
 				params: {
 					chainID: chainID.toString('hex'),
+				},
+			});
+
+			const expectedSupportedCollection = {
+				collectionIDs: supportedCollections.map(collection =>
+					collection.collectionID.toString('hex'),
+				),
+			};
+
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual(
+				expectedSupportedCollection,
+			);
+
+			validator.validate(getSupportedCollectionIDsResponseSchema, expectedSupportedCollection);
+		});
+
+		it('should return collectionIDs if chainID is equal to ownChainID and is supported', async () => {
+			const supportedCollections = [
+				{
+					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID),
+				},
+				{
+					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID),
+				},
+			];
+
+			await supportedNFTsStore.save(methodContext, ownChainID, {
+				supportedCollectionIDArray: supportedCollections,
+			});
+
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: ownChainID.toString('hex'),
 				},
 			});
 
