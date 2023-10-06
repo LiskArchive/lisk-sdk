@@ -120,9 +120,8 @@ export class InternalMethod extends BaseMethod {
 					'NFT does not exist',
 					NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
 				);
-			} else {
-				throw error;
 			}
+			throw error;
 		}
 
 		if (this._nftMethod.isNFTEscrowed(nft)) {
@@ -165,9 +164,8 @@ export class InternalMethod extends BaseMethod {
 					'NFT does not exist',
 					NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
 				);
-			} else {
-				throw error;
 			}
+			throw error;
 		}
 
 		const nftChainID = this._nftMethod.getChainID(nftID);

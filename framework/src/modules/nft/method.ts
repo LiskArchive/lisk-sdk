@@ -127,9 +127,8 @@ export class NFTMethod extends BaseMethod {
 				);
 
 				throw new Error('NFT does not exist');
-			} else {
-				throw error;
 			}
+			throw error;
 		}
 
 		if (this.isNFTEscrowed(nft)) {
@@ -308,9 +307,8 @@ export class NFTMethod extends BaseMethod {
 				);
 
 				throw new Error('NFT does not exist');
-			} else {
-				throw error;
 			}
+			throw error;
 		}
 
 		if (this.isNFTEscrowed(nft)) {
@@ -366,9 +364,8 @@ export class NFTMethod extends BaseMethod {
 				);
 
 				throw new Error('NFT does not exist');
-			} else {
-				throw error;
 			}
+			throw error;
 		}
 
 		if (this.isNFTEscrowed(nft)) {
