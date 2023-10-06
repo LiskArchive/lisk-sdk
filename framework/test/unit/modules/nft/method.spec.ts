@@ -68,6 +68,7 @@ import {
 	SetAttributesEventData,
 } from '../../../../src/modules/nft/events/set_attributes';
 import { EscrowStore } from '../../../../src/modules/nft/stores/escrow';
+import { UnlockEvent, UnlockEventData } from '../../../../src/modules/nft/events/unlock';
 
 describe('NFTMethod', () => {
 	const module = new NFTModule();
@@ -658,10 +659,10 @@ describe('NFTMethod', () => {
 				'NFT does not exist',
 			);
 
-			checkEventResult<LockEventData>(
+			checkEventResult<UnlockEventData>(
 				methodContext.eventQueue,
 				1,
-				LockEvent,
+				UnlockEvent,
 				0,
 				{
 					module: module.name,
@@ -682,10 +683,10 @@ describe('NFTMethod', () => {
 				'NFT is not locked',
 			);
 
-			checkEventResult<LockEventData>(
+			checkEventResult<UnlockEventData>(
 				methodContext.eventQueue,
 				1,
-				LockEvent,
+				UnlockEvent,
 				0,
 				{
 					module: module.name,
@@ -695,15 +696,15 @@ describe('NFTMethod', () => {
 			);
 		});
 
-		it('should throw and log LockEvent if unlocking module is not the locking module', async () => {
+		it('should throw and log UnlockEvent if unlocking module is not the locking module', async () => {
 			await expect(
 				method.unlock(methodContext, module.name, lockedExistingNFT.nftID),
 			).rejects.toThrow('Unlocking NFT via module that did not lock it');
 
-			checkEventResult<LockEventData>(
+			checkEventResult<UnlockEventData>(
 				methodContext.eventQueue,
 				1,
-				LockEvent,
+				UnlockEvent,
 				0,
 				{
 					module: module.name,
@@ -713,15 +714,15 @@ describe('NFTMethod', () => {
 			);
 		});
 
-		it('should unlock and log LockEvent', async () => {
+		it('should unlock and log UnlockEvent', async () => {
 			await expect(
 				method.unlock(methodContext, lockedExistingNFT.lockingModule, lockedExistingNFT.nftID),
 			).resolves.toBeUndefined();
 
-			checkEventResult<LockEventData>(
+			checkEventResult<UnlockEventData>(
 				methodContext.eventQueue,
 				1,
-				LockEvent,
+				UnlockEvent,
 				0,
 				{
 					module: lockedExistingNFT.lockingModule,

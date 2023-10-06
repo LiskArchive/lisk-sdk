@@ -47,6 +47,7 @@ import { RecoverEvent } from './events/recover';
 import { EscrowStore } from './stores/escrow';
 import { SetAttributesEvent } from './events/set_attributes';
 import { NotFoundError } from './error';
+import { UnlockEvent } from './events/unlock';
 
 export class NFTMethod extends BaseMethod {
 	private _config!: ModuleConfig;
@@ -355,7 +356,7 @@ export class NFTMethod extends BaseMethod {
 			nft = await this.getNFT(methodContext, nftID);
 		} catch (error) {
 			if (error instanceof NotFoundError) {
-				this.events.get(LockEvent).error(
+				this.events.get(UnlockEvent).error(
 					methodContext,
 					{
 						module,
@@ -375,7 +376,7 @@ export class NFTMethod extends BaseMethod {
 		}
 
 		if (!this.isNFTLocked(nft)) {
-			this.events.get(LockEvent).error(
+			this.events.get(UnlockEvent).error(
 				methodContext,
 				{
 					module,
@@ -388,7 +389,7 @@ export class NFTMethod extends BaseMethod {
 		}
 
 		if (nft.lockingModule !== module) {
-			this.events.get(LockEvent).error(
+			this.events.get(UnlockEvent).error(
 				methodContext,
 				{
 					module,
@@ -405,7 +406,7 @@ export class NFTMethod extends BaseMethod {
 			lockingModule: NFT_NOT_LOCKED,
 		});
 
-		this.events.get(LockEvent).log(methodContext, {
+		this.events.get(UnlockEvent).log(methodContext, {
 			module,
 			nftID,
 		});
