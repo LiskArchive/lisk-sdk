@@ -132,19 +132,6 @@ export class NFTMethod extends BaseMethod {
 			}
 		}
 
-		if (!nft.owner.equals(address)) {
-			this.events.get(DestroyEvent).error(
-				methodContext,
-				{
-					address,
-					nftID,
-				},
-				NftEventResult.RESULT_INITIATED_BY_NONOWNER,
-			);
-
-			throw new Error('Not initiated by the NFT owner');
-		}
-
 		if (this.isNFTEscrowed(nft)) {
 			this.events.get(DestroyEvent).error(
 				methodContext,
@@ -156,6 +143,19 @@ export class NFTMethod extends BaseMethod {
 			);
 
 			throw new Error('NFT is escrowed to another chain');
+		}
+
+		if (!nft.owner.equals(address)) {
+			this.events.get(DestroyEvent).error(
+				methodContext,
+				{
+					address,
+					nftID,
+				},
+				NftEventResult.RESULT_INITIATED_BY_NONOWNER,
+			);
+
+			throw new Error('Not initiated by the NFT owner');
 		}
 
 		if (this.isNFTLocked(nft)) {
