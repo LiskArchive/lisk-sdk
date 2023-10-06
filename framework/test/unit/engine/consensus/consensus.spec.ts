@@ -222,49 +222,6 @@ describe('consensus', () => {
 		});
 	});
 
-	describe('getMaxRemovalHeight', () => {
-		it('should return minCertifyHeight if the finalizedBlock.aggregateCommit.height is smaller', async () => {
-			const finalizedBlock = await createValidDefaultBlock({
-				header: {
-					height: 1,
-					aggregateCommit: {
-						height: 0,
-						aggregationBits: Buffer.alloc(0),
-						certificateSignature: Buffer.alloc(0),
-					},
-				},
-			});
-			(chain.dataAccess.getBlockHeaderByHeight as jest.Mock).mockResolvedValue(
-				finalizedBlock.header,
-			);
-			const minimumCertifyHeight = 25519;
-			consensus['_genesisConfig'].minimumCertifyHeight = minimumCertifyHeight;
-
-			await expect(consensus.getMaxRemovalHeight()).resolves.toEqual(minimumCertifyHeight - 1);
-		});
-
-		it('should return finalizedBlock.aggregateCommit.height if the minCertifyHeight is smaller', async () => {
-			const finalizedBlock = await createValidDefaultBlock({
-				header: {
-					height: 1,
-					aggregateCommit: {
-						height: 25520,
-						aggregationBits: Buffer.alloc(0),
-						certificateSignature: Buffer.alloc(0),
-					},
-				},
-			});
-			(chain.dataAccess.getBlockHeaderByHeight as jest.Mock).mockResolvedValue(
-				finalizedBlock.header,
-			);
-			consensus['_genesisConfig'].minimumCertifyHeight = 25519;
-
-			await expect(consensus.getMaxRemovalHeight()).resolves.toEqual(
-				finalizedBlock.header.aggregateCommit.height,
-			);
-		});
-	});
-
 	describe('certifySingleCommit', () => {
 		const passphrase = Mnemonic.generateMnemonic(256);
 		const { publicKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);

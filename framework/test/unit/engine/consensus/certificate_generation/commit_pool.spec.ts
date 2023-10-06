@@ -1062,7 +1062,7 @@ describe('CommitPool', () => {
 		it.todo('');
 	});
 
-	describe('_getMaxRemovalHeight', () => {
+	describe('getMaxRemovalHeight', () => {
 		let blockHeader: BlockHeader;
 		const finalizedHeight = 1010;
 
@@ -1085,14 +1085,54 @@ describe('CommitPool', () => {
 			when(getBlockHeaderByHeight).calledWith(finalizedHeight).mockReturnValue(blockHeader);
 		});
 		it('should return successfully for an existing block header at finalizedHeight', async () => {
-			const maxRemovalHeight = await commitPool['_getMaxRemovalHeight']();
+			const maxRemovalHeight = await commitPool.getMaxRemovalHeight();
 
 			expect(maxRemovalHeight).toBe(blockHeader.aggregateCommit.height);
 		});
 		it('should throw an error for non-existent block header at finalizedHeight', async () => {
 			chain.finalizedHeight = finalizedHeight + 1;
 
-			await expect(commitPool['_getMaxRemovalHeight']()).rejects.toThrow(NotFoundError);
+			await expect(commitPool.getMaxRemovalHeight()).rejects.toThrow(NotFoundError);
+		});
+
+		it('should return minCertifyHeight -1 if the finalizedBlock.aggregateCommit.height is smaller', async () => {
+			const finalizedBlockHeader = createFakeBlockHeader({
+				height: 25520,
+				timestamp: finalizedHeight * 10,
+				aggregateCommit: {
+					aggregationBits: Buffer.alloc(0),
+					certificateSignature: Buffer.alloc(0),
+					height: 500,
+				},
+			});
+			when(getBlockHeaderByHeight)
+				.calledWith(finalizedHeight)
+				.mockReturnValue(finalizedBlockHeader);
+			const minimumCertifyHeight = 25519;
+			(commitPool as any)['_minCertifyHeight'] = minimumCertifyHeight;
+
+			await expect(commitPool.getMaxRemovalHeight()).resolves.toEqual(minimumCertifyHeight - 1);
+		});
+
+		it('should return finalizedBlock.aggregateCommit.height if the minCertifyHeight - 1 is smaller', async () => {
+			const finalizedBlockHeader = createFakeBlockHeader({
+				height: 25520,
+				timestamp: finalizedHeight * 10,
+				aggregateCommit: {
+					aggregationBits: Buffer.alloc(0),
+					certificateSignature: Buffer.alloc(0),
+					height: 25520,
+				},
+			});
+			when(getBlockHeaderByHeight)
+				.calledWith(finalizedHeight)
+				.mockReturnValue(finalizedBlockHeader);
+			const minimumCertifyHeight = 25519;
+			(commitPool as any)['_minCertifyHeight'] = minimumCertifyHeight;
+
+			await expect(commitPool.getMaxRemovalHeight()).resolves.toEqual(
+				finalizedBlockHeader.aggregateCommit.height,
+			);
 		});
 	});
 
