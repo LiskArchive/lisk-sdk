@@ -53,6 +53,7 @@ import { RequestContext } from '../rpc/rpc_server';
 import { ABI } from '../../abi';
 import { JSONObject } from '../../types';
 import { NotFoundError } from './errors';
+import { SingleCommitHandler } from './single_commit_handler';
 
 interface EndpointArgs {
 	keypair: dataStructures.BufferMap<Keypair>;
@@ -64,6 +65,7 @@ interface EndpointArgs {
 
 interface EndpointInit {
 	generatorDB: Database;
+	singleCommitHandler: SingleCommitHandler;
 	genesisHeight: number;
 }
 
@@ -77,6 +79,7 @@ export class Endpoint {
 
 	private _generatorDB!: Database;
 	private _genesisHeight!: number;
+	private _singleCommitHandler!: SingleCommitHandler;
 
 	public constructor(args: EndpointArgs) {
 		this._keypairs = args.keypair;
@@ -89,6 +92,7 @@ export class Endpoint {
 	public init(args: EndpointInit) {
 		this._generatorDB = args.generatorDB;
 		this._genesisHeight = args.genesisHeight;
+		this._singleCommitHandler = args.singleCommitHandler;
 	}
 
 	public async getStatus(_ctx: RequestContext): Promise<GetStatusResponse> {
@@ -198,6 +202,8 @@ export class Endpoint {
 				req,
 			);
 		}
+
+		await this._singleCommitHandler.initSingleCommits(address);
 
 		ctx.logger.info(`Block generation enabled on address: ${req.address}`);
 
