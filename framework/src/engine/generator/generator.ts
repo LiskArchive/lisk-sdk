@@ -112,7 +112,6 @@ export class Generator {
 	private readonly _forgingStrategy: HighFeeGenerationStrategy;
 	private readonly _blockTime: number;
 	private readonly _metrics = {
-		signedCommits: defaultMetrics.counter('generator_signedCommits'),
 		blockGeneration: defaultMetrics.counter('generator_blockGeneration'),
 	};
 
