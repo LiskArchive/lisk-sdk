@@ -26,6 +26,7 @@ export const buildTxIDDbKey = (id: Buffer): Buffer =>
 
 export const buildBlockIDDbKey = (id: Buffer): Buffer =>
 	Buffer.from(`${DB_KEY_BLOCKS_ID}:${id.toString('binary')}`);
+
 export const buildTxsBlockIDDbKey = (id: Buffer): Buffer =>
 	Buffer.from(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${id.toString('binary')}`);
 

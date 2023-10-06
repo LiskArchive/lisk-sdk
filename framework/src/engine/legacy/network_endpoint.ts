@@ -97,7 +97,7 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 
 		let bracketInfo;
 		try {
-			bracketInfo = await this._storage.getLegacyChainBracketInfo(snapshotBlockID);
+			bracketInfo = await this._storage.getBracketInfo(snapshotBlockID);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -112,8 +112,8 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 
 			throw error;
 		}
-		let fromBlockHeight;
 
+		let fromBlockHeight;
 		try {
 			// if the requested blockID is the same as snapshotBlockID then start from a block before snapshotBlock
 			if (snapshotBlockID.equals(lastBlockID)) {
@@ -130,7 +130,7 @@ export class LegacyNetworkEndpoint extends BaseNetworkEndpoint {
 			return codec.encode(getBlocksFromIdResponseSchema, { blocks: [] });
 		}
 
-		// we have to sync backwards so if lastBlockHeight 171, then node responds with blocks from [71, 170]
+		// we have to sync backwards so if lastBlockHeight is 171, then node responds with blocks from [71, 170]
 		// so lastBlockHeight = 170 and fetchFromHeight should be (lastBlockHeight - 99) = 71
 		// where blocks at 71 and 170 are inclusive so in total 100 blocks
 		const lastBlockHeight = fromBlockHeight - 1;

@@ -117,13 +117,13 @@ export class Storage {
 		await this._db.write(batch);
 	}
 
-	public async getLegacyChainBracketInfo(snapshotBlockID: Buffer): Promise<LegacyChainBracketInfo> {
+	public async getBracketInfo(snapshotBlockID: Buffer): Promise<LegacyChainBracketInfo> {
 		const encodedBracketInfo = await this._db.get(buildLegacyBracketDBKey(snapshotBlockID));
 
 		return decodeLegacyChainBracketInfo(encodedBracketInfo);
 	}
 
-	public async setLegacyChainBracketInfo(
+	public async setBracketInfo(
 		snapshotBlockID: Buffer,
 		bracketInfo: LegacyChainBracketInfo,
 	): Promise<void> {
@@ -133,9 +133,9 @@ export class Storage {
 		);
 	}
 
-	public async legacyChainBracketInfoExist(snapshotBlockID: Buffer): Promise<boolean> {
+	public async hasBracketInfo(snapshotBlockID: Buffer): Promise<boolean> {
 		try {
-			const bracketInfo = await this.getLegacyChainBracketInfo(snapshotBlockID);
+			const bracketInfo = await this.getBracketInfo(snapshotBlockID);
 
 			return !!bracketInfo;
 		} catch (error) {

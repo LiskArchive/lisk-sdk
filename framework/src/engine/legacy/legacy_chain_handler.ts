@@ -21,12 +21,13 @@ import { getBlocksFromIdResponseSchema } from '../consensus/schema';
 import { Storage } from './storage';
 import { LegacyBlock, LegacyBlockBracket, Peer } from './types';
 import { decodeBlock, encodeBlockHeader } from './codec';
-import { FailAndAttemptSyncError } from './errors';
+import { FailSyncError } from './errors';
 import { validateLegacyBlock } from './validate';
 import { Logger } from '../../logger';
 import {
 	FAILED_SYNC_RETRY_TIMEOUT,
-	MAX_NUMBER_OF_FAILED_ATTEMPTS,
+	LOG_OBJECT_ENGINE_LEGACY_MODULE,
+	MAX_FAILED_ATTEMPTS,
 	SUCCESS_SYNC_RETRY_TIMEOUT,
 } from './constants';
 import { getLegacyBlocksFromIdRequestSchema } from './schemas';
@@ -42,13 +43,12 @@ interface LegacyHandlerInitArgs {
 	db: Database;
 }
 
-export async function wait(duration: number): Promise<NodeJS.Timeout> {
-	return new Promise(resolve => {
+const wait = async (duration: number): Promise<NodeJS.Timeout> =>
+	new Promise(resolve => {
 		const timeout = setTimeout(() => {
 			resolve(timeout);
 		}, duration);
 	});
-}
 
 export class LegacyChainHandler {
 	private readonly _network: Network;
@@ -67,31 +67,31 @@ export class LegacyChainHandler {
 	public async init(args: LegacyHandlerInitArgs): Promise<void> {
 		this._storage = new Storage(args.db);
 
-		for (const bracket of this._legacyConfig.brackets) {
+		for (const bracketInfo of this._legacyConfig.brackets) {
 			try {
-				const bracketStorageKey = Buffer.from(bracket.snapshotBlockID, 'hex');
-				const bracketExists = await this._storage.legacyChainBracketInfoExist(bracketStorageKey);
+				const bracketStorageKey = Buffer.from(bracketInfo.snapshotBlockID, 'hex');
+				const bracketExists = await this._storage.hasBracketInfo(bracketStorageKey);
 
 				if (!bracketExists) {
-					await this._storage.setLegacyChainBracketInfo(bracketStorageKey, {
-						startHeight: bracket.startHeight,
-						snapshotBlockHeight: bracket.snapshotHeight,
+					await this._storage.setBracketInfo(bracketStorageKey, {
+						startHeight: bracketInfo.startHeight,
+						snapshotBlockHeight: bracketInfo.snapshotHeight,
 						// if start block already exists then assign to lastBlockHeight
-						lastBlockHeight: bracket.snapshotHeight,
+						lastBlockHeight: bracketInfo.snapshotHeight,
 					});
 					continue;
 				}
 
-				const storedBracketInfo = await this._storage.getLegacyChainBracketInfo(bracketStorageKey);
-				const startBlock = await this._storage.getBlockByHeight(bracket.startHeight);
+				const storedBracketInfo = await this._storage.getBracketInfo(bracketStorageKey);
+				const startBlock = await this._storage.getBlockByHeight(bracketInfo.startHeight);
 
 				// In case a user wants to indirectly update the bracketInfo stored in legacyDB
-				await this._storage.setLegacyChainBracketInfo(bracketStorageKey, {
+				await this._storage.setBracketInfo(bracketStorageKey, {
 					...storedBracketInfo,
-					startHeight: bracket.startHeight,
-					snapshotBlockHeight: bracket.snapshotHeight,
+					startHeight: bracketInfo.startHeight,
+					snapshotBlockHeight: bracketInfo.snapshotHeight,
 					// if start block already exists then assign to lastBlockHeight
-					lastBlockHeight: startBlock ? bracket.startHeight : bracket.snapshotHeight,
+					lastBlockHeight: startBlock ? bracketInfo.startHeight : bracketInfo.snapshotHeight,
 				});
 			} catch (error) {
 				if (!(error instanceof NotFoundError)) {
@@ -107,7 +107,7 @@ export class LegacyChainHandler {
 
 	public async sync() {
 		for (const bracket of this._legacyConfig.brackets) {
-			const bracketInfo = await this._storage.getLegacyChainBracketInfo(
+			const bracketInfo = await this._storage.getBracketInfo(
 				Buffer.from(bracket.snapshotBlockID, 'hex'),
 			);
 
@@ -134,7 +134,7 @@ export class LegacyChainHandler {
 			}
 
 			this._logger.info(
-				{ engineModule: 'legacy' },
+				LOG_OBJECT_ENGINE_LEGACY_MODULE,
 				`Started syncing legacy blocks for bracket with snapshotBlockID ${bracket.snapshotBlockID}`,
 			);
 			// start parsing bracket from `lastBlock` height`
@@ -149,18 +149,21 @@ export class LegacyChainHandler {
 	) {
 		try {
 			await this._syncBlocks(bracket, lastBlockID, syncRetryCounter);
-		} catch (err) {
-			if (err instanceof FailAndAttemptSyncError) {
+		} catch (error) {
+			if (error instanceof FailSyncError) {
 				this._logger.debug(
-					{ engineModule: 'legacy' },
+					LOG_OBJECT_ENGINE_LEGACY_MODULE,
 					`Retrying syncing legacy blocks for bracket with snapshotBlockID ${bracket.snapshotBlockID}`,
 				);
 				clearTimeout(this._syncTimeout);
 				this._syncTimeout = await wait(FAILED_SYNC_RETRY_TIMEOUT);
-				await this._trySyncBlocks(bracket, lastBlockID);
 			} else {
-				throw err;
+				this._logger.debug(
+					{ ...LOG_OBJECT_ENGINE_LEGACY_MODULE, error: (error as Error).message },
+					`Retrying syncing legacy blocks for bracket with snapshotBlockID ${bracket.snapshotBlockID}`,
+				);
 			}
+			await this._trySyncBlocks(bracket, lastBlockID);
 		}
 	}
 
@@ -194,8 +197,8 @@ export class LegacyChainHandler {
 		);
 		if (peersWithLegacyInfo.length === 0) {
 			const errorMessage = 'No peer found with legacy info.';
-			this._logger.warn({ engineModule: 'legacy', method: 'syncBlocks' }, errorMessage);
-			throw new FailAndAttemptSyncError(errorMessage);
+			this._logger.warn({ ...LOG_OBJECT_ENGINE_LEGACY_MODULE, method: 'syncBlocks' }, errorMessage);
+			throw new FailSyncError(errorMessage);
 		}
 
 		const randomPeerIndex = Math.trunc(Math.random() * peersWithLegacyInfo.length - 1);
@@ -219,14 +222,14 @@ export class LegacyChainHandler {
 		} catch (error) {
 			// eslint-disable-next-line no-param-reassign
 			syncRetryCounter += 1;
-			if (syncRetryCounter > MAX_NUMBER_OF_FAILED_ATTEMPTS) {
-				const errorMessage = `Failed ${MAX_NUMBER_OF_FAILED_ATTEMPTS} times to request from peer.`;
+			if (syncRetryCounter > MAX_FAILED_ATTEMPTS) {
+				const errorMessage = `Failed ${MAX_FAILED_ATTEMPTS} times to request from peer.`;
 				this._logger.warn(
-					{ engineModule: 'legacy', peerId, method: 'requestFromPeer' },
+					{ ...LOG_OBJECT_ENGINE_LEGACY_MODULE, peerId, method: 'requestFromPeer' },
 					errorMessage,
 				);
 
-				throw new FailAndAttemptSyncError(errorMessage);
+				throw new FailSyncError(errorMessage);
 			}
 			return this._trySyncBlocks(bracket, lastBlockID, syncRetryCounter);
 		}
@@ -239,7 +242,7 @@ export class LegacyChainHandler {
 			// this part is needed to make sure `data` returns ONLY `{ blocks: Buffer[] }` & not any extra field(s)
 			const { blocks } = codec.decode<{ blocks: Buffer[] }>(getBlocksFromIdResponseSchema, data);
 			if (blocks.length === 0) {
-				this.applyPenaltyAndRetrySync('Received empty response', peerId);
+				this.applyPenaltyOnSyncFailure('Received empty response', peerId);
 
 				return this._trySyncBlocks(bracket, lastBlockID, syncRetryCounter);
 			}
@@ -248,7 +251,7 @@ export class LegacyChainHandler {
 
 			legacyBlocks = blocks.map(block => decodeBlock(block).block);
 		} catch (err) {
-			this.applyPenaltyAndRetrySync((err as Error).message, peerId);
+			this.applyPenaltyOnSyncFailure((err as Error).message, peerId);
 
 			return this._trySyncBlocks(bracket, lastBlockID, syncRetryCounter);
 		}
@@ -268,7 +271,7 @@ export class LegacyChainHandler {
 		const lastBlock = legacyBlocks[legacyBlocks.length - 1];
 		if (lastBlock && lastBlock.header.height > bracket.startHeight) {
 			this._logger.debug(
-				{ engineModule: 'legacy' },
+				LOG_OBJECT_ENGINE_LEGACY_MODULE,
 				`Saved blocks from ${legacyBlocks[0].header.height} to ${lastBlock.header.height}`,
 			);
 			await this._updateBracketInfo(lastBlock, bracket);
@@ -278,7 +281,7 @@ export class LegacyChainHandler {
 		} else {
 			// Syncing is finished
 			this._logger.info(
-				{ engineModule: 'legacy' },
+				LOG_OBJECT_ENGINE_LEGACY_MODULE,
 				`Finished syncing legacy blocks for bracket with snapshotBlockID ${bracket.snapshotBlockID}`,
 			);
 
@@ -293,15 +296,18 @@ export class LegacyChainHandler {
 	}
 
 	private async _updateBracketInfo(lastBlock: LegacyBlock, bracket: LegacyBlockBracket) {
-		await this._storage.setLegacyChainBracketInfo(Buffer.from(bracket.snapshotBlockID, 'hex'), {
+		await this._storage.setBracketInfo(Buffer.from(bracket.snapshotBlockID, 'hex'), {
 			startHeight: bracket.startHeight,
 			lastBlockHeight: lastBlock?.header.height,
 			snapshotBlockHeight: bracket.snapshotHeight,
 		});
 	}
 
-	private applyPenaltyAndRetrySync(msg: string, peerId: string) {
-		this._logger.warn({ engineModule: 'legacy', peerId }, `${msg}: Applying a penalty to the peer`);
+	private applyPenaltyOnSyncFailure(msg: string, peerId: string) {
+		this._logger.warn(
+			{ ...LOG_OBJECT_ENGINE_LEGACY_MODULE, peerId },
+			`${msg}: Applying a penalty to the peer`,
+		);
 		this._network.applyPenaltyOnPeer({ peerId, penalty: 100 });
 	}
 

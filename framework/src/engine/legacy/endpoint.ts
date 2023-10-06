@@ -12,10 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Database, NotFoundError } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { isHexString } from '@liskhq/lisk-validator';
 import { RequestContext } from '../rpc/rpc_server';
-import { LegacyBlockJSON, LegacyChainBracketInfo, LegacyTransactionJSON } from './types';
+import {
+	LegacyBlockJSON,
+	LegacyChainBracketInfoWithSnapshotBlockID,
+	LegacyTransactionJSON,
+} from './types';
 import { Storage } from './storage';
 import { decodeBlockJSON, getLegacyTransactionJSONWithSchema } from './codec';
 import { LegacyConfig } from '../../types';
@@ -23,10 +27,6 @@ import { LegacyConfig } from '../../types';
 interface EndpointArgs {
 	db: Database;
 	legacyConfig: LegacyConfig;
-}
-
-interface GetBracketInfoEndpointResponse extends LegacyChainBracketInfo {
-	snapshotBlockID: string;
 }
 
 export class LegacyEndpoint {
@@ -88,24 +88,18 @@ export class LegacyEndpoint {
 
 	public async getLegacyBrackets(
 		_context: RequestContext,
-	): Promise<GetBracketInfoEndpointResponse[]> {
-		const legacyBracketInfos: GetBracketInfoEndpointResponse[] = [];
-		for (const bracket of this._legacyConfig.brackets) {
-			try {
-				const bracketInfo = await this.storage.getLegacyChainBracketInfo(
+	): Promise<LegacyChainBracketInfoWithSnapshotBlockID[]> {
+		return Promise.all(
+			this._legacyConfig.brackets.map(async bracket => {
+				const bracketInfo = await this.storage.getBracketInfo(
 					Buffer.from(bracket.snapshotBlockID, 'hex'),
 				);
-				legacyBracketInfos.push({
+
+				return {
 					...bracketInfo,
 					snapshotBlockID: bracket.snapshotBlockID,
-				});
-			} catch (error) {
-				if (!(error instanceof NotFoundError)) {
-					throw error;
-				}
-			}
-		}
-
-		return legacyBracketInfos;
+				};
+			}),
+		);
 	}
 }

@@ -44,7 +44,7 @@ export const blockSchemaMap: Record<number, LegacyBlockSchema> = {
 	},
 };
 
-export const getBlockSchemaByVersion = (version: number) => {
+export const getBlockSchema = (version: number) => {
 	const blockSchema = blockSchemaMap[version];
 	if (!blockSchema) {
 		throw new Error(`Legacy block version ${version} is not registered.`);
@@ -59,7 +59,7 @@ export const decodeBlock = (
 	data: Buffer,
 ): { block: LegacyBlockWithID; schema: LegacyBlockSchema } => {
 	const version = readVersion();
-	const blockSchema = getBlockSchemaByVersion(version);
+	const blockSchema = getBlockSchema(version);
 	const rawBlock = codec.decode<RawLegacyBlock>(blockSchema.block, data);
 	const id = utils.hash(rawBlock.header);
 	return {
@@ -74,13 +74,13 @@ export const decodeBlock = (
 	};
 };
 
-export const decodeBlockHeader = (blockHeaderBytes: Buffer): LegacyBlockHeaderWithID => {
+export const decodeBlockHeader = (blockHeader: Buffer): LegacyBlockHeaderWithID => {
 	const version = readVersion();
-	const blockSchema = getBlockSchemaByVersion(version);
-	const id = utils.hash(blockHeaderBytes);
+	const blockSchema = getBlockSchema(version);
+	const id = utils.hash(blockHeader);
 
 	return {
-		...codec.decode<LegacyBlockHeaderWithID>(blockSchema.header, blockHeaderBytes),
+		...codec.decode<LegacyBlockHeaderWithID>(blockSchema.header, blockHeader),
 		id,
 	};
 };
@@ -117,7 +117,7 @@ export const getLegacyTransactionJSONWithSchema = (
 };
 
 export const encodeBlock = (data: LegacyBlock): Buffer => {
-	const blockSchema = getBlockSchemaByVersion(data.header.version);
+	const blockSchema = getBlockSchema(data.header.version);
 	const headerBytes = codec.encode(blockSchema.header, data.header);
 
 	return codec.encode(blockSchema.block, {
@@ -127,7 +127,7 @@ export const encodeBlock = (data: LegacyBlock): Buffer => {
 };
 
 export const encodeBlockHeader = (blockHeader: LegacyBlockHeader): Buffer => {
-	const blockSchema = getBlockSchemaByVersion(blockHeader.version);
+	const blockSchema = getBlockSchema(blockHeader.version);
 	return codec.encode(blockSchema.header, blockHeader);
 };
 

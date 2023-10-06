@@ -167,15 +167,15 @@ describe('Legacy storage', () => {
 				lastBlockHeight: header.height,
 			};
 
-			await storage.setLegacyChainBracketInfo(header.id, bracketInfo);
+			await storage.setBracketInfo(header.id, bracketInfo);
 
-			const result = await storage.getLegacyChainBracketInfo(header.id);
+			const result = await storage.getBracketInfo(header.id);
 
 			expect(result).toEqual(bracketInfo);
 		});
 
 		it('should throw error if block with given id does not exist', async () => {
-			await expect(storage.getLegacyChainBracketInfo(Buffer.alloc(0))).rejects.toThrow(
+			await expect(storage.getBracketInfo(Buffer.alloc(0))).rejects.toThrow(
 				`Specified key 02 does not exist`,
 			);
 		});

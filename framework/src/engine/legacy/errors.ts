@@ -14,7 +14,7 @@
 
 import { FAILED_SYNC_RETRY_TIMEOUT } from './constants';
 
-export class FailAndAttemptSyncError extends Error {
+export class FailSyncError extends Error {
 	public constructor(message: string) {
 		super(`${message}: Attempting to sync again after ${FAILED_SYNC_RETRY_TIMEOUT} ms`);
 		this.name = this.constructor.name;

@@ -69,7 +69,7 @@ describe('Legacy P2P network endpoint', () => {
 				blockID,
 				snapshotBlockID,
 			});
-			await endpoint._storage.setLegacyChainBracketInfo(snapshotBlockID, {
+			await endpoint._storage.setBracketInfo(snapshotBlockID, {
 				lastBlockHeight: 100,
 				snapshotBlockHeight: 200,
 				startHeight: 50,
@@ -103,7 +103,7 @@ describe('Legacy P2P network endpoint', () => {
 				blockID: requestedBlockID,
 				snapshotBlockID,
 			} as never);
-			await endpoint._storage.setLegacyChainBracketInfo(snapshotBlockID, {
+			await endpoint._storage.setBracketInfo(snapshotBlockID, {
 				lastBlockHeight: 100,
 				snapshotBlockHeight: 200,
 				startHeight: requestedHeight - 101,

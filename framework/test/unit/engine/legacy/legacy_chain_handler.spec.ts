@@ -108,7 +108,7 @@ describe('Legacy Chain Handler', () => {
 	describe('sync', () => {
 		it('should sync blocks in range for given config brackets', async () => {
 			jest.spyOn(legacyChainHandler['_storage'], 'saveBlock');
-			jest.spyOn(legacyChainHandler['_storage'], 'setLegacyChainBracketInfo');
+			jest.spyOn(legacyChainHandler['_storage'], 'setBracketInfo');
 			jest.spyOn(legacyChainHandler['_network'], 'applyNodeInfo');
 
 			await legacyChainHandler.sync();
@@ -119,7 +119,7 @@ describe('Legacy Chain Handler', () => {
 
 			// should be 1, since if `lastBlock.header.height > bracket.startHeight` is skipped
 			// & only the final `_updateBracketInfo(...)` is called
-			expect(legacyChainHandler['_storage'].setLegacyChainBracketInfo).toHaveBeenCalledTimes(1);
+			expect(legacyChainHandler['_storage'].setBracketInfo).toHaveBeenCalledTimes(1);
 		});
 	});
 });
