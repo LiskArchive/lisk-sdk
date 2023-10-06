@@ -257,7 +257,7 @@ describe('block_header', () => {
 				);
 			});
 
-			it('should throw error if aggregateCommit.height is not equal to the height', () => {
+			it('should throw error if aggregateCommit.height is not equal to 0', () => {
 				const block = getGenesisBlockAttrs();
 				const blockHeader = new BlockHeader({
 					...block,
@@ -265,7 +265,7 @@ describe('block_header', () => {
 				});
 
 				expect(() => blockHeader.validateGenesis()).toThrow(
-					'Genesis block header aggregateCommit.height must equal to the genesis height',
+					'Genesis block header aggregateCommit.height must equal 0',
 				);
 			});
 
