@@ -138,11 +138,11 @@ describe('InternalMethod', () => {
 		it('should throw for duplicate module names in attributes array', async () => {
 			const attributesArray = [
 				{
-					module: 'token',
+					module: 'module1',
 					attributes: Buffer.alloc(8, 1),
 				},
 				{
-					module: 'token',
+					module: 'module1',
 					attributes: Buffer.alloc(8, 2),
 				},
 			];
@@ -155,11 +155,11 @@ describe('InternalMethod', () => {
 		it('should create an entry in NFStore with attributes sorted by module if there is no duplicate module name', async () => {
 			const unsortedAttributesArray = [
 				{
-					module: 'token',
+					module: 'module1',
 					attributes: Buffer.alloc(8, 1),
 				},
 				{
-					module: 'pos',
+					module: 'module2',
 					attributes: Buffer.alloc(8, 1),
 				},
 			];
