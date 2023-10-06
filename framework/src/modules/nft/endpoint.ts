@@ -28,7 +28,7 @@ import {
 import { NFTStore } from './stores/nft';
 import { ALL_SUPPORTED_NFTS_KEY, LENGTH_ADDRESS, LENGTH_NFT_ID } from './constants';
 import { UserStore } from './stores/user';
-import { ModuleConfig, NFT } from './types';
+import { ModuleConfig, NFTJSON } from './types';
 import { SupportedNFTsStore } from './stores/supported_nfts';
 import { NFTMethod } from './method';
 
@@ -46,7 +46,7 @@ export class NFTEndpoint extends BaseEndpoint {
 
 	public async getNFTs(
 		context: ModuleEndpointContext,
-	): Promise<{ nfts: JSONObject<Omit<NFT, 'owner'> & { id: string }>[] }> {
+	): Promise<{ nfts: JSONObject<Omit<NFTJSON, 'owner'> & { id: string }>[] }> {
 		validator.validate<{ address: string }>(getNFTsRequestSchema, context.params);
 
 		const nftStore = this.stores.get(NFTStore);
@@ -102,7 +102,7 @@ export class NFTEndpoint extends BaseEndpoint {
 		return { hasNFT: nftData.owner.equals(owner) };
 	}
 
-	public async getNFT(context: ModuleEndpointContext): Promise<JSONObject<NFT>> {
+	public async getNFT(context: ModuleEndpointContext): Promise<JSONObject<NFTJSON>> {
 		const { params } = context;
 		validator.validate<{ id: string }>(getNFTRequestSchema, params);
 
@@ -111,7 +111,7 @@ export class NFTEndpoint extends BaseEndpoint {
 		const nftExists = await nftStore.has(context.getImmutableMethodContext(), nftID);
 
 		if (!nftExists) {
-			throw new Error('NFT does not exist');
+			throw new Error('NFT substore entry does not exist');
 		}
 
 		const userStore = this.stores.get(UserStore);
@@ -123,6 +123,13 @@ export class NFTEndpoint extends BaseEndpoint {
 		}));
 
 		if (nftData.owner.length === LENGTH_ADDRESS) {
+			const userExists = await userStore.has(
+				context.getImmutableMethodContext(),
+				userStore.getKey(nftData.owner, nftID),
+			);
+			if (!userExists) {
+				throw new Error('User substore entry does not exist');
+			}
 			const userData = await userStore.get(
 				context.getImmutableMethodContext(),
 				userStore.getKey(nftData.owner, nftID),
