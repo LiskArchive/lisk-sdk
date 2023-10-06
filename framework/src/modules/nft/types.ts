@@ -13,6 +13,7 @@
  */
 
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
+import { JSONObject } from '../../types';
 import { CCMsg } from '../interoperability';
 
 export interface ModuleConfig {
@@ -50,8 +51,9 @@ export interface TokenMethod {
 export interface NFTMethod {
 	getChainID(nftID: Buffer): Buffer;
 	destroy(methodContext: MethodContext, address: Buffer, nftID: Buffer): Promise<void>;
-	getNFTOwner(methodContext: ImmutableMethodContext, nftID: Buffer): Promise<Buffer>;
-	getLockingModule(methodContext: ImmutableMethodContext, nftID: Buffer): Promise<string>;
+	getNFT(methodContext: ImmutableMethodContext, nftID: Buffer): Promise<NFT>;
+	isNFTEscrowed(nft: NFT): boolean;
+	isNFTLocked(nft: NFT): boolean;
 }
 
 export interface NFTAttributes {
@@ -60,6 +62,14 @@ export interface NFTAttributes {
 }
 
 export interface NFT {
+	owner: Buffer;
+	attributesArray: NFTAttributes[];
+	lockingModule?: string;
+}
+
+export type NFTJSON = JSONObject<NFT>;
+
+export interface NFTOutputEndpoint {
 	owner: string;
 	attributesArray: NFTAttributes[];
 	lockingModule?: string;

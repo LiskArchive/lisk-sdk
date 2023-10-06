@@ -208,7 +208,6 @@ describe('TransferCrossChainComand', () => {
 				receivingChainID: ownChainID,
 				nftID: existingNFT.nftID,
 			});
-
 			const receivingChainIDVerification = await command.verify(
 				receivingChainIDContext.createCommandVerifyContext(crossChainTransferParamsSchema),
 			);
@@ -227,12 +226,13 @@ describe('TransferCrossChainComand', () => {
 				nftIDNotExistingContext.createCommandVerifyContext(crossChainTransferParamsSchema),
 			);
 			expect(nftIDNotExistingVerification.status).toBe(VerifyStatus.FAIL);
-			expect(nftIDNotExistingVerification.error?.message).toBe('NFT substore entry does not exist');
+			expect(nftIDNotExistingVerification.error?.message).toBe('NFT does not exist');
 		});
 
 		it('should fail if NFT is escrowed', async () => {
 			const nftEscrowedContext = createTransactionContextWithOverridingParams({
 				nftID: escrowedNFT.nftID,
+				receivingChainID: escrowedNFT.nftID.subarray(0, LENGTH_CHAIN_ID),
 			});
 
 			const nftEscrowedVerification = await command.verify(
@@ -271,8 +271,12 @@ describe('TransferCrossChainComand', () => {
 			});
 
 			const nft = await nftStore.get(methodContext, existingNFT.nftID);
-			nft.owner = utils.getRandomBytes(LENGTH_ADDRESS);
+			const newOwner = utils.getRandomBytes(LENGTH_ADDRESS);
+			nft.owner = newOwner;
 			await nftStore.save(methodContext, existingNFT.nftID, nft);
+			await userStore.set(methodContext, userStore.getKey(newOwner, existingNFT.nftID), {
+				lockingModule: NFT_NOT_LOCKED,
+			});
 
 			const receivingChainIDVerification = await command.verify(
 				ownerNotSenderContext.createCommandVerifyContext(crossChainTransferParamsSchema),

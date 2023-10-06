@@ -41,6 +41,7 @@ import { CcmTransferEvent } from '../../../../../src/modules/nft/events/ccm_tran
 import { EscrowStore } from '../../../../../src/modules/nft/stores/escrow';
 import { UserStore } from '../../../../../src/modules/nft/stores/user';
 import { SupportedNFTsStore } from '../../../../../src/modules/nft/stores/supported_nfts';
+import { CCMStatusCode } from '../../../../../src/modules/interoperability/constants';
 
 describe('CrossChain Transfer Command', () => {
 	const module = new NFTModule();
@@ -272,7 +273,17 @@ describe('CrossChain Transfer Command', () => {
 			await expect(command.verify(context)).rejects.toThrow('NFT has not been properly escrowed');
 		});
 
-		it('should not throw if nft chain id is not equal to own chain id and no entry exists in nft substore for the nft id', async () => {
+		it('throw if nft chain id is not equal to own chain id and ccm status code is CCMStatusCode.MODULE_NOT_SUPPORTED', async () => {
+			const newCcm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: module.name,
+				nonce: BigInt(1),
+				sendingChainID,
+				receivingChainID,
+				fee: BigInt(30000),
+				status: CCMStatusCode.MODULE_NOT_SUPPORTED,
+				params,
+			};
 			const newConfig = {
 				ownChainID: utils.getRandomBytes(LENGTH_CHAIN_ID),
 				escrowAccountInitializationFee: BigInt(50000000),
@@ -282,7 +293,7 @@ describe('CrossChain Transfer Command', () => {
 			internalMethod.addDependencies(method, interopMethod, tokenMethod);
 			internalMethod.init(newConfig);
 			context = {
-				ccm,
+				ccm: newCcm,
 				transaction: defaultTransaction,
 				header: defaultHeader,
 				stateStore,
@@ -295,7 +306,47 @@ describe('CrossChain Transfer Command', () => {
 			};
 			await nftStore.del(methodContext, nftID);
 
-			await expect(command.verify(context)).resolves.toBeUndefined();
+			await expect(command.verify(context)).rejects.toThrow(
+				'Module or cross-chain command not supported',
+			);
+		});
+
+		it('throw if nft chain id is not equal to own chain id and ccm status code is CCMStatusCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED', async () => {
+			const newCcm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				module: module.name,
+				nonce: BigInt(1),
+				sendingChainID,
+				receivingChainID,
+				fee: BigInt(30000),
+				status: CCMStatusCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+				params,
+			};
+			const newConfig = {
+				ownChainID: utils.getRandomBytes(LENGTH_CHAIN_ID),
+				escrowAccountInitializationFee: BigInt(50000000),
+				userAccountInitializationFee: BigInt(50000000),
+			};
+			method.init(newConfig);
+			internalMethod.addDependencies(method, interopMethod, tokenMethod);
+			internalMethod.init(newConfig);
+			context = {
+				ccm: newCcm,
+				transaction: defaultTransaction,
+				header: defaultHeader,
+				stateStore,
+				contextStore,
+				getMethodContext,
+				eventQueue: new EventQueue(0),
+				getStore,
+				logger: fakeLogger,
+				chainID: newConfig.ownChainID,
+			};
+			await nftStore.del(methodContext, nftID);
+
+			await expect(command.verify(context)).rejects.toThrow(
+				'Module or cross-chain command not supported',
+			);
 		});
 
 		it('throw if nft chain id is not equal to own chain id and entry already exists in nft substore for the nft id', async () => {
@@ -321,6 +372,32 @@ describe('CrossChain Transfer Command', () => {
 			};
 
 			await expect(command.verify(context)).rejects.toThrow('NFT substore entry already exists');
+		});
+
+		it('should not throw if nft chain id is not equal to own chain id and no entry exists in nft substore for the nft id', async () => {
+			const newConfig = {
+				ownChainID: utils.getRandomBytes(LENGTH_CHAIN_ID),
+				escrowAccountInitializationFee: BigInt(50000000),
+				userAccountInitializationFee: BigInt(50000000),
+			};
+			method.init(newConfig);
+			internalMethod.addDependencies(method, interopMethod, tokenMethod);
+			internalMethod.init(newConfig);
+			context = {
+				ccm,
+				transaction: defaultTransaction,
+				header: defaultHeader,
+				stateStore,
+				contextStore,
+				getMethodContext,
+				eventQueue: new EventQueue(0),
+				getStore,
+				logger: fakeLogger,
+				chainID: newConfig.ownChainID,
+			};
+			await nftStore.del(methodContext, nftID);
+
+			await expect(command.verify(context)).resolves.toBeUndefined();
 		});
 	});
 
@@ -415,6 +492,8 @@ describe('CrossChain Transfer Command', () => {
 				senderAddress,
 				recipientAddress,
 				nftID,
+				receivingChainID: ccm.receivingChainID,
+				sendingChainID: ccm.sendingChainID,
 			});
 		});
 
@@ -465,6 +544,8 @@ describe('CrossChain Transfer Command', () => {
 				senderAddress,
 				recipientAddress: senderAddress,
 				nftID,
+				receivingChainID: ccm.receivingChainID,
+				sendingChainID: ccm.sendingChainID,
 			});
 		});
 
@@ -514,6 +595,8 @@ describe('CrossChain Transfer Command', () => {
 					senderAddress,
 					recipientAddress,
 					nftID: newNftID,
+					receivingChainID: ccm.receivingChainID,
+					sendingChainID: ccm.sendingChainID,
 				},
 				NftEventResult.RESULT_NFT_NOT_SUPPORTED,
 			);
@@ -560,6 +643,8 @@ describe('CrossChain Transfer Command', () => {
 				senderAddress,
 				recipientAddress,
 				nftID,
+				receivingChainID: ccm.receivingChainID,
+				sendingChainID: ccm.sendingChainID,
 			});
 		});
 
@@ -610,7 +695,7 @@ describe('CrossChain Transfer Command', () => {
 				methodContext,
 				userStore.getKey(senderAddress, nftID),
 			);
-			expect(feeMethod.payFee).not.toHaveBeenCalled();
+			expect(feeMethod.payFee).toHaveBeenCalledWith(methodContext, BigInt(FEE_CREATE_NFT));
 			expect(nftStoreData.owner).toStrictEqual(senderAddress);
 			expect(nftStoreData.attributesArray).toEqual(attributesArray);
 			expect(userAccountExistsForRecipient).toBe(false);
@@ -619,6 +704,8 @@ describe('CrossChain Transfer Command', () => {
 				senderAddress,
 				recipientAddress: senderAddress,
 				nftID,
+				receivingChainID: ccm.receivingChainID,
+				sendingChainID: ccm.sendingChainID,
 			});
 		});
 	});

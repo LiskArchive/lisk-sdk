@@ -86,7 +86,6 @@ describe('Validator registration command', () => {
 		'hex',
 	);
 
-	// TODO: move this function to utils and import from all other tests using it
 	const checkEventResult = (
 		eventQueue: EventQueue,
 		EventClass: any,

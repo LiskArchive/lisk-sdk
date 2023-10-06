@@ -71,6 +71,14 @@ import { sidechainRegParams } from 'lisk-framework';
 			// Wait for 2 seconds before next registration
 			await wait(WAIT_PERIOD);
 		}
+
+		const authorizeSideChainResult = await sidechainClient.invoke<{
+			transactionId: string;
+		}>('chainConnector_authorize', {
+			enable: true,
+			password: 'lisk',
+		});
+		console.log('Authorize Sidechain completed, result:', authorizeSideChainResult);
 	}
 
 	process.exit(0);

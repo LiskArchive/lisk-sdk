@@ -79,7 +79,7 @@ describe('Transfer command', () => {
 				command: 'transfer',
 				fee: BigInt(5000000),
 				nonce: BigInt(0),
-				senderPublicKey: utils.getRandomBytes(32),
+				senderPublicKey,
 				params: codec.encode(transferParamsSchema, {
 					...validParams,
 					...params,
@@ -112,7 +112,7 @@ describe('Transfer command', () => {
 				nftIDNotExistingContext.createCommandVerifyContext(transferParamsSchema),
 			);
 			expect(nftIDNotExistingVerification.status).toBe(VerifyStatus.FAIL);
-			expect(nftIDNotExistingVerification.error?.message).toBe('NFT substore entry does not exist');
+			expect(nftIDNotExistingVerification.error?.message).toBe('NFT does not exist');
 		});
 
 		it('should fail if NFT is escrowed to another chain', async () => {
@@ -120,7 +120,7 @@ describe('Transfer command', () => {
 				nftID,
 			});
 
-			await nftStore.set(createStoreGetter(nftEscrowedContext.stateStore), nftID, {
+			await nftStore.save(createStoreGetter(nftEscrowedContext.stateStore), nftID, {
 				owner: chainID,
 				attributesArray: [],
 			});
@@ -136,11 +136,19 @@ describe('Transfer command', () => {
 			const nftIncorrectOwnerContext = createTransactionContextWithOverridingParams({
 				nftID,
 			});
+			const newOwner = utils.getRandomBytes(LENGTH_ADDRESS);
 
 			await nftStore.save(createStoreGetter(nftIncorrectOwnerContext.stateStore), nftID, {
-				owner: utils.getRandomBytes(LENGTH_ADDRESS),
+				owner: newOwner,
 				attributesArray: [],
 			});
+			await userStore.set(
+				createStoreGetter(nftIncorrectOwnerContext.stateStore),
+				userStore.getKey(newOwner, nftID),
+				{
+					lockingModule: 'token',
+				},
+			);
 
 			const nftIncorrectOwnerVerification = await command.verify(
 				nftIncorrectOwnerContext.createCommandVerifyContext(transferParamsSchema),

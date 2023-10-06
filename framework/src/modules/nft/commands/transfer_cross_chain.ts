@@ -54,13 +54,6 @@ export class TransferCrossChainCommand extends BaseCommand {
 		const { senderAddress } = context.transaction;
 
 		try {
-			// perform checks that are common for same-chain and cross-chain transfers
-			await this._internalMethod.verifyTransfer(
-				context.getMethodContext(),
-				senderAddress,
-				params.nftID,
-			);
-
 			await this._internalMethod.verifyTransferCrossChain(
 				context.getMethodContext(),
 				senderAddress,

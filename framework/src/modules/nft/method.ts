@@ -12,9 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseMethod } from '../base_method';
-import { FeeMethod, ModuleConfig } from './types';
+import { FeeMethod, ModuleConfig, NFT } from './types';
 import { NFTAttributes, NFTStore, NFTStoreData, nftStoreSchema } from './stores/nft';
 import { ImmutableMethodContext, MethodContext } from '../../state_machine';
 import {
@@ -68,9 +69,20 @@ export class NFTMethod extends BaseMethod {
 		return nftID.subarray(0, LENGTH_CHAIN_ID);
 	}
 
-	public async getNFTOwner(methodContext: ImmutableMethodContext, nftID: Buffer): Promise<Buffer> {
-		const nftStore = this.stores.get(NFTStore);
+	public isNFTEscrowed(nft: NFT): boolean {
+		return nft.owner.length !== LENGTH_ADDRESS;
+	}
 
+	public isNFTLocked(nft: NFT): boolean {
+		if (!nft.lockingModule) {
+			return false;
+		}
+
+		return nft.lockingModule !== NFT_NOT_LOCKED;
+	}
+
+	public async getNFT(methodContext: ImmutableMethodContext, nftID: Buffer): Promise<NFT> {
+		const nftStore = this.stores.get(NFTStore);
 		const nftExists = await nftStore.has(methodContext, nftID);
 
 		if (!nftExists) {
@@ -80,25 +92,20 @@ export class NFTMethod extends BaseMethod {
 			);
 		}
 
-		const nft = await nftStore.get(methodContext, nftID);
+		const data = await nftStore.get(methodContext, nftID);
+		const { owner } = data;
 
-		return nft.owner;
-	}
-
-	public async getLockingModule(
-		methodContext: ImmutableMethodContext,
-		nftID: Buffer,
-	): Promise<string> {
-		const owner = await this.getNFTOwner(methodContext, nftID);
-
-		if (owner.length === LENGTH_CHAIN_ID) {
-			throw new Error('NFT is escrowed to another chain');
+		if (owner.length === LENGTH_ADDRESS) {
+			const userStore = this.stores.get(UserStore);
+			const userExists = await userStore.has(methodContext, userStore.getKey(owner, nftID));
+			if (!userExists) {
+				throw new Error('User substore entry does not exist');
+			}
+			const userData = await userStore.get(methodContext, userStore.getKey(owner, nftID));
+			return { ...data, lockingModule: userData.lockingModule };
 		}
 
-		const userStore = this.stores.get(UserStore);
-		const userData = await userStore.get(methodContext, userStore.getKey(owner, nftID));
-
-		return userData.lockingModule;
+		return data;
 	}
 
 	public async destroy(
@@ -106,11 +113,10 @@ export class NFTMethod extends BaseMethod {
 		address: Buffer,
 		nftID: Buffer,
 	): Promise<void> {
-		const nftStore = this.stores.get(NFTStore);
-
-		const nftExists = await nftStore.has(methodContext, nftID);
-
-		if (!nftExists) {
+		let nft;
+		try {
+			nft = await this.getNFT(methodContext, nftID);
+		} catch (error) {
 			this.events.get(DestroyEvent).error(
 				methodContext,
 				{
@@ -120,25 +126,10 @@ export class NFTMethod extends BaseMethod {
 				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
 			);
 
-			throw new Error('NFT substore entry does not exist');
+			throw new Error('NFT does not exist');
 		}
 
-		const owner = await this.getNFTOwner(methodContext, nftID);
-
-		if (owner.length === LENGTH_CHAIN_ID) {
-			this.events.get(DestroyEvent).error(
-				methodContext,
-				{
-					address,
-					nftID,
-				},
-				NftEventResult.RESULT_NFT_ESCROWED,
-			);
-
-			throw new Error('NFT is escrowed to another chain');
-		}
-
-		if (!owner.equals(address)) {
+		if (!nft.owner.equals(address)) {
 			this.events.get(DestroyEvent).error(
 				methodContext,
 				{
@@ -151,11 +142,20 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('Not initiated by the NFT owner');
 		}
 
-		const userStore = this.stores.get(UserStore);
-		const userKey = userStore.getKey(owner, nftID);
-		const { lockingModule } = await userStore.get(methodContext, userKey);
+		if (this.isNFTEscrowed(nft)) {
+			this.events.get(DestroyEvent).error(
+				methodContext,
+				{
+					address,
+					nftID,
+				},
+				NftEventResult.RESULT_NFT_ESCROWED,
+			);
 
-		if (lockingModule !== NFT_NOT_LOCKED) {
+			throw new Error('NFT is escrowed to another chain');
+		}
+
+		if (this.isNFTLocked(nft)) {
 			this.events.get(DestroyEvent).error(
 				methodContext,
 				{
@@ -168,9 +168,10 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('Locked NFTs cannot be destroyed');
 		}
 
+		const nftStore = this.stores.get(NFTStore);
+		const userStore = this.stores.get(UserStore);
 		await nftStore.del(methodContext, nftID);
-
-		await userStore.del(methodContext, userKey);
+		await userStore.del(methodContext, userStore.getKey(nft.owner, nftID));
 
 		this.events.get(DestroyEvent).log(methodContext, {
 			address,
@@ -217,42 +218,6 @@ export class NFTMethod extends BaseMethod {
 		}
 
 		return false;
-	}
-
-	public async getAttributesArray(
-		methodContext: MethodContext,
-		nftID: Buffer,
-	): Promise<NFTAttributes[]> {
-		const nftStore = this.stores.get(NFTStore);
-		const nftExists = await nftStore.has(methodContext, nftID);
-		if (!nftExists) {
-			throw new Error('NFT substore entry does not exist');
-		}
-
-		const nft = await nftStore.get(methodContext, nftID);
-		return nft.attributesArray;
-	}
-
-	public async getAttributes(
-		methodContext: MethodContext,
-		module: string,
-		nftID: Buffer,
-	): Promise<Buffer> {
-		const nftStore = this.stores.get(NFTStore);
-		const nftExists = await nftStore.has(methodContext, nftID);
-		if (!nftExists) {
-			throw new Error('NFT substore entry does not exist');
-		}
-
-		const nft = await nftStore.get(methodContext, nftID);
-
-		for (const nftAttributes of nft.attributesArray) {
-			if (nftAttributes.module === module) {
-				return nftAttributes.attributes;
-			}
-		}
-
-		throw new Error('Specific module did not set any attributes.');
 	}
 
 	public async getNextAvailableIndex(
@@ -317,7 +282,6 @@ export class NFTMethod extends BaseMethod {
 		this.events.get(CreateEvent).log(methodContext, {
 			address,
 			nftID,
-			collectionID,
 		});
 	}
 
@@ -326,11 +290,10 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('Cannot be locked by NFT module');
 		}
 
-		const nftStore = this.stores.get(NFTStore);
-
-		const nftExists = await nftStore.has(methodContext, nftID);
-
-		if (!nftExists) {
+		let nft;
+		try {
+			nft = await this.getNFT(methodContext, nftID);
+		} catch (error) {
 			this.events.get(LockEvent).error(
 				methodContext,
 				{
@@ -340,12 +303,10 @@ export class NFTMethod extends BaseMethod {
 				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
 			);
 
-			throw new Error('NFT substore entry does not exist');
+			throw new Error('NFT does not exist');
 		}
 
-		const owner = await this.getNFTOwner(methodContext, nftID);
-
-		if (owner.length === LENGTH_CHAIN_ID) {
+		if (this.isNFTEscrowed(nft)) {
 			this.events.get(LockEvent).error(
 				methodContext,
 				{
@@ -358,11 +319,7 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('NFT is escrowed to another chain');
 		}
 
-		const userStore = this.stores.get(UserStore);
-		const userKey = userStore.getKey(owner, nftID);
-		const userData = await userStore.get(methodContext, userKey);
-
-		if (userData.lockingModule !== NFT_NOT_LOCKED) {
+		if (this.isNFTLocked(nft)) {
 			this.events.get(LockEvent).error(
 				methodContext,
 				{
@@ -375,9 +332,10 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('NFT is already locked');
 		}
 
-		userData.lockingModule = module;
-
-		await userStore.set(methodContext, userKey, userData);
+		const userStore = this.stores.get(UserStore);
+		await userStore.set(methodContext, userStore.getKey(nft.owner, nftID), {
+			lockingModule: module,
+		});
 
 		this.events.get(LockEvent).log(methodContext, {
 			module,
@@ -386,11 +344,10 @@ export class NFTMethod extends BaseMethod {
 	}
 
 	public async unlock(methodContext: MethodContext, module: string, nftID: Buffer): Promise<void> {
-		const nftStore = this.stores.get(NFTStore);
-
-		const nftExists = await nftStore.has(methodContext, nftID);
-
-		if (!nftExists) {
+		let nft;
+		try {
+			nft = await this.getNFT(methodContext, nftID);
+		} catch (error) {
 			this.events.get(LockEvent).error(
 				methodContext,
 				{
@@ -400,20 +357,14 @@ export class NFTMethod extends BaseMethod {
 				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
 			);
 
-			throw new Error('NFT substore entry does not exist');
+			throw new Error('NFT does not exist');
 		}
 
-		const nft = await nftStore.get(methodContext, nftID);
-
-		if (nft.owner.length === LENGTH_CHAIN_ID) {
+		if (this.isNFTEscrowed(nft)) {
 			throw new Error('NFT is escrowed to another chain');
 		}
 
-		const userStore = this.stores.get(UserStore);
-		const userKey = userStore.getKey(nft.owner, nftID);
-		const userData = await userStore.get(methodContext, userKey);
-
-		if (userData.lockingModule === NFT_NOT_LOCKED) {
+		if (!this.isNFTLocked(nft)) {
 			this.events.get(LockEvent).error(
 				methodContext,
 				{
@@ -426,7 +377,7 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('NFT is not locked');
 		}
 
-		if (userData.lockingModule !== module) {
+		if (nft.lockingModule !== module) {
 			this.events.get(LockEvent).error(
 				methodContext,
 				{
@@ -439,9 +390,10 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('Unlocking NFT via module that did not lock it');
 		}
 
-		userData.lockingModule = NFT_NOT_LOCKED;
-
-		await userStore.set(methodContext, userKey, userData);
+		const userStore = this.stores.get(UserStore);
+		await userStore.set(methodContext, userStore.getKey(nft.owner, nftID), {
+			lockingModule: NFT_NOT_LOCKED,
+		});
 
 		this.events.get(LockEvent).log(methodContext, {
 			module,
@@ -558,6 +510,8 @@ export class NFTMethod extends BaseMethod {
 		for (const { key } of allSupportedNFTs) {
 			await supportedNFTsStore.del(methodContext, key);
 		}
+
+		await supportedNFTsStore.del(methodContext, ALL_SUPPORTED_NFTS_KEY);
 
 		this.events.get(AllNFTsSupportRemovedEvent).log(methodContext);
 	}
@@ -687,7 +641,7 @@ export class NFTMethod extends BaseMethod {
 		collectionID: Buffer,
 	): Promise<void> {
 		if (chainID.equals(this._config.ownChainID)) {
-			return;
+			throw new Error('Invalid operation. Support for native NFTs cannot be removed');
 		}
 
 		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
@@ -743,18 +697,19 @@ export class NFTMethod extends BaseMethod {
 	): Promise<void> {
 		const nftStore = this.stores.get(NFTStore);
 		const nftID = storeKey;
-		let isDecodable = true;
+		let isValidInput = true;
 		let decodedValue: NFTStoreData;
 		try {
 			decodedValue = codec.decode<NFTStoreData>(nftStoreSchema, storeValue);
+			validator.validate(nftStoreSchema, decodedValue);
 		} catch (error) {
-			isDecodable = false;
+			isValidInput = false;
 		}
 
 		if (
 			!substorePrefix.equals(nftStore.subStorePrefix) ||
 			storeKey.length !== LENGTH_NFT_ID ||
-			!isDecodable
+			!isValidInput
 		) {
 			this.events.get(RecoverEvent).error(
 				methodContext,

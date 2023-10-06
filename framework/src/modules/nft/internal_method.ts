@@ -22,7 +22,6 @@ import { TransferEvent } from './events/transfer';
 import { UserStore } from './stores/user';
 import {
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-	LENGTH_CHAIN_ID,
 	MAX_LENGTH_DATA,
 	MODULE_NAME_NFT,
 	NFT_NOT_LOCKED,
@@ -111,25 +110,28 @@ export class InternalMethod extends BaseMethod {
 		senderAddress: Buffer,
 		nftID: Buffer,
 	) {
-		const owner = await this._nftMethod.getNFTOwner(immutableMethodContext, nftID);
+		let nft;
+		try {
+			nft = await this._nftMethod.getNFT(immutableMethodContext, nftID);
+		} catch (error) {
+			throw new TransferVerifyError('NFT does not exist', NftEventResult.RESULT_NFT_DOES_NOT_EXIST);
+		}
 
-		if (owner.length === LENGTH_CHAIN_ID) {
+		if (this._nftMethod.isNFTEscrowed(nft)) {
 			throw new TransferVerifyError(
 				'NFT is escrowed to another chain',
 				NftEventResult.RESULT_NFT_ESCROWED,
 			);
 		}
 
-		if (!owner.equals(senderAddress)) {
+		if (!nft.owner.equals(senderAddress)) {
 			throw new TransferVerifyError(
 				'Transfer not initiated by the NFT owner',
 				NftEventResult.RESULT_INITIATED_BY_NONOWNER,
 			);
 		}
 
-		const lockingModule = await this._nftMethod.getLockingModule(immutableMethodContext, nftID);
-
-		if (lockingModule !== NFT_NOT_LOCKED) {
+		if (this._nftMethod.isNFTLocked(nft)) {
 			throw new TransferVerifyError(
 				'Locked NFTs cannot be transferred',
 				NftEventResult.RESULT_NFT_LOCKED,
@@ -146,6 +148,22 @@ export class InternalMethod extends BaseMethod {
 		messageFee: bigint,
 		data: string,
 	) {
+		let nft;
+		try {
+			nft = await this._nftMethod.getNFT(immutableMethodContext, nftID);
+		} catch (error) {
+			throw new TransferVerifyError('NFT does not exist', NftEventResult.RESULT_NFT_DOES_NOT_EXIST);
+		}
+
+		const nftChainID = this._nftMethod.getChainID(nftID);
+		const ownChainID = this.getOwnChainID();
+		if (![ownChainID, receivingChainID].some(allowedChainID => nftChainID.equals(allowedChainID))) {
+			throw new TransferVerifyError(
+				'NFT must be native to either the sending or the receiving chain',
+				NftEventResult.RESULT_NFT_NOT_NATIVE,
+			);
+		}
+
 		if (receivingChainID.equals(sendingChainID)) {
 			throw new TransferVerifyError(
 				'Receiving chain cannot be the sending chain',
@@ -157,11 +175,24 @@ export class InternalMethod extends BaseMethod {
 			throw new TransferVerifyError('Data field is too long', NftEventResult.RESULT_DATA_TOO_LONG);
 		}
 
-		const nftChainID = this._nftMethod.getChainID(nftID);
-		if (!nftChainID.equals(sendingChainID) && !nftChainID.equals(receivingChainID)) {
+		if (this._nftMethod.isNFTEscrowed(nft)) {
 			throw new TransferVerifyError(
-				'NFT must be native to either the sending or the receiving chain',
-				NftEventResult.RESULT_NFT_NOT_NATIVE,
+				'NFT is escrowed to another chain',
+				NftEventResult.RESULT_NFT_ESCROWED,
+			);
+		}
+
+		if (!nft.owner.equals(senderAddress)) {
+			throw new TransferVerifyError(
+				'Transfer not initiated by the NFT owner',
+				NftEventResult.RESULT_INITIATED_BY_NONOWNER,
+			);
+		}
+
+		if (this._nftMethod.isNFTLocked(nft)) {
+			throw new TransferVerifyError(
+				'Locked NFTs cannot be transferred',
+				NftEventResult.RESULT_NFT_LOCKED,
 			);
 		}
 
