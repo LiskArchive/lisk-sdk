@@ -21,15 +21,17 @@ import {
 } from './constants';
 
 // INFO: Here ID refers to hashed value of 32 length
-export const buildTxIDDbKey = (id: Buffer): Buffer => Buffer.concat([DB_KEY_TRANSACTIONS_ID, id]);
+export const buildTxIDDbKey = (id: Buffer): Buffer =>
+	Buffer.from(`${DB_KEY_TRANSACTIONS_ID}:${id.toString('binary')}`);
 
-export const buildBlockIDDbKey = (id: Buffer): Buffer => Buffer.concat([DB_KEY_BLOCKS_ID, id]);
+export const buildBlockIDDbKey = (id: Buffer): Buffer =>
+	Buffer.from(`${DB_KEY_BLOCKS_ID}:${id.toString('binary')}`);
+
 export const buildTxsBlockIDDbKey = (id: Buffer): Buffer =>
-	Buffer.concat([DB_KEY_TRANSACTIONS_BLOCK_ID, id]);
+	Buffer.from(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${id.toString('binary')}`);
 
-// INFO: Generated Buffer is further used as `ID` for ```getBlockByID (ID:Buffer)```
 export const buildBlockHeightDbKey = (height: number): Buffer =>
-	Buffer.concat([DB_KEY_BLOCKS_HEIGHT, utils.intToBuffer(height, 4)]);
+	Buffer.from(`${DB_KEY_BLOCKS_HEIGHT}:${utils.intToBuffer(height, 4).toString('binary')}`);
 
 export const buildLegacyBracketDBKey = (snapshotBlockID: Buffer): Buffer =>
 	Buffer.concat([DB_KEY_LEGACY_BRACKET, snapshotBlockID]);

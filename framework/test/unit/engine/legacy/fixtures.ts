@@ -14,7 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
-import { encodeBlock } from '../../../../src/engine/legacy/codec';
+import { encodeBlock, encodeBlockHeader } from '../../../../src/engine/legacy/codec';
 import { LegacyBlockHeader, LegacyBlockWithID } from '../../../../src/engine/legacy/types';
 
 // Version 2 blocks
@@ -354,18 +354,23 @@ export const createFakeLegacyBlockHeaderV2 = (
  * @params start: Start height of the block range going backwards
  * @params numberOfBlocks: Number of blocks to be generated with decreasing height
  */
-export const getLegacyBlocksRangeV2 = (startHeight: number, numberOfBlocks: number): Buffer[] => {
-	const blocks: LegacyBlockWithID[] = [];
+export const getLegacyBlockHeadersRangeV2 = (
+	startHeight: number,
+	numberOfBlocks: number,
+): Buffer[] => {
+	const blockHeaders: LegacyBlockHeader[] = [];
 
 	for (let i = startHeight; i >= startHeight - numberOfBlocks; i -= 1) {
 		// After the startHeight, all the blocks are generated with previousBlockID as previous height block ID
 		const block = createFakeLegacyBlockHeaderV2({
 			height: i,
 			previousBlockID:
-				i === startHeight ? utils.getRandomBytes(32) : blocks[startHeight - i - 1].header.id,
+				i === startHeight
+					? utils.getRandomBytes(32)
+					: (blockHeaders[startHeight - i - 1].id as Buffer),
 		});
-		blocks.push(block);
+		blockHeaders.push(block.header);
 	}
 
-	return blocks.map(b => encodeBlock(b));
+	return blockHeaders.map(b => encodeBlockHeader(b));
 };

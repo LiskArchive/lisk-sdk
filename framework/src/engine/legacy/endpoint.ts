@@ -15,21 +15,29 @@
 import { Database } from '@liskhq/lisk-db';
 import { isHexString } from '@liskhq/lisk-validator';
 import { RequestContext } from '../rpc/rpc_server';
-import { LegacyBlockJSON, LegacyTransactionJSON } from './types';
+import {
+	LegacyBlockJSON,
+	LegacyChainBracketInfoWithSnapshotBlockID,
+	LegacyTransactionJSON,
+} from './types';
 import { Storage } from './storage';
 import { decodeBlockJSON, getLegacyTransactionJSONWithSchema } from './codec';
+import { LegacyConfig } from '../../types';
 
 interface EndpointArgs {
 	db: Database;
+	legacyConfig: LegacyConfig;
 }
 
 export class LegacyEndpoint {
 	[key: string]: unknown;
 
 	public readonly storage: Storage;
+	private readonly _legacyConfig: LegacyConfig;
 
 	public constructor(args: EndpointArgs) {
 		this.storage = new Storage(args.db);
+		this._legacyConfig = args.legacyConfig;
 	}
 
 	public async getTransactionByID(context: RequestContext): Promise<LegacyTransactionJSON> {
@@ -76,5 +84,22 @@ export class LegacyEndpoint {
 		}
 
 		return decodeBlockJSON(await this.storage.getBlockByHeight(height)).block;
+	}
+
+	public async getLegacyBrackets(
+		_context: RequestContext,
+	): Promise<LegacyChainBracketInfoWithSnapshotBlockID[]> {
+		return Promise.all(
+			this._legacyConfig.brackets.map(async bracket => {
+				const bracketInfo = await this.storage.getBracketInfo(
+					Buffer.from(bracket.snapshotBlockID, 'hex'),
+				);
+
+				return {
+					...bracketInfo,
+					snapshotBlockID: bracket.snapshotBlockID,
+				};
+			}),
+		);
 	}
 }
