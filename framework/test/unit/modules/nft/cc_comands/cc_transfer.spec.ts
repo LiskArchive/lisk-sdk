@@ -633,7 +633,7 @@ describe('CrossChain Transfer Command', () => {
 			});
 		});
 
-		it('should throw if duplicate module attributes are found', async () => {
+		it('should throw if duplicate module attributes are found when a foreign NFT is received - status === CCM_STATUS_CODE_OK', async () => {
 			params = codec.encode(crossChainNFTTransferMessageParamsSchema, {
 				nftID,
 				senderAddress,
@@ -669,5 +669,42 @@ describe('CrossChain Transfer Command', () => {
 
 			await expect(command.execute(context)).rejects.toThrow('Invalid attributes array provided');
 		});
+	});
+
+	it('should throw if duplicate module attributes are found when a foreign NFT is bounced - status !== CCM_STATUS_CODE_OK', async () => {
+		params = codec.encode(crossChainNFTTransferMessageParamsSchema, {
+			nftID,
+			senderAddress,
+			recipientAddress,
+			attributesArray: [
+				{ module: 'module1', attributes: Buffer.alloc(5) },
+				{ module: 'module1', attributes: Buffer.alloc(5) },
+			],
+			data: '',
+		});
+		ccm = {
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+			module: module.name,
+			nonce: BigInt(1),
+			sendingChainID,
+			receivingChainID,
+			fee: BigInt(30000),
+			status: 12345,
+			params,
+		};
+		context = {
+			ccm,
+			transaction: defaultTransaction,
+			header: defaultHeader,
+			stateStore,
+			contextStore,
+			getMethodContext,
+			eventQueue: new EventQueue(0),
+			getStore,
+			logger: fakeLogger,
+			chainID,
+		};
+
+		await expect(command.execute(context)).rejects.toThrow('Invalid attributes array provided');
 	});
 });
