@@ -96,8 +96,11 @@ export class Endpoint {
 		const list = await getGeneratedInfo(generatorStore);
 		const status = [];
 		for (const info of list) {
+			const keys = this._keypairs.get(info.address);
 			status.push({
 				...info,
+				generatorKey: keys?.publicKey.toString('hex') ?? '',
+				blsKey: keys?.blsPublicKey.toString('hex') ?? '',
 				address: cryptoAddress.getLisk32AddressFromAddress(info.address),
 				enabled: this._keypairs.has(info.address),
 			});
