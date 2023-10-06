@@ -138,7 +138,9 @@ export class LegacyChainHandler {
 				`Started syncing legacy blocks for bracket with snapshotBlockID ${bracket.snapshotBlockID}`,
 			);
 			// start parsing bracket from `lastBlock` height`
-			this._trySyncBlocks(bracket, lastBlockID).catch(this._logger.error);
+			this._trySyncBlocks(bracket, lastBlockID).catch((err: Error) =>
+				this._logger.error({ err }, 'Failed to sync block with error'),
+			);
 		}
 	}
 
@@ -183,7 +185,7 @@ export class LegacyChainHandler {
 	 * If last block height equals bracket.startHeight, simply save bracket with `lastBlockHeight: lastBlock?.header.height`
 	 */
 	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public async _syncBlocks(
+	private async _syncBlocks(
 		bracket: LegacyBlockBracket,
 		lastBlockID: Buffer,
 		failedAttempts = 0,
