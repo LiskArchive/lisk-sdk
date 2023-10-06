@@ -31,6 +31,7 @@ import {
 import { EscrowStore } from './stores/escrow';
 import { TransferCrossChainEvent } from './events/transfer_cross_chain';
 import { crossChainNFTTransferMessageParamsSchema } from './schemas';
+import { NotFoundError } from './error';
 
 export class TransferVerifyError extends Error {
 	public code: NftErrorEventResult;
@@ -114,7 +115,14 @@ export class InternalMethod extends BaseMethod {
 		try {
 			nft = await this._nftMethod.getNFT(immutableMethodContext, nftID);
 		} catch (error) {
-			throw new TransferVerifyError('NFT does not exist', NftEventResult.RESULT_NFT_DOES_NOT_EXIST);
+			if (error instanceof NotFoundError) {
+				throw new TransferVerifyError(
+					'NFT does not exist',
+					NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+				);
+			} else {
+				throw error;
+			}
 		}
 
 		if (this._nftMethod.isNFTEscrowed(nft)) {
@@ -152,7 +160,14 @@ export class InternalMethod extends BaseMethod {
 		try {
 			nft = await this._nftMethod.getNFT(immutableMethodContext, nftID);
 		} catch (error) {
-			throw new TransferVerifyError('NFT does not exist', NftEventResult.RESULT_NFT_DOES_NOT_EXIST);
+			if (error instanceof NotFoundError) {
+				throw new TransferVerifyError(
+					'NFT does not exist',
+					NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+				);
+			} else {
+				throw error;
+			}
 		}
 
 		const nftChainID = this._nftMethod.getChainID(nftID);

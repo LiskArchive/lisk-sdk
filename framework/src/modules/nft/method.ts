@@ -46,6 +46,7 @@ import { AllNFTsFromChainSupportRemovedEvent } from './events/all_nfts_from_chai
 import { RecoverEvent } from './events/recover';
 import { EscrowStore } from './stores/escrow';
 import { SetAttributesEvent } from './events/set_attributes';
+import { NotFoundError } from './error';
 
 export class NFTMethod extends BaseMethod {
 	private _config!: ModuleConfig;
@@ -86,10 +87,7 @@ export class NFTMethod extends BaseMethod {
 		const nftExists = await nftStore.has(methodContext, nftID);
 
 		if (!nftExists) {
-			throw new TransferVerifyError(
-				'NFT substore entry does not exist',
-				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
-			);
+			throw new NotFoundError('NFT substore entry does not exist');
 		}
 
 		const data = await nftStore.get(methodContext, nftID);
@@ -99,7 +97,7 @@ export class NFTMethod extends BaseMethod {
 			const userStore = this.stores.get(UserStore);
 			const userExists = await userStore.has(methodContext, userStore.getKey(owner, nftID));
 			if (!userExists) {
-				throw new Error('User substore entry does not exist');
+				throw new NotFoundError('User substore entry does not exist');
 			}
 			const userData = await userStore.get(methodContext, userStore.getKey(owner, nftID));
 			return { ...data, lockingModule: userData.lockingModule };
@@ -117,16 +115,20 @@ export class NFTMethod extends BaseMethod {
 		try {
 			nft = await this.getNFT(methodContext, nftID);
 		} catch (error) {
-			this.events.get(DestroyEvent).error(
-				methodContext,
-				{
-					address,
-					nftID,
-				},
-				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
-			);
+			if (error instanceof NotFoundError) {
+				this.events.get(DestroyEvent).error(
+					methodContext,
+					{
+						address,
+						nftID,
+					},
+					NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+				);
 
-			throw new Error('NFT does not exist');
+				throw new Error('NFT does not exist');
+			} else {
+				throw error;
+			}
 		}
 
 		if (!nft.owner.equals(address)) {
@@ -294,16 +296,20 @@ export class NFTMethod extends BaseMethod {
 		try {
 			nft = await this.getNFT(methodContext, nftID);
 		} catch (error) {
-			this.events.get(LockEvent).error(
-				methodContext,
-				{
-					module,
-					nftID,
-				},
-				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
-			);
+			if (error instanceof NotFoundError) {
+				this.events.get(LockEvent).error(
+					methodContext,
+					{
+						module,
+						nftID,
+					},
+					NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+				);
 
-			throw new Error('NFT does not exist');
+				throw new Error('NFT does not exist');
+			} else {
+				throw error;
+			}
 		}
 
 		if (this.isNFTEscrowed(nft)) {
@@ -348,16 +354,20 @@ export class NFTMethod extends BaseMethod {
 		try {
 			nft = await this.getNFT(methodContext, nftID);
 		} catch (error) {
-			this.events.get(LockEvent).error(
-				methodContext,
-				{
-					module,
-					nftID,
-				},
-				NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
-			);
+			if (error instanceof NotFoundError) {
+				this.events.get(LockEvent).error(
+					methodContext,
+					{
+						module,
+						nftID,
+					},
+					NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+				);
 
-			throw new Error('NFT does not exist');
+				throw new Error('NFT does not exist');
+			} else {
+				throw error;
+			}
 		}
 
 		if (this.isNFTEscrowed(nft)) {
