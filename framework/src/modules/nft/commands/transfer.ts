@@ -20,10 +20,9 @@ import {
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
 import { transferParamsSchema } from '../schemas';
-import { NFTMethod } from '../method';
 import { InternalMethod } from '../internal_method';
 
-export interface Params {
+export interface TransferParams {
 	nftID: Buffer;
 	recipientAddress: Buffer;
 	data: string;
@@ -31,35 +30,26 @@ export interface Params {
 
 export class TransferCommand extends BaseCommand {
 	public schema = transferParamsSchema;
-	private _method!: NFTMethod;
 	private _internalMethod!: InternalMethod;
 
-	public init(args: { method: NFTMethod; internalMethod: InternalMethod }) {
-		this._method = args.method;
+	public init(args: { internalMethod: InternalMethod }) {
 		this._internalMethod = args.internalMethod;
 	}
 
-	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
+	public async verify(context: CommandVerifyContext<TransferParams>): Promise<VerificationResult> {
 		const { params } = context;
-		const methodContext = context.getMethodContext();
 
-		let nft;
 		try {
-			nft = await this._method.getNFT(methodContext, params.nftID);
+			await this._internalMethod.verifyTransfer(
+				context.getMethodContext(),
+				context.transaction.senderAddress,
+				params.nftID,
+			);
 		} catch (error) {
-			throw new Error('NFT does not exist');
-		}
-
-		if (this._method.isNFTEscrowed(nft)) {
-			throw new Error('NFT is escrowed to another chain');
-		}
-
-		if (!nft.owner.equals(context.transaction.senderAddress)) {
-			throw new Error('Transfer not initiated by the NFT owner');
-		}
-
-		if (this._method.isNFTLocked(nft)) {
-			throw new Error('Locked NFTs cannot be transferred');
+			return {
+				status: VerifyStatus.FAIL,
+				error: error as Error,
+			};
 		}
 
 		return {
@@ -67,10 +57,10 @@ export class TransferCommand extends BaseCommand {
 		};
 	}
 
-	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
+	public async execute(context: CommandExecuteContext<TransferParams>): Promise<void> {
 		const { params } = context;
 
-		await this._internalMethod.transferInternal(
+		await this._internalMethod.transfer(
 			context.getMethodContext(),
 			params.recipientAddress,
 			params.nftID,
