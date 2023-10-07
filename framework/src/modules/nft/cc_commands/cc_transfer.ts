@@ -26,7 +26,7 @@ import {
 import { InternalMethod } from '../internal_method';
 import { BaseCCCommand } from '../../interoperability/base_cc_command';
 import { CrossChainMessageContext } from '../../interoperability/types';
-import { MAX_RESERVED_ERROR_STATUS } from '../../interoperability/constants';
+import { CCMStatusCode, MAX_RESERVED_ERROR_STATUS } from '../../interoperability/constants';
 import { FeeMethod } from '../types';
 import { EscrowStore } from '../stores/escrow';
 import { CcmTransferEvent } from '../events/ccm_transfer';
@@ -75,10 +75,18 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 				throw new Error('Non-existent entry in the NFT substore');
 			}
 
-			const owner = await this._method.getNFTOwner(getMethodContext(), nftID);
-			if (!owner.equals(sendingChainID)) {
+			const nft = await nftStore.get(getMethodContext(), nftID);
+			if (!nft.owner.equals(sendingChainID)) {
 				throw new Error('NFT has not been properly escrowed');
 			}
+		}
+
+		if (
+			!nftChainID.equals(ownChainID) &&
+			(ccm.status === CCMStatusCode.MODULE_NOT_SUPPORTED ||
+				ccm.status === CCMStatusCode.CROSS_CHAIN_COMMAND_NOT_SUPPORTED)
+		) {
+			throw new Error('Module or cross-chain command not supported');
 		}
 
 		if (!nftChainID.equals(ownChainID) && nftExists) {
@@ -131,13 +139,16 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 						senderAddress,
 						recipientAddress,
 						nftID,
+						receivingChainID: ccm.receivingChainID,
+						sendingChainID: ccm.sendingChainID,
 					},
 					NftEventResult.RESULT_NFT_NOT_SUPPORTED,
 				);
 				throw new Error('Non-supported NFT');
 			}
+			this._feeMethod.payFee(getMethodContext(), BigInt(FEE_CREATE_NFT));
+
 			if (status === CCM_STATUS_CODE_OK) {
-				this._feeMethod.payFee(getMethodContext(), BigInt(FEE_CREATE_NFT));
 				await nftStore.save(getMethodContext(), nftID, {
 					owner: recipientAddress,
 					attributesArray: receivedAttributes as NFTAttributes[],
@@ -157,6 +168,8 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 			senderAddress,
 			recipientAddress,
 			nftID,
+			receivingChainID: ccm.receivingChainID,
+			sendingChainID: ccm.sendingChainID,
 		});
 	}
 }
