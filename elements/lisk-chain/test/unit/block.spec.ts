@@ -124,7 +124,7 @@ describe('block', () => {
 			maxHeightGenerated: 0,
 			validatorsHash: utils.hash(Buffer.alloc(0)),
 			aggregateCommit: {
-				height: 1009988,
+				height: 0,
 				aggregationBits: Buffer.alloc(0),
 				certificateSignature: EMPTY_BUFFER,
 			},

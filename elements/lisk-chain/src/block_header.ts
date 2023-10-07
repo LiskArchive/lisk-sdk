@@ -261,13 +261,13 @@ export class BlockHeader {
 			});
 		}
 
-		if (header.aggregateCommit.height !== header.height) {
+		if (header.aggregateCommit.height !== 0) {
 			errors.push({
-				message: 'Genesis block header aggregateCommit.height must equal to the genesis height',
+				message: 'Genesis block header aggregateCommit.height must equal 0',
 				keyword: 'const',
 				dataPath: 'aggregateCommit.height',
 				schemaPath: 'properties.aggregateCommit.height',
-				params: { allowedValue: header.height },
+				params: { allowedValue: 0 },
 			});
 		}
 

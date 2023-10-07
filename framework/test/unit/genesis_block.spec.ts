@@ -33,7 +33,6 @@ describe('generateGenesisBlock', () => {
 		expect(result.header.validatorsHash).toHaveLength(32);
 		expect(result.header.eventRoot).toHaveLength(32);
 		expect(result.header.version).toBe(0);
-		expect(result.header.aggregateCommit.height).toBe(30);
 
 		expect(stateMachine.executeGenesisBlock).toHaveBeenCalledTimes(1);
 	});
