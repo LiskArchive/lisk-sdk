@@ -700,15 +700,14 @@ export class NFTMethod extends BaseMethod {
 		methodContext: MethodContext,
 		terminatedChainID: Buffer,
 		substorePrefix: Buffer,
-		storeKey: Buffer,
-		storeValue: Buffer,
+		nftID: Buffer,
+		nft: Buffer,
 	): Promise<void> {
 		const nftStore = this.stores.get(NFTStore);
-		const nftID = storeKey;
 		let isValidInput = true;
 		let decodedValue: NFTStoreData;
 		try {
-			decodedValue = codec.decode<NFTStoreData>(nftStoreSchema, storeValue);
+			decodedValue = codec.decode<NFTStoreData>(nftStoreSchema, nft);
 			validator.validate(nftStoreSchema, decodedValue);
 		} catch (error) {
 			isValidInput = false;
@@ -716,7 +715,7 @@ export class NFTMethod extends BaseMethod {
 
 		if (
 			!substorePrefix.equals(nftStore.subStorePrefix) ||
-			storeKey.length !== LENGTH_NFT_ID ||
+			nftID.length !== LENGTH_NFT_ID ||
 			!isValidInput
 		) {
 			this.events.get(RecoverEvent).error(
@@ -744,8 +743,26 @@ export class NFTMethod extends BaseMethod {
 			throw new Error('Recovery called by a foreign chain');
 		}
 
-		const nft = await nftStore.get(methodContext, nftID);
-		if (!nft.owner.equals(terminatedChainID)) {
+		let nftData;
+		try {
+			nftData = await this.getNFT(methodContext, nftID);
+		} catch (error) {
+			if (error instanceof NotFoundError) {
+				this.events.get(RecoverEvent).error(
+					methodContext,
+					{
+						terminatedChainID,
+						nftID,
+					},
+					NftEventResult.RESULT_NFT_DOES_NOT_EXIST,
+				);
+
+				throw new Error('NFT substore entry does not exist');
+			}
+			throw error;
+		}
+
+		if (!nftData.owner.equals(terminatedChainID)) {
 			this.events.get(RecoverEvent).error(
 				methodContext,
 				{
@@ -772,17 +789,17 @@ export class NFTMethod extends BaseMethod {
 		}
 
 		const escrowStore = this.stores.get(EscrowStore);
-		nft.owner = storeValueOwner;
-		const storedAttributes = nft.attributesArray;
+		nftData.owner = storeValueOwner;
+		const storedAttributes = nftData.attributesArray;
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const receivedAttributes = decodedValue!.attributesArray;
-		nft.attributesArray = this._internalMethod.getNewAttributes(
+		nftData.attributesArray = this._internalMethod.getNewAttributes(
 			nftID,
 			storedAttributes,
 			receivedAttributes,
 		);
-		await nftStore.save(methodContext, nftID, nft);
-		await this._internalMethod.createUserEntry(methodContext, nft.owner, nftID);
+		await nftStore.save(methodContext, nftID, nftData);
+		await this._internalMethod.createUserEntry(methodContext, nftData.owner, nftID);
 		await escrowStore.del(methodContext, escrowStore.getKey(terminatedChainID, nftID));
 
 		this.events.get(RecoverEvent).log(methodContext, {
