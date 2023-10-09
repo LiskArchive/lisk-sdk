@@ -133,13 +133,8 @@ export class NFTModule extends BaseInteroperableModule {
 		this._interoperabilityMethod = interoperabilityMethod;
 		this._feeMethod = feeMethod;
 		this._tokenMethod = tokenMethod;
-		this.method.addDependencies(
-			interoperabilityMethod,
-			this._internalMethod,
-			feeMethod,
-			tokenMethod,
-		);
-		this._internalMethod.addDependencies(this.method, this._interoperabilityMethod);
+		this.method.addDependencies(this._internalMethod, feeMethod);
+		this._internalMethod.addDependencies(this.method, this._interoperabilityMethod, tokenMethod);
 		this.crossChainMethod.addDependencies(interoperabilityMethod);
 		this.endpoint.addDependencies(this.method);
 	}
@@ -205,7 +200,7 @@ export class NFTModule extends BaseInteroperableModule {
 			nftMethod: this.method,
 			tokenMethod: this._tokenMethod,
 		});
-		this._transferCommand.init({ method: this.method, internalMethod: this._internalMethod });
+		this._transferCommand.init({ internalMethod: this._internalMethod });
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {

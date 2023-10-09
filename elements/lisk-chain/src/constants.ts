@@ -32,7 +32,6 @@ export const GENESIS_BLOCK_TRANSACTION_ROOT = EMPTY_HASH;
 export const TAG_BLOCK_HEADER = utils.createMessageTag('BH');
 export const TAG_TRANSACTION = utils.createMessageTag('TX');
 
-// TODO: Actual size TBD
 export const MAX_ASSET_DATA_SIZE_BYTES = 18;
 export const SIGNATURE_LENGTH_BYTES = 64;
 

@@ -31,7 +31,15 @@ const sampleSchema = {
 
 describe('state store', () => {
 	let moduleID = utils.intToBuffer(2, 4);
+
 	const storePrefix = 0;
+	const storePrefixBuffer = Buffer.alloc(2);
+	storePrefixBuffer.writeUInt16BE(storePrefix, 0);
+
+	const anotherStorePrefix = 1;
+	const anotherStorePrefixBuffer = Buffer.alloc(2);
+	anotherStorePrefixBuffer.writeUInt16BE(anotherStorePrefix, 0);
+
 	const existingKey = utils.getRandomBytes(20);
 	const existingKey2 = utils.getRandomBytes(20);
 	const existingValue = utils.getRandomBytes(64);
@@ -43,8 +51,6 @@ describe('state store', () => {
 	beforeEach(async () => {
 		db = new InMemoryDatabase();
 		stateStore = new StateStore(db);
-		const storePrefixBuffer = Buffer.alloc(2);
-		storePrefixBuffer.writeUInt16BE(storePrefix, 0);
 		await db.set(
 			Buffer.concat([stateStore['_prefix'], moduleID, storePrefixBuffer, existingKey]),
 			existingValue,
@@ -59,17 +65,17 @@ describe('state store', () => {
 		it('should keep the same cache as the original state store', async () => {
 			const address = utils.getRandomBytes(20);
 			const value = utils.getRandomBytes(64);
-			const subStore = stateStore.getStore(utils.intToBuffer(2, 4), 0);
+			const subStore = stateStore.getStore(utils.intToBuffer(2, 4), storePrefixBuffer);
 			await subStore.set(address, value);
 			// create different store from the state store
-			const newSubStore = stateStore.getStore(utils.intToBuffer(2, 4), 0);
+			const newSubStore = stateStore.getStore(utils.intToBuffer(2, 4), storePrefixBuffer);
 			const valueFromNewStore = await newSubStore.get(address);
 
 			expect(valueFromNewStore).toEqual(value);
 		});
 
 		it('should append the prefix', () => {
-			const subStore = stateStore.getStore(utils.intToBuffer(2, 4), 0);
+			const subStore = stateStore.getStore(utils.intToBuffer(2, 4), storePrefixBuffer);
 			// db prefix(1) + moduleID(4) + storePrefix(2)
 			expect(subStore['_prefix']).toHaveLength(1 + 4 + 2);
 		});
@@ -77,7 +83,7 @@ describe('state store', () => {
 
 	describe('get', () => {
 		it('should get from the cache if the key already exist', async () => {
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 			const newKey = utils.getRandomBytes(20);
 			await subStore.set(newKey, utils.getRandomBytes(10));
 			jest.spyOn(db, 'get');
@@ -89,7 +95,7 @@ describe('state store', () => {
 
 		it('should get from the database if the key does not exist', async () => {
 			jest.spyOn(db, 'get');
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 
 			const value = await subStore.get(existingKey);
 
@@ -98,7 +104,7 @@ describe('state store', () => {
 		});
 
 		it('should return copied value', async () => {
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 
 			const value = await subStore.get(existingKey);
 			value[0] = 233;
@@ -109,7 +115,7 @@ describe('state store', () => {
 		});
 
 		it('should throw not found error if deleted in the key', async () => {
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 			await subStore.del(existingKey);
 
 			await expect(subStore.get(existingKey)).rejects.toThrow(NotFoundError);
@@ -120,7 +126,7 @@ describe('state store', () => {
 		it('should return decoded value', async () => {
 			const address = utils.getRandomBytes(20);
 			const encodedValue = codec.encode(sampleSchema, { address });
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 			await subStore.set(address, encodedValue);
 
 			const value = await subStore.getWithSchema<Record<string, unknown>>(address, sampleSchema);
@@ -133,7 +139,7 @@ describe('state store', () => {
 		it('should update the cached value if it exist in the cache', async () => {
 			const address = utils.getRandomBytes(20);
 			const value = utils.getRandomBytes(50);
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 
 			await subStore.set(address, value);
 			const updatingValue = await subStore.get(address);
@@ -150,7 +156,7 @@ describe('state store', () => {
 			jest.spyOn(db, 'get');
 			const address = utils.getRandomBytes(20);
 			const value = utils.getRandomBytes(50);
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 
 			await subStore.set(address, value);
 			const updatingValue = await subStore.get(address);
@@ -164,7 +170,7 @@ describe('state store', () => {
 		it('should set encoded value', async () => {
 			const address = utils.getRandomBytes(20);
 			const encodedValue = codec.encode(sampleSchema, { address });
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 			await subStore.setWithSchema(address, { address }, sampleSchema);
 
 			const value = await subStore.get(address);
@@ -178,7 +184,7 @@ describe('state store', () => {
 		const value = utils.getRandomBytes(50);
 
 		it('should mark as deleted if it exists in the cache', async () => {
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 
 			await subStore.set(address, value);
 			await subStore.del(address);
@@ -188,7 +194,7 @@ describe('state store', () => {
 
 		it('should cache the original value and mark as deleted if it does not in the cache', async () => {
 			jest.spyOn(db, 'get');
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 			await subStore.del(existingKey);
 
 			expect(db.get).toHaveReturnedTimes(1);
@@ -198,7 +204,7 @@ describe('state store', () => {
 
 	describe('iterate', () => {
 		it('should return all the key-values with the prefix', async () => {
-			const subStore = stateStore.getStore(moduleID, 1);
+			const subStore = stateStore.getStore(moduleID, anotherStorePrefixBuffer);
 			await subStore.set(Buffer.from([0]), utils.getRandomBytes(40));
 			await subStore.set(Buffer.from([1]), utils.getRandomBytes(40));
 			await subStore.set(Buffer.from([2]), utils.getRandomBytes(40));
@@ -214,9 +220,9 @@ describe('state store', () => {
 		});
 
 		it('should return all the key-values with the prefix in reverse order', async () => {
-			const existingStore = stateStore.getStore(moduleID, storePrefix);
+			const existingStore = stateStore.getStore(moduleID, storePrefixBuffer);
 			await existingStore.set(Buffer.from([0]), utils.getRandomBytes(40));
-			const subStore = stateStore.getStore(moduleID, 1);
+			const subStore = stateStore.getStore(moduleID, anotherStorePrefixBuffer);
 			await subStore.set(Buffer.from([0]), utils.getRandomBytes(40));
 			await subStore.set(Buffer.from([1]), utils.getRandomBytes(40));
 			await subStore.set(Buffer.from([2]), utils.getRandomBytes(40));
@@ -234,7 +240,7 @@ describe('state store', () => {
 		});
 
 		it('should not return the deleted values', async () => {
-			const subStore = stateStore.getStore(moduleID, 1);
+			const subStore = stateStore.getStore(moduleID, anotherStorePrefixBuffer);
 			await subStore.set(Buffer.from([0]), utils.getRandomBytes(40));
 			await subStore.set(Buffer.from([1]), utils.getRandomBytes(40));
 			await subStore.set(Buffer.from([2]), utils.getRandomBytes(40));
@@ -252,7 +258,7 @@ describe('state store', () => {
 
 		it('should return the updated values in the cache', async () => {
 			const expectedValue = Buffer.from('random');
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 			await subStore.set(Buffer.from([0]), utils.getRandomBytes(40));
 			await subStore.set(Buffer.from([1]), utils.getRandomBytes(40));
 			await subStore.set(Buffer.from([2]), utils.getRandomBytes(40));
@@ -273,7 +279,7 @@ describe('state store', () => {
 		it('should return decoded value', async () => {
 			const address = utils.getRandomBytes(20);
 			const encodedValue = codec.encode(sampleSchema, { address });
-			const subStore = stateStore.getStore(moduleID, 1);
+			const subStore = stateStore.getStore(moduleID, anotherStorePrefixBuffer);
 			await subStore.set(Buffer.from([0]), encodedValue);
 			await subStore.set(Buffer.from([1]), encodedValue);
 			await subStore.set(Buffer.from([2]), encodedValue);
@@ -294,7 +300,7 @@ describe('state store', () => {
 
 	describe('snapshot', () => {
 		it('should not change the snapshot data when other operation is triggered', async () => {
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 			subStore.createSnapshot();
 			const expected = utils.getRandomBytes(64);
 			await subStore.set(Buffer.from([0]), expected);
@@ -305,7 +311,7 @@ describe('state store', () => {
 		});
 
 		it('should restore to snapshot value when the restore is called', async () => {
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 			const id = subStore.createSnapshot();
 			await subStore.set(Buffer.from([0]), utils.getRandomBytes(64));
 			await subStore.del(existingKey);
@@ -318,7 +324,7 @@ describe('state store', () => {
 		});
 
 		it('should throw an error when restoring with an invalid snapshot ID', () => {
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 
 			expect(() => subStore.restoreSnapshot(100)).toThrow(
 				'Invalid snapshot ID. Cannot revert to an older snapshot.',
@@ -326,7 +332,7 @@ describe('state store', () => {
 		});
 
 		it('should throw an error when restoring without taking a snapshot first', () => {
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 
 			expect(() => subStore.restoreSnapshot(0)).toThrow(
 				'Invalid snapshot ID. Cannot revert to an older snapshot.',
@@ -348,7 +354,6 @@ describe('state store', () => {
 		const getKey = (mID: number, prefix: number) => {
 			moduleID = Buffer.alloc(4);
 			moduleID.writeInt32BE(mID, 0);
-			const storePrefixBuffer = Buffer.alloc(2);
 			storePrefixBuffer.writeUInt16BE(prefix, 0);
 			return Buffer.concat([moduleID, storePrefixBuffer]);
 		};
@@ -358,10 +363,10 @@ describe('state store', () => {
 
 		beforeEach(async () => {
 			data = [getRandomData(), getRandomData(), getRandomData()];
-			const subStore = stateStore.getStore(moduleID, storePrefix);
+			const subStore = stateStore.getStore(moduleID, storePrefixBuffer);
 			await subStore.set(existingKey, utils.getRandomBytes(40));
 			await subStore.del(existingKey2);
-			const anotherStore = stateStore.getStore(moduleID, 1);
+			const anotherStore = stateStore.getStore(moduleID, anotherStorePrefixBuffer);
 			for (const sample of data) {
 				await anotherStore.set(sample.key, sample.value);
 			}

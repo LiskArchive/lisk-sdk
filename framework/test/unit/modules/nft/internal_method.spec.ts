@@ -34,7 +34,11 @@ import { TransferEvent, TransferEventData } from '../../../../src/modules/nft/ev
 import { UserStore } from '../../../../src/modules/nft/stores/user';
 import { EscrowStore } from '../../../../src/modules/nft/stores/escrow';
 import { NFTMethod } from '../../../../src/modules/nft/method';
-import { InteroperabilityMethod, NFTAttributes } from '../../../../src/modules/nft/types';
+import {
+	InteroperabilityMethod,
+	NFTAttributes,
+	TokenMethod,
+} from '../../../../src/modules/nft/types';
 import {
 	TransferCrossChainEvent,
 	TransferCrossChainEventData,
@@ -47,7 +51,8 @@ describe('InternalMethod', () => {
 	const internalMethod = new InternalMethod(module.stores, module.events);
 	const method = new NFTMethod(module.stores, module.events);
 	let interoperabilityMethod!: InteroperabilityMethod;
-	internalMethod.addDependencies(method, interoperabilityMethod);
+	let tokenMethod!: TokenMethod;
+	internalMethod.addDependencies(method, interoperabilityMethod, tokenMethod);
 
 	const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 	internalMethod.init({ ownChainID });
@@ -191,7 +196,7 @@ describe('InternalMethod', () => {
 		});
 	});
 
-	describe('transferInternal', () => {
+	describe('transfer', () => {
 		it('should transfer NFT from sender to recipient and emit Transfer event', async () => {
 			await module.stores.get(NFTStore).save(methodContext, nftID, {
 				owner: senderAddress,
@@ -202,7 +207,7 @@ describe('InternalMethod', () => {
 				lockingModule: NFT_NOT_LOCKED,
 			});
 
-			await internalMethod.transferInternal(methodContext, recipientAddress, nftID);
+			await internalMethod.transfer(methodContext, recipientAddress, nftID);
 
 			await expect(module.stores.get(NFTStore).get(methodContext, nftID)).resolves.toEqual({
 				owner: recipientAddress,
@@ -227,13 +232,13 @@ describe('InternalMethod', () => {
 		});
 
 		it('should fail if NFT does not exist', async () => {
-			await expect(
-				internalMethod.transferInternal(methodContext, recipientAddress, nftID),
-			).rejects.toThrow('does not exist');
+			await expect(internalMethod.transfer(methodContext, recipientAddress, nftID)).rejects.toThrow(
+				'does not exist',
+			);
 		});
 	});
 
-	describe('transferCrossChainInternal', () => {
+	describe('transferCrossChain', () => {
 		let receivingChainID: Buffer;
 		const messageFee = BigInt(1000);
 		const data = '';
@@ -250,7 +255,7 @@ describe('InternalMethod', () => {
 					.mockResolvedValue(Promise.resolve(utils.getRandomBytes(LENGTH_TOKEN_ID))),
 			};
 
-			internalMethod.addDependencies(method, interoperabilityMethod);
+			internalMethod.addDependencies(method, interoperabilityMethod, tokenMethod);
 		});
 
 		describe('if attributes are not included ccm contains empty attributes', () => {
@@ -278,7 +283,7 @@ describe('InternalMethod', () => {
 				});
 
 				await expect(
-					internalMethod.transferCrossChainInternal(
+					internalMethod.transferCrossChain(
 						methodContext,
 						senderAddress,
 						recipientAddress,
@@ -356,7 +361,7 @@ describe('InternalMethod', () => {
 				});
 
 				await expect(
-					internalMethod.transferCrossChainInternal(
+					internalMethod.transferCrossChain(
 						methodContext,
 						senderAddress,
 						recipientAddress,
@@ -435,7 +440,7 @@ describe('InternalMethod', () => {
 				});
 
 				await expect(
-					internalMethod.transferCrossChainInternal(
+					internalMethod.transferCrossChain(
 						methodContext,
 						senderAddress,
 						recipientAddress,
@@ -520,7 +525,7 @@ describe('InternalMethod', () => {
 				});
 
 				await expect(
-					internalMethod.transferCrossChainInternal(
+					internalMethod.transferCrossChain(
 						methodContext,
 						senderAddress,
 						recipientAddress,
