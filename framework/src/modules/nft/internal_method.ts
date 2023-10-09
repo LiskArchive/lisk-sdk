@@ -90,12 +90,8 @@ export class InternalMethod extends BaseMethod {
 		nftID: Buffer,
 		attributesArray: NFTAttributes[],
 	): Promise<void> {
-		const moduleNames = [];
-		for (const item of attributesArray) {
-			moduleNames.push(item.module);
-		}
-
-		if (new Set(moduleNames).size !== attributesArray.length) {
+		const hasDuplicates = this.hasDuplicateModuleNames(attributesArray);
+		if (hasDuplicates) {
 			throw new Error('Invalid attributes array provided');
 		}
 
@@ -104,6 +100,15 @@ export class InternalMethod extends BaseMethod {
 			owner: address,
 			attributesArray,
 		});
+	}
+
+	public hasDuplicateModuleNames(attributesArray: NFTAttributes[]): boolean {
+		const moduleNames = [];
+		for (const item of attributesArray) {
+			moduleNames.push(item.module);
+		}
+
+		return new Set(moduleNames).size !== attributesArray.length;
 	}
 
 	public async verifyTransfer(

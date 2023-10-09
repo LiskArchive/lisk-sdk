@@ -34,7 +34,11 @@ import { TransferEvent, TransferEventData } from '../../../../src/modules/nft/ev
 import { UserStore } from '../../../../src/modules/nft/stores/user';
 import { EscrowStore } from '../../../../src/modules/nft/stores/escrow';
 import { NFTMethod } from '../../../../src/modules/nft/method';
-import { InteroperabilityMethod, TokenMethod } from '../../../../src/modules/nft/types';
+import {
+	InteroperabilityMethod,
+	NFTAttributes,
+	TokenMethod,
+} from '../../../../src/modules/nft/types';
 import {
 	TransferCrossChainEvent,
 	TransferCrossChainEventData,
@@ -103,15 +107,47 @@ describe('InternalMethod', () => {
 		});
 	});
 
+	describe('hasDuplicateModuleNames', () => {
+		it('should return false when the attributes array is empty', () => {
+			const attributesArray: NFTAttributes[] = [];
+
+			expect(internalMethod.hasDuplicateModuleNames(attributesArray)).toBeFalse();
+		});
+
+		it('should return false when all module names are unique', () => {
+			const attributesArray: NFTAttributes[] = [
+				{ module: 'module1', attributes: Buffer.from('attributes1') },
+				{ module: 'module2', attributes: Buffer.from('attributes2') },
+				{ module: 'module3', attributes: Buffer.from('attributes3') },
+			];
+
+			const result = internalMethod.hasDuplicateModuleNames(attributesArray);
+
+			expect(result).toBeFalse();
+		});
+
+		it('should return true when there are duplicate module names', () => {
+			const attributesArray: NFTAttributes[] = [
+				{ module: 'module1', attributes: Buffer.from('attributes1') },
+				{ module: 'module1', attributes: Buffer.from('attributes2') },
+				{ module: 'module3', attributes: Buffer.from('attributes3') },
+			];
+
+			const result = internalMethod.hasDuplicateModuleNames(attributesArray);
+
+			expect(result).toBeTrue();
+		});
+	});
+
 	describe('createNFTEntry', () => {
 		it('should throw for duplicate module names in attributes array', async () => {
 			const attributesArray = [
 				{
-					module: 'token',
+					module: 'module1',
 					attributes: Buffer.alloc(8, 1),
 				},
 				{
-					module: 'token',
+					module: 'module1',
 					attributes: Buffer.alloc(8, 2),
 				},
 			];
@@ -124,16 +160,16 @@ describe('InternalMethod', () => {
 		it('should create an entry in NFStore with attributes sorted by module if there is no duplicate module name', async () => {
 			const unsortedAttributesArray = [
 				{
-					module: 'token',
+					module: 'module1',
 					attributes: Buffer.alloc(8, 1),
 				},
 				{
-					module: 'pos',
+					module: 'module2',
 					attributes: Buffer.alloc(8, 1),
 				},
 			];
 
-			const sortedAttributesArray = unsortedAttributesArray.sort((a, b) =>
+			const sortedAttributesArray = [...unsortedAttributesArray].sort((a, b) =>
 				a.module.localeCompare(b.module, 'en'),
 			);
 

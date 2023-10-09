@@ -255,14 +255,6 @@ export class NFTMethod extends BaseMethod {
 		collectionID: Buffer,
 		attributesArray: NFTAttributes[],
 	): Promise<void> {
-		const moduleNames = [];
-		for (const item of attributesArray) {
-			moduleNames.push(item.module);
-		}
-		if (new Set(moduleNames).size !== attributesArray.length) {
-			throw new Error('Invalid attributes array provided');
-		}
-
 		const index = await this.getNextAvailableIndex(methodContext, collectionID);
 		const indexBytes = Buffer.alloc(LENGTH_INDEX);
 		indexBytes.writeBigInt64BE(index);
@@ -270,16 +262,9 @@ export class NFTMethod extends BaseMethod {
 		const nftID = Buffer.concat([this._config.ownChainID, collectionID, indexBytes]);
 		this._feeMethod.payFee(methodContext, BigInt(FEE_CREATE_NFT));
 
-		const nftStore = this.stores.get(NFTStore);
-		await nftStore.save(methodContext, nftID, {
-			owner: address,
-			attributesArray,
-		});
+		await this._internalMethod.createNFTEntry(methodContext, address, nftID, attributesArray);
 
-		const userStore = this.stores.get(UserStore);
-		await userStore.set(methodContext, userStore.getKey(address, nftID), {
-			lockingModule: NFT_NOT_LOCKED,
-		});
+		await this._internalMethod.createUserEntry(methodContext, address, nftID);
 
 		this.events.get(CreateEvent).log(methodContext, {
 			address,
@@ -798,7 +783,12 @@ export class NFTMethod extends BaseMethod {
 			storedAttributes,
 			receivedAttributes,
 		);
-		await nftStore.save(methodContext, nftID, nftData);
+		await this._internalMethod.createNFTEntry(
+			methodContext,
+			nftData.owner,
+			nftID,
+			nftData.attributesArray,
+		);
 		await this._internalMethod.createUserEntry(methodContext, nftData.owner, nftID);
 		await escrowStore.del(methodContext, escrowStore.getKey(terminatedChainID, nftID));
 
@@ -835,7 +825,8 @@ export class NFTMethod extends BaseMethod {
 		} else {
 			nft.attributesArray.push({ module, attributes });
 		}
-		await nftStore.save(methodContext, nftID, nft);
+
+		await this._internalMethod.createNFTEntry(methodContext, nft.owner, nftID, nft.attributesArray);
 
 		this.events.get(SetAttributesEvent).log(methodContext, {
 			nftID,

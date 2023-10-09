@@ -67,7 +67,6 @@ import {
 	LENGTH_ADDRESS,
 	LENGTH_CHAIN_ID,
 	MODULE_NAME_NFT,
-	NFT_NOT_LOCKED,
 } from './constants';
 
 export class NFTModule extends BaseInteroperableModule {
@@ -268,24 +267,20 @@ export class NFTModule extends BaseInteroperableModule {
 			supportedChainsKeySet.add(supportedNFT.chainID);
 		}
 
-		const nftStore = this.stores.get(NFTStore);
-		const escrowStore = this.stores.get(EscrowStore);
-		const userStore = this.stores.get(UserStore);
-
 		for (const nft of genesisStore.nftSubstore) {
 			const { owner, nftID, attributesArray } = nft;
 
-			await nftStore.save(context, nftID, {
+			await this._internalMethod.createNFTEntry(
+				context.getMethodContext(),
 				owner,
+				nftID,
 				attributesArray,
-			});
+			);
 
 			if (owner.length === LENGTH_CHAIN_ID) {
-				await escrowStore.set(context, escrowStore.getKey(owner, nftID), {});
+				await this._internalMethod.createEscrowEntry(context.getMethodContext(), owner, nftID);
 			} else {
-				await userStore.set(context, userStore.getKey(owner, nftID), {
-					lockingModule: NFT_NOT_LOCKED,
-				});
+				await this._internalMethod.createUserEntry(context.getMethodContext(), owner, nftID);
 			}
 		}
 
