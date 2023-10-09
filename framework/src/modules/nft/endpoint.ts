@@ -161,7 +161,7 @@ export class NFTEndpoint extends BaseEndpoint {
 
 		const areAllNFTsSupported = await supportedNFTsStore.has(context, ALL_SUPPORTED_NFTS_KEY);
 		if (areAllNFTsSupported) {
-			return { collectionIDs: [] };
+		        return { collectionIDs: ['*'] };
 		}
 
 		const isSupported = await supportedNFTsStore.has(context, chainID);
