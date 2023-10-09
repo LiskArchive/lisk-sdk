@@ -166,7 +166,7 @@ export class NFTEndpoint extends BaseEndpoint {
 
 		const isSupported = await supportedNFTsStore.has(context, chainID);
 		if (!isSupported) {
-			return chainID.equals(ownChainID) ? { collectionIDs: [] } : undefined;
+		        return chainID.equals(ownChainID) ? { collectionIDs: ['*'] } : [];
 		}
 
 		const supportedNFTsData = await supportedNFTsStore.get(
