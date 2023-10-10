@@ -473,6 +473,43 @@ describe('initGenesisState', () => {
 				);
 			});
 
+			it('should call _verifyTerminatedStateAccountsCommon', async () => {
+				jest.spyOn(interopMod, '_verifyTerminatedStateAccountsCommon' as any);
+
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						chainInfos: [
+							{
+								...chainInfo,
+								chainData: {
+									...chainData,
+									status: ChainStatus.TERMINATED,
+									lastCertificate: {
+										...lastCertificate,
+										validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+									},
+								},
+								chainValidators: {
+									activeValidators,
+									certificateThreshold,
+								},
+							},
+						],
+						terminatedStateAccounts: [
+							{
+								chainID: chainInfo.chainID,
+								terminatedStateAccount,
+							},
+						],
+					},
+					params,
+				);
+
+				await expect(interopMod.initGenesisState(context)).resolves.toBeUndefined();
+				expect(interopMod['_verifyTerminatedStateAccountsCommon']).toHaveBeenCalledTimes(1);
+			});
+
 			it('should throw error if some stateAccount in terminatedStateAccounts have stateRoot not equal to chainData.lastCertificate.stateRoot', async () => {
 				const context = createInitGenesisStateContext(
 					{

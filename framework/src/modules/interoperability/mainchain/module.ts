@@ -367,32 +367,44 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 						'For each chainInfo with status terminated there should be a corresponding entry in terminatedStateAccounts.',
 					);
 				}
+			}
+		}
 
-				this._verifyTerminatedStateAccountsCommon(terminatedStateAccounts, mainchainID);
+		this._verifyTerminatedStateAccountsCommon(terminatedStateAccounts, mainchainID);
 
-				// For each entry stateAccount in terminatedStateAccounts holds
-				// stateAccount.stateRoot == chainData.lastCertificate.stateRoot,
-				// stateAccount.mainchainStateRoot == EMPTY_HASH, and
-				// stateAccount.initialized == True.
-				// Here chainData is the corresponding entry (i.e., with chainID == stateAccount.chainID) in chainInfos.
-				const stateAccount = terminatedAccount.terminatedStateAccount;
-				if (stateAccount) {
-					if (!stateAccount.stateRoot.equals(chainInfo.chainData.lastCertificate.stateRoot)) {
-						throw new Error(
-							"stateAccount.stateRoot doesn't match chainInfo.chainData.lastCertificate.stateRoot.",
-						);
-					}
+		// For each entry stateAccount in terminatedStateAccounts holds
+		// stateAccount.stateRoot == chainData.lastCertificate.stateRoot,
+		// stateAccount.mainchainStateRoot == EMPTY_HASH, and
+		// stateAccount.initialized == True.
+		// Here chainData is the corresponding entry (i.e., with chainID == stateAccount.chainID) in chainInfos.
 
-					if (!stateAccount.mainchainStateRoot.equals(EMPTY_HASH)) {
-						throw new Error(
-							`stateAccount.mainchainStateRoot is not equal to ${EMPTY_HASH.toString('hex')}.`,
-						);
-					}
+		for (const terminatedStateAccountWithChainID of terminatedStateAccounts) {
+			const stateAccount = terminatedStateAccountWithChainID.terminatedStateAccount;
+			// For each entry stateAccount in terminatedStateAccounts holds
+			// stateAccount.stateRoot == chainData.lastCertificate.stateRoot,
+			// stateAccount.mainchainStateRoot == EMPTY_HASH, and
+			// stateAccount.initialized == True.
+			// Here chainData is the corresponding entry (i.e., with chainID == stateAccount.chainID) in chainInfos.
+			const correspondingChainInfo = chainInfos.find(chainInfo =>
+				chainInfo.chainID.equals(terminatedStateAccountWithChainID.chainID),
+			) as ChainInfo; // at this point, it's not undefined, since similar check already applied above
 
-					if (!stateAccount.initialized) {
-						throw new Error('stateAccount is not initialized.');
-					}
-				}
+			if (
+				!stateAccount.stateRoot.equals(correspondingChainInfo.chainData.lastCertificate.stateRoot)
+			) {
+				throw new Error(
+					"stateAccount.stateRoot doesn't match chainInfo.chainData.lastCertificate.stateRoot.",
+				);
+			}
+
+			if (!stateAccount.mainchainStateRoot.equals(EMPTY_HASH)) {
+				throw new Error(
+					`stateAccount.mainchainStateRoot is not equal to ${EMPTY_HASH.toString('hex')}.`,
+				);
+			}
+
+			if (!stateAccount.initialized) {
+				throw new Error('stateAccount is not initialized.');
 			}
 		}
 	}
