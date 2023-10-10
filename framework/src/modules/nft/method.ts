@@ -195,39 +195,19 @@ export class NFTMethod extends BaseMethod {
 		nftID: Buffer,
 	): Promise<boolean> {
 		const nftChainID = this.getChainID(nftID);
-		if (this._isNFTFromOwnChain(nftChainID)) {
+		if (nftChainID.equals(this._config.ownChainID)) {
 			return true;
 		}
 
 		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
-		if (await this._isAllNFTsSupported(supportedNFTsStore, methodContext)) {
+		const supportForAllKeysExists = await supportedNFTsStore.has(
+			methodContext,
+			ALL_SUPPORTED_NFTS_KEY,
+		);
+		if (supportForAllKeysExists) {
 			return true;
 		}
 
-		if (await this._isNFTChainSupported(supportedNFTsStore, methodContext, nftChainID, nftID)) {
-			return true;
-		}
-
-		return false;
-	}
-
-	private _isNFTFromOwnChain(nftChainID: Buffer): boolean {
-		return nftChainID.equals(this._config.ownChainID);
-	}
-
-	private async _isAllNFTsSupported(
-		supportedNFTsStore: SupportedNFTsStore,
-		methodContext: ImmutableMethodContext,
-	): Promise<boolean> {
-		return supportedNFTsStore.has(methodContext, ALL_SUPPORTED_NFTS_KEY);
-	}
-
-	private async _isNFTChainSupported(
-		supportedNFTsStore: SupportedNFTsStore,
-		methodContext: ImmutableMethodContext,
-		nftChainID: Buffer,
-		nftID: Buffer,
-	): Promise<boolean> {
 		const supportForNftChainIdExists = await supportedNFTsStore.has(methodContext, nftChainID);
 		if (supportForNftChainIdExists) {
 			const supportedNFTsStoreData = await supportedNFTsStore.get(methodContext, nftChainID);
@@ -243,6 +223,7 @@ export class NFTMethod extends BaseMethod {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
