@@ -303,7 +303,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			jest.spyOn(sidechainCCUUpdateCommand['internalMethod'], 'isLive').mockResolvedValue(true);
 		});
 
-		it('should verify verifyCommon is called', async () => {
+		it('should check if verifyCommon is called', async () => {
 			jest.spyOn(sidechainCCUUpdateCommand, 'verifyCommon' as any);
 
 			await expect(sidechainCCUUpdateCommand.verify(verifyContext)).resolves.toEqual({
@@ -311,15 +311,6 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			});
 
 			expect(sidechainCCUUpdateCommand['verifyCommon']).toHaveBeenCalled();
-		});
-
-		it('should reject when ccu params validation fails', async () => {
-			await expect(
-				sidechainCCUUpdateCommand.verify({
-					...verifyContext,
-					params: { ...params, sendingChainID: 2 } as any,
-				}),
-			).rejects.toThrow('.sendingChainID');
 		});
 
 		it('should call isLive with only 2 params', async () => {
@@ -332,15 +323,16 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 				}),
 			).resolves.toEqual({ status: VerifyStatus.OK });
 
-			expect(sidechainCCUUpdateCommand['internalMethod'].isLive).toHaveBeenCalledWith(
-				verifyContext,
-				verifyContext.params.sendingChainID,
-			);
-
 			expect(sidechainCCUUpdateCommand['internalMethod'].isLive).not.toHaveBeenCalledWith(
 				verifyContext,
 				verifyContext.params.sendingChainID,
 				verifyContext.header.timestamp,
+			);
+
+			// should be tested later, otherwise, it can pass even if above fails
+			expect(sidechainCCUUpdateCommand['internalMethod'].isLive).toHaveBeenCalledWith(
+				verifyContext,
+				verifyContext.params.sendingChainID,
 			);
 		});
 	});

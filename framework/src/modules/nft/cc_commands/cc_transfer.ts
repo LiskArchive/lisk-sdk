@@ -112,24 +112,26 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 
 		if (nftChainID.equals(ownChainID)) {
 			const storeData = await nftStore.get(getMethodContext(), nftID);
+
 			if (status === CCM_STATUS_CODE_OK) {
-				storeData.owner = recipientAddress;
 				const storedAttributes = storeData.attributesArray;
 				storeData.attributesArray = this._internalMethod.getNewAttributes(
 					nftID,
 					storedAttributes,
 					receivedAttributes,
 				);
-				await nftStore.save(getMethodContext(), nftID, storeData);
-				await this._internalMethod.createUserEntry(getMethodContext(), recipientAddress, nftID);
-				await escrowStore.del(getMethodContext(), escrowStore.getKey(sendingChainID, nftID));
 			} else {
 				recipientAddress = senderAddress;
-				storeData.owner = recipientAddress;
-				await nftStore.save(getMethodContext(), nftID, storeData);
-				await this._internalMethod.createUserEntry(getMethodContext(), recipientAddress, nftID);
-				await escrowStore.del(getMethodContext(), escrowStore.getKey(sendingChainID, nftID));
 			}
+
+			await this._internalMethod.createNFTEntry(
+				getMethodContext(),
+				recipientAddress,
+				nftID,
+				storeData.attributesArray,
+			);
+			await this._internalMethod.createUserEntry(getMethodContext(), recipientAddress, nftID);
+			await escrowStore.del(getMethodContext(), escrowStore.getKey(sendingChainID, nftID));
 		} else {
 			const isSupported = await this._method.isNFTSupported(getMethodContext(), nftID);
 			if (!isSupported) {
@@ -146,22 +148,21 @@ export class CrossChainTransferCommand extends BaseCCCommand {
 				);
 				throw new Error('Non-supported NFT');
 			}
+
 			this._feeMethod.payFee(getMethodContext(), BigInt(FEE_CREATE_NFT));
 
-			if (status === CCM_STATUS_CODE_OK) {
-				await nftStore.save(getMethodContext(), nftID, {
-					owner: recipientAddress,
-					attributesArray: receivedAttributes as NFTAttributes[],
-				});
-				await this._internalMethod.createUserEntry(getMethodContext(), recipientAddress, nftID);
-			} else {
+			if (status !== CCM_STATUS_CODE_OK) {
 				recipientAddress = senderAddress;
-				await nftStore.save(getMethodContext(), nftID, {
-					owner: recipientAddress,
-					attributesArray: receivedAttributes as NFTAttributes[],
-				});
-				await this._internalMethod.createUserEntry(getMethodContext(), recipientAddress, nftID);
 			}
+
+			await this._internalMethod.createNFTEntry(
+				getMethodContext(),
+				recipientAddress,
+				nftID,
+				receivedAttributes as NFTAttributes[],
+			);
+
+			await this._internalMethod.createUserEntry(getMethodContext(), recipientAddress, nftID);
 		}
 
 		this.events.get(CcmTransferEvent).log(context, {

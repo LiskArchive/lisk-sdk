@@ -589,7 +589,6 @@ describe('Base interoperability internal method', () => {
 				},
 			];
 
-			// TODO: I have no idea why `$title` is not working, fix this
 			it.each(testCases)('$title', async ({ changedValues }) => {
 				// Assign
 				const isValueChanged = await interopMod.stores

@@ -51,6 +51,9 @@ export interface TokenMethod {
 export interface NFTMethod {
 	getChainID(nftID: Buffer): Buffer;
 	destroy(methodContext: MethodContext, address: Buffer, nftID: Buffer): Promise<void>;
+	getNFT(methodContext: ImmutableMethodContext, nftID: Buffer): Promise<NFT>;
+	isNFTEscrowed(nft: NFT): boolean;
+	isNFTLocked(nft: NFT): boolean;
 }
 
 export interface NFTAttributes {

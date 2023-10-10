@@ -321,6 +321,19 @@ describe('BaseCrossChainUpdateCommand', () => {
 				.set(stateStore, params.sendingChainID, chainAccount);
 		});
 
+		it('should reject when ccu params validation fails', async () => {
+			const nonBufferSendingChainID = 2;
+			verifyContext = {
+				...verifyContext,
+				params: { ...params, sendingChainID: nonBufferSendingChainID } as any,
+			};
+
+			// 2nd param `isMainchain` could be false
+			await expect(command['verifyCommon'](verifyContext, false)).rejects.toThrow(
+				`Property '.sendingChainID' should pass "dataType" keyword validation`,
+			);
+		});
+
 		it('should call validator.validate with crossChainUpdateTransactionParams schema', async () => {
 			jest.spyOn(validator, 'validate');
 

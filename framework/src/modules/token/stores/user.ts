@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { NotFoundError } from '@liskhq/lisk-db';
-import { BaseStore, ImmutableStoreGetter, StoreGetter } from '../../base_store';
-import { MAX_MODULE_NAME_LENGTH, MIN_MODULE_NAME_LENGTH, TOKEN_ID_LENGTH } from '../constants';
+import { BaseStore, StoreGetter } from '../../base_store';
+import { MAX_MODULE_NAME_LENGTH, MIN_MODULE_NAME_LENGTH } from '../constants';
 import { TokenID } from '../types';
 
 export interface UserStoreData {
@@ -52,15 +52,6 @@ export const userStoreSchema = {
 
 export class UserStore extends BaseStore<UserStoreData> {
 	public schema = userStoreSchema;
-
-	// TODO: Remove this function when updating the methods
-	public async accountExist(context: ImmutableStoreGetter, address: Buffer): Promise<boolean> {
-		const allUserData = await this.iterate(context, {
-			gte: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
-			lte: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 255)]),
-		});
-		return allUserData.length !== 0;
-	}
 
 	public async createDefaultAccount(
 		context: StoreGetter,
