@@ -433,6 +433,25 @@ describe('NFTEndpoint', () => {
 			validator.validate(getSupportedCollectionIDsResponseSchema, { collectionIDs: [] });
 		});
 
+		it('should return * if chainID is equal to ownChainID and there is no collectionID', async () => {
+			await supportedNFTsStore.save(methodContext, ownChainID, {
+				supportedCollectionIDArray: [],
+			});
+
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: ownChainID.toString('hex'),
+				},
+			});
+
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
+				collectionIDs: ['*'],
+			});
+
+			validator.validate(getSupportedCollectionIDsResponseSchema, { collectionIDs: [] });
+		});
+
 		it('should return collectionIDs if chainID is not equal to ownChainID and is supported', async () => {
 			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 			const supportedCollections = [

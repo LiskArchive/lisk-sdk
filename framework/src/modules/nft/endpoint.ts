@@ -174,6 +174,10 @@ export class NFTEndpoint extends BaseEndpoint {
 			chainID,
 		);
 
+		if (!supportedNFTsData.supportedCollectionIDArray.length) {
+			return { collectionIDs: ['*'] };
+		}
+
 		return {
 			collectionIDs: supportedNFTsData.supportedCollectionIDArray.map(collection =>
 				collection.collectionID.toString('hex'),
