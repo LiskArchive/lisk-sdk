@@ -12,12 +12,14 @@ import {
 	lastCertificate,
 	terminatedOutboxAccount,
 	terminatedStateAccount,
+	mainchainID,
 } from './interopFixtures';
 import {
 	ActiveValidator,
 	ChainStatus,
 	EMPTY_BYTES,
 	MainchainInteroperabilityModule,
+	getMainchainID,
 } from '../../../../src';
 import {
 	MAX_NUM_VALIDATORS,
@@ -43,6 +45,10 @@ import { TerminatedOutboxCreatedEvent } from '../../../../src/modules/interopera
 import { TerminatedStateCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_state_created';
 import { InvalidRMTVerification } from '../../../../src/modules/interoperability/events/invalid_rmt_verification';
 import { InvalidSMTVerification } from '../../../../src/modules/interoperability/events/invalid_smt_verification';
+import {
+	ChainInfo,
+	TerminatedStateAccountWithChainID,
+} from '../../../../src/modules/interoperability/types';
 
 describe('initGenesisState Common Tests', () => {
 	const chainID = Buffer.from([0, 0, 0, 0]);
@@ -344,76 +350,74 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 			);
 		});
 
-		describe('activeValidators.certificateThreshold', () => {
-			it(`should throw error if 'totalWeight / BigInt(3) + BigInt(1) > certificateThreshold'`, async () => {
-				const context = createInitGenesisStateContext(
-					{
-						...genesisInteroperability,
-						chainInfos: [
-							{
-								...chainInfo,
-								chainValidators: {
-									activeValidators: [
-										{
-											blsKey: Buffer.from(
-												'901550cf1fde7dde29218ee82c5196754efea99813af079bb2809a7fad8a053f93726d1e61ccf427118dcc27b0c07d9a',
-												'hex',
-											),
-											bftWeight: BigInt(100),
-										},
-										{
-											// utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH).toString('hex')
-											blsKey: Buffer.from(
-												'c1d3c7919a4ea7e3b5d5b0068513c2cd7fe047a632e13d9238a51fcd6a4afd7ee16906978992a702bccf1f0149fa5d39',
-												'hex',
-											),
-											bftWeight: BigInt(200),
-										},
-									],
-									// totalWeight / BigInt(3) + BigInt(1) = (100 + 200)/3 + 1 = 101
-									// totalWeight / BigInt(3) + BigInt(1) > certificateThreshold
-									certificateThreshold: BigInt(10), // 101 > 10
-								},
+		it(`should throw error if 'totalWeight / BigInt(3) + BigInt(1) > certificateThreshold'`, async () => {
+			const context = createInitGenesisStateContext(
+				{
+					...genesisInteroperability,
+					chainInfos: [
+						{
+							...chainInfo,
+							chainValidators: {
+								activeValidators: [
+									{
+										blsKey: Buffer.from(
+											'901550cf1fde7dde29218ee82c5196754efea99813af079bb2809a7fad8a053f93726d1e61ccf427118dcc27b0c07d9a',
+											'hex',
+										),
+										bftWeight: BigInt(100),
+									},
+									{
+										// utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH).toString('hex')
+										blsKey: Buffer.from(
+											'c1d3c7919a4ea7e3b5d5b0068513c2cd7fe047a632e13d9238a51fcd6a4afd7ee16906978992a702bccf1f0149fa5d39',
+											'hex',
+										),
+										bftWeight: BigInt(200),
+									},
+								],
+								// totalWeight / BigInt(3) + BigInt(1) = (100 + 200)/3 + 1 = 101
+								// totalWeight / BigInt(3) + BigInt(1) > certificateThreshold
+								certificateThreshold: BigInt(10), // 101 > 10
 							},
-						],
-					},
-					params,
-				);
+						},
+					],
+				},
+				params,
+			);
 
-				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`Invalid certificateThreshold input.`,
-				);
-			});
+			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+				`Invalid certificateThreshold input.`,
+			);
+		});
 
-			it(`should throw error if certificateThreshold > totalWeight`, async () => {
-				const context = createInitGenesisStateContext(
-					{
-						...genesisInteroperability,
-						chainInfos: [
-							{
-								...chainInfo,
-								chainValidators: {
-									activeValidators: [
-										{
-											blsKey: Buffer.from(
-												'901550cf1fde7dde29218ee82c5196754efea99813af079bb2809a7fad8a053f93726d1e61ccf427118dcc27b0c07d9a',
-												'hex',
-											),
-											bftWeight: BigInt(10),
-										},
-									],
-									certificateThreshold: BigInt(20),
-								},
+		it(`should throw error if certificateThreshold > totalWeight`, async () => {
+			const context = createInitGenesisStateContext(
+				{
+					...genesisInteroperability,
+					chainInfos: [
+						{
+							...chainInfo,
+							chainValidators: {
+								activeValidators: [
+									{
+										blsKey: Buffer.from(
+											'901550cf1fde7dde29218ee82c5196754efea99813af079bb2809a7fad8a053f93726d1e61ccf427118dcc27b0c07d9a',
+											'hex',
+										),
+										bftWeight: BigInt(10),
+									},
+								],
+								certificateThreshold: BigInt(20),
 							},
-						],
-					},
-					params,
-				);
+						},
+					],
+				},
+				params,
+			);
 
-				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`Invalid certificateThreshold input.`,
-				);
-			});
+			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+				`Invalid certificateThreshold input.`,
+			);
 		});
 
 		it(`should throw error if invalid validatorsHash provided`, async () => {
@@ -439,6 +443,50 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 
 		it(`should not throw error if valid validatorsHash provided`, async () => {
 			certificateThreshold = BigInt(10);
+			await expect(
+				interopMod.initGenesisState(contextWithValidValidatorsHash),
+			).resolves.toBeUndefined();
+		});
+	});
+
+	describe('_verifyChainID', () => {
+		it('should throw error if chainInfo.chainID equals getMainchainID()', async () => {
+			const context = createInitGenesisStateContext(
+				{
+					...genesisInteroperability,
+					chainInfos: [
+						{
+							...chainInfo,
+							chainID: mainchainID,
+						},
+					],
+				},
+				params,
+			);
+			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+				`chainInfo.chainID must not be equal to ${mainchainID.toString('hex')}.`,
+			);
+		});
+
+		it('should throw error if chainInfo.chainID[0] !== getMainchainID()[0]', async () => {
+			const context = createInitGenesisStateContext(
+				{
+					...genesisInteroperability,
+					chainInfos: [
+						{
+							...chainInfo,
+							chainID: Buffer.from([1, 0, 0, 0]),
+						},
+					],
+				},
+				params,
+			);
+			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+				`chainInfo.chainID[0] must be equal to ${mainchainID[0]}.`,
+			);
+		});
+
+		it('should not throw error when chainID !== mainchainID & chainInfo.chainId[0] == getMainchainID()[0]', async () => {
 			await expect(
 				interopMod.initGenesisState(contextWithValidValidatorsHash),
 			).resolves.toBeUndefined();
@@ -531,6 +579,46 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 
 			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
 				'terminatedStateAccounts must be ordered lexicographically by chainID.',
+			);
+		});
+
+		it('should call _verifyChainID the same number of times as size of terminatedStateAccounts', async () => {
+			const interopModPrototype = Object.getPrototypeOf(interopMod);
+			jest.spyOn(interopModPrototype, '_verifyChainID' as any);
+
+			const chainInfoLocal: ChainInfo = {
+				...chainInfo,
+				chainData: {
+					...chainData,
+					status: ChainStatus.TERMINATED,
+					lastCertificate: {
+						...lastCertificate,
+						validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+					},
+				},
+				chainValidators: {
+					activeValidators,
+					certificateThreshold,
+				},
+			};
+
+			const terminatedStateAccounts: TerminatedStateAccountWithChainID[] = [
+				{
+					chainID: chainInfoLocal.chainID,
+					terminatedStateAccount,
+				},
+				{
+					chainID: Buffer.from([0, 0, 0, 2]),
+					terminatedStateAccount,
+				},
+			];
+
+			interopModPrototype._verifyTerminatedStateAccountsCommon(
+				terminatedStateAccounts,
+				getMainchainID(params.chainID as Buffer),
+			);
+			expect(interopModPrototype['_verifyChainID']).toHaveBeenCalledTimes(
+				terminatedStateAccounts.length,
 			);
 		});
 	});
