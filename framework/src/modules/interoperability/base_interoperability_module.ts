@@ -147,7 +147,7 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		}
 
 		// for each validator in activeValidators, validator.bftWeight > 0 must hold
-		if (activeValidators.filter(v => v.bftWeight <= 0).length > 0) {
+		if (activeValidators.filter(v => v.bftWeight <= BigInt(0)).length > 0) {
 			throw new Error(`validator.bftWeight must be > 0.`);
 		}
 

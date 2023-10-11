@@ -290,7 +290,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			}
 			// mainchainInfo.chainID == getMainchainID();
 			const mainchainInfo = chainInfos[0];
-			const mainchainID = getMainchainID(mainchainInfo.chainID);
+			const mainchainID = getMainchainID(ctx.chainID);
 			if (!mainchainInfo.chainID.equals(mainchainID)) {
 				throw new Error(`mainchainInfo.chainID must be equal to ${mainchainID.toString('hex')}.`);
 			}
