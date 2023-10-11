@@ -15,6 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import { CommandExecuteContext, MainchainInteroperabilityModule } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseCCMethod } from '../../../../../../src/modules/interoperability/base_cc_method';
@@ -35,35 +36,74 @@ import {
 	ChainStatus,
 } from '../../../../../../src/modules/interoperability/stores/chain_account';
 import { TerminateSidechainForLivenessCommand } from '../../../../../../src/modules/interoperability';
+import { CHAIN_ID_LENGTH } from '../../../../../../src/modules/token/constants';
 
 describe('TerminateSidechainForLivenessCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
+	let livenessTerminationCommand: TerminateSidechainForLivenessCommand;
+	let commandVerifyContext: CommandVerifyContext<TerminateSidechainForLivenessParams>;
+	let interoperableCCMethods: Map<string, BaseCCMethod>;
+	let ccCommands: Map<string, BaseCCCommand[]>;
+	let transaction: Transaction;
+	let transactionParams: TerminateSidechainForLivenessParams;
+	let encodedTransactionParams: Buffer;
+
+	beforeEach(() => {
+		interoperableCCMethods = new Map();
+		ccCommands = new Map();
+		transactionParams = {
+			chainID: utils.intToBuffer(3, 4),
+		};
+		encodedTransactionParams = codec.encode(
+			terminateSidechainForLivenessParamsSchema,
+			transactionParams,
+		);
+		transaction = new Transaction({
+			module: MODULE_NAME_INTEROPERABILITY,
+			command: COMMAND_NAME_LIVENESS_TERMINATION,
+			fee: BigInt(100000000),
+			nonce: BigInt(0),
+			params: encodedTransactionParams,
+			senderPublicKey: utils.getRandomBytes(32),
+			signatures: [],
+		});
+		livenessTerminationCommand = new TerminateSidechainForLivenessCommand(
+			interopMod.stores,
+			interopMod.events,
+			interoperableCCMethods,
+			ccCommands,
+			interopMod['internalMethod'],
+		);
+	});
+
+	describe('verifySchema', () => {
+		it(`should throw error when chainID is not bytes`, () => {
+			expect(() =>
+				validator.validate(livenessTerminationCommand.schema, {
+					chainID: 123,
+				}),
+			).toThrow('Property \'.chainID\' should pass "dataType" keyword validation');
+		});
+		it(`should throw error when chainID has length less than ${CHAIN_ID_LENGTH}`, () => {
+			expect(() =>
+				validator.validate(livenessTerminationCommand.schema, {
+					chainID: Buffer.alloc(CHAIN_ID_LENGTH - 1),
+				}),
+			).toThrow("Property '.chainID' minLength not satisfied");
+		});
+		it(`should throw error when chainID has length greater than ${CHAIN_ID_LENGTH}`, () => {
+			expect(() =>
+				validator.validate(livenessTerminationCommand.schema, {
+					chainID: Buffer.alloc(CHAIN_ID_LENGTH + 1),
+				}),
+			).toThrow("Property '.chainID' maxLength exceeded");
+		});
+	});
 
 	describe('verify', () => {
-		let livenessTerminationCommand: TerminateSidechainForLivenessCommand;
-		let commandVerifyContext: CommandVerifyContext<TerminateSidechainForLivenessParams>;
-		let interoperableCCMethods: Map<string, BaseCCMethod>;
-		let ccCommands: Map<string, BaseCCCommand[]>;
-		let transaction: Transaction;
-		let transactionParams: TerminateSidechainForLivenessParams;
-		let encodedTransactionParams: Buffer;
 		let chainAccount: ChainAccount;
 
 		beforeEach(async () => {
-			interoperableCCMethods = new Map();
-			ccCommands = new Map();
-
-			livenessTerminationCommand = new TerminateSidechainForLivenessCommand(
-				interopMod.stores,
-				interopMod.events,
-				interoperableCCMethods,
-				ccCommands,
-				interopMod['internalMethod'],
-			);
-
-			transactionParams = {
-				chainID: utils.intToBuffer(3, 4),
-			};
 			chainAccount = {
 				lastCertificate: {
 					height: 10,
@@ -74,20 +114,6 @@ describe('TerminateSidechainForLivenessCommand', () => {
 				name: 'staleSidechain',
 				status: ChainStatus.ACTIVE,
 			};
-			encodedTransactionParams = codec.encode(
-				terminateSidechainForLivenessParamsSchema,
-				transactionParams,
-			);
-
-			transaction = new Transaction({
-				module: MODULE_NAME_INTEROPERABILITY,
-				command: COMMAND_NAME_LIVENESS_TERMINATION,
-				fee: BigInt(100000000),
-				nonce: BigInt(0),
-				params: encodedTransactionParams,
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [],
-			});
 			commandVerifyContext = createTransactionContext({
 				transaction,
 			}).createCommandVerifyContext<TerminateSidechainForLivenessParams>(
@@ -98,18 +124,6 @@ describe('TerminateSidechainForLivenessCommand', () => {
 				.get(ChainAccountStore)
 				.set(commandVerifyContext as any, transactionParams.chainID, chainAccount);
 			jest.spyOn(interopMod['internalMethod'], 'isLive').mockResolvedValue(true);
-		});
-
-		it('should return error when validation fails', async () => {
-			await expect(
-				livenessTerminationCommand.verify({
-					...commandVerifyContext,
-					params: {
-						...commandVerifyContext.params,
-						chainID: Buffer.alloc(0),
-					},
-				}),
-			).rejects.toThrow("Property '.chainID' minLength not satisfied");
 		});
 
 		it('should return error when chain account does not exist', async () => {
@@ -151,45 +165,10 @@ describe('TerminateSidechainForLivenessCommand', () => {
 	});
 
 	describe('execute', () => {
-		let livenessTerminationCommand: TerminateSidechainForLivenessCommand;
 		let commandExecuteContext: CommandExecuteContext<TerminateSidechainForLivenessParams>;
-		let interoperableCCMethods: Map<string, BaseCCMethod>;
-		let ccCommands: Map<string, BaseCCCommand[]>;
-		let transaction: Transaction;
-		let transactionParams: TerminateSidechainForLivenessParams;
-		let encodedTransactionParams: Buffer;
 		let transactionContext: TransactionContext;
 
 		beforeEach(() => {
-			interoperableCCMethods = new Map();
-			ccCommands = new Map();
-			livenessTerminationCommand = new TerminateSidechainForLivenessCommand(
-				interopMod.stores,
-				interopMod.events,
-				interoperableCCMethods,
-				ccCommands,
-				interopMod['internalMethod'],
-			);
-
-			transactionParams = {
-				chainID: utils.intToBuffer(3, 4),
-			};
-
-			encodedTransactionParams = codec.encode(
-				terminateSidechainForLivenessParamsSchema,
-				transactionParams,
-			);
-
-			transaction = new Transaction({
-				module: MODULE_NAME_INTEROPERABILITY,
-				command: COMMAND_NAME_LIVENESS_TERMINATION,
-				fee: BigInt(100000000),
-				nonce: BigInt(0),
-				params: encodedTransactionParams,
-				senderPublicKey: utils.getRandomBytes(32),
-				signatures: [],
-			});
-
 			transactionContext = createTransactionContext({
 				transaction,
 			});

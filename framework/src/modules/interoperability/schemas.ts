@@ -545,6 +545,7 @@ export const stateRecoveryInitParamsSchema = {
 	},
 };
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#parameters-2
 export const terminateSidechainForLivenessParamsSchema = {
 	$id: '/modules/interoperability/mainchain/terminateSidechainForLiveness',
 	type: 'object',
