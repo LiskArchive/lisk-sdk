@@ -214,6 +214,7 @@ export abstract class BaseCrossChainUpdateCommand<
 		return [ccms, true];
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#verifyroutingrules
 	private _verifyRoutingRules(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 		isMainchain: boolean,
@@ -226,6 +227,7 @@ export abstract class BaseCrossChainUpdateCommand<
 
 		// Processing on the mainchain
 		if (isMainchain) {
+			// The CCM must come from the sending chain.
 			if (!ccm.sendingChainID.equals(context.params.sendingChainID)) {
 				throw new Error('CCM is not from the sending chain.');
 			}
