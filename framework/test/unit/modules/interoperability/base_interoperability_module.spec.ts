@@ -582,7 +582,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 			);
 		});
 
-		it('should call _verifyChainID the same number of times as size of terminatedStateAccounts', async () => {
+		it('should call _verifyChainID the same number of times as size of terminatedStateAccounts', () => {
 			const interopModPrototype = Object.getPrototypeOf(interopMod);
 			jest.spyOn(interopModPrototype, '_verifyChainID' as any);
 
