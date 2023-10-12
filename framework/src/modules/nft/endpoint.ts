@@ -27,12 +27,17 @@ import {
 import { NFTStore } from './stores/nft';
 import { ALL_SUPPORTED_NFTS_KEY, LENGTH_ADDRESS, LENGTH_NFT_ID } from './constants';
 import { UserStore } from './stores/user';
-import { NFTJSON } from './types';
+import { ModuleConfig, NFTJSON } from './types';
 import { SupportedNFTsStore } from './stores/supported_nfts';
 import { NFTMethod } from './method';
 
 export class NFTEndpoint extends BaseEndpoint {
+	private _config!: ModuleConfig;
 	private _nftMethod!: NFTMethod;
+
+	public init(config: ModuleConfig): void {
+		this._config = config;
+	}
 
 	public addDependencies(nftMethod: NFTMethod) {
 		this._nftMethod = nftMethod;
@@ -151,8 +156,8 @@ export class NFTEndpoint extends BaseEndpoint {
 		}
 
 		const supportedCollectionIDs: string[] = [];
-		const supportedNFTsStoreData = await supportedNFTsStore.getAll(context);
 
+		const supportedNFTsStoreData = await supportedNFTsStore.getAll(context);
 		for (const { key, value } of supportedNFTsStoreData) {
 			if (!value.supportedCollectionIDArray.length) {
 				supportedCollectionIDs.push(`${key.toString('hex')}********`);
@@ -164,6 +169,25 @@ export class NFTEndpoint extends BaseEndpoint {
 				supportedCollectionIDs.push(...collectionIDs);
 			}
 		}
+
+		const nftStore = this.stores.get(NFTStore);
+		const allNFTs = await nftStore.iterate(context.getImmutableMethodContext(), {
+			gte: Buffer.alloc(LENGTH_NFT_ID, 0),
+			lte: Buffer.alloc(LENGTH_NFT_ID, 255),
+		});
+
+		const { ownChainID } = this._config;
+		const nativeNFTs = allNFTs.filter(nft => nft.value.owner.equals(ownChainID));
+
+		const nativeCollectionIDs = new Set<string>();
+		for (const nft of nativeNFTs) {
+			const collectionID = nft.key.subarray(LENGTH_ADDRESS, LENGTH_NFT_ID).toString('hex');
+			nativeCollectionIDs.add(collectionID);
+		}
+
+		supportedCollectionIDs.push(
+			...[...nativeCollectionIDs].map(collectionID => ownChainID.toString('hex') + collectionID),
+		);
 
 		return { supportedCollectionIDs };
 	}
