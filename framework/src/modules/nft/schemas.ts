@@ -288,7 +288,7 @@ export const getSupportedCollectionIDsResponseSchema = {
 	$id: '/nft/endpoint/getSupportedCollectionIDsRespone',
 	type: 'object',
 	properties: {
-		collectionIDs: {
+		supportedCollectionIDs: {
 			type: 'array',
 			items: {
 				type: 'string',

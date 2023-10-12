@@ -39,7 +39,6 @@ import { JSONObject } from '../../../../src';
 import { SupportedNFTsStore } from '../../../../src/modules/nft/stores/supported_nfts';
 import {
 	isCollectionIDSupportedResponseSchema,
-	getSupportedCollectionIDsResponseSchema,
 	getEscrowedNFTIDsResponseSchema,
 	getNFTResponseSchema,
 	getNFTsResponseSchema,
@@ -56,7 +55,6 @@ describe('NFTEndpoint', () => {
 	const endpoint = new NFTEndpoint(module.stores, module.events);
 	const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 	method.init({ ownChainID });
-	endpoint.init({ ownChainID });
 
 	endpoint.addDependencies(method);
 
@@ -362,31 +360,7 @@ describe('NFTEndpoint', () => {
 	});
 
 	describe('getSupportedCollectionIDs', () => {
-		it('should fail if provided chainID has invalid length', async () => {
-			const minLengthContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID - 1).toString('hex'),
-				},
-			});
-
-			const maxLengthContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID + 1).toString('hex'),
-				},
-			});
-
-			await expect(endpoint.getSupportedCollectionIDs(minLengthContext)).rejects.toThrow(
-				`'.chainID' must NOT have fewer than 8 characters`,
-			);
-
-			await expect(endpoint.getSupportedCollectionIDs(maxLengthContext)).rejects.toThrow(
-				`'.chainID' must NOT have more than 8 characters`,
-			);
-		});
-
-		it('should return * if ALL_SUPPORTED_NFTS_KEY is present', async () => {
+		it('should return an array with a single * when all collections are supported', async () => {
 			await supportedNFTsStore.save(methodContext, ALL_SUPPORTED_NFTS_KEY, {
 				supportedCollectionIDArray: [],
 			});
@@ -399,13 +373,11 @@ describe('NFTEndpoint', () => {
 			});
 
 			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
-				collectionIDs: ['*'],
+				supportedCollectionIDs: ['*'],
 			});
-
-			validator.validate(getSupportedCollectionIDsResponseSchema, { collectionIDs: [] });
 		});
 
-		it('should return an empty array if chainID is not equal to ownChainID and is not supported', async () => {
+		it('should return an empty array when there are no supported collection IDs', async () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
@@ -414,57 +386,15 @@ describe('NFTEndpoint', () => {
 			});
 
 			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
-				collectionIDs: [],
+				supportedCollectionIDs: [],
 			});
 		});
 
-		it('should return * if chainID is equal to ownChainID and is not supported', async () => {
-			const context = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: ownChainID.toString('hex'),
-				},
-			});
-
-			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
-				collectionIDs: ['*'],
-			});
-
-			validator.validate(getSupportedCollectionIDsResponseSchema, { collectionIDs: [] });
-		});
-
-		it('should return * if chainID is equal to ownChainID and there is no collectionID', async () => {
-			await supportedNFTsStore.save(methodContext, ownChainID, {
-				supportedCollectionIDArray: [],
-			});
-
-			const context = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: ownChainID.toString('hex'),
-				},
-			});
-
-			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
-				collectionIDs: ['*'],
-			});
-
-			validator.validate(getSupportedCollectionIDsResponseSchema, { collectionIDs: [] });
-		});
-
-		it('should return collectionIDs if chainID is not equal to ownChainID and is supported', async () => {
+		it('should return an array with chainID + "********" when there are no supported collection IDs for the provided chainID', async () => {
 			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-			const supportedCollections = [
-				{
-					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID),
-				},
-				{
-					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID),
-				},
-			];
 
 			await supportedNFTsStore.save(methodContext, chainID, {
-				supportedCollectionIDArray: supportedCollections,
+				supportedCollectionIDArray: [],
 			});
 
 			const context = createTransientModuleEndpointContext({
@@ -474,51 +404,33 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			const expectedSupportedCollection = {
-				collectionIDs: supportedCollections.map(collection =>
-					collection.collectionID.toString('hex'),
-				),
-			};
-
-			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual(
-				expectedSupportedCollection,
-			);
-
-			validator.validate(getSupportedCollectionIDsResponseSchema, expectedSupportedCollection);
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
+				supportedCollectionIDs: [`${chainID.toString('hex')}********`],
+			});
 		});
 
-		it('should return collectionIDs if chainID is equal to ownChainID and is supported', async () => {
-			const supportedCollections = [
-				{
-					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID),
-				},
-				{
-					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID),
-				},
-			];
+		it('should return an array with supported collection ID', async () => {
+			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+			const collectionID = utils.getRandomBytes(LENGTH_COLLECTION_ID);
 
-			await supportedNFTsStore.save(methodContext, ownChainID, {
-				supportedCollectionIDArray: supportedCollections,
+			await supportedNFTsStore.save(methodContext, chainID, {
+				supportedCollectionIDArray: [
+					{
+						collectionID,
+					},
+				],
 			});
 
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					chainID: ownChainID.toString('hex'),
+					chainID: chainID.toString('hex'),
 				},
 			});
 
-			const expectedSupportedCollection = {
-				collectionIDs: supportedCollections.map(collection =>
-					collection.collectionID.toString('hex'),
-				),
-			};
-
-			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual(
-				expectedSupportedCollection,
-			);
-
-			validator.validate(getSupportedCollectionIDsResponseSchema, expectedSupportedCollection);
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
+				supportedCollectionIDs: [Buffer.concat([chainID, collectionID]).toString('hex')],
+			});
 		});
 	});
 

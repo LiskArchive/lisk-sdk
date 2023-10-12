@@ -18,7 +18,6 @@ import { BaseEndpoint } from '../base_endpoint';
 import { JSONObject, ModuleEndpointContext } from '../../types';
 import {
 	isCollectionIDSupportedRequestSchema,
-	getSupportedCollectionIDsRequestSchema,
 	getEscrowedNFTIDsRequestSchema,
 	getNFTRequestSchema,
 	getNFTsRequestSchema,
@@ -28,17 +27,12 @@ import {
 import { NFTStore } from './stores/nft';
 import { ALL_SUPPORTED_NFTS_KEY, LENGTH_ADDRESS, LENGTH_NFT_ID } from './constants';
 import { UserStore } from './stores/user';
-import { ModuleConfig, NFTJSON } from './types';
+import { NFTJSON } from './types';
 import { SupportedNFTsStore } from './stores/supported_nfts';
 import { NFTMethod } from './method';
 
 export class NFTEndpoint extends BaseEndpoint {
-	private _config!: ModuleConfig;
 	private _nftMethod!: NFTMethod;
-
-	public init(config: ModuleConfig): void {
-		this._config = config;
-	}
 
 	public addDependencies(nftMethod: NFTMethod) {
 		this._nftMethod = nftMethod;
@@ -150,39 +144,28 @@ export class NFTEndpoint extends BaseEndpoint {
 
 	public async getSupportedCollectionIDs(
 		context: ModuleEndpointContext,
-	): Promise<{ collectionIDs: string[] }> {
-		const { params } = context;
-
-		validator.validate<{ chainID: string }>(getSupportedCollectionIDsRequestSchema, params);
-
-		const { ownChainID } = this._config;
-		const chainID = Buffer.from(params.chainID, 'hex');
+	): Promise<{ supportedCollectionIDs: string[] }> {
 		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
-
-		const areAllNFTsSupported = await supportedNFTsStore.has(context, ALL_SUPPORTED_NFTS_KEY);
-		if (areAllNFTsSupported) {
-			return { collectionIDs: ['*'] };
+		if (await supportedNFTsStore.has(context, ALL_SUPPORTED_NFTS_KEY)) {
+			return { supportedCollectionIDs: ['*'] };
 		}
 
-		const isSupported = await supportedNFTsStore.has(context, chainID);
-		if (!isSupported) {
-			return chainID.equals(ownChainID) ? { collectionIDs: ['*'] } : { collectionIDs: [] };
+		const supportedCollectionIDs: string[] = [];
+		const supportedNFTsStoreData = await supportedNFTsStore.getAll(context);
+
+		for (const { key, value } of supportedNFTsStoreData) {
+			if (!value.supportedCollectionIDArray.length) {
+				supportedCollectionIDs.push(`${key.toString('hex')}********`);
+			} else {
+				const collectionIDs = value.supportedCollectionIDArray.map(
+					supportedCollectionID =>
+						key.toString('hex') + supportedCollectionID.collectionID.toString('hex'),
+				);
+				supportedCollectionIDs.push(...collectionIDs);
+			}
 		}
 
-		const supportedNFTsData = await supportedNFTsStore.get(
-			context.getImmutableMethodContext(),
-			chainID,
-		);
-
-		if (!supportedNFTsData.supportedCollectionIDArray.length) {
-			return { collectionIDs: ['*'] };
-		}
-
-		return {
-			collectionIDs: supportedNFTsData.supportedCollectionIDArray.map(collection =>
-				collection.collectionID.toString('hex'),
-			),
-		};
+		return { supportedCollectionIDs };
 	}
 
 	public async isCollectionIDSupported(
