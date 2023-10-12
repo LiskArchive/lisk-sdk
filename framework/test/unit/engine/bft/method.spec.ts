@@ -965,28 +965,40 @@ describe('BFT Method', () => {
 					generatorKey: utils.getRandomBytes(32),
 				},
 			];
-			beforeEach(async () => {
-				await bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(68), validators);
+
+			const precommitThreshold = BigInt(68);
+			const certificateThreshold = BigInt(68);
+
+			let bftParamsStore: StateStore;
+			let votesStore: StateStore;
+
+			beforeEach(() => {
+				bftParamsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
+				votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 			});
 
 			it('should store validators in order of the input', async () => {
-				const paramsStore = stateStore.getStore(
-					MODULE_STORE_PREFIX_BFT,
-					STORE_PREFIX_BFT_PARAMETERS,
+				const shuffledValidators = [...validators];
+
+				await bftMethod.setBFTParameters(
+					stateStore,
+					precommitThreshold,
+					certificateThreshold,
+					validators,
 				);
-				const params = await paramsStore.getWithSchema<BFTParameters>(
+
+				const bftParams = await bftParamsStore.getWithSchema<BFTParameters>(
 					utils.intToBuffer(104, 4),
 					bftParametersSchema,
 				);
 
-				expect(params.validators).toHaveLength(3);
-				expect(params.validators[0].address).toEqual(validators[0].address);
-				expect(params.validators[1].address).toEqual(validators[1].address);
-				expect(params.validators[2].address).toEqual(validators[2].address);
+				expect(bftParams.validators).toHaveLength(3);
+				expect(bftParams.validators[0].address).toEqual(shuffledValidators[0].address);
+				expect(bftParams.validators[1].address).toEqual(shuffledValidators[1].address);
+				expect(bftParams.validators[2].address).toEqual(shuffledValidators[2].address);
 			});
 
 			it('should store BFT parameters with height maxHeightPrevoted + 1 if blockBFTInfo does not exist', async () => {
-				const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 				await votesStore.setWithSchema(
 					EMPTY_KEY,
 					{
@@ -1005,60 +1017,60 @@ describe('BFT Method', () => {
 					bftVotesSchema,
 				);
 
-				await bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(68), [
-					{
-						address: generatorAddress,
-						bftWeight: BigInt(50),
-						generatorKey: utils.getRandomBytes(32),
-						blsKey: utils.getRandomBytes(48),
-					},
-					{
-						address: utils.getRandomBytes(20),
-						bftWeight: BigInt(50),
-						generatorKey: utils.getRandomBytes(32),
-						blsKey: utils.getRandomBytes(48),
-					},
-					{
-						address: utils.getRandomBytes(20),
-						bftWeight: BigInt(3),
-						generatorKey: utils.getRandomBytes(32),
-						blsKey: utils.getRandomBytes(48),
-					},
-				]);
-
-				const paramsStore = stateStore.getStore(
-					MODULE_STORE_PREFIX_BFT,
-					STORE_PREFIX_BFT_PARAMETERS,
+				await bftMethod.setBFTParameters(
+					stateStore,
+					precommitThreshold,
+					certificateThreshold,
+					validators,
 				);
+
 				await expect(
-					paramsStore.getWithSchema<BFTParameters>(utils.intToBuffer(11, 4), bftParametersSchema),
+					bftParamsStore.getWithSchema<BFTParameters>(
+						utils.intToBuffer(11, 4),
+						bftParametersSchema,
+					),
 				).toResolve();
 			});
 
 			it('should store BFT parameters with height latest blockBFTInfo + 1', async () => {
-				const paramsStore = stateStore.getStore(
-					MODULE_STORE_PREFIX_BFT,
-					STORE_PREFIX_BFT_PARAMETERS,
+				await bftMethod.setBFTParameters(
+					stateStore,
+					precommitThreshold,
+					certificateThreshold,
+					validators,
 				);
+
 				await expect(
-					paramsStore.getWithSchema<BFTParameters>(utils.intToBuffer(104, 4), bftParametersSchema),
+					bftParamsStore.getWithSchema<BFTParameters>(
+						utils.intToBuffer(104, 4),
+						bftParametersSchema,
+					),
 				).toResolve();
 			});
 
 			it('should store new validators hash', async () => {
-				const paramsStore = stateStore.getStore(
-					MODULE_STORE_PREFIX_BFT,
-					STORE_PREFIX_BFT_PARAMETERS,
+				await bftMethod.setBFTParameters(
+					stateStore,
+					precommitThreshold,
+					certificateThreshold,
+					validators,
 				);
-				const params = await paramsStore.getWithSchema<BFTParameters>(
+
+				const bftParams = await bftParamsStore.getWithSchema<BFTParameters>(
 					utils.intToBuffer(104, 4),
 					bftParametersSchema,
 				);
-				expect(params.validatorsHash).not.toEqual(params30.validatorsHash);
+				expect(bftParams.validatorsHash).not.toEqual(params30.validatorsHash);
 			});
 
 			it('should not update existing validators on bft votes', async () => {
-				const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
+				await bftMethod.setBFTParameters(
+					stateStore,
+					precommitThreshold,
+					certificateThreshold,
+					validators,
+				);
+
 				const voteState = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 				expect(
 					voteState.activeValidatorsVoteInfo.find(v => v.address.equals(generatorAddress)),
@@ -1070,7 +1082,13 @@ describe('BFT Method', () => {
 			});
 
 			it('should insert new validators into active validators with initial values', async () => {
-				const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
+				await bftMethod.setBFTParameters(
+					stateStore,
+					precommitThreshold,
+					certificateThreshold,
+					validators,
+				);
+
 				const voteState = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 				expect(voteState.activeValidatorsVoteInfo).toHaveLength(3);
 				expect(
@@ -1084,45 +1102,25 @@ describe('BFT Method', () => {
 			});
 		});
 
-		describe('validatorsHash', () => {
-			it('should sort validators ordered lexicographically by blsKey and include certificateThreshold', () => {
-				const accounts = [
+		describe('computeValidatorsHash', () => {
+			it('should calculate correct validators hash', () => {
+				const activeValidators = [
 					{
-						address: utils.getRandomBytes(20),
 						blsKey: utils.getRandomBytes(48),
-						generatorKey: utils.getRandomBytes(32),
 						bftWeight: BigInt(20),
 					},
 					{
-						address: utils.getRandomBytes(20),
 						blsKey: utils.getRandomBytes(48),
-						generatorKey: utils.getRandomBytes(32),
 						bftWeight: BigInt(20),
 					},
 				];
-				validatorsMethod.getValidatorKeys.mockImplementation((_, address: Buffer) => {
-					return { blsKey: accounts.find(k => k.address.equals(address))?.blsKey };
-				});
+				const certificateThreshold = BigInt(99);
 
-				const validatorsHash = computeValidatorsHash(accounts, BigInt(99));
-
-				const sortedAccounts = [...accounts];
+				const validatorsHash = computeValidatorsHash(activeValidators, certificateThreshold);
 
 				expect(validatorsHash).toEqual(
 					utils.hash(
-						codec.encode(validatorsHashInputSchema, {
-							activeValidators: [
-								{
-									blsKey: sortedAccounts[0].blsKey,
-									bftWeight: sortedAccounts[0].bftWeight,
-								},
-								{
-									blsKey: sortedAccounts[1].blsKey,
-									bftWeight: sortedAccounts[1].bftWeight,
-								},
-							],
-							certificateThreshold: BigInt(99),
-						}),
+						codec.encode(validatorsHashInputSchema, { activeValidators, certificateThreshold }),
 					),
 				);
 			});
