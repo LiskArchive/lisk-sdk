@@ -41,7 +41,6 @@ import { NFTMethod } from './method';
 import {
 	isCollectionIDSupportedRequestSchema,
 	isCollectionIDSupportedResponseSchema,
-	getSupportedCollectionIDsRequestSchema,
 	getSupportedCollectionIDsResponseSchema,
 	getEscrowedNFTIDsRequestSchema,
 	getEscrowedNFTIDsResponseSchema,
@@ -156,7 +155,6 @@ export class NFTModule extends BaseInteroperableModule {
 				},
 				{
 					name: this.endpoint.getSupportedCollectionIDs.name,
-					request: getSupportedCollectionIDsRequestSchema,
 					response: getSupportedCollectionIDsResponseSchema,
 				},
 				{

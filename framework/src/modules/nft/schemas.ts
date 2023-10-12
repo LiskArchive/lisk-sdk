@@ -270,20 +270,6 @@ export const getNFTResponseSchema = {
 	},
 };
 
-export const getSupportedCollectionIDsRequestSchema = {
-	$id: '/nft/endpoint/getSupportedCollectionIDsRequest',
-	type: 'object',
-	properties: {
-		chainID: {
-			type: 'string',
-			format: 'hex',
-			minLength: LENGTH_CHAIN_ID * 2,
-			maxLength: LENGTH_CHAIN_ID * 2,
-		},
-	},
-	required: ['chainID'],
-};
-
 export const getSupportedCollectionIDsResponseSchema = {
 	$id: '/nft/endpoint/getSupportedCollectionIDsRespone',
 	type: 'object',
