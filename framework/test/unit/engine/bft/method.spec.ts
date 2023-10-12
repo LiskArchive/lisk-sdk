@@ -34,6 +34,7 @@ import {
 } from '../../../../src/engine/bft/schemas';
 import { createFakeBlockHeader } from '../../../../src/testing';
 import { computeValidatorsHash } from '../../../../src/engine';
+import { sortValidatorsByBLSKey } from '../../../../src/engine/bft/utils';
 
 describe('BFT Method', () => {
 	let bftMethod: BFTMethod;
@@ -940,7 +941,30 @@ describe('BFT Method', () => {
 				);
 
 				expect(bftParams.validators).toHaveLength(3);
-expect(bftParams.validators).toEqual(shuffledValidators);
+				expect(bftParams.validators).toEqual(shuffledValidators);
+			});
+
+			it('should store validators in order of BLS keys if block height is earlier than the configured exception', async () => {
+				const sortedValidators = [...validators];
+				sortValidatorsByBLSKey(sortedValidators);
+
+				bftMethod.init(103, 10, 88);
+
+				await bftMethod.setBFTParameters(
+					stateStore,
+					precommitThreshold,
+					certificateThreshold,
+					validators,
+					height,
+				);
+
+				const bftParams = await bftParamsStore.getWithSchema<BFTParameters>(
+					utils.intToBuffer(104, 4),
+					bftParametersSchema,
+				);
+
+				expect(bftParams.validators).toHaveLength(3);
+				expect(bftParams.validators).toEqual(sortedValidators);
 			});
 
 			it('should store BFT parameters with height maxHeightPrevoted + 1 if blockBFTInfo does not exist', async () => {
