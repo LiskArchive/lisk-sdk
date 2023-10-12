@@ -433,30 +433,6 @@ describe('NFTEndpoint', () => {
 				supportedCollectionIDs: [Buffer.concat([chainID, collectionID]).toString('hex')],
 			});
 		});
-
-		it('should return an array with supported collection IDs for native chains when chain is equal to ownChainID', async () => {
-			const chainID = ownChainID;
-			const collectionID = utils.getRandomBytes(LENGTH_COLLECTION_ID);
-
-			await supportedNFTsStore.save(methodContext, chainID, {
-				supportedCollectionIDArray: [
-					{
-						collectionID,
-					},
-				],
-			});
-
-			const context = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: chainID.toString('hex'),
-				},
-			});
-
-			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
-				supportedCollectionIDs: [Buffer.concat([chainID, collectionID]).toString('hex')],
-			});
-		});
 	});
 
 	describe('isCollectionIDSupported', () => {
