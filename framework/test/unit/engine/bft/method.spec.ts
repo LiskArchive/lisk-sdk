@@ -940,9 +940,7 @@ describe('BFT Method', () => {
 				);
 
 				expect(bftParams.validators).toHaveLength(3);
-				expect(bftParams.validators[0].address).toEqual(shuffledValidators[0].address);
-				expect(bftParams.validators[1].address).toEqual(shuffledValidators[1].address);
-				expect(bftParams.validators[2].address).toEqual(shuffledValidators[2].address);
+expect(bftParams.validators).toEqual(shuffledValidators);
 			});
 
 			it('should store BFT parameters with height maxHeightPrevoted + 1 if blockBFTInfo does not exist', async () => {
