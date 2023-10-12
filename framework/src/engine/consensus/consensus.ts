@@ -186,7 +186,7 @@ export class Consensus {
 		await this._bft.init(
 			this._genesisConfig.bftBatchSize,
 			this._genesisConfig.blockTime,
-			this._genesisConfig.shuffleValidatorsFromHeight,
+			this._genesisConfig.exceptions.shuffleValidatorsFromHeight,
 		);
 
 		this._network.registerEndpoint(NETWORK_LEGACY_GET_BLOCKS_FROM_ID, async ({ data, peerId }) =>

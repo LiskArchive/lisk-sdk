@@ -279,10 +279,16 @@ export const applicationConfigSchema = {
 					minimum: 1,
 					description: 'Minimum block height which can be certified',
 				},
-				shuffleValidatorsFromHeight: {
-					type: 'integer',
-					minimum: 0,
-					description: 'Block height from which the validator list will be shuffled',
+				exceptions: {
+					type: 'object',
+					required: ['shuffleValidatorsFromHeight'],
+					properties: {
+						shuffleValidatorsFromHeight: {
+							type: 'integer',
+							minimum: 0,
+							description: 'Block height from which the validator list will be shuffled',
+						},
+					},
 				},
 			},
 			additionalProperties: false,
@@ -356,7 +362,9 @@ export const applicationConfigSchema = {
 			bftBatchSize: BFT_BATCH_SIZE,
 			maxTransactionsSize: MAX_TRANSACTIONS_SIZE,
 			minimumCertifyHeight: 1,
-			shuffleValidatorsFromHeight: 0,
+			exceptions: {
+				shuffleValidatorsFromHeight: 0,
+			},
 		},
 		generator: {
 			keys: {},
