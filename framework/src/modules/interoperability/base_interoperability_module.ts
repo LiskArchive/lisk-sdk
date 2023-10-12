@@ -35,12 +35,7 @@ import { OwnChainAccountStore } from './stores/own_chain_account';
 import { RegisteredNamesStore } from './stores/registered_names';
 import { TerminatedOutboxStore } from './stores/terminated_outbox';
 import { TerminatedStateStore } from './stores/terminated_state';
-import {
-	ChainInfo,
-	GenesisInteroperability,
-	OwnChainAccount,
-	TerminatedStateAccountWithChainID,
-} from './types';
+import { ChainInfo, GenesisInteroperability, OwnChainAccount } from './types';
 import { computeValidatorsHash, getTokenIDLSK } from './utils';
 import { genesisInteroperabilitySchema } from './schemas';
 import { CcmProcessedEvent } from './events/ccm_processed';
@@ -133,15 +128,12 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		}
 
 		// activeValidators must be ordered lexicographically by blsKey property
-		const sortedByBlsKeys = [...activeValidators].sort((a, b) => a.blsKey.compare(b.blsKey));
-		for (let i = 0; i < activeValidators.length; i += 1) {
-			if (!activeValidators[i].blsKey.equals(sortedByBlsKeys[i].blsKey)) {
-				throw new Error('activeValidators must be ordered lexicographically by blsKey property.');
-			}
+		const blsKeys = activeValidators.map(v => v.blsKey);
+		if (!objectUtils.isBufferArrayOrdered(blsKeys)) {
+			throw new Error('activeValidators must be ordered lexicographically by blsKey property.');
 		}
 
 		// all blsKey properties must be pairwise distinct
-		const blsKeys = activeValidators.map(v => v.blsKey);
 		if (!objectUtils.bufferArrayUniqueItems(blsKeys)) {
 			throw new Error(`All blsKey properties must be pairwise distinct.`);
 		}
@@ -189,28 +181,19 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		}
 	}
 
-	protected _verifyTerminatedStateAccountsCommon(
-		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
-		mainchainID: Buffer,
-	) {
+	protected _verifyTerminatedStateAccountsIDs(chainIDs: Buffer[], mainchainID: Buffer) {
 		// Each entry stateAccount in terminatedStateAccounts has a unique stateAccount.chainID
-		const chainIDs = terminatedStateAccounts.map(a => a.chainID);
 		if (!objectUtils.bufferArrayUniqueItems(chainIDs)) {
 			throw new Error(`terminatedStateAccounts don't hold unique chainID.`);
 		}
 
 		// terminatedStateAccounts is ordered lexicographically by stateAccount.chainID
-		const sortedByChainID = [...terminatedStateAccounts].sort((a, b) =>
-			a.chainID.compare(b.chainID),
-		);
+		if (!objectUtils.isBufferArrayOrdered(chainIDs)) {
+			throw new Error('terminatedStateAccounts must be ordered lexicographically by chainID.');
+		}
 
-		for (let i = 0; i < terminatedStateAccounts.length; i += 1) {
-			const stateAccountWithChainID = terminatedStateAccounts[i];
-			if (!stateAccountWithChainID.chainID.equals(sortedByChainID[i].chainID)) {
-				throw new Error('terminatedStateAccounts must be ordered lexicographically by chainID.');
-			}
-
-			this._verifyChainID(stateAccountWithChainID.chainID, mainchainID, 'stateAccount.');
+		for (const chainID of chainIDs) {
+			this._verifyChainID(chainID, mainchainID, 'stateAccount.');
 		}
 	}
 
