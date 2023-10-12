@@ -81,7 +81,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 	public async execute(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	): Promise<void> {
-		const [decodedCCMs, ok] = await this.executeCommon(context, true);
+		const [decodedCCMs, ok] = await this.beforeCrossChainMessagesExecution(context, true);
 		if (!ok) {
 			return;
 		}
@@ -119,7 +119,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			context.contextStore.delete(CONTEXT_STORE_KEY_CCM_PROCESSING);
 		}
 
-		await this.afterExecuteCommon(context);
+		await this.afterCrossChainMessagesExecution(context);
 	}
 
 	private async _beforeCrossChainMessageForwarding(
