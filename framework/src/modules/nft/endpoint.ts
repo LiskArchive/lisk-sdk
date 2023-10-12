@@ -156,8 +156,8 @@ export class NFTEndpoint extends BaseEndpoint {
 		}
 
 		const supportedCollectionIDs: string[] = [];
-
 		const supportedNFTsStoreData = await supportedNFTsStore.getAll(context);
+
 		for (const { key, value } of supportedNFTsStoreData) {
 			if (!value.supportedCollectionIDArray.length) {
 				supportedCollectionIDs.push(`${key.toString('hex')}********`);
@@ -171,22 +171,21 @@ export class NFTEndpoint extends BaseEndpoint {
 		}
 
 		const nftStore = this.stores.get(NFTStore);
+		const { ownChainID } = this._config;
+
 		const allNFTs = await nftStore.iterate(context.getImmutableMethodContext(), {
 			gte: Buffer.alloc(LENGTH_NFT_ID, 0),
 			lte: Buffer.alloc(LENGTH_NFT_ID, 255),
 		});
 
-		const { ownChainID } = this._config;
-		const nativeNFTs = allNFTs.filter(nft => nft.value.owner.equals(ownChainID));
+		const nativeCollectionIDs = allNFTs
+			.filter(nft => nft.value.owner.equals(ownChainID))
+			.map(nft => nft.key.subarray(LENGTH_ADDRESS, LENGTH_NFT_ID).toString('hex'));
 
-		const nativeCollectionIDs = new Set<string>();
-		for (const nft of nativeNFTs) {
-			const collectionID = nft.key.subarray(LENGTH_ADDRESS, LENGTH_NFT_ID).toString('hex');
-			nativeCollectionIDs.add(collectionID);
-		}
+		const uniqueNativeCollectionIDs = [...new Set(nativeCollectionIDs)];
 
 		supportedCollectionIDs.push(
-			...[...nativeCollectionIDs].map(collectionID => ownChainID.toString('hex') + collectionID),
+			...uniqueNativeCollectionIDs.map(collectionID => ownChainID.toString('hex') + collectionID),
 		);
 
 		return { supportedCollectionIDs };
