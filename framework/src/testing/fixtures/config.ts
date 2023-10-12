@@ -34,6 +34,7 @@ export const defaultConfig: ApplicationConfig = {
 		blockTime: 10,
 		chainID: '10000000',
 		maxTransactionsSize: 15 * 1024, // Kilo Bytes
+		shuffleValidatorsFromHeight: 0,
 	},
 	network: {
 		version: '1.0',

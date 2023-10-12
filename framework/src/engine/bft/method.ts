@@ -50,14 +50,16 @@ export interface BlockHeaderAsset {
 export class BFTMethod {
 	private _batchSize!: number;
 	private _blockTime!: number;
+	private _shuffleValidatorsFromHeight!: number;
 
 	public blockTime(): number {
 		return this._blockTime;
 	}
 
-	public init(batchSize: number, blockTime: number) {
+	public init(batchSize: number, blockTime: number, shuffleValidatorsFromHeight: number) {
 		this._batchSize = batchSize;
 		this._blockTime = blockTime;
+		this._shuffleValidatorsFromHeight = shuffleValidatorsFromHeight;
 	}
 
 	public areHeadersContradicting(bftHeader1: BlockHeader, bftHeader2: BlockHeader): boolean {
@@ -174,6 +176,7 @@ export class BFTMethod {
 		precommitThreshold: bigint,
 		certificateThreshold: bigint,
 		validators: Validator[],
+		height: number,
 	): Promise<void> {
 		if (validators.length > this._batchSize) {
 			throw new Error(
@@ -227,6 +230,13 @@ export class BFTMethod {
 			sortValidatorsByBLSKey(validatorsWithBFTWeight) as ActiveValidator[],
 			certificateThreshold,
 		);
+
+		// ensure that validator list is not shuffled before the configured height
+		// to be able to sync with the new version
+		if (height < this._shuffleValidatorsFromHeight) {
+			sortValidatorsByBLSKey(validators);
+		}
+
 		const bftParams: BFTParameters = {
 			prevoteThreshold: (BigInt(2) * aggregateBFTWeight) / BigInt(3) + BigInt(1),
 			precommitThreshold,

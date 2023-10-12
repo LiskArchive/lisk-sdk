@@ -596,6 +596,7 @@ export class Generator {
 				afterResult.preCommitThreshold,
 				afterResult.certificateThreshold,
 				afterResult.nextValidators,
+				height,
 			);
 		}
 
