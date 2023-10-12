@@ -24,7 +24,7 @@ import {
 } from '../../../state_machine';
 import { InternalMethod } from '../internal_method';
 
-export interface Params {
+export interface TransferCrossChainParams {
 	nftID: Buffer;
 	receivingChainID: Buffer;
 	recipientAddress: Buffer;
@@ -36,9 +36,6 @@ export interface Params {
 export class TransferCrossChainCommand extends BaseCommand {
 	public schema = crossChainTransferParamsSchema;
 
-	private _nftMethod!: NFTMethod;
-	private _tokenMethod!: TokenMethod;
-	private _interoperabilityMethod!: InteroperabilityMethod;
 	private _internalMethod!: InternalMethod;
 
 	public init(args: {
@@ -47,58 +44,30 @@ export class TransferCrossChainCommand extends BaseCommand {
 		interoperabilityMethod: InteroperabilityMethod;
 		internalMethod: InternalMethod;
 	}): void {
-		this._nftMethod = args.nftMethod;
-		this._tokenMethod = args.tokenMethod;
-		this._interoperabilityMethod = args.interoperabilityMethod;
 		this._internalMethod = args.internalMethod;
 	}
 
-	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
+	public async verify(
+		context: CommandVerifyContext<TransferCrossChainParams>,
+	): Promise<VerificationResult> {
 		const { params } = context;
-		const methodContext = context.getMethodContext();
+		const { senderAddress } = context.transaction;
 
-		if (params.receivingChainID.equals(context.chainID)) {
-			throw new Error('Receiving chain cannot be the sending chain');
-		}
-
-		let nft;
 		try {
-			nft = await this._nftMethod.getNFT(methodContext, params.nftID);
+			await this._internalMethod.verifyTransferCrossChain(
+				context.getMethodContext(),
+				senderAddress,
+				params.nftID,
+				context.chainID,
+				params.receivingChainID,
+				params.messageFee,
+				params.data,
+			);
 		} catch (error) {
-			throw new Error('NFT does not exist');
-		}
-
-		if (this._nftMethod.isNFTEscrowed(nft)) {
-			throw new Error('NFT is escrowed to another chain');
-		}
-
-		const nftChainID = this._nftMethod.getChainID(params.nftID);
-
-		if (!nftChainID.equals(context.chainID) && !nftChainID.equals(params.receivingChainID)) {
-			throw new Error('NFT must be native to either the sending or the receiving chain');
-		}
-
-		const messageFeeTokenID = await this._interoperabilityMethod.getMessageFeeTokenID(
-			methodContext,
-			params.receivingChainID,
-		);
-
-		if (!nft.owner.equals(context.transaction.senderAddress)) {
-			throw new Error('Transfer not initiated by the NFT owner');
-		}
-
-		if (this._nftMethod.isNFTLocked(nft)) {
-			throw new Error('Locked NFTs cannot be transferred');
-		}
-
-		const availableBalance = await this._tokenMethod.getAvailableBalance(
-			methodContext,
-			context.transaction.senderAddress,
-			messageFeeTokenID,
-		);
-
-		if (availableBalance < params.messageFee) {
-			throw new Error('Insufficient balance for the message fee');
+			return {
+				status: VerifyStatus.FAIL,
+				error: error as Error,
+			};
 		}
 
 		return {
@@ -106,10 +75,10 @@ export class TransferCrossChainCommand extends BaseCommand {
 		};
 	}
 
-	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
+	public async execute(context: CommandExecuteContext<TransferCrossChainParams>): Promise<void> {
 		const { params } = context;
 
-		await this._internalMethod.transferCrossChainInternal(
+		await this._internalMethod.transferCrossChain(
 			context.getMethodContext(),
 			context.transaction.senderAddress,
 			params.recipientAddress,
