@@ -40,7 +40,6 @@ import {
 import { BFTHeights } from './types';
 import { BFTParameterNotFoundError } from './errors';
 import { Validator } from '../../abi';
-import { ActiveValidator } from '../consensus/types';
 
 export interface BlockHeaderAsset {
 	maxHeightPrevoted: number;
@@ -222,16 +221,16 @@ export class BFTMethod {
 			throw new Error('Invalid certificateThreshold input.');
 		}
 
+		// Prepare a separate sorted list of validators for computing validatorsHash
+		// without modifying the existing validators array
 		const validatorsWithBFTWeight = validators
 			.filter(validator => validator.bftWeight > BigInt(0))
 			.map(validator => ({ bftWeight: validator.bftWeight, blsKey: validator.blsKey }));
+		sortValidatorsByBLSKey(validatorsWithBFTWeight);
 
-		const validatorsHash = computeValidatorsHash(
-			sortValidatorsByBLSKey(validatorsWithBFTWeight) as ActiveValidator[],
-			certificateThreshold,
-		);
+		const validatorsHash = computeValidatorsHash(validatorsWithBFTWeight, certificateThreshold);
 
-		// ensure that validator list is not shuffled before the configured height
+		// Ensure that validator list is not shuffled before the configured block height,
 		// to be able to sync with the new version
 		if (height < this._shuffleValidatorsFromHeight) {
 			sortValidatorsByBLSKey(validators);
