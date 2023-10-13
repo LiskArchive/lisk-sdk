@@ -23,6 +23,7 @@ import { ChainAccountStore, ChainStatus } from '../../stores/chain_account';
 import { TerminateSidechainForLivenessParams } from '../../types';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#liveness-termination-command-1
 export class TerminateSidechainForLivenessCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
 	public schema = terminateSidechainForLivenessParamsSchema;
 
@@ -30,28 +31,24 @@ export class TerminateSidechainForLivenessCommand extends BaseInteroperabilityCo
 		context: CommandVerifyContext<TerminateSidechainForLivenessParams>,
 	): Promise<VerificationResult> {
 		const { params } = context;
-		const doesChainAccountExist = await this.stores
-			.get(ChainAccountStore)
-			.has(context, params.chainID);
 
-		if (!doesChainAccountExist) {
+		const chainAccount = await this.stores
+			.get(ChainAccountStore)
+			.getOrUndefined(context, params.chainID);
+		if (!chainAccount) {
 			throw new Error('Chain account does not exist.');
 		}
-		const chainAccount = await this.stores.get(ChainAccountStore).get(context, params.chainID);
-
-		// The commands fails if the sidechain is already terminated.
 		if (chainAccount.status === ChainStatus.TERMINATED) {
 			throw new Error('Sidechain is already terminated.');
 		}
 
 		// Or if the sidechain did not violate the liveness condition.
-		const isChainAccountLive = await this.internalMethod.isLive(
+		const live = await this.internalMethod.isLive(
 			context,
 			params.chainID,
 			context.header.timestamp,
 		);
-
-		if (isChainAccountLive) {
+		if (live) {
 			throw new Error('Sidechain did not violate the liveness condition.');
 		}
 

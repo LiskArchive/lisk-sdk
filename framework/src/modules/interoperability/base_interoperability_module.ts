@@ -133,11 +133,8 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		}
 
 		// activeValidators must be ordered lexicographically by blsKey property
-		const sortedByBlsKeys = [...activeValidators].sort((a, b) => a.blsKey.compare(b.blsKey));
-		for (let i = 0; i < activeValidators.length; i += 1) {
-			if (!activeValidators[i].blsKey.equals(sortedByBlsKeys[i].blsKey)) {
-				throw new Error('activeValidators must be ordered lexicographically by blsKey property.');
-			}
+		if (!objectUtils.isBufferArrayOrdered(activeValidators.map(v => v.blsKey))) {
+			throw new Error('activeValidators must be ordered lexicographically by blsKey property.');
 		}
 
 		// all blsKey properties must be pairwise distinct
@@ -147,7 +144,7 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		}
 
 		// for each validator in activeValidators, validator.bftWeight > 0 must hold
-		if (activeValidators.filter(v => v.bftWeight <= 0).length > 0) {
+		if (activeValidators.filter(v => v.bftWeight <= BigInt(0)).length > 0) {
 			throw new Error(`validator.bftWeight must be > 0.`);
 		}
 
@@ -200,16 +197,15 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		}
 
 		// terminatedStateAccounts is ordered lexicographically by stateAccount.chainID
-		const sortedByChainID = [...terminatedStateAccounts].sort((a, b) =>
-			a.chainID.compare(b.chainID),
-		);
+		if (
+			!objectUtils.isBufferArrayOrdered(
+				terminatedStateAccounts.map(accountWithChainID => accountWithChainID.chainID),
+			)
+		) {
+			throw new Error('terminatedStateAccounts must be ordered lexicographically by chainID.');
+		}
 
-		for (let i = 0; i < terminatedStateAccounts.length; i += 1) {
-			const stateAccountWithChainID = terminatedStateAccounts[i];
-			if (!stateAccountWithChainID.chainID.equals(sortedByChainID[i].chainID)) {
-				throw new Error('terminatedStateAccounts must be ordered lexicographically by chainID.');
-			}
-
+		for (const stateAccountWithChainID of terminatedStateAccounts) {
 			this._verifyChainID(stateAccountWithChainID.chainID, mainchainID, 'stateAccount.');
 		}
 	}

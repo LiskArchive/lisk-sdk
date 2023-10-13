@@ -261,15 +261,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 			throw new Error(`ownChainName must be equal to ${CHAIN_NAME_MAINCHAIN}.`);
 		}
 
-		// if chainInfos is empty, then ownChainNonce == 0
-		// If chainInfos is non-empty, ownChainNonce > 0
-		if (chainInfos.length === 0 && ownChainNonce !== BigInt(0)) {
-			throw new Error(`ownChainNonce must be 0 if chainInfos is empty.`);
-		} else if (chainInfos.length !== 0 && ownChainNonce <= 0) {
-			throw new Error(`ownChainNonce must be positive if chainInfos is not empty.`);
-		}
-
-		this._verifyChainInfos(ctx, chainInfos);
+		this._verifyChainInfos(ctx, chainInfos, ownChainNonce);
 		this._verifyTerminatedStateAccounts(chainInfos, terminatedStateAccounts, mainchainID);
 		this._verifyTerminatedOutboxAccounts(
 			chainInfos,
@@ -281,7 +273,19 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 	}
 
 	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#mainchain
-	private _verifyChainInfos(ctx: GenesisBlockExecuteContext, chainInfos: ChainInfo[]) {
+	private _verifyChainInfos(
+		ctx: GenesisBlockExecuteContext,
+		chainInfos: ChainInfo[],
+		ownChainNonce: bigint,
+	) {
+		// if chainInfos is empty, then ownChainNonce == 0
+		// If chainInfos is non-empty, ownChainNonce > 0
+		if (chainInfos.length === 0 && ownChainNonce !== BigInt(0)) {
+			throw new Error(`ownChainNonce must be 0 if chainInfos is empty.`);
+		} else if (chainInfos.length !== 0 && ownChainNonce <= 0) {
+			throw new Error(`ownChainNonce must be positive if chainInfos is not empty.`);
+		}
+
 		// Each entry chainInfo in chainInfos has a unique chainInfo.chainID
 		const chainIDs = chainInfos.map(info => info.chainID);
 		if (!objectUtils.bufferArrayUniqueItems(chainIDs)) {
@@ -341,9 +345,9 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		mainchainID: Buffer,
 	) {
 		// Sanity check to fulfill if-and-only-if situation
-		for (const account of terminatedStateAccounts) {
+		for (const terminatedStateAccount of terminatedStateAccounts) {
 			const correspondingChainInfo = chainInfos.find(chainInfo =>
-				chainInfo.chainID.equals(account.chainID),
+				chainInfo.chainID.equals(terminatedStateAccount.chainID),
 			);
 			if (
 				!correspondingChainInfo ||
@@ -359,40 +363,52 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 			// For each entry chainInfo in chainInfos, chainInfo.chainData.status == CHAIN_STATUS_TERMINATED
 			// if and only if a corresponding entry (i.e., with chainID == chainInfo.chainID) exists in terminatedStateAccounts.
 			if (chainInfo.chainData.status === ChainStatus.TERMINATED) {
-				const terminatedAccount = terminatedStateAccounts.find(tAccount =>
-					tAccount.chainID.equals(chainInfo.chainID),
+				const correspondingTerminatedAccount = terminatedStateAccounts.find(
+					terminatedStateAccount => terminatedStateAccount.chainID.equals(chainInfo.chainID),
 				);
-				if (!terminatedAccount) {
+				if (!correspondingTerminatedAccount) {
 					throw new Error(
 						'For each chainInfo with status terminated there should be a corresponding entry in terminatedStateAccounts.',
 					);
 				}
+			}
+		}
 
-				this._verifyTerminatedStateAccountsCommon(terminatedStateAccounts, mainchainID);
+		this._verifyTerminatedStateAccountsCommon(terminatedStateAccounts, mainchainID);
 
-				// For each entry stateAccount in terminatedStateAccounts holds
-				// stateAccount.stateRoot == chainData.lastCertificate.stateRoot,
-				// stateAccount.mainchainStateRoot == EMPTY_HASH, and
-				// stateAccount.initialized == True.
-				// Here chainData is the corresponding entry (i.e., with chainID == stateAccount.chainID) in chainInfos.
-				const stateAccount = terminatedAccount.terminatedStateAccount;
-				if (stateAccount) {
-					if (!stateAccount.stateRoot.equals(chainInfo.chainData.lastCertificate.stateRoot)) {
-						throw new Error(
-							"stateAccount.stateRoot doesn't match chainInfo.chainData.lastCertificate.stateRoot.",
-						);
-					}
+		/**
+		 * For each entry stateAccount in terminatedStateAccounts holds
+		 * stateAccount.terminatedStateAccount.mainchainStateRoot == EMPTY_HASH, and stateAccount.terminatedStateAccount.initialized == True.
+		 *
+		 * Moreover, let chainInfo be the corresponding entry in chainInfos (i.e., with chainInfo.chainID == stateAccount.chainID); then it holds that
+		 * stateAccount.terminatedStateAccount.stateRoot == chainInfo.chainData.lastCertificate.stateRoot.
+		 */
+		for (const terminatedStateAccountWithChainID of terminatedStateAccounts) {
+			if (
+				!terminatedStateAccountWithChainID.terminatedStateAccount.mainchainStateRoot.equals(
+					EMPTY_HASH,
+				)
+			) {
+				throw new Error(
+					`stateAccount.mainchainStateRoot is not equal to ${EMPTY_HASH.toString('hex')}.`,
+				);
+			}
+			if (!terminatedStateAccountWithChainID.terminatedStateAccount.initialized) {
+				throw new Error('stateAccount is not initialized.');
+			}
 
-					if (!stateAccount.mainchainStateRoot.equals(EMPTY_HASH)) {
-						throw new Error(
-							`stateAccount.mainchainStateRoot is not equal to ${EMPTY_HASH.toString('hex')}.`,
-						);
-					}
+			const correspondingChainInfo = chainInfos.find(chainInfo =>
+				chainInfo.chainID.equals(terminatedStateAccountWithChainID.chainID),
+			) as ChainInfo; // at this point, it's not undefined, since similar check already applied above
 
-					if (!stateAccount.initialized) {
-						throw new Error('stateAccount is not initialized.');
-					}
-				}
+			if (
+				!terminatedStateAccountWithChainID.terminatedStateAccount.stateRoot.equals(
+					correspondingChainInfo.chainData.lastCertificate.stateRoot,
+				)
+			) {
+				throw new Error(
+					"stateAccount.stateRoot doesn't match chainInfo.chainData.lastCertificate.stateRoot.",
+				);
 			}
 		}
 	}
@@ -426,9 +442,9 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				terminatedStateAccounts.find(a => a.chainID.equals(outboxAccount.chainID)) === undefined
 			) {
 				throw new Error(
-					`Each entry outboxAccount in terminatedOutboxAccounts must have a corresponding entry in terminatedStateAccount. outboxAccount with chainID: ${outboxAccount.chainID.toString(
+					`outboxAccount with chainID: ${outboxAccount.chainID.toString(
 						'hex',
-					)} does not exist in terminatedStateAccounts`,
+					)} must have a corresponding entry in terminatedStateAccounts.`,
 				);
 			}
 		}
