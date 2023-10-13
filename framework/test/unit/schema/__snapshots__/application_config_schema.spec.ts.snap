@@ -14,6 +14,9 @@ exports[`schema/application_config_schema.js application config schema must matc
         "fromFile": "./config/genesis_block.blob",
       },
       "blockTime": 10,
+      "exceptions": {
+        "shuffleValidatorsFromHeight": 0,
+      },
       "maxTransactionsSize": 15360,
       "minimumCertifyHeight": 1,
     },
@@ -124,6 +127,19 @@ exports[`schema/application_config_schema.js application config schema must matc
           "description": "The unique name of the chain as a string encoded in Hex format",
           "format": "hex",
           "type": "string",
+        },
+        "exceptions": {
+          "properties": {
+            "shuffleValidatorsFromHeight": {
+              "description": "Block height from which the validator list will be shuffled",
+              "minimum": 0,
+              "type": "integer",
+            },
+          },
+          "required": [
+            "shuffleValidatorsFromHeight",
+          ],
+          "type": "object",
         },
         "maxTransactionsSize": {
           "description": "Maximum number of transactions allowed per block",

@@ -183,7 +183,11 @@ export class Consensus {
 			blockExecutor,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
-		await this._bft.init(this._genesisConfig.bftBatchSize, this._genesisConfig.blockTime);
+		await this._bft.init(
+			this._genesisConfig.bftBatchSize,
+			this._genesisConfig.blockTime,
+			this._genesisConfig.exceptions.shuffleValidatorsFromHeight,
+		);
 
 		this._network.registerEndpoint(NETWORK_LEGACY_GET_BLOCKS_FROM_ID, async ({ data, peerId }) =>
 			this._legacyEndpoint.handleRPCGetLegacyBlocksFromID(data, peerId),
@@ -1028,6 +1032,7 @@ export class Consensus {
 					afterResult.preCommitThreshold,
 					afterResult.certificateThreshold,
 					afterResult.nextValidators,
+					block.header.height,
 				);
 				this.events.emit(CONSENSUS_EVENT_VALIDATORS_CHANGED, {
 					preCommitThreshold: afterResult.preCommitThreshold,
@@ -1081,6 +1086,7 @@ export class Consensus {
 				result.preCommitThreshold,
 				result.certificateThreshold,
 				result.nextValidators,
+				genesisBlock.header.height,
 			);
 			this.events.emit(CONSENSUS_EVENT_VALIDATORS_CHANGED, {
 				preCommitThreshold: result.preCommitThreshold,

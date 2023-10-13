@@ -49,14 +49,16 @@ export interface BlockHeaderAsset {
 export class BFTMethod {
 	private _batchSize!: number;
 	private _blockTime!: number;
+	private _shuffleValidatorsFromHeight!: number;
 
 	public blockTime(): number {
 		return this._blockTime;
 	}
 
-	public init(batchSize: number, blockTime: number) {
+	public init(batchSize: number, blockTime: number, shuffleValidatorsFromHeight: number) {
 		this._batchSize = batchSize;
 		this._blockTime = blockTime;
+		this._shuffleValidatorsFromHeight = shuffleValidatorsFromHeight;
 	}
 
 	public areHeadersContradicting(bftHeader1: BlockHeader, bftHeader2: BlockHeader): boolean {
@@ -173,6 +175,7 @@ export class BFTMethod {
 		precommitThreshold: bigint,
 		certificateThreshold: bigint,
 		validators: Validator[],
+		height: number,
 	): Promise<void> {
 		if (validators.length > this._batchSize) {
 			throw new Error(
@@ -218,13 +221,21 @@ export class BFTMethod {
 			throw new Error('Invalid certificateThreshold input.');
 		}
 
-		sortValidatorsByBLSKey(validators);
-		const validatorsHash = computeValidatorsHash(
-			validators
-				.filter(v => v.bftWeight > BigInt(0))
-				.map(v => ({ bftWeight: v.bftWeight, blsKey: v.blsKey })),
-			certificateThreshold,
-		);
+		// Prepare a separate sorted list of validators for computing validatorsHash
+		// without modifying the existing validators array
+		const validatorsWithBFTWeight = validators
+			.filter(validator => validator.bftWeight > BigInt(0))
+			.map(validator => ({ bftWeight: validator.bftWeight, blsKey: validator.blsKey }));
+		sortValidatorsByBLSKey(validatorsWithBFTWeight);
+
+		const validatorsHash = computeValidatorsHash(validatorsWithBFTWeight, certificateThreshold);
+
+		// Ensure that validator list is not shuffled before the configured block height,
+		// to be able to sync with the new version
+		if (height < this._shuffleValidatorsFromHeight) {
+			sortValidatorsByBLSKey(validators);
+		}
+
 		const bftParams: BFTParameters = {
 			prevoteThreshold: (BigInt(2) * aggregateBFTWeight) / BigInt(3) + BigInt(1),
 			precommitThreshold,
