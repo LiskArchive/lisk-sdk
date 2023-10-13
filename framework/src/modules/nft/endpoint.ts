@@ -25,25 +25,14 @@ import {
 	isNFTSupportedRequestSchema,
 } from './schemas';
 import { NFTStore } from './stores/nft';
-import {
-	ALL_SUPPORTED_NFTS_KEY,
-	LENGTH_ADDRESS,
-	LENGTH_CHAIN_ID,
-	LENGTH_COLLECTION_ID,
-	LENGTH_NFT_ID,
-} from './constants';
+import { ALL_SUPPORTED_NFTS_KEY, LENGTH_ADDRESS, LENGTH_NFT_ID } from './constants';
 import { UserStore } from './stores/user';
-import { ModuleConfig, NFTJSON } from './types';
+import { NFTJSON } from './types';
 import { SupportedNFTsStore } from './stores/supported_nfts';
 import { NFTMethod } from './method';
 
 export class NFTEndpoint extends BaseEndpoint {
-	private _config!: ModuleConfig;
 	private _nftMethod!: NFTMethod;
-
-	public init(config: ModuleConfig): void {
-		this._config = config;
-	}
 
 	public addDependencies(nftMethod: NFTMethod) {
 		this._nftMethod = nftMethod;
@@ -162,8 +151,12 @@ export class NFTEndpoint extends BaseEndpoint {
 		}
 
 		const supportedCollectionIDs: string[] = [];
-		const supportedNFTsStoreData = await supportedNFTsStore.getAll(context);
 
+		if (context.chainID.length) {
+			supportedCollectionIDs.push(`${context.chainID.toString('hex')}********`);
+		}
+
+		const supportedNFTsStoreData = await supportedNFTsStore.getAll(context);
 		for (const { key, value } of supportedNFTsStoreData) {
 			if (!value.supportedCollectionIDArray.length) {
 				supportedCollectionIDs.push(`${key.toString('hex')}********`);
@@ -175,26 +168,6 @@ export class NFTEndpoint extends BaseEndpoint {
 				supportedCollectionIDs.push(...collectionIDs);
 			}
 		}
-
-		const nftStore = this.stores.get(NFTStore);
-		const { ownChainID } = this._config;
-
-		const allNFTs = await nftStore.iterate(context.getImmutableMethodContext(), {
-			gte: Buffer.alloc(LENGTH_NFT_ID, 0),
-			lte: Buffer.alloc(LENGTH_NFT_ID, 255),
-		});
-
-		const nativeCollectionIDs = allNFTs
-			.filter(nft => nft.value.owner.equals(ownChainID))
-			.map(nft =>
-				nft.key.subarray(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID).toString('hex'),
-			);
-
-		const uniqueNativeCollectionIDs = [...new Set(nativeCollectionIDs)];
-
-		supportedCollectionIDs.push(
-			...uniqueNativeCollectionIDs.map(collectionID => ownChainID.toString('hex') + collectionID),
-		);
 
 		return { supportedCollectionIDs };
 	}

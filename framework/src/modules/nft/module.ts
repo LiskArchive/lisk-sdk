@@ -192,7 +192,6 @@ export class NFTModule extends BaseInteroperableModule {
 		const ownChainID = Buffer.from(args.genesisConfig.chainID, 'hex');
 		this._internalMethod.init({ ownChainID });
 		this.method.init({ ownChainID });
-		this.endpoint.init({ ownChainID });
 		this.crossChainTransferCommand.init({
 			method: this.method,
 			internalMethod: this._internalMethod,

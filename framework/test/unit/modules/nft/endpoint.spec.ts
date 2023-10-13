@@ -55,7 +55,6 @@ describe('NFTEndpoint', () => {
 	const endpoint = new NFTEndpoint(module.stores, module.events);
 	const ownChainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 	method.init({ ownChainID });
-	endpoint.init({ ownChainID });
 
 	endpoint.addDependencies(method);
 
@@ -361,7 +360,7 @@ describe('NFTEndpoint', () => {
 	});
 
 	describe('getSupportedCollectionIDs', () => {
-		it('should return a supportedCollectionIDs array with a single "*" when ALL_SUPPORTED_NFTS_KEY exists in SupportedNFTsStore', async () => {
+		it('should return a supportedCollectionIDs array as [*] when ALL_SUPPORTED_NFTS_KEY exists in SupportedNFTsStore', async () => {
 			await supportedNFTsStore.save(methodContext, ALL_SUPPORTED_NFTS_KEY, {
 				supportedCollectionIDArray: [],
 			});
@@ -375,17 +374,7 @@ describe('NFTEndpoint', () => {
 			});
 		});
 
-		it('should return an empty array when supportedNFTsStoreData is empty', async () => {
-			const context = createTransientModuleEndpointContext({
-				stateStore,
-			});
-
-			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
-				supportedCollectionIDs: [],
-			});
-		});
-
-		it('should return a supportedCollectionIDs array containing the chainID + "********" when the `supportedCollectionIDArray` property is empty', async () => {
+		it('should return a supportedCollectionIDs array with chainID + 8 [*]s when supportedCollectionIDArray is empty', async () => {
 			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 
 			await supportedNFTsStore.save(methodContext, chainID, {
@@ -401,7 +390,7 @@ describe('NFTEndpoint', () => {
 			});
 		});
 
-		it('should return an array with supported collection IDs', async () => {
+		it('should return a supportedCollectionIDs array when supportedCollectionIDArray is not empty', async () => {
 			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 			const collectionID = utils.getRandomBytes(LENGTH_COLLECTION_ID);
 
@@ -422,58 +411,14 @@ describe('NFTEndpoint', () => {
 			});
 		});
 
-		it('should return an array with supported collection IDs for native chains when chain is equal to ownChainID', async () => {
-			const chainID = ownChainID;
-			const collectionID = utils.getRandomBytes(LENGTH_COLLECTION_ID);
-			await supportedNFTsStore.save(methodContext, chainID, {
-				supportedCollectionIDArray: [
-					{
-						collectionID,
-					},
-				],
-			});
+		it('should return an empty array when there are no supported collection IDs and all NFTs are not supported', async () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 			});
+
 			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
-				supportedCollectionIDs: [Buffer.concat([chainID, collectionID]).toString('hex')],
+				supportedCollectionIDs: [],
 			});
-		});
-
-		it('should return an array of unique supported native collection IDs', async () => {
-			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-			const collectionID = utils.getRandomBytes(LENGTH_COLLECTION_ID);
-			const nftID = Buffer.concat([
-				chainID,
-				collectionID,
-				Buffer.alloc(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID),
-			]);
-
-			await supportedNFTsStore.save(methodContext, chainID, {
-				supportedCollectionIDArray: [
-					{
-						collectionID,
-					},
-					{
-						collectionID,
-					},
-				],
-			});
-
-			await nftStore.save(methodContext, nftID, {
-				owner: utils.getRandomBytes(LENGTH_ADDRESS),
-				attributesArray: [],
-			});
-
-			const context = createTransientModuleEndpointContext({
-				stateStore,
-			});
-
-			const result = await endpoint.getSupportedCollectionIDs(context);
-
-			expect(result.supportedCollectionIDs).toContain(
-				Buffer.concat([chainID, collectionID]).toString('hex'),
-			);
 		});
 	});
 
