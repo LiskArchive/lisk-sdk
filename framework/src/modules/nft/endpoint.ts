@@ -152,9 +152,7 @@ export class NFTEndpoint extends BaseEndpoint {
 
 		const supportedCollectionIDs: string[] = [];
 
-		if (context.chainID.length) {
-			supportedCollectionIDs.push(`${context.chainID.toString('hex')}********`);
-		}
+		supportedCollectionIDs.push(`${context.chainID.toString('hex')}********`);
 
 		const supportedNFTsStoreData = await supportedNFTsStore.getAll(context);
 		for (const { key, value } of supportedNFTsStoreData) {

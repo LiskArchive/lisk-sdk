@@ -367,6 +367,7 @@ describe('NFTEndpoint', () => {
 
 			const context = createTransientModuleEndpointContext({
 				stateStore,
+				chainID: ownChainID,
 			});
 
 			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
@@ -374,50 +375,79 @@ describe('NFTEndpoint', () => {
 			});
 		});
 
-		it('should return a supportedCollectionIDs array with chainID + 8 [*]s when supportedCollectionIDArray is empty', async () => {
-			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+		it("should return a supportedCollectionIDs array with chainID + 8 [*]s and ownChainID for all chain id's stored in the supportedNFT store when supportedCollectionIDArray is empty", async () => {
+			const chainID1 = Buffer.from('00000001', 'hex');
+			const chainID2 = Buffer.from('00000002', 'hex');
 
-			await supportedNFTsStore.save(methodContext, chainID, {
+			await supportedNFTsStore.save(methodContext, chainID1, {
+				supportedCollectionIDArray: [],
+			});
+			await supportedNFTsStore.save(methodContext, chainID2, {
 				supportedCollectionIDArray: [],
 			});
 
 			const context = createTransientModuleEndpointContext({
 				stateStore,
+				chainID: ownChainID,
 			});
 
 			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
-				supportedCollectionIDs: [`${chainID.toString('hex')}********`],
+				supportedCollectionIDs: [
+					`${ownChainID.toString('hex')}********`,
+					`${chainID1.toString('hex')}********`,
+					`${chainID2.toString('hex')}********`,
+				],
 			});
 		});
 
-		it('should return a supportedCollectionIDs array when supportedCollectionIDArray is not empty', async () => {
-			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-			const collectionID = utils.getRandomBytes(LENGTH_COLLECTION_ID);
+		it("should return a supportedCollectionIDs array for all chain id's stored in the supportedNFT store and ownChainID when supportedCollectionIDArray is not empty", async () => {
+			const chainID1 = Buffer.from('00000001', 'hex');
+			const chainID2 = Buffer.from('00000002', 'hex');
+			const collectionID1 = Buffer.from('00000001', 'hex');
+			const collectionID2 = Buffer.from('00000002', 'hex');
+			const collectionID3 = Buffer.from('00000003', 'hex');
 
-			await supportedNFTsStore.save(methodContext, chainID, {
+			await supportedNFTsStore.save(methodContext, chainID1, {
 				supportedCollectionIDArray: [
 					{
-						collectionID,
+						collectionID: collectionID1,
+					},
+					{
+						collectionID: collectionID2,
+					},
+				],
+			});
+			await supportedNFTsStore.save(methodContext, chainID2, {
+				supportedCollectionIDArray: [
+					{
+						collectionID: collectionID3,
 					},
 				],
 			});
 
 			const context = createTransientModuleEndpointContext({
 				stateStore,
+				chainID: ownChainID,
 			});
 
 			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
-				supportedCollectionIDs: [Buffer.concat([chainID, collectionID]).toString('hex')],
+				supportedCollectionIDs: [
+					`${ownChainID.toString('hex')}********`,
+					Buffer.concat([chainID1, collectionID1]).toString('hex'),
+					Buffer.concat([chainID1, collectionID2]).toString('hex'),
+					Buffer.concat([chainID2, collectionID3]).toString('hex'),
+				],
 			});
 		});
 
-		it('should return an empty array when there are no supported collection IDs and all NFTs are not supported', async () => {
+		it('should return supportedCollectionIDs array with ownChainID + 8(*)s when there are no entries in the supportedNftStore', async () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
+				chainID: ownChainID,
 			});
 
 			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
-				supportedCollectionIDs: [],
+				supportedCollectionIDs: [`${ownChainID.toString('hex')}********`],
 			});
 		});
 	});
