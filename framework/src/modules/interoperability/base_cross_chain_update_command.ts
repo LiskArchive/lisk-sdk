@@ -122,7 +122,7 @@ export abstract class BaseCrossChainUpdateCommand<
 		}
 	}
 
-	protected async executeCommon(
+	protected async beforeCrossChainMessagesExecution(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 		isMainchain: boolean,
 	): Promise<[CCMsg[], boolean]> {
@@ -193,21 +193,9 @@ export abstract class BaseCrossChainUpdateCommand<
 			}
 
 			try {
-				// The CCM must come from the sending chain.
-				if (isMainchain && !ccm.sendingChainID.equals(params.sendingChainID)) {
-					throw new Error('CCM is not from the sending chain.');
-				}
-				// Sending and receiving chains must differ.
-				if (ccm.receivingChainID.equals(ccm.sendingChainID)) {
-					throw new Error('Sending and receiving chains must differ.');
-				}
-				// The CCM must come be directed to the sidechain, unless it was bounced on the mainchain.
-				if (!isMainchain && !context.chainID.equals(ccm.receivingChainID)) {
-					throw new Error('CCM is not directed to the sidechain.');
-				}
-				if (isMainchain && ccm.status === CCMStatusCode.CHANNEL_UNAVAILABLE) {
-					throw new Error('CCM status channel unavailable can only be set on the mainchain.');
-				}
+				// Verify whether the CCM respects the routing rules,
+				// which differ on mainchain and sidechains.
+				this._verifyRoutingRules(context, isMainchain, ccm);
 				ccms.push(ccm);
 			} catch (error) {
 				await this.internalMethod.terminateChainInternal(context, params.sendingChainID);
@@ -226,7 +214,36 @@ export abstract class BaseCrossChainUpdateCommand<
 		return [ccms, true];
 	}
 
-	protected async afterExecuteCommon(
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#verifyroutingrules
+	private _verifyRoutingRules(
+		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
+		isMainchain: boolean,
+		ccm: CCMsg,
+	) {
+		// Sending and receiving chains must differ.
+		if (ccm.receivingChainID.equals(ccm.sendingChainID)) {
+			throw new Error('Sending and receiving chains must differ.');
+		}
+
+		// Processing on the mainchain
+		if (isMainchain) {
+			// The CCM must come from the sending chain.
+			if (!ccm.sendingChainID.equals(context.params.sendingChainID)) {
+				throw new Error('CCM is not from the sending chain.');
+			}
+			if (ccm.status === CCMStatusCode.CHANNEL_UNAVAILABLE) {
+				throw new Error('CCM status channel unavailable can only be set on the mainchain.');
+			}
+		} else {
+			// The CCM must come be directed to the sidechain, unless it was bounced on the mainchain.
+			// eslint-disable-next-line no-lonely-if
+			if (!context.chainID.equals(ccm.receivingChainID)) {
+				throw new Error('CCM is not directed to the sidechain.');
+			}
+		}
+	}
+
+	protected async afterCrossChainMessagesExecution(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	) {
 		const { params } = context;
