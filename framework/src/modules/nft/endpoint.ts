@@ -25,7 +25,13 @@ import {
 	isNFTSupportedRequestSchema,
 } from './schemas';
 import { NFTStore } from './stores/nft';
-import { ALL_SUPPORTED_NFTS_KEY, LENGTH_ADDRESS, LENGTH_NFT_ID } from './constants';
+import {
+	ALL_SUPPORTED_NFTS_KEY,
+	LENGTH_ADDRESS,
+	LENGTH_CHAIN_ID,
+	LENGTH_COLLECTION_ID,
+	LENGTH_NFT_ID,
+} from './constants';
 import { UserStore } from './stores/user';
 import { ModuleConfig, NFTJSON } from './types';
 import { SupportedNFTsStore } from './stores/supported_nfts';
@@ -180,7 +186,9 @@ export class NFTEndpoint extends BaseEndpoint {
 
 		const nativeCollectionIDs = allNFTs
 			.filter(nft => nft.value.owner.equals(ownChainID))
-			.map(nft => nft.key.subarray(LENGTH_ADDRESS, LENGTH_NFT_ID).toString('hex'));
+			.map(nft =>
+				nft.key.subarray(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID).toString('hex'),
+			);
 
 		const uniqueNativeCollectionIDs = [...new Set(nativeCollectionIDs)];
 
