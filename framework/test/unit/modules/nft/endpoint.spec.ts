@@ -361,7 +361,7 @@ describe('NFTEndpoint', () => {
 	});
 
 	describe('getSupportedCollectionIDs', () => {
-		it('should return an array with a single * when all collections are supported', async () => {
+		it('should return a supportedCollectionIDs array with a single "*" when ALL_SUPPORTED_NFTS_KEY exists in SupportedNFTsStore', async () => {
 			await supportedNFTsStore.save(methodContext, ALL_SUPPORTED_NFTS_KEY, {
 				supportedCollectionIDArray: [],
 			});
@@ -375,7 +375,7 @@ describe('NFTEndpoint', () => {
 			});
 		});
 
-		it('should return an empty array when there are no supported collection IDs', async () => {
+		it('should return an empty array when supportedNFTsStoreData is empty', async () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 			});
@@ -385,7 +385,7 @@ describe('NFTEndpoint', () => {
 			});
 		});
 
-		it('should return an array with chainID + "********" when there are no supported collection IDs for the provided chainID', async () => {
+		it('should return a supportedCollectionIDs array containing the chainID + "********" when the `supportedCollectionIDArray` property is empty', async () => {
 			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 
 			await supportedNFTsStore.save(methodContext, chainID, {
@@ -402,27 +402,6 @@ describe('NFTEndpoint', () => {
 		});
 
 		it('should return an array with supported collection IDs', async () => {
-			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-			const collectionID = utils.getRandomBytes(LENGTH_COLLECTION_ID);
-
-			await supportedNFTsStore.save(methodContext, chainID, {
-				supportedCollectionIDArray: [
-					{
-						collectionID,
-					},
-				],
-			});
-
-			const context = createTransientModuleEndpointContext({
-				stateStore,
-			});
-
-			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
-				supportedCollectionIDs: [Buffer.concat([chainID, collectionID]).toString('hex')],
-			});
-		});
-
-		it('should include native collection IDs in the supported collection IDs array', async () => {
 			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
 			const collectionID = utils.getRandomBytes(LENGTH_COLLECTION_ID);
 
