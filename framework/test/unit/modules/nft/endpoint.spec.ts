@@ -421,6 +421,42 @@ describe('NFTEndpoint', () => {
 				supportedCollectionIDs: [Buffer.concat([chainID, collectionID]).toString('hex')],
 			});
 		});
+
+		it('should return an array of unique supported collection IDs', async () => {
+			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
+			const collectionID = utils.getRandomBytes(LENGTH_COLLECTION_ID);
+			const nftID = Buffer.concat([
+				chainID,
+				collectionID,
+				Buffer.alloc(LENGTH_NFT_ID - LENGTH_CHAIN_ID - LENGTH_COLLECTION_ID),
+			]);
+
+			await supportedNFTsStore.save(methodContext, chainID, {
+				supportedCollectionIDArray: [
+					{
+						collectionID,
+					},
+					{
+						collectionID,
+					},
+				],
+			});
+
+			await nftStore.save(methodContext, nftID, {
+				owner: utils.getRandomBytes(LENGTH_ADDRESS),
+				attributesArray: [],
+			});
+
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+			});
+
+			const result = await endpoint.getSupportedCollectionIDs(context);
+
+			expect(result.supportedCollectionIDs).toContain(
+				Buffer.concat([chainID, collectionID]).toString('hex'),
+			);
+		});
 	});
 
 	describe('isCollectionIDSupported', () => {
