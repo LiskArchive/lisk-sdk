@@ -400,7 +400,7 @@ describe('NFTEndpoint', () => {
 			});
 		});
 
-		it("should return a supportedCollectionIDs array for all chain id's stored in the supportedNFT store and ownChainID when supportedCollectionIDArray is not empty", async () => {
+		it("should return a supportedCollectionIDs array with ownChainID + 8 [*]s and for all chain id's stored in the supportedNFT store  when supportedCollectionIDArray is not empty", async () => {
 			const chainID1 = Buffer.from('00000001', 'hex');
 			const chainID2 = Buffer.from('00000002', 'hex');
 			const collectionID1 = Buffer.from('00000001', 'hex');
