@@ -38,8 +38,7 @@ import { NFT } from '../../../../src/modules/nft/types';
 import { JSONObject } from '../../../../src';
 import { SupportedNFTsStore } from '../../../../src/modules/nft/stores/supported_nfts';
 import {
-	collectionExistsResponseSchema,
-	getCollectionIDsResponseSchema,
+	isCollectionIDSupportedResponseSchema,
 	getEscrowedNFTIDsResponseSchema,
 	getNFTResponseSchema,
 	getNFTsResponseSchema,
@@ -360,80 +359,100 @@ describe('NFTEndpoint', () => {
 		});
 	});
 
-	describe('getCollectionIDs', () => {
-		it('should fail if provided chainID has invalid length', async () => {
-			const minLengthContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID - 1).toString('hex'),
-				},
-			});
-
-			const maxLengthContext = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID + 1).toString('hex'),
-				},
-			});
-
-			await expect(endpoint.getCollectionIDs(minLengthContext)).rejects.toThrow(
-				`'.chainID' must NOT have fewer than 8 characters`,
-			);
-
-			await expect(endpoint.getCollectionIDs(maxLengthContext)).rejects.toThrow(
-				`'.chainID' must NOT have more than 8 characters`,
-			);
-		});
-
-		it('should return empty list if provided chainID does not exist', async () => {
-			const context = createTransientModuleEndpointContext({
-				stateStore,
-				params: {
-					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
-				},
-			});
-
-			await expect(endpoint.getCollectionIDs(context)).resolves.toEqual({ collectionIDs: [] });
-		});
-
-		it('should return supported collections of the provided chain', async () => {
-			const chainID = utils.getRandomBytes(LENGTH_CHAIN_ID);
-
-			const supportedCollections = [
-				{
-					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID),
-				},
-				{
-					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID),
-				},
-			];
-
-			await supportedNFTsStore.save(methodContext, chainID, {
-				supportedCollectionIDArray: supportedCollections,
+	describe('getSupportedCollectionIDs', () => {
+		it('should return a supportedCollectionIDs array as [*] when ALL_SUPPORTED_NFTS_KEY exists in SupportedNFTsStore', async () => {
+			await supportedNFTsStore.save(methodContext, ALL_SUPPORTED_NFTS_KEY, {
+				supportedCollectionIDArray: [],
 			});
 
 			const context = createTransientModuleEndpointContext({
 				stateStore,
-				params: {
-					chainID: chainID.toString('hex'),
-				},
+				chainID: ownChainID,
 			});
 
-			const expectedSupportedCollection = {
-				collectionIDs: supportedCollections.map(collection =>
-					collection.collectionID.toString('hex'),
-				),
-			};
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
+				supportedCollectionIDs: ['*'],
+			});
+		});
 
-			await expect(endpoint.getCollectionIDs(context)).resolves.toEqual(
-				expectedSupportedCollection,
-			);
+		it("should return a supportedCollectionIDs array with ownChainID + 8 [*]s and chainID + 8 [*]s for all chain id's stored in the supportedNFT store when supportedCollectionIDArray is empty", async () => {
+			const chainID1 = Buffer.from('00000001', 'hex');
+			const chainID2 = Buffer.from('00000002', 'hex');
 
-			validator.validate(getCollectionIDsResponseSchema, expectedSupportedCollection);
+			await supportedNFTsStore.save(methodContext, chainID1, {
+				supportedCollectionIDArray: [],
+			});
+			await supportedNFTsStore.save(methodContext, chainID2, {
+				supportedCollectionIDArray: [],
+			});
+
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				chainID: ownChainID,
+			});
+
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
+				supportedCollectionIDs: [
+					`${ownChainID.toString('hex')}********`,
+					`${chainID1.toString('hex')}********`,
+					`${chainID2.toString('hex')}********`,
+				],
+			});
+		});
+
+		it("should return a supportedCollectionIDs array with ownChainID + 8 [*]s and for all chain id's stored in the supportedNFT store  when supportedCollectionIDArray is not empty", async () => {
+			const chainID1 = Buffer.from('00000001', 'hex');
+			const chainID2 = Buffer.from('00000002', 'hex');
+			const collectionID1 = Buffer.from('00000001', 'hex');
+			const collectionID2 = Buffer.from('00000002', 'hex');
+			const collectionID3 = Buffer.from('00000003', 'hex');
+
+			await supportedNFTsStore.save(methodContext, chainID1, {
+				supportedCollectionIDArray: [
+					{
+						collectionID: collectionID1,
+					},
+					{
+						collectionID: collectionID2,
+					},
+				],
+			});
+			await supportedNFTsStore.save(methodContext, chainID2, {
+				supportedCollectionIDArray: [
+					{
+						collectionID: collectionID3,
+					},
+				],
+			});
+
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				chainID: ownChainID,
+			});
+
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
+				supportedCollectionIDs: [
+					`${ownChainID.toString('hex')}********`,
+					Buffer.concat([chainID1, collectionID1]).toString('hex'),
+					Buffer.concat([chainID1, collectionID2]).toString('hex'),
+					Buffer.concat([chainID2, collectionID3]).toString('hex'),
+				],
+			});
+		});
+
+		it('should return supportedCollectionIDs array with ownChainID + 8(*)s when there are no entries in the supportedNftStore', async () => {
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				chainID: ownChainID,
+			});
+
+			await expect(endpoint.getSupportedCollectionIDs(context)).resolves.toEqual({
+				supportedCollectionIDs: [`${ownChainID.toString('hex')}********`],
+			});
 		});
 	});
 
-	describe('collectionExists', () => {
+	describe('isCollectionIDSupported', () => {
 		it('should fail if provided chainID has invalid length', async () => {
 			const minLengthContext = createTransientModuleEndpointContext({
 				stateStore,
@@ -451,11 +470,11 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			await expect(endpoint.collectionExists(minLengthContext)).rejects.toThrow(
+			await expect(endpoint.isCollectionIDSupported(minLengthContext)).rejects.toThrow(
 				`'.chainID' must NOT have fewer than 8 characters`,
 			);
 
-			await expect(endpoint.collectionExists(maxLengthContext)).rejects.toThrow(
+			await expect(endpoint.isCollectionIDSupported(maxLengthContext)).rejects.toThrow(
 				`'.chainID' must NOT have more than 8 characters`,
 			);
 		});
@@ -477,13 +496,27 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			await expect(endpoint.collectionExists(minLengthContext)).rejects.toThrow(
+			await expect(endpoint.isCollectionIDSupported(minLengthContext)).rejects.toThrow(
 				`'.collectionID' must NOT have fewer than 8 characters`,
 			);
 
-			await expect(endpoint.collectionExists(maxLengthContext)).rejects.toThrow(
+			await expect(endpoint.isCollectionIDSupported(maxLengthContext)).rejects.toThrow(
 				`'.collectionID' must NOT have more than 8 characters`,
 			);
+		});
+
+		it('should return false if NFT is not supported', async () => {
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					chainID: utils.getRandomBytes(LENGTH_CHAIN_ID).toString('hex'),
+					collectionID: utils.getRandomBytes(LENGTH_COLLECTION_ID).toString('hex'),
+				},
+			});
+
+			await expect(endpoint.isCollectionIDSupported(context)).resolves.toEqual({
+				isCollectionIDSupported: false,
+			});
 		});
 
 		it('should return false if provided chainID does not exist', async () => {
@@ -495,11 +528,11 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			await expect(endpoint.collectionExists(context)).resolves.toEqual({
-				collectionExists: false,
+			await expect(endpoint.isCollectionIDSupported(context)).resolves.toEqual({
+				isCollectionIDSupported: false,
 			});
 
-			validator.validate(collectionExistsResponseSchema, { collectionExists: false });
+			validator.validate(isCollectionIDSupportedResponseSchema, { isCollectionIDSupported: false });
 		});
 
 		it('should return false if provided collectionID does not exist for the provided chainID', async () => {
@@ -520,8 +553,8 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			await expect(endpoint.collectionExists(context)).resolves.toEqual({
-				collectionExists: false,
+			await expect(endpoint.isCollectionIDSupported(context)).resolves.toEqual({
+				isCollectionIDSupported: false,
 			});
 		});
 
@@ -544,9 +577,11 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			await expect(endpoint.collectionExists(context)).resolves.toEqual({ collectionExists: true });
+			await expect(endpoint.isCollectionIDSupported(context)).resolves.toEqual({
+				isCollectionIDSupported: true,
+			});
 
-			validator.validate(collectionExistsResponseSchema, { collectionExists: true });
+			validator.validate(isCollectionIDSupportedResponseSchema, { isCollectionIDSupported: true });
 		});
 	});
 
@@ -617,27 +652,27 @@ describe('NFTEndpoint', () => {
 	});
 
 	describe('isNFTSupported', () => {
-		it('should fail if id does not have valid length', async () => {
+		it('should fail if nftID does not have valid length', async () => {
 			const minLengthContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: utils.getRandomBytes(LENGTH_NFT_ID - 1).toString('hex'),
+					nftID: utils.getRandomBytes(LENGTH_NFT_ID - 1).toString('hex'),
 				},
 			});
 
 			const maxLengthContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: utils.getRandomBytes(LENGTH_NFT_ID + 1).toString('hex'),
+					nftID: utils.getRandomBytes(LENGTH_NFT_ID + 1).toString('hex'),
 				},
 			});
 
 			await expect(endpoint.isNFTSupported(minLengthContext)).rejects.toThrow(
-				`'.id' must NOT have fewer than 32 characters`,
+				`'.nftID' must NOT have fewer than 32 characters`,
 			);
 
 			await expect(endpoint.isNFTSupported(maxLengthContext)).rejects.toThrow(
-				`'.id' must NOT have more than 32 characters`,
+				`'.nftID' must NOT have more than 32 characters`,
 			);
 		});
 
@@ -645,7 +680,7 @@ describe('NFTEndpoint', () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: utils.getRandomBytes(LENGTH_NFT_ID).toString('hex'),
+					nftID: utils.getRandomBytes(LENGTH_NFT_ID).toString('hex'),
 				},
 			});
 
@@ -665,7 +700,7 @@ describe('NFTEndpoint', () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: nftID.toString('hex'),
+					nftID: nftID.toString('hex'),
 				},
 			});
 
@@ -689,7 +724,7 @@ describe('NFTEndpoint', () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: nftID.toString('hex'),
+					nftID: nftID.toString('hex'),
 				},
 			});
 
@@ -712,7 +747,7 @@ describe('NFTEndpoint', () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: nftID.toString('hex'),
+					nftID: nftID.toString('hex'),
 				},
 			});
 
@@ -744,7 +779,7 @@ describe('NFTEndpoint', () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: nftID.toString('hex'),
+					nftID: nftID.toString('hex'),
 				},
 			});
 
@@ -776,7 +811,7 @@ describe('NFTEndpoint', () => {
 			const context = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					id: nftID.toString('hex'),
+					nftID: nftID.toString('hex'),
 				},
 			});
 
