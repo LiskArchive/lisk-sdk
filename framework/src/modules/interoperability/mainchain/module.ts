@@ -356,13 +356,12 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
 		mainchainID: Buffer,
 	) {
-		this._verifyTerminatedStateAccountsIDs(
-			terminatedStateAccounts.map(a => a.chainID),
-			mainchainID,
-		);
+		this._verifyTerminatedStateAccountsIDs(terminatedStateAccounts.map(a => a.chainID));
 
 		// Sanity check to fulfill if-and-only-if situation
 		for (const terminatedStateAccountWithChainID of terminatedStateAccounts) {
+			this._verifyChainID(terminatedStateAccountWithChainID.chainID, mainchainID, 'stateAccount.');
+
 			const correspondingChainInfo = chainInfos.find(chainInfo =>
 				chainInfo.chainID.equals(terminatedStateAccountWithChainID.chainID),
 			);

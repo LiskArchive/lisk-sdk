@@ -320,12 +320,11 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
 		mainchainID: Buffer,
 	) {
-		this._verifyTerminatedStateAccountsIDs(
-			terminatedStateAccounts.map(a => a.chainID),
-			mainchainID,
-		);
+		this._verifyTerminatedStateAccountsIDs(terminatedStateAccounts.map(a => a.chainID));
 
 		for (const stateAccount of terminatedStateAccounts) {
+			this._verifyChainID(stateAccount.chainID, mainchainID, 'stateAccount.');
+
 			// and stateAccount.chainID != OWN_CHAIN_ID.
 			if (stateAccount.chainID.equals(ctx.chainID)) {
 				throw new Error(`stateAccount.chainID must not be equal to OWN_CHAIN_ID.`);

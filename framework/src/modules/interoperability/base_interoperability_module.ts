@@ -181,7 +181,7 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		}
 	}
 
-	protected _verifyTerminatedStateAccountsIDs(chainIDs: Buffer[], mainchainID: Buffer) {
+	protected _verifyTerminatedStateAccountsIDs(chainIDs: Buffer[]) {
 		// Each entry stateAccount in terminatedStateAccounts has a unique stateAccount.chainID
 		if (!objectUtils.bufferArrayUniqueItems(chainIDs)) {
 			throw new Error(`terminatedStateAccounts don't hold unique chainID.`);
@@ -190,10 +190,6 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		// terminatedStateAccounts is ordered lexicographically by stateAccount.chainID
 		if (!objectUtils.isBufferArrayOrdered(chainIDs)) {
 			throw new Error('terminatedStateAccounts must be ordered lexicographically by chainID.');
-		}
-
-		for (const chainID of chainIDs) {
-			this._verifyChainID(chainID, mainchainID, 'stateAccount.');
 		}
 	}
 
