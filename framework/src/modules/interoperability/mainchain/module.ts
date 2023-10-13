@@ -265,7 +265,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		// If chainInfos is non-empty, ownChainNonce > 0
 		if (chainInfos.length === 0 && ownChainNonce !== BigInt(0)) {
 			throw new Error(`ownChainNonce must be 0 if chainInfos is empty.`);
-		} else if (chainInfos.length !== 0 && ownChainNonce <= 0) {
+		} else if (chainInfos.length !== 0 && ownChainNonce <= BigInt(0)) {
 			throw new Error(`ownChainNonce must be positive if chainInfos is not empty.`);
 		}
 
