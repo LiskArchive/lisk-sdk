@@ -40,7 +40,7 @@ import { createTransientMethodContext } from '../../../../src/testing';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
-import { getMainchainID, getEncodedCCMAndID } from '../../../../src/modules/interoperability/utils';
+import { getMainchainID } from '../../../../src/modules/interoperability/utils';
 
 class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {}
 
@@ -468,7 +468,6 @@ describe('Sample Method', () => {
 				.mockResolvedValue(receivingChainAccount);
 
 			interopMod.stores.get(OwnChainAccountStore).set = ownChainAccountStoreMock.set;
-			const { ccmID } = getEncodedCCMAndID(ccmOnMainchain);
 
 			// Act & Assert
 			await expect(
@@ -493,7 +492,6 @@ describe('Sample Method', () => {
 				expect.anything(),
 				ccmOnMainchain.sendingChainID,
 				ccmOnMainchain.receivingChainID,
-				ccmID,
 				{ ccm: ccmOnMainchain },
 			);
 		});

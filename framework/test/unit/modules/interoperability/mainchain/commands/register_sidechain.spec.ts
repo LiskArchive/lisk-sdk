@@ -47,7 +47,6 @@ import {
 	computeValidatorsHash,
 	getMainchainID,
 	getTokenIDLSK,
-	getEncodedCCMAndID,
 } from '../../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
@@ -635,20 +634,13 @@ describe('RegisterSidechainCommand', () => {
 				params: encodedParams,
 			};
 
-			const { ccmID } = getEncodedCCMAndID(ccm);
 			// Act
 			await sidechainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(ccmSendSuccessEvent.log).toHaveBeenCalledWith(
-				expect.anything(),
-				chainID,
-				newChainID,
-				ccmID,
-				{
-					ccm,
-				},
-			);
+			expect(ccmSendSuccessEvent.log).toHaveBeenCalledWith(expect.anything(), chainID, newChainID, {
+				ccm,
+			});
 		});
 	});
 });

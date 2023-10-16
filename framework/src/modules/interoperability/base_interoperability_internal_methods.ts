@@ -32,7 +32,6 @@ import { ccmSchema } from './schemas';
 import { CCMsg, CrossChainUpdateTransactionParams, ChainAccount, ChainValidators } from './types';
 import {
 	computeValidatorsHash,
-	getEncodedCCMAndID,
 	getMainchainID,
 	validateFormat,
 	calculateNewActiveValidators,
@@ -599,7 +598,6 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 			throw new Error('Receiving chain is not active.');
 		}
 
-		const { ccmID } = getEncodedCCMAndID(ccm);
 		await this.addToOutbox(context, partnerChainID, ccm);
 		ownChainAccount.nonce += BigInt(1);
 		await this.stores.get(OwnChainAccountStore).set(context, EMPTY_BYTES, ownChainAccount);
@@ -607,7 +605,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		// Emit CCM Processed Event.
 		this.events
 			.get(CcmSendSuccessEvent)
-			.log(context, ccm.sendingChainID, ccm.receivingChainID, ccmID, { ccm });
+			.log(context, ccm.sendingChainID, ccm.receivingChainID, { ccm });
 	}
 
 	public async getChainValidators(
