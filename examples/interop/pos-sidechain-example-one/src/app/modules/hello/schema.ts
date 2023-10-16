@@ -85,58 +85,26 @@ export const crossChainReactParamsSchema = {
 	$id: '/lisk/ccReactParams',
 	type: 'object',
 	/** The required parameters for the command. */
-	required: [
-		'reactionType',
-		'helloMessageID',
-		'receivingChainID',
-		'data',
-		'messageFee',
-		'messageFeeTokenID',
-	],
+	required: ['reactionType', 'helloMessageID', 'data'],
 	/** A list describing the available parameters for the command. */
 	properties: {
 		reactionType: {
 			dataType: 'uint32',
 			fieldNumber: 1,
 		},
-		data: {
-			dataType: 'string',
-			fieldNumber: 2,
-		},
 		/**
 		 * ID of the message.
 		 */
 		helloMessageID: {
 			dataType: 'bytes',
-			fieldNumber: 3,
-		},
-		/**
-		 * The chain ID of the receiving chain.
-		 *
-		 * `maxLength` and `minLength` are equal to 4.
-		 */
-		receivingChainID: {
-			dataType: 'bytes',
-			fieldNumber: 4,
-			minLength: 4,
-			maxLength: 4,
+			fieldNumber: 2,
 		},
 		/** Optional field for data / messages. */
-		message: {
+		data: {
 			dataType: 'string',
-			fieldNumber: 5,
+			fieldNumber: 3,
 			minLength: 0,
 			maxLength: 64,
-		},
-		messageFee: {
-			dataType: 'uint64',
-			fieldNumber: 6,
-		},
-		messageFeeTokenID: {
-			dataType: 'bytes',
-			fieldNumber: 7,
-			minLength: 8,
-			maxLength: 8,
 		},
 	},
 };

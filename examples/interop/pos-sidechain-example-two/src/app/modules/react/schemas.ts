@@ -80,7 +80,7 @@ export const crossChainReactMessageSchema = {
 		/** Optional field for data / messages. */
 		data: {
 			dataType: 'string',
-			fieldNumber: 4,
+			fieldNumber: 3,
 			minLength: 0,
 			maxLength: 64,
 		},
