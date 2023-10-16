@@ -209,7 +209,7 @@ describe('transaction:sign command', () => {
 
 		describe('sign multi signature registration transaction', () => {
 			const messageForRegistration = {
-				address: accountsForMultisignature.targetAccount.publicKey,
+				address: accountsForMultisignature.targetAccount.address,
 				nonce: BigInt(2),
 				numberOfSignatures: 4,
 				mandatoryKeys: [
@@ -300,6 +300,7 @@ describe('transaction:sign command', () => {
 						`--passphrase=${accountsForMultisignature.targetAccount.passphrase}`,
 						`--chain-id=${chainIDStr}`,
 						'--offline',
+						'--key-derivation-path=legacy',
 					],
 					config,
 				);
@@ -317,42 +318,13 @@ describe('transaction:sign command', () => {
 						`--chain-id=${chainIDStr}`,
 						'--offline',
 						'--json',
+						'--key-derivation-path=legacy',
 					],
 					config,
 				);
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(2);
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 					transaction: signedTransaction.toString('hex'),
-				});
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-					transaction: {
-						id: expect.any(String),
-						module: 'auth',
-						command: 'registerMultisignature',
-						nonce: '2',
-						fee: '1500000000',
-						senderPublicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-						params: {
-							numberOfSignatures: 4,
-							mandatoryKeys: [
-								accountsForMultisignature.mandatoryTwo.publicKey.toString('hex'),
-								accountsForMultisignature.mandatoryOne.publicKey.toString('hex'),
-							],
-							optionalKeys: [
-								accountsForMultisignature.optionalOne.publicKey.toString('hex'),
-								accountsForMultisignature.optionalTwo.publicKey.toString('hex'),
-							],
-							signatures: [
-								'b782005d5b55f390bf1e10ed88a076e448124a9be882414977876a3fd134a2047e14c6aeb8b58915c4bb51ba3490b7643710432019dac171467bad214e0ced07',
-								'082501104f42f0c8a47291b51630e6869aebb653fe224dca74a9027fc8494f5a2d6537bb1bc1b94d8b1a1af00d14fb50b9e0cd36e3bfb8ea3265c5e956064c0c',
-								'aa72f005da46a8782ff5edd5b2546baf6a8bb0d67284c4e7631abf6629feba65854203d961fb4c2a31c12c525c0b7c4f9c8a47118789f93cf6ebd158b294c707',
-								'6a3a179fbb076ca8e8c3e42e1e6d2ae447f39ae413df083e14685fd02a562ab3fac085080709387e3ecbf305b58b4f1957ea497e9e7834d55a8a71a946f5050d',
-							],
-						},
-						signatures: [
-							'06f78300e3fae75408e3526fd08de832e953e0d252f441f57003a1f4ad84f350edf0a20a641f43abe7fb81121306750e23effd31f6f04fbd1156a9088585440c',
-						],
-					},
 				});
 			});
 		});

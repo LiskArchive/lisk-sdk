@@ -14,7 +14,6 @@
  */
 import { Command, Flags as flagParser } from '@oclif/core';
 import * as apiClient from '@liskhq/lisk-api-client';
-import * as cryptography from '@liskhq/lisk-cryptography';
 import {
 	Application,
 	blockHeaderSchema,
@@ -78,7 +77,7 @@ const signTransaction = async (
 
 	const chainIDBuffer = Buffer.from(chainID as string, 'hex');
 	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase'));
-	const edKeys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+	const edKeys = await deriveKeypair(passphrase, flags['key-derivation-path']);
 
 	let signedTransaction: Record<string, unknown>;
 	if (flags['mandatory-keys'] || flags['optional-keys']) {
