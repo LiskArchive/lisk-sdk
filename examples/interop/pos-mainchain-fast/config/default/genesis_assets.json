@@ -4,10 +4,72 @@
 			"module": "interoperability",
 			"data": {
 				"ownChainName": "lisk_mainchain",
-				"ownChainNonce": 0,
-				"chainInfos": [],
-				"terminatedStateAccounts": [],
-				"terminatedOutboxAccounts": []
+				"ownChainNonce": "123",
+				"chainInfos": [
+					{
+						"chainID": "04000001",
+						"chainData": {
+							"name": "dummy",
+							"lastCertificate": {
+								"height": 567467,
+								"timestamp": 1000,
+								"stateRoot": "0000000000000000000000000000000000000000000000000000000000000000",
+								"validatorsHash": "a5a053d50182ea0c33bc03594cf4760f11d67cdba407d16bc0512fabb468253a"
+							},
+							"status": 2
+						},
+						"channelData": {
+							"inbox": {
+								"appendPath": [
+									"0000000000000000000000000000000000000000000000000000000000000000",
+									"0000000000000000000000000000000000000000000000000000000000000000"
+								],
+								"size": 18,
+								"root": "9e37ffe87f08f6b7952d82acdb3376046792533ebf2ba8908dda3ebc813dac9a"
+							},
+							"outbox": {
+								"appendPath": [
+									"0000000000000000000000000000000000000000000000000000000000000000",
+									"0000000000000000000000000000000000000000000000000000000000000000"
+								],
+								"size": 18,
+								"root": "221a0c844883022e3a54e78eb5dcdc2ed8faa85f648c40659cf5fd2054f36500"
+							},
+							"partnerChainOutboxRoot": "851faa36d87411d625fb4416c33c6a44795cb84155637f9991fcef06d1de7155",
+							"messageFeeTokenID": "0400000000000000",
+							"minReturnFeePerByte": "1000"
+						},
+						"chainValidators": {
+							"activeValidators": [
+								{
+									"blsKey": "3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835",
+									"bftWeight": "10"
+								}
+							],
+							"certificateThreshold": "10"
+						}
+					}
+				],
+				"terminatedStateAccounts": [
+					{
+						"chainID": "04000001",
+						"terminatedStateAccount": {
+							"stateRoot": "0000000000000000000000000000000000000000000000000000000000000000",
+							"mainchainStateRoot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+							"initialized": true
+						}
+					}
+				],
+				"terminatedOutboxAccounts": [
+					{
+						"chainID": "04000001",
+						"terminatedOutboxAccount": {
+							"outboxRoot": "0aed892d544980f5b806dbce4bcb65517acf57a7af012c55c0b2f80b188fa290",
+							"outboxSize": 1,
+							"partnerChainInboxSize": 1
+						}
+					}
+				]
 			},
 			"schema": {
 				"$id": "/interoperability/module/genesis",
@@ -916,11 +978,17 @@
 						"totalSupply": "10300000000000000"
 					}
 				],
-				"escrowSubstore": [],
+				"escrowSubstore": [
+					{
+						"escrowChainID": "04000001",
+						"tokenID": "0400000000000000",
+						"amount": "0"
+					}
+				],
 				"supportedTokensSubstore": [
 					{
-						"chainID": "",
-						"supportedTokenIDs": []
+						"chainID": "04000001",
+						"supportedTokenIDs": ["0400000100000000"]
 					}
 				]
 			},
