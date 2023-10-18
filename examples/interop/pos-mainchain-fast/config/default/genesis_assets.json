@@ -7,7 +7,7 @@
 				"ownChainNonce": "123",
 				"chainInfos": [
 					{
-						"chainID": "04000001",
+						"chainID": "04123456",
 						"chainData": {
 							"name": "dummy",
 							"lastCertificate": {
@@ -52,7 +52,7 @@
 				],
 				"terminatedStateAccounts": [
 					{
-						"chainID": "04000001",
+						"chainID": "04123456",
 						"terminatedStateAccount": {
 							"stateRoot": "0000000000000000000000000000000000000000000000000000000000000000",
 							"mainchainStateRoot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -62,7 +62,7 @@
 				],
 				"terminatedOutboxAccounts": [
 					{
-						"chainID": "04000001",
+						"chainID": "04123456",
 						"terminatedOutboxAccount": {
 							"outboxRoot": "0aed892d544980f5b806dbce4bcb65517acf57a7af012c55c0b2f80b188fa290",
 							"outboxSize": 1,
@@ -980,15 +980,15 @@
 				],
 				"escrowSubstore": [
 					{
-						"escrowChainID": "04000001",
+						"escrowChainID": "04123456",
 						"tokenID": "0400000000000000",
 						"amount": "0"
 					}
 				],
 				"supportedTokensSubstore": [
 					{
-						"chainID": "04000001",
-						"supportedTokenIDs": ["0400000100000000"]
+						"chainID": "04123456",
+						"supportedTokenIDs": ["0412345600000000"]
 					}
 				]
 			},
