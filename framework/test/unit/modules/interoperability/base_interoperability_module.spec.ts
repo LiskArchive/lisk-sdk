@@ -445,7 +445,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 		});
 	});
 
-	describe('_verifyTerminatedStateAccountsCommon', () => {
+	describe('_verifyTerminatedStateAccountsIDs', () => {
 		certificateThreshold = BigInt(10);
 		const validChainInfos = [
 			{
