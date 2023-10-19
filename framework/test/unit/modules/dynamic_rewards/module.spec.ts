@@ -487,8 +487,5 @@ describe('DynamicRewardModule', () => {
 
 			expect(updatedTimestamp).not.toEqual(timestamp);
 		});
-
-		// When every validator in a round miss the blocks, check endofRoundTimestamp and blockreward.
-		// Check should be done similar to Reward module for rewardAtHeight.
 	});
 });
