@@ -13,6 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { CommandExecuteContext, CommandVerifyContext } from '../../state_machine';
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
@@ -562,9 +563,10 @@ export abstract class BaseCrossChainUpdateCommand<
 		}
 
 		await this.internalMethod.addToOutbox(context, partnerChainID, bouncedCCM);
+		const newCcmID = utils.hash(codec.encode(ccmSchema, bouncedCCM));
 		this.events
 			.get(CcmSendSuccessEvent)
-			.log(context, bouncedCCM.sendingChainID, bouncedCCM.receivingChainID, {
+			.log(context, bouncedCCM.sendingChainID, bouncedCCM.receivingChainID, newCcmID, {
 				ccm: bouncedCCM,
 			});
 	}

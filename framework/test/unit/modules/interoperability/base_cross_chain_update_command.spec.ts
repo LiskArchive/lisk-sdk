@@ -1686,6 +1686,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				expect.anything(),
 				context.ccm.receivingChainID,
 				context.ccm.sendingChainID,
+				expect.any(Buffer),
 				{
 					ccm: {
 						...defaultCCM,

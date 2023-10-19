@@ -595,6 +595,7 @@ describe('RegisterMainchainCommand', () => {
 				expect.anything(),
 				ownChainAccount.chainID,
 				mainchainID,
+				expect.anything(),
 				{
 					ccm,
 				},
