@@ -1,5 +1,6 @@
 import { apiClient, codec, sidechainRegParams, cryptography, Transaction } from 'lisk-sdk';
-// Replace this with the a path with a fie storing the public and private key of the mainchain account that will send the sidechain registration transaction
+// Replace this with the path to a file storing the public and private key of a mainchain account who will send the sidechain registration transaction.
+// (Can be any account with enough tokens).
 import { keys } from '../default/dev-validators.json';
 
 (async () => {

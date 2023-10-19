@@ -21,9 +21,13 @@ import { keys as sidechainDevValidators } from '../default/dev-validators.json';
  *	await registerMainchain("lisk-core","my-lisk-app",sidechainDevValidators);
  *})();
  * ```
+ *
+ * @param mc mainchain alias of the mainchain to be registered.
+ * @param sc sidechain alias of the sidechain, where the mainchain shall be registered.
  * @param sidechainDevValidators the `key` property of the `dev-validators.json` file.
  * Includes all keys of the sidechain validators to create the aggregated signature.
  */
+
 export const registerMainchain = async (mc: string, sc: string, sidechainDevValidators: any[]) => {
 	const { bls, address } = cryptography;
 
