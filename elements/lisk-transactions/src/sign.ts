@@ -13,7 +13,7 @@
  *
  */
 
-import { codec, Schema } from '@liskhq/lisk-codec';
+import { codec, emptySchema, Schema } from '@liskhq/lisk-codec';
 import { utils, ed } from '@liskhq/lisk-cryptography';
 import { validateTransaction } from './validate';
 import { baseTransactionSchema } from './schema';
@@ -27,11 +27,11 @@ export interface MultiSignatureKeys {
 	readonly optionalKeys: Array<Buffer>;
 }
 
-const encodeParams = (transaction: Record<string, unknown>, paramsSchema?: object): Buffer => {
-	const validationErrors = validateTransaction(transaction, paramsSchema);
-	if (validationErrors) {
-		throw validationErrors;
-	}
+const encodeParams = (
+	transaction: Record<string, unknown>,
+	paramsSchema = emptySchema as object,
+): Buffer => {
+	validateTransaction(transaction, paramsSchema);
 
 	const hasParams =
 		typeof transaction.params === 'object' && transaction.params !== null && paramsSchema;
@@ -101,7 +101,7 @@ export const getBytes = (transaction: Record<string, unknown>, paramsSchema?: ob
  *  const signedTransaction = signTransaction(unsignedTrx, chainID, privateKey, paramsSchema);
  *  ```
  *
- * @param transactionObject The unsigned transaction object.
+ * @param transaction The unsigned transaction object.
  * @param chainID The chain ID of the chain to which the transaction belongs.
  * @param privateKey The private key of the sender of the transaction.
  * @param paramsSchema The schema for the `params` of the transaction.
@@ -113,7 +113,7 @@ export const getBytes = (transaction: Record<string, unknown>, paramsSchema?: ob
  * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
  */
 export const signTransaction = (
-	transactionObject: Record<string, unknown>,
+	transaction: Record<string, unknown>,
 	chainID: Buffer,
 	privateKey: Buffer,
 	paramsSchema?: object,
@@ -126,21 +126,18 @@ export const signTransaction = (
 		throw new Error('Private key must be 64 bytes');
 	}
 
-	const validationErrors = validateTransaction(transactionObject, paramsSchema);
-	if (validationErrors) {
-		throw validationErrors;
-	}
+	validateTransaction(transaction, paramsSchema);
 
 	const signature = ed.signDataWithPrivateKey(
 		TAG_TRANSACTION,
 		chainID,
-		getSigningBytes(transactionObject, paramsSchema),
+		getSigningBytes(transaction, paramsSchema),
 		privateKey,
 	);
 
 	// eslint-disable-next-line no-param-reassign
-	transactionObject.signatures = [signature];
-	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
+	transaction.signatures = [signature];
+	return { ...transaction, id: utils.hash(getBytes(transaction, paramsSchema)) };
 };
 
 /**
@@ -185,10 +182,7 @@ export const signMultiSignatureTransaction = (
 		throw new Error('Signatures must be of type array');
 	}
 
-	const validationErrors = validateTransaction(transactionObject, paramsSchema);
-	if (validationErrors) {
-		throw validationErrors;
-	}
+	validateTransaction(transactionObject, paramsSchema);
 
 	keys.mandatoryKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 	keys.optionalKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));

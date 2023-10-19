@@ -58,10 +58,7 @@ export const createTransaction = ({
 	};
 
 	if (commandInstance.schema) {
-		const validationErrors = validateTransaction(transaction, commandInstance.schema);
-		if (validationErrors) {
-			throw validationErrors;
-		}
+		validateTransaction(transaction, commandInstance.schema);
 	}
 	const result = new Transaction({ ...transaction, params: paramsBytes });
 

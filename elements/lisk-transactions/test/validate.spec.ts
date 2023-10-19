@@ -70,10 +70,10 @@ describe('validateTransaction', () => {
 		);
 	});
 
-	it('should return error when params is null', () => {
-		return expect(
+	it('should throw when params is null', () => {
+		return expect(() =>
 			validateTransaction({ ...validTransaction, params: null }, validParamsSchema),
-		).toEqual(new Error('Transaction object params must be of type object and not null'));
+		).toThrow('Transaction object params must be of type object and not null');
 	});
 
 	it('should return error for invalid params property', () => {
