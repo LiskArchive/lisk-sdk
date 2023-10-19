@@ -432,8 +432,6 @@ export class NFTMethod extends BaseMethod {
 		includeAttributes: boolean,
 	): Promise<void> {
 		try {
-			await this._internalMethod.verifyTransfer(methodContext, senderAddress, nftID);
-
 			await this._internalMethod.verifyTransferCrossChain(
 				methodContext,
 				senderAddress,
