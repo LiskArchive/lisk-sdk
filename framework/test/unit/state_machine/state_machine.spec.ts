@@ -36,7 +36,7 @@ import {
 	EVENT_INDEX_BEFORE_TRANSACTIONS,
 	EVENT_INDEX_FINALIZE_GENESIS_STATE,
 	EVENT_INDEX_INIT_GENESIS_STATE,
-	// EVENT_TOPIC_TRANSACTION_EXECUTION,
+	EVENT_TOPIC_TRANSACTION_EXECUTION,
 } from '../../../src/state_machine/constants';
 import { PrefixedStateReadWriter } from '../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../src/testing/in_memory_prefixed_state';
@@ -206,7 +206,9 @@ describe('state_machine', () => {
 			const events = ctx.eventQueue.getEvents();
 			const dataDecoded = codec.decode(standardEventDataSchema, events[0].toObject().data);
 			expect(events).toHaveLength(1);
-			expect(events[0].toObject().topics[0]).toEqual(transaction.id);
+			expect(events[0].toObject().topics[0]).toEqual(
+				Buffer.concat([EVENT_TOPIC_TRANSACTION_EXECUTION, transaction.id]),
+			);
 			expect(dataDecoded).toStrictEqual({ success: true });
 		});
 
@@ -233,10 +235,13 @@ describe('state_machine', () => {
 			await stateMachine.executeTransaction(ctx);
 
 			const events = ctx.eventQueue.getEvents();
+
 			const dataDecoded = codec.decode(standardEventDataSchema, events[0].toObject().data);
 			expect(events).toHaveLength(1);
 
-			expect(events[0].toObject().topics[0]).toEqual(transactionWithInvalidCommand.id);
+			expect(events[0].toObject().topics[0]).toEqual(
+				Buffer.concat([EVENT_TOPIC_TRANSACTION_EXECUTION, transactionWithInvalidCommand.id]),
+			);
 			expect(dataDecoded).toStrictEqual({ success: false });
 		});
 
