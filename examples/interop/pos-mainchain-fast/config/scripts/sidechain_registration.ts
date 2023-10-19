@@ -21,7 +21,7 @@ import { keys } from '../default/dev-validators.json';
 		const sidechainNodeInfo = await sidechainClient.invoke('system_getNodeInfo');
 		const mainchainNodeInfo = await mainchainClient.invoke('system_getNodeInfo');
 
-		// Get active validators from sidechainchain
+		// Get active validators from sidechain
 		const { validators: sidehcainActiveValidators, certificateThreshold } =
 			await sidechainClient.invoke('consensus_getBFTParameters', {
 				height: sidechainNodeInfo.height,
@@ -40,7 +40,7 @@ import { keys } from '../default/dev-validators.json';
 			name: `sidechain_example_${nodeAlias}`,
 		};
 
-		// Get publickey and nonce of the sender account
+		// Get public key and nonce of the sender account
 		const relayerkeyInfo = keys[2];
 		const { nonce } = await mainchainClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
 			address: address.getLisk32AddressFromPublicKey(Buffer.from(relayerkeyInfo.publicKey, 'hex')),
