@@ -40,6 +40,7 @@ import {
 	CCMProcessedResult,
 } from '../../events/ccm_processed';
 import { InvalidRMTVerification } from '../../events/invalid_rmt_verification';
+import { EVENT_TOPIC_CCM_EXECUTION } from '../../../../state_machine/constants';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#message-recovery-command
 export class RecoverMessageCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
@@ -203,7 +204,9 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			const ctx: CrossChainMessageContext = {
 				...context,
 				ccm,
-				eventQueue: context.eventQueue.getChildQueue(ccmID),
+				eventQueue: context.eventQueue.getChildQueue(
+					Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
+				),
 			};
 			let recoveredCCM: CCMsg;
 			// If the sending chain is the mainchain, recover the CCM.

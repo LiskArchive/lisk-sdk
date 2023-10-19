@@ -66,6 +66,7 @@ import {
 	OwnChainAccountStore,
 	OwnChainAccount,
 } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
+import { EVENT_TOPIC_CCM_EXECUTION } from '../../../../../../src/state_machine/constants';
 
 describe('SubmitSidechainCrossChainUpdateCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
@@ -406,7 +407,9 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 				expect(sidechainCCUUpdateCommand['apply']).toHaveBeenCalledWith({
 					...executeContext,
 					ccm: decodedCCM,
-					eventQueue: executeContext.eventQueue.getChildQueue(ccmID),
+					eventQueue: executeContext.eventQueue.getChildQueue(
+						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
+					),
 				});
 			}
 			expect(sidechainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(

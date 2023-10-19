@@ -36,6 +36,7 @@ import {
 	EVENT_INDEX_BEFORE_TRANSACTIONS,
 	EVENT_INDEX_FINALIZE_GENESIS_STATE,
 	EVENT_INDEX_INIT_GENESIS_STATE,
+	// EVENT_TOPIC_TRANSACTION_EXECUTION,
 } from '../../../src/state_machine/constants';
 import { PrefixedStateReadWriter } from '../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../src/testing/in_memory_prefixed_state';
@@ -58,6 +59,7 @@ describe('state_machine', () => {
 		params: codec.encode(new CustomCommand0(new NamedRegistry(), new NamedRegistry()).schema, {
 			data: 'some info',
 		}),
+		id: utils.hash(utils.getRandomBytes(2)),
 	} as Transaction;
 
 	let stateMachine: StateMachine;
@@ -215,6 +217,7 @@ describe('state_machine', () => {
 				params: codec.encode(new CustomCommand3(new NamedRegistry(), new NamedRegistry()).schema, {
 					data: 'some info',
 				}),
+				id: utils.hash(utils.getRandomBytes(2)),
 			} as Transaction;
 			stateMachine.registerModule(new CustomModule3());
 			const ctx = new TransactionContext({
@@ -232,7 +235,8 @@ describe('state_machine', () => {
 			const events = ctx.eventQueue.getEvents();
 			const dataDecoded = codec.decode(standardEventDataSchema, events[0].toObject().data);
 			expect(events).toHaveLength(1);
-			expect(events[0].toObject().topics[0]).toEqual(transaction.id);
+
+			expect(events[0].toObject().topics[0]).toEqual(transactionWithInvalidCommand.id);
 			expect(dataDecoded).toStrictEqual({ success: false });
 		});
 

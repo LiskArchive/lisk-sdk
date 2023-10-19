@@ -88,6 +88,7 @@ import {
 	OwnChainAccountStore,
 	OwnChainAccount,
 } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
+import { EVENT_TOPIC_CCM_EXECUTION } from '../../../../../../src/state_machine/constants';
 
 describe('SubmitMainchainCrossChainUpdateCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -538,7 +539,9 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			expect(mainchainCCUUpdateCommand['apply']).toHaveBeenCalledWith({
 				...executeContext,
 				ccm: decodedCCM,
-				eventQueue: executeContext.eventQueue.getChildQueue(ccmID),
+				eventQueue: executeContext.eventQueue.getChildQueue(
+					Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
+				),
 			});
 			expect(mainchainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(
 				3,
@@ -567,7 +570,9 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			expect(mainchainCCUUpdateCommand['_forward']).toHaveBeenCalledWith({
 				...executeContext,
 				ccm: firstDecodedCCM,
-				eventQueue: executeContext.eventQueue.getChildQueue(firstCCMID),
+				eventQueue: executeContext.eventQueue.getChildQueue(
+					Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, firstCCMID]),
+				),
 			});
 			const { ccmID: thirdCCMID, decodedCCM: thirdDecodedCCM } = getDecodedCCMAndID(
 				params.inboxUpdate.crossChainMessages[2],
@@ -575,7 +580,9 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			expect(mainchainCCUUpdateCommand['_forward']).toHaveBeenCalledWith({
 				...executeContext,
 				ccm: thirdDecodedCCM,
-				eventQueue: executeContext.eventQueue.getChildQueue(thirdCCMID),
+				eventQueue: executeContext.eventQueue.getChildQueue(
+					Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, thirdCCMID]),
+				),
 			});
 			expect(mainchainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(
 				3,

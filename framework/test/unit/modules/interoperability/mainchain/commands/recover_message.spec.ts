@@ -58,6 +58,7 @@ import {
 } from '../../../../../../src/modules/interoperability/events/ccm_processed';
 import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
 import { InvalidRMTVerification } from '../../../../../../src/modules/interoperability/events/invalid_rmt_verification';
+import { EVENT_TOPIC_CCM_EXECUTION } from '../../../../../../src/state_machine/constants';
 
 describe('MessageRecoveryCommand', () => {
 	const interopModule = new MainchainInteroperabilityModule();
@@ -540,7 +541,9 @@ describe('MessageRecoveryCommand', () => {
 				const ctx: CrossChainMessageContext = {
 					...commandExecuteContext,
 					ccm,
-					eventQueue: commandExecuteContext.eventQueue.getChildQueue(utils.hash(crossChainMessage)),
+					eventQueue: commandExecuteContext.eventQueue.getChildQueue(
+						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, utils.hash(crossChainMessage)]),
+					),
 				};
 
 				expect(command['_applyRecovery']).toHaveBeenCalledWith(ctx);
@@ -567,7 +570,9 @@ describe('MessageRecoveryCommand', () => {
 				const ctx: CrossChainMessageContext = {
 					...commandExecuteContext,
 					ccm,
-					eventQueue: commandExecuteContext.eventQueue.getChildQueue(utils.hash(crossChainMessage)),
+					eventQueue: commandExecuteContext.eventQueue.getChildQueue(
+						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, utils.hash(crossChainMessage)]),
+					),
 				};
 
 				expect(command['_forwardRecovery']).toHaveBeenCalledWith(ctx);

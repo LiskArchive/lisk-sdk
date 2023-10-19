@@ -18,6 +18,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../../state_machine';
+import { EVENT_TOPIC_CCM_EXECUTION } from '../../../../state_machine/constants';
 import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_command';
 import { CONTEXT_STORE_KEY_CCM_PROCESSING } from '../../constants';
 import { CrossChainUpdateTransactionParams } from '../../types';
@@ -57,7 +58,9 @@ export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdate
 				const ccmContext = {
 					...context,
 					ccm,
-					eventQueue: context.eventQueue.getChildQueue(ccmID),
+					eventQueue: context.eventQueue.getChildQueue(
+						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
+					),
 				};
 
 				await this.apply(ccmContext);

@@ -47,6 +47,7 @@ import {
 	getIDFromCCMBytes,
 } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
+import { EVENT_TOPIC_CCM_EXECUTION } from '../../../../state_machine/constants';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#commands
 export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
@@ -98,7 +99,9 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 				const ccmContext = {
 					...context,
 					ccm,
-					eventQueue: context.eventQueue.getChildQueue(ccmID),
+					eventQueue: context.eventQueue.getChildQueue(
+						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
+					),
 				};
 
 				// If the receiving chain is the mainchain, apply the CCM

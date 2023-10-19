@@ -19,3 +19,5 @@ export const EVENT_INDEX_BEFORE_TRANSACTIONS = Buffer.from([2]);
 export const EVENT_INDEX_AFTER_TRANSACTIONS = Buffer.from([3]);
 
 export const EVENT_TRANSACTION_NAME = 'commandExecutionResult';
+export const EVENT_TOPIC_TRANSACTION_EXECUTION = Buffer.from([4]);
+export const EVENT_TOPIC_CCM_EXECUTION = Buffer.from([5]);
