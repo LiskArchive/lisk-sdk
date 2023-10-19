@@ -39,10 +39,9 @@ import { UnlockEvent } from './events/unlock';
 import { InternalMethod } from './internal_method';
 import { NFTMethod } from './method';
 import {
-	collectionExistsRequestSchema,
-	collectionExistsResponseSchema,
-	getCollectionIDsRequestSchema,
-	getCollectionIDsResponseSchema,
+	isCollectionIDSupportedRequestSchema,
+	isCollectionIDSupportedResponseSchema,
+	getSupportedCollectionIDsResponseSchema,
 	getEscrowedNFTIDsRequestSchema,
 	getEscrowedNFTIDsResponseSchema,
 	getNFTRequestSchema,
@@ -67,7 +66,6 @@ import {
 	LENGTH_ADDRESS,
 	LENGTH_CHAIN_ID,
 	MODULE_NAME_NFT,
-	NFT_NOT_LOCKED,
 } from './constants';
 
 export class NFTModule extends BaseInteroperableModule {
@@ -134,13 +132,8 @@ export class NFTModule extends BaseInteroperableModule {
 		this._interoperabilityMethod = interoperabilityMethod;
 		this._feeMethod = feeMethod;
 		this._tokenMethod = tokenMethod;
-		this.method.addDependencies(
-			interoperabilityMethod,
-			this._internalMethod,
-			feeMethod,
-			tokenMethod,
-		);
-		this._internalMethod.addDependencies(this.method, this._interoperabilityMethod);
+		this.method.addDependencies(this._internalMethod, feeMethod);
+		this._internalMethod.addDependencies(this.method, this._interoperabilityMethod, tokenMethod);
 		this.crossChainMethod.addDependencies(interoperabilityMethod);
 		this.endpoint.addDependencies(this.method);
 	}
@@ -150,14 +143,13 @@ export class NFTModule extends BaseInteroperableModule {
 			...this.baseMetadata(),
 			endpoints: [
 				{
-					name: this.endpoint.collectionExists.name,
-					request: collectionExistsRequestSchema,
-					response: collectionExistsResponseSchema,
+					name: this.endpoint.isCollectionIDSupported.name,
+					request: isCollectionIDSupportedRequestSchema,
+					response: isCollectionIDSupportedResponseSchema,
 				},
 				{
-					name: this.endpoint.getCollectionIDs.name,
-					request: getCollectionIDsRequestSchema,
-					response: getCollectionIDsResponseSchema,
+					name: this.endpoint.getSupportedCollectionIDs.name,
+					response: getSupportedCollectionIDsResponseSchema,
 				},
 				{
 					name: this.endpoint.getEscrowedNFTIDs.name,
@@ -206,7 +198,7 @@ export class NFTModule extends BaseInteroperableModule {
 			nftMethod: this.method,
 			tokenMethod: this._tokenMethod,
 		});
-		this._transferCommand.init({ method: this.method, internalMethod: this._internalMethod });
+		this._transferCommand.init({ internalMethod: this._internalMethod });
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
@@ -273,24 +265,20 @@ export class NFTModule extends BaseInteroperableModule {
 			supportedChainsKeySet.add(supportedNFT.chainID);
 		}
 
-		const nftStore = this.stores.get(NFTStore);
-		const escrowStore = this.stores.get(EscrowStore);
-		const userStore = this.stores.get(UserStore);
-
 		for (const nft of genesisStore.nftSubstore) {
 			const { owner, nftID, attributesArray } = nft;
 
-			await nftStore.save(context, nftID, {
+			await this._internalMethod.createNFTEntry(
+				context.getMethodContext(),
 				owner,
+				nftID,
 				attributesArray,
-			});
+			);
 
 			if (owner.length === LENGTH_CHAIN_ID) {
-				await escrowStore.set(context, escrowStore.getKey(owner, nftID), {});
+				await this._internalMethod.createEscrowEntry(context.getMethodContext(), owner, nftID);
 			} else {
-				await userStore.set(context, userStore.getKey(owner, nftID), {
-					lockingModule: NFT_NOT_LOCKED,
-				});
+				await this._internalMethod.createUserEntry(context.getMethodContext(), owner, nftID);
 			}
 		}
 

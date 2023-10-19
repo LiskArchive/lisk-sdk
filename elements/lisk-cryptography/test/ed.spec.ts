@@ -166,6 +166,20 @@ describe('getPrivateKeyFromPhraseAndPath', () => {
 		);
 	});
 
+	it('should derive distinct keys from same valid phrase but distinct paths', async () => {
+		const privateKeyFromPassphrase = await getPrivateKeyFromPhraseAndPath(
+			passphrase,
+			`m/44'/134'/0'`,
+		);
+
+		const anotherPrivateKeyFromPassphrase = await getPrivateKeyFromPhraseAndPath(
+			passphrase,
+			`m/44'/134'/1'`,
+		);
+
+		expect(privateKeyFromPassphrase).not.toEqual(anotherPrivateKeyFromPassphrase);
+	});
+
 	it('should fail for empty string path', async () => {
 		await expect(getPrivateKeyFromPhraseAndPath(passphrase, '')).rejects.toThrow(
 			'Invalid path format',
