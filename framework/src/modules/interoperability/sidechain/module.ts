@@ -290,7 +290,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			}
 			// mainchainInfo.chainID == getMainchainID();
 			const mainchainInfo = chainInfos[0];
-			const mainchainID = getMainchainID(mainchainInfo.chainID);
+			const mainchainID = getMainchainID(ctx.chainID);
 			if (!mainchainInfo.chainID.equals(mainchainID)) {
 				throw new Error(`mainchainInfo.chainID must be equal to ${mainchainID.toString('hex')}.`);
 			}
@@ -320,9 +320,11 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
 		mainchainID: Buffer,
 	) {
-		this._verifyTerminatedStateAccountsCommon(terminatedStateAccounts, mainchainID);
+		this._verifyTerminatedStateAccountsIDs(terminatedStateAccounts.map(a => a.chainID));
 
 		for (const stateAccount of terminatedStateAccounts) {
+			this._verifyChainID(stateAccount.chainID, mainchainID, 'stateAccount.');
+
 			// and stateAccount.chainID != OWN_CHAIN_ID.
 			if (stateAccount.chainID.equals(ctx.chainID)) {
 				throw new Error(`stateAccount.chainID must not be equal to OWN_CHAIN_ID.`);

@@ -48,7 +48,7 @@ export const hash = (data: Buffer | string, format?: string): Buffer => {
 
 export const parseKeyDerivationPath = (path: string) => {
 	if (!path.startsWith('m') || !path.includes('/')) {
-		throw new Error('Invalid path format');
+		throw new Error('Invalid key derivation path format');
 	}
 
 	return (
@@ -58,19 +58,19 @@ export const parseKeyDerivationPath = (path: string) => {
 			.slice(1)
 			.map(segment => {
 				if (!/^[0-9']+$/g.test(segment)) {
-					throw new Error('Invalid path format');
+					throw new Error('Invalid key derivation path format');
 				}
 
 				// if segment includes apostrophe add HARDENED_OFFSET
 				if (segment.includes(`'`)) {
 					if (parseInt(segment.slice(0, -1), 10) > MAX_UINT32 / 2) {
-						throw new Error('Invalid path format');
+						throw new Error('Invalid key derivation path format');
 					}
 					return parseInt(segment, 10) + HARDENED_OFFSET;
 				}
 
 				if (parseInt(segment, 10) > MAX_UINT32) {
-					throw new Error('Invalid path format');
+					throw new Error('Invalid key derivation path format');
 				}
 
 				return parseInt(segment, 10);
