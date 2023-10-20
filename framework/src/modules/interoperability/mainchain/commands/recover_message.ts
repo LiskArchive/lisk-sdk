@@ -31,7 +31,11 @@ import {
 	getEncodedCCMAndID,
 	getDecodedCCMAndID,
 } from '../../utils';
-import { CCMStatusCode, CONTEXT_STORE_KEY_CCM_PROCESSING } from '../../constants';
+import {
+	CCMStatusCode,
+	CONTEXT_STORE_KEY_CCM_PROCESSING,
+	EVENT_TOPIC_CCM_EXECUTION,
+} from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from '../../stores/terminated_outbox';
 import {
@@ -40,7 +44,6 @@ import {
 	CCMProcessedResult,
 } from '../../events/ccm_processed';
 import { InvalidRMTVerification } from '../../events/invalid_rmt_verification';
-import { EVENT_TOPIC_CCM_EXECUTION } from '../../../../state_machine/constants';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#message-recovery-command
 export class RecoverMessageCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {

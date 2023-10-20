@@ -48,6 +48,7 @@ import { TerminatedOutboxCreatedEvent } from './events/terminated_outbox_created
 import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
 import { InvalidSMTVerification } from './events/invalid_smt_verification';
 import { InvalidRMTVerification } from './events/invalid_rmt_verification';
+import { InvalidOutboxRootverification } from './events/invalid_outbox_root_verification';
 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	protected interoperableCCCommands = new Map<string, BaseCCCommand[]>();
@@ -82,6 +83,10 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		this.events.register(
 			InvalidCertificateSignatureEvent,
 			new InvalidCertificateSignatureEvent(this.name),
+		);
+		this.events.register(
+			InvalidOutboxRootverification,
+			new InvalidOutboxRootverification(this.name),
 		);
 	}
 

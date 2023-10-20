@@ -25,6 +25,7 @@ import {
 	CONTEXT_STORE_KEY_CCM_PROCESSING,
 	CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
 	EMPTY_FEE_ADDRESS,
+	EVENT_TOPIC_CCM_EXECUTION,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../constants';
 import {
@@ -47,7 +48,7 @@ import {
 	getIDFromCCMBytes,
 } from '../../utils';
 import { MainchainInteroperabilityInternalMethod } from '../internal_method';
-import { EVENT_TOPIC_CCM_EXECUTION } from '../../../../state_machine/constants';
+import { panic } from '../../../../utils/panic';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#commands
 export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
@@ -82,11 +83,35 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 	public async execute(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	): Promise<void> {
-		const [decodedCCMs, ok] = await this.executeCommon(context, true);
+		const { params, transaction } = context;
+		const { inboxUpdate } = params;
+		// Verify certificate signature. We do it here because if it fails, the transaction fails rather than being invalid.
+		await this.internalMethod.verifyCertificateSignature(context, params);
+
+		if (!isInboxUpdateEmpty(inboxUpdate)) {
+			// This check is expensive. Therefore, it is done in the execute step instead of the verify
+			// step. Otherwise, a malicious relayer could spam the transaction pool with computationally
+			// costly CCU verifications without paying fees.
+			await this.internalMethod.verifyPartnerChainOutboxRoot(context, params);
+
+			// Initialize the relayer account for the message fee token.
+			// This is necessary to ensure that the relayer can receive the CCM fees
+			// If the account already exists, nothing is done.
+			const messageFeeTokenID = await this._interopsMethod.getMessageFeeTokenID(
+				context,
+				params.sendingChainID,
+			);
+			await this._tokenMethod.initializeUserAccount(
+				context,
+				transaction.senderAddress,
+				messageFeeTokenID,
+			);
+		}
+
+		const [decodedCCMs, ok] = await this.beforeCrossChainMessagesExecution(context, true);
 		if (!ok) {
 			return;
 		}
-		const { params } = context;
 
 		try {
 			// Update the context to indicate that now we start the CCM processing.
@@ -117,6 +142,8 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 				// would refer to an inbox where the message has not been appended yet).
 				await this.internalMethod.appendToInboxTree(context, params.sendingChainID, ccmBytes);
 			}
+		} catch (error) {
+			panic(context.logger, error as Error);
 		} finally {
 			// Update the context to indicate that now we stop the CCM processing.
 			context.contextStore.delete(CONTEXT_STORE_KEY_CCM_PROCESSING);
