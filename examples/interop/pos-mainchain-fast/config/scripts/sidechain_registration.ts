@@ -22,21 +22,21 @@ import { keys } from '../default/dev-validators.json';
 		const sidechainNodeInfo = await sidechainClient.invoke('system_getNodeInfo');
 		const mainchainNodeInfo = await mainchainClient.invoke('system_getNodeInfo');
 
-		// Get active validators from sidechain
-		const { validators: sidehcainActiveValidators, certificateThreshold } =
+		// Get info about the active sidechain validators and the certificate threshold
+		const { validators: sidechainActiveValidators, certificateThreshold } =
 			await sidechainClient.invoke('consensus_getBFTParameters', {
 				height: sidechainNodeInfo.height,
 			});
 
 		// Sort validator list lexicographically after their BLS key
-		(sidehcainActiveValidators as { blsKey: string; bftWeight: string }[]).sort((a, b) =>
+		(sidechainActiveValidators as { blsKey: string; bftWeight: string }[]).sort((a, b) =>
 			Buffer.from(a.blsKey, 'hex').compare(Buffer.from(b.blsKey, 'hex')),
 		);
 
 		// Define parameters for the sidechain registration
 		const params = {
 			sidechainCertificateThreshold: certificateThreshold,
-			sidechainValidators: sidehcainActiveValidators,
+			sidechainValidators: sidechainActiveValidators,
 			chainID: sidechainNodeInfo.chainID,
 			name: nodeAlias.replace(/-/g, '_'),
 		};
