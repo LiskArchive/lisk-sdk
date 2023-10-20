@@ -96,7 +96,7 @@ export const crossChainReactParamsSchema = {
 		 * ID of the message.
 		 */
 		helloMessageID: {
-			dataType: 'bytes',
+			dataType: 'string',
 			fieldNumber: 2,
 		},
 		/** Optional field for data / messages. */
@@ -111,6 +111,6 @@ export const crossChainReactParamsSchema = {
 
 export interface CCReactMessageParams {
 	reactionType: number;
-	helloMessageID: Buffer;
+	helloMessageID: string;
 	data: string;
 }
