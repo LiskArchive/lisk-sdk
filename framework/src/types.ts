@@ -65,7 +65,6 @@ export interface GenesisConfig {
 	blockTime: number;
 	bftBatchSize: number;
 	minimumCertifyHeight: number;
-	exceptions: { shuffleValidatorsFromHeight: number };
 }
 
 export interface TransactionPoolConfig {
