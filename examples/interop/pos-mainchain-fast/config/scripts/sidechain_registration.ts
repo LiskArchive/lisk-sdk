@@ -38,13 +38,13 @@ import { keys } from '../default/dev-validators.json';
 			sidechainCertificateThreshold: certificateThreshold,
 			sidechainValidators: sidehcainActiveValidators,
 			chainID: sidechainNodeInfo.chainID,
-			name: `sidechain_example_${nodeAlias}`,
+			name: nodeAlias.replace(/-/g, '_'),
 		};
 
 		// Get public key and nonce of the sender account
-		const relayerkeyInfo = keys[2];
+		const relayerKeyInfo = keys[2];
 		const { nonce } = await mainchainClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
-			address: address.getLisk32AddressFromPublicKey(Buffer.from(relayerkeyInfo.publicKey, 'hex')),
+			address: address.getLisk32AddressFromPublicKey(Buffer.from(relayerKeyInfo.publicKey, 'hex')),
 		});
 
 		// Create registerSidechain transaction
@@ -54,14 +54,14 @@ import { keys } from '../default/dev-validators.json';
 			fee: BigInt(2000000000),
 			params: codec.encodeJSON(sidechainRegParams, params),
 			nonce: BigInt(nonce),
-			senderPublicKey: Buffer.from(relayerkeyInfo.publicKey, 'hex'),
+			senderPublicKey: Buffer.from(relayerKeyInfo.publicKey, 'hex'),
 			signatures: [],
 		});
 
 		// Sign the transaction
 		tx.sign(
 			Buffer.from(mainchainNodeInfo.chainID as string, 'hex'),
-			Buffer.from(relayerkeyInfo.privateKey, 'hex'),
+			Buffer.from(relayerKeyInfo.privateKey, 'hex'),
 		);
 
 		// Post the transaction to a mainchain node
@@ -72,7 +72,7 @@ import { keys } from '../default/dev-validators.json';
 		});
 
 		console.log(
-			`Sent sidechain registration transaction on mainchain node ${nodeAlias}. Result from transaction pool is: `,
+			`Sent sidechain registration transaction on mainchain node ${MAINCHAIN_ARRAY[1]}. Result from transaction pool is: `,
 			result,
 		);
 		i += 1;

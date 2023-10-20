@@ -51,7 +51,7 @@ export const registerMainchain = async (mc: string, sc: string, sidechainDevVali
 	// Sort validator list lexicographically after their BLS key
 	const paramsJSON = {
 		ownChainID: sidechainNodeInfo.chainID,
-		ownName: sc,
+		ownName: sc.replace(/-/g, '_'),
 		mainchainValidators: (mainchainActiveValidators as { blsKey: string; bftWeight: string }[])
 			.map(v => ({ blsKey: v.blsKey, bftWeight: v.bftWeight }))
 			.sort((a, b) => Buffer.from(a.blsKey, 'hex').compare(Buffer.from(b.blsKey, 'hex'))),
