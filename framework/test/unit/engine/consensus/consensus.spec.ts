@@ -127,9 +127,6 @@ describe('consensus', () => {
 			bft,
 			genesisConfig: {
 				blockTime: 10,
-				exceptions: {
-					shuffleValidatorsFromHeight: 0,
-				},
 			} as any,
 		});
 		dbMock = {
