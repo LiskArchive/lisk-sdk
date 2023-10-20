@@ -34,7 +34,6 @@ import {
 } from '../../../../src/engine/bft/schemas';
 import { createFakeBlockHeader } from '../../../../src/testing';
 import { computeValidatorsHash } from '../../../../src/engine';
-import { sortValidatorsByBLSKey } from '../../../../src/engine/bft/utils';
 
 describe('BFT Method', () => {
 	let bftMethod: BFTMethod;
@@ -44,7 +43,7 @@ describe('BFT Method', () => {
 	beforeEach(() => {
 		bftMethod = new BFTMethod();
 		validatorsMethod = { getValidatorKeys: jest.fn() };
-		bftMethod.init(103, 10, 0);
+		bftMethod.init(103, 10);
 	});
 
 	describe('areHeadersContradicting', () => {
@@ -708,7 +707,6 @@ describe('BFT Method', () => {
 		const generatorAddress = utils.getRandomBytes(20);
 		const params20 = createParam();
 		const params30 = createParam();
-		const height = 8;
 
 		const validators = [
 			{
@@ -805,7 +803,6 @@ describe('BFT Method', () => {
 						blsKey: utils.getRandomBytes(48),
 						generatorKey: utils.getRandomBytes(32),
 					})),
-					height,
 				),
 			).rejects.toThrow('Invalid validators size.');
 		});
@@ -820,13 +817,7 @@ describe('BFT Method', () => {
 			validatorsAddressNotUnique[8].address = validatorsAddressNotUnique[12].address;
 
 			await expect(
-				bftMethod.setBFTParameters(
-					stateStore,
-					BigInt(68),
-					BigInt(68),
-					validatorsAddressNotUnique,
-					height,
-				),
+				bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(68), validatorsAddressNotUnique),
 			).rejects.toThrow('Provided validator addresses are not unique.');
 		});
 
@@ -840,13 +831,7 @@ describe('BFT Method', () => {
 			validatorsBLSKeysNotUnique[13].blsKey = validatorsBLSKeysNotUnique[7].blsKey;
 
 			await expect(
-				bftMethod.setBFTParameters(
-					stateStore,
-					BigInt(68),
-					BigInt(68),
-					validatorsBLSKeysNotUnique,
-					height,
-				),
+				bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(68), validatorsBLSKeysNotUnique),
 			).rejects.toThrow('Provided validator BLS keys are not unique.');
 		});
 
@@ -861,13 +846,7 @@ describe('BFT Method', () => {
 			validatorsInvalidBLSKeys[13].blsKey = Buffer.alloc(48, 0);
 
 			await expect(
-				bftMethod.setBFTParameters(
-					stateStore,
-					BigInt(68),
-					BigInt(68),
-					validatorsInvalidBLSKeys,
-					height,
-				),
+				bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(68), validatorsInvalidBLSKeys),
 			).not.toReject();
 		});
 
@@ -883,32 +862,31 @@ describe('BFT Method', () => {
 						blsKey: utils.getRandomBytes(48),
 						generatorKey: utils.getRandomBytes(32),
 					})),
-					height,
 				),
 			).rejects.toThrow('BFT Weight must be 0 or greater.');
 		});
 
 		it('should throw when less than 1/3 of aggregateBFTWeight for precommitThreshold is given', async () => {
 			await expect(
-				bftMethod.setBFTParameters(stateStore, BigInt(34), BigInt(68), validators, height),
+				bftMethod.setBFTParameters(stateStore, BigInt(34), BigInt(68), validators),
 			).rejects.toThrow('Invalid precommitThreshold input.');
 		});
 
 		it('should throw when precommitThreshold is given is greater than aggregateBFTWeight', async () => {
 			await expect(
-				bftMethod.setBFTParameters(stateStore, BigInt(104), BigInt(68), validators, height),
+				bftMethod.setBFTParameters(stateStore, BigInt(104), BigInt(68), validators),
 			).rejects.toThrow('Invalid precommitThreshold input.');
 		});
 
 		it('should throw when less than 1/3 of aggregateBFTWeight for certificateThreshold is given', async () => {
 			await expect(
-				bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(34), validators, height),
+				bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(34), validators),
 			).rejects.toThrow('Invalid certificateThreshold input.');
 		});
 
 		it('should throw when certificateThreshold is given is greater than aggregateBFTWeight', async () => {
 			await expect(
-				bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(104), validators, height),
+				bftMethod.setBFTParameters(stateStore, BigInt(68), BigInt(104), validators),
 			).rejects.toThrow('Invalid certificateThreshold input.');
 		});
 
@@ -932,7 +910,6 @@ describe('BFT Method', () => {
 					precommitThreshold,
 					certificateThreshold,
 					validators,
-					height,
 				);
 
 				const bftParams = await bftParamsStore.getWithSchema<BFTParameters>(
@@ -942,29 +919,6 @@ describe('BFT Method', () => {
 
 				expect(bftParams.validators).toHaveLength(3);
 				expect(bftParams.validators).toEqual(shuffledValidators);
-			});
-
-			it('should store validators in order of BLS keys if block height is earlier than the configured exception', async () => {
-				const sortedValidators = [...validators];
-				sortValidatorsByBLSKey(sortedValidators);
-
-				bftMethod.init(103, 10, 88);
-
-				await bftMethod.setBFTParameters(
-					stateStore,
-					precommitThreshold,
-					certificateThreshold,
-					validators,
-					height,
-				);
-
-				const bftParams = await bftParamsStore.getWithSchema<BFTParameters>(
-					utils.intToBuffer(104, 4),
-					bftParametersSchema,
-				);
-
-				expect(bftParams.validators).toHaveLength(3);
-				expect(bftParams.validators).toEqual(sortedValidators);
 			});
 
 			it('should store BFT parameters with height maxHeightPrevoted + 1 if blockBFTInfo does not exist', async () => {
@@ -991,7 +945,6 @@ describe('BFT Method', () => {
 					precommitThreshold,
 					certificateThreshold,
 					validators,
-					height,
 				);
 
 				await expect(
@@ -1008,7 +961,6 @@ describe('BFT Method', () => {
 					precommitThreshold,
 					certificateThreshold,
 					validators,
-					height,
 				);
 
 				await expect(
@@ -1025,7 +977,6 @@ describe('BFT Method', () => {
 					precommitThreshold,
 					certificateThreshold,
 					validators,
-					height,
 				);
 
 				const bftParams = await bftParamsStore.getWithSchema<BFTParameters>(
@@ -1041,7 +992,6 @@ describe('BFT Method', () => {
 					precommitThreshold,
 					certificateThreshold,
 					validators,
-					height,
 				);
 
 				const voteState = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
@@ -1060,7 +1010,6 @@ describe('BFT Method', () => {
 					precommitThreshold,
 					certificateThreshold,
 					validators,
-					height,
 				);
 
 				const voteState = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
