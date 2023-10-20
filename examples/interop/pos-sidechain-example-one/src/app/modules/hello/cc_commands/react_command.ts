@@ -23,7 +23,7 @@ export class ReactCCCommand extends BaseCCCommand {
 
 		const params = codec.decode<CCReactMessageParams>(crossChainReactParamsSchema, ccm.params);
 		const messageCreatorAddress = cryptography.address.getAddressFromLisk32Address(
-			params.helloMessageID.toString('utf-8'),
+			params.helloMessageID,
 		);
 		if (!(await this.stores.get(MessageStore).has(ctx, messageCreatorAddress))) {
 			throw new Error('Message ID does not exists.');
@@ -41,9 +41,7 @@ export class ReactCCCommand extends BaseCCCommand {
 		const reactionSubstore = this.stores.get(ReactionStore);
 
 		logger.info({ helloMessageID }, 'Contents of helloMessageID');
-		const messageCreatorAddress = cryptography.address.getAddressFromLisk32Address(
-			helloMessageID.toString('utf-8'),
-		);
+		const messageCreatorAddress = cryptography.address.getAddressFromLisk32Address(helloMessageID);
 		logger.info({ messageCreatorAddress }, 'Contents of messageCreatorAddress');
 
 		let msgReactions: ReactionStoreData;
@@ -59,9 +57,7 @@ export class ReactCCCommand extends BaseCCCommand {
 
 			logger.info(
 				{ helloMessageID, crossChainCommand: this.name },
-				`No entry exists for given helloMessageID ${helloMessageID.toString(
-					'utf-8',
-				)}. Creating a default entry.`,
+				`No entry exists for given helloMessageID ${helloMessageID}. Creating a default entry.`,
 			);
 			msgReactions = { reactions: { like: [] } };
 		}
