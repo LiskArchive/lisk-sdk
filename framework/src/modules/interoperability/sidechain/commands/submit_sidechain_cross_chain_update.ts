@@ -22,7 +22,7 @@ import { panic } from '../../../../utils/panic';
 import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_command';
 import { CONTEXT_STORE_KEY_CCM_PROCESSING, EVENT_TOPIC_CCM_EXECUTION } from '../../constants';
 import { CrossChainUpdateTransactionParams } from '../../types';
-import { getIDFromCCMBytes, isInboxUpdateEmpty } from '../../utils';
+import { getIDFromCCMBytes } from '../../utils';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#sidechaincrosschainupdate
@@ -41,30 +41,9 @@ export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdate
 	public async execute(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	): Promise<void> {
-		const { params, transaction } = context;
-		const { inboxUpdate } = params;
-		// Verify certificate signature. We do it here because if it fails, the transaction fails rather than being invalid.
-		await this.internalMethod.verifyCertificateSignature(context, params);
+		const { params } = context;
 
-		if (!isInboxUpdateEmpty(inboxUpdate)) {
-			// This check is expensive. Therefore, it is done in the execute step instead of the verify
-			// step. Otherwise, a malicious relayer could spam the transaction pool with computationally
-			// costly CCU verifications without paying fees.
-			await this.internalMethod.verifyPartnerChainOutboxRoot(context, params);
-
-			// Initialize the relayer account for the message fee token.
-			// This is necessary to ensure that the relayer can receive the CCM fees
-			// If the account already exists, nothing is done.
-			const messageFeeTokenID = await this._interopsMethod.getMessageFeeTokenID(
-				context,
-				params.sendingChainID,
-			);
-			await this._tokenMethod.initializeUserAccount(
-				context,
-				transaction.senderAddress,
-				messageFeeTokenID,
-			);
-		}
+		await this.verifyCertificateSignatureAndPartnerChainOutboxRoot(context);
 
 		const [decodedCCMs, ok] = await this.beforeCrossChainMessagesExecution(context, false);
 		if (!ok) {

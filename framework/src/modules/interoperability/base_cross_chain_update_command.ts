@@ -595,4 +595,33 @@ export abstract class BaseCrossChainUpdateCommand<
 			return false;
 		}
 	}
+
+	protected async verifyCertificateSignatureAndPartnerChainOutboxRoot(
+		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
+	) {
+		const { params, transaction } = context;
+		const { inboxUpdate } = params;
+		// Verify certificate signature. We do it here because if it fails, the transaction fails rather than being invalid.
+		await this.internalMethod.verifyCertificateSignature(context, params);
+
+		if (!isInboxUpdateEmpty(inboxUpdate)) {
+			// This check is expensive. Therefore, it is done in the execute step instead of the verify
+			// step. Otherwise, a malicious relayer could spam the transaction pool with computationally
+			// costly CCU verifications without paying fees.
+			await this.internalMethod.verifyPartnerChainOutboxRoot(context, params);
+
+			// Initialize the relayer account for the message fee token.
+			// This is necessary to ensure that the relayer can receive the CCM fees
+			// If the account already exists, nothing is done.
+			const messageFeeTokenID = await this._interopsMethod.getMessageFeeTokenID(
+				context,
+				params.sendingChainID,
+			);
+			await this._tokenMethod.initializeUserAccount(
+				context,
+				transaction.senderAddress,
+				messageFeeTokenID,
+			);
+		}
+	}
 }

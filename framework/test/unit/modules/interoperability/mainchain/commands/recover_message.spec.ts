@@ -31,6 +31,7 @@ import {
 	CONTEXT_STORE_KEY_CCM_PROCESSING,
 	CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
+	EVENT_TOPIC_CCM_EXECUTION,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { RecoverMessageCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/recover_message';
@@ -58,7 +59,6 @@ import {
 } from '../../../../../../src/modules/interoperability/events/ccm_processed';
 import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
 import { InvalidRMTVerification } from '../../../../../../src/modules/interoperability/events/invalid_rmt_verification';
-import { EVENT_TOPIC_CCM_EXECUTION } from '../../../../../../src/state_machine/constants';
 
 describe('MessageRecoveryCommand', () => {
 	const interopModule = new MainchainInteroperabilityModule();

@@ -696,15 +696,10 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 
 		if (params.certificate.length === 0) {
 			if (!newInboxRoot.equals(channel.partnerChainOutboxRoot)) {
-				this.events.get(InvalidOutboxRootverification).error(
-					context,
-					params.sendingChainID,
-					{
-						inboxRoot: newInboxRoot,
-						partnerChainOutboxRoot: channel.partnerChainOutboxRoot,
-					},
-					true,
-				);
+				this.events.get(InvalidOutboxRootverification).error(context, params.sendingChainID, {
+					inboxRoot: newInboxRoot,
+					partnerChainOutboxRoot: channel.partnerChainOutboxRoot,
+				});
 				throw new Error('Inbox root does not match partner chain outbox root.');
 			}
 			return;
