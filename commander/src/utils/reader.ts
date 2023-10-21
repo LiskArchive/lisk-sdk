@@ -22,19 +22,15 @@ import * as readline from 'readline';
 
 import { FileSystemError, ValidationError } from './error';
 
-interface PropertyValue {
-	readonly dataType: string;
-	readonly type: string;
-	readonly items: { type: string; properties: Record<string, unknown> };
-}
+// interface PropertyValue {
+// 	readonly dataType: string;
+// 	readonly type: string;
+// 	readonly items: { type: string; properties: Record<string, unknown> };
+// }
 
-interface Question {
-	readonly [key: string]: unknown;
-}
-
-interface NestedPropertyTemplate {
-	[key: string]: string[];
-}
+// interface NestedPropertyTemplate {
+// 	[key: string]: string[];
+// }
 
 interface NestedAsset {
 	[key: string]: Array<Record<string, unknown>>;
@@ -193,36 +189,7 @@ export const readStdIn = async (): Promise<string[]> => {
 	return readFromStd;
 };
 
-const getNestedPropertyTemplate = (schema: Schema): NestedPropertyTemplate => {
-	const keyValEntries = Object.entries(schema.properties);
-	const template: NestedPropertyTemplate = {};
-
-	// eslint-disable-next-line @typescript-eslint/prefer-for-of
-	for (let i = 0; i < keyValEntries.length; i += 1) {
-		const [schemaPropertyName, schemaPropertyValue] = keyValEntries[i];
-		if ((schemaPropertyValue as PropertyValue).type === 'array') {
-			// nested items properties
-			if ((schemaPropertyValue as PropertyValue).items.type === 'object') {
-				template[schemaPropertyName] = Object.keys(
-					(schemaPropertyValue as PropertyValue).items.properties,
-				);
-			}
-		}
-	}
-	return template;
-};
-
-const castValue = (
-	val: string,
-	schemaType: string,
-): number | bigint | string | string[] | Record<string, unknown> => {
-	if (schemaType === 'object') {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return JSON.parse(val);
-	}
-	if (schemaType === 'array') {
-		return val !== '' ? val.split(',') : [];
-	}
+const castValue = (val: string, schemaType: string): string | number | bigint => {
 	if (schemaType === 'uint64' || schemaType === 'sint64') {
 		return BigInt(val);
 	}
@@ -232,107 +199,124 @@ const castValue = (
 	return val;
 };
 
-export const transformAsset = (
-	schema: Schema,
-	data: Record<string, string>,
-): Record<string, unknown> => {
-	const propertySchema = Object.values(schema.properties);
-	const assetData = {} as Record<string, unknown>;
-	return Object.entries(data).reduce((acc, curr, index) => {
-		const propSchema = propertySchema[index] as { type: string; dataType: string };
-		// Property schema type can be scalar(string, bool, etc..) or structural(object, array)
-		const schemaType = propSchema.type || propSchema.dataType;
-		acc[curr[0]] = castValue(curr[1], schemaType);
-		return acc;
-	}, assetData);
+const castArray = (items: string[], schemaType: string): string[] | number[] | bigint[] => {
+	if (schemaType === 'uint64' || schemaType === 'sint64') {
+		return items.map(i => BigInt(i));
+	}
+
+	if (schemaType === 'uint32' || schemaType === 'sint32') {
+		return items.map(i => Number(i));
+	}
+
+	return items;
 };
 
-export const transformNestedAsset = (
-	schema: Schema,
-	data: Array<Record<string, string>>,
-): NestedAsset => {
-	const template = getNestedPropertyTemplate(schema);
-	const result = {} as NestedAsset;
-	const items: Array<Record<string, unknown>> = [];
-	for (const assetData of data) {
-		const [[key, val]] = Object.entries(assetData);
-		const templateValues = template[key];
-		const initData = {} as Record<string, unknown>;
-		const valObject = val.split(',').reduce((acc, curr, index) => {
-			acc[templateValues[index]] = Number.isInteger(Number(curr)) ? Number(curr) : curr;
-			return acc;
-		}, initData);
-		items.push(valObject);
-		result[key] = items;
-	}
+export const getNestedParametersFromPrompt = async (property: {
+	name: string;
+	items: { properties: Record<string, unknown> };
+}) => {
+	let addMore = false;
+	const nestedArray: Array<Record<string, unknown>> = [];
+
+	do {
+		const nestedProperties = Object.keys(property.items.properties);
+		const nestedPropertiesCsv = nestedProperties.join(',');
+
+		const nestedPropertiesAnswer: Record<string, string> = await inquirer.prompt({
+			type: 'input',
+			name: property.name,
+			message: `Please enter: ${property.name}(${nestedPropertiesCsv})`,
+		});
+
+		const properties = nestedPropertiesAnswer[property.name].split(',');
+
+		const nestedObject: Record<string, unknown> = {};
+
+		for (let i = 0; i < nestedProperties.length; i += 1) {
+			const propertySchema = property.items.properties[nestedProperties[i]] as { dataType: string };
+			nestedObject[nestedProperties[i]] =
+				properties[i] === undefined ? '' : castValue(properties[i], propertySchema.dataType);
+		}
+
+		nestedArray.push(nestedObject);
+
+		const confirmResponse = await inquirer.prompt({
+			type: 'confirm',
+			name: 'askAgain',
+			message: `Want to enter another ${property.name})`,
+		});
+
+		addMore = confirmResponse.askAgain as boolean;
+	} while (addMore);
+
+	const result = {} as Record<string, unknown>;
+	result[property.name] = nestedArray;
+
 	return result;
 };
 
-export const prepareQuestions = (schema: Schema): Question[] => {
-	const keyValEntries = Object.entries(schema.properties);
-	const questions: Question[] = [];
-
-	for (const [schemaPropertyName, schemaPropertyValue] of keyValEntries) {
-		if ((schemaPropertyValue as PropertyValue).type === 'array') {
-			let commaSeparatedKeys: string[] = [];
-			// nested items properties
-			if ((schemaPropertyValue as PropertyValue).items.type === 'object') {
-				commaSeparatedKeys = Object.keys((schemaPropertyValue as PropertyValue).items.properties);
-			}
-			questions.push({
-				type: 'input',
-				name: schemaPropertyName,
-				message: `Please enter: ${schemaPropertyName}(${
-					commaSeparatedKeys.length ? commaSeparatedKeys.join(', ') : 'comma separated values (a,b)'
-				}): `,
-			});
-			if ((schemaPropertyValue as PropertyValue).items.type === 'object') {
-				questions.push({
-					type: 'confirm',
-					name: 'askAgain',
-					message: `Want to enter another ${schemaPropertyName}(${commaSeparatedKeys.join(', ')})`,
-				});
-			}
-		} else {
-			questions.push({
-				type: 'input',
-				name: schemaPropertyName,
-				message: `Please enter: ${schemaPropertyName}: `,
-			});
-		}
-	}
-	return questions;
-};
-
 export const getParamsFromPrompt = async (
-	assetSchema: Schema,
-	output: Array<{ [key: string]: string }> = [],
+	assetSchema: Schema | { properties: Record<string, unknown> },
 ): Promise<NestedAsset | Record<string, unknown>> => {
-	// prepare array of questions based on asset schema
-	const questions = prepareQuestions(assetSchema);
-	if (questions.length === 0) {
-		return {};
-	}
-	let isTypeConfirm = false;
-	// Prompt user with prepared questions
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-	const result = await inquirer.prompt(questions).then(async answer => {
-		const inquirerResult = answer as { [key: string]: string };
-		isTypeConfirm = typeof inquirerResult.askAgain === 'boolean';
-		// if its a multiple questions prompt user again
-		if (inquirerResult.askAgain) {
-			output.push(inquirerResult);
-			return getParamsFromPrompt(assetSchema, output);
-		}
-		output.push(inquirerResult);
-		return Promise.resolve(answer);
-	});
-	const filteredResult = output.map(({ askAgain, ...assetProps }) => assetProps);
+	const result: Record<string, unknown> = {};
+	for (const propertyName of Object.keys(assetSchema.properties)) {
+		const property = assetSchema.properties[propertyName] as {
+			dataType?: string;
+			type?: 'array';
+			items?: { dataType?: string; type?: 'object'; properties?: Record<string, unknown> };
+		};
 
-	// transform asset prompt result according to asset schema
-	return isTypeConfirm
-		? transformNestedAsset(assetSchema, filteredResult)
-		: transformAsset(assetSchema, result as Record<string, string>);
+		if (
+			property.type === 'array' &&
+			property.items?.type === 'object' &&
+			property.items.properties !== undefined
+		) {
+			const nestedResult = await getNestedParametersFromPrompt({
+				name: propertyName,
+				items: {
+					properties: property.items.properties,
+				},
+			});
+
+			result[propertyName] = nestedResult[propertyName];
+
+			continue;
+		}
+
+		if (
+			property.type === 'array' &&
+			property.items?.type === undefined &&
+			property.items?.dataType !== undefined
+		) {
+			const answer = (await inquirer.prompt([
+				{
+					type: 'input',
+					name: propertyName,
+					message: `Please enter: ${propertyName}(comma separated values (a,b)): `,
+				},
+			])) as Record<string, string>;
+
+			result[propertyName] = castArray(
+				answer[propertyName] === '' ? [] : answer[propertyName].split(','),
+				property.items.dataType,
+			);
+		} else {
+			const answer = (await inquirer.prompt([
+				{
+					type: 'input',
+					name: propertyName,
+					message: `Please enter: ${propertyName}: `,
+				},
+			])) as Record<string, string>;
+
+			result[propertyName] = castValue(
+				answer[propertyName],
+				(property as { dataType: string }).dataType,
+			);
+		}
+	}
+
+	return result;
 };
 
 export const checkFileExtension = (filePath: string): void => {
