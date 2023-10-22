@@ -85,6 +85,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 	): Promise<void> {
 		const { params } = context;
 
+		// This call can throw error and fails a transaction
 		await this.verifyCertificateSignatureAndPartnerChainOutboxRoot(context);
 		const [decodedCCMs, ok] = await this.beforeCrossChainMessagesExecution(context, true);
 		if (!ok) {
@@ -127,7 +128,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			context.contextStore.delete(CONTEXT_STORE_KEY_CCM_PROCESSING);
 		}
 
-		await this.afterExecuteCommon(context);
+		await this.afterCrossChainMessagesExecute(context);
 	}
 
 	private async _beforeCrossChainMessageForwarding(

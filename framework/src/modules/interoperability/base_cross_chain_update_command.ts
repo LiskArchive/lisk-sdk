@@ -202,23 +202,24 @@ export abstract class BaseCrossChainUpdateCommand<
 		isMainchain: boolean,
 	) {
 		// The CCM must come from the sending chain.
-		if (isMainchain && !ccm.sendingChainID.equals(ccuParams.sendingChainID)) {
-			throw new Error('CCM is not from the sending chain.');
+		if (isMainchain) {
+			if (!ccm.sendingChainID.equals(ccuParams.sendingChainID)) {
+				throw new Error('CCM is not from the sending chain.');
+			}
+			if (ccm.status === CCMStatusCode.CHANNEL_UNAVAILABLE) {
+				throw new Error('CCM status channel unavailable can only be set on the mainchain.');
+			}
+		} else if (!ownChainID.equals(ccm.receivingChainID)) {
+			// The CCM must be directed to the sidechain.
+			throw new Error('CCM is not directed to the sidechain.');
 		}
 		// Sending and receiving chains must differ.
 		if (ccm.receivingChainID.equals(ccm.sendingChainID)) {
 			throw new Error('Sending and receiving chains must differ.');
 		}
-		// The CCM must come be directed to the sidechain, unless it was bounced on the mainchain.
-		if (!isMainchain && !ownChainID.equals(ccm.receivingChainID)) {
-			throw new Error('CCM is not directed to the sidechain.');
-		}
-		if (isMainchain && ccm.status === CCMStatusCode.CHANNEL_UNAVAILABLE) {
-			throw new Error('CCM status channel unavailable can only be set on the mainchain.');
-		}
 	}
 
-	protected async afterExecuteCommon(
+	protected async afterCrossChainMessagesExecute(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	) {
 		const { params } = context;
@@ -596,6 +597,9 @@ export abstract class BaseCrossChainUpdateCommand<
 		}
 	}
 
+	// verifyCertificateSignature and verifyPartnerChainOutboxRoot checks are expensive. Therefore, it is done in the execute step instead of the verify
+	// step. Otherwise, a malicious relayer could spam the transaction pool with computationally
+	// costly CCU verifications without paying fees.
 	protected async verifyCertificateSignatureAndPartnerChainOutboxRoot(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	) {
@@ -605,9 +609,6 @@ export abstract class BaseCrossChainUpdateCommand<
 		await this.internalMethod.verifyCertificateSignature(context, params);
 
 		if (!isInboxUpdateEmpty(inboxUpdate)) {
-			// This check is expensive. Therefore, it is done in the execute step instead of the verify
-			// step. Otherwise, a malicious relayer could spam the transaction pool with computationally
-			// costly CCU verifications without paying fees.
 			await this.internalMethod.verifyPartnerChainOutboxRoot(context, params);
 
 			// Initialize the relayer account for the message fee token.

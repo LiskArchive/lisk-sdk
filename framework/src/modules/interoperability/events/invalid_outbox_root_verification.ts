@@ -39,7 +39,7 @@ export const invalidOutboxRootVerificationSchema = {
 	},
 };
 
-export class InvalidOutboxRootverification extends BaseEvent<InvalidOutboxRootVerificationData> {
+export class InvalidOutboxRootVerificationEvent extends BaseEvent<InvalidOutboxRootVerificationData> {
 	public schema = invalidOutboxRootVerificationSchema;
 
 	public error(ctx: EventQueuer, chainID: Buffer, data: InvalidOutboxRootVerificationData): void {

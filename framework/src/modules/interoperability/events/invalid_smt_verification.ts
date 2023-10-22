@@ -13,7 +13,7 @@
  */
 import { BaseEvent, EventQueuer } from '../../base_event';
 
-export class InvalidSMTVerification extends BaseEvent<undefined> {
+export class InvalidSMTVerificationEvent extends BaseEvent<undefined> {
 	public error(ctx: EventQueuer): void {
 		this.add(ctx, undefined);
 	}

@@ -43,7 +43,7 @@ import {
 	CcmProcessedEvent,
 	CCMProcessedResult,
 } from '../../events/ccm_processed';
-import { InvalidRMTVerification } from '../../events/invalid_rmt_verification';
+import { InvalidRMTVerificationEvent } from '../../events/invalid_rmt_verification';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#message-recovery-command
 export class RecoverMessageCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
@@ -192,7 +192,7 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 		);
 
 		if (!isVerified) {
-			this.events.get(InvalidRMTVerification).error(context);
+			this.events.get(InvalidRMTVerificationEvent).error(context);
 
 			throw new Error('Message recovery proof of inclusion is not valid.');
 		}

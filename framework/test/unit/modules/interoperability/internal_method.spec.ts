@@ -70,12 +70,12 @@ import { TerminatedOutboxCreatedEvent } from '../../../../src/modules/interopera
 import { createStoreGetter } from '../../../../src/testing/utils';
 import { InvalidCertificateSignatureEvent } from '../../../../src/modules/interoperability/events/invalid_certificate_signature';
 import { EVENT_TOPIC_TRANSACTION_EXECUTION } from '../../../../src/state_machine/constants';
-import { InvalidOutboxRootverification } from '../../../../src/modules/interoperability/events/invalid_outbox_root_verification';
+import { InvalidOutboxRootVerificationEvent } from '../../../../src/modules/interoperability/events/invalid_outbox_root_verification';
 import {
 	ccmSchema,
 	crossChainUpdateTransactionParams,
 } from '../../../../src/modules/interoperability/schemas';
-import { InvalidSMTVerification } from '../../../../src/modules/interoperability/events/invalid_smt_verification';
+import { InvalidSMTVerificationEvent } from '../../../../src/modules/interoperability/events/invalid_smt_verification';
 
 describe('Base interoperability internal method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -1570,8 +1570,8 @@ describe('Base interoperability internal method', () => {
 				.set(commandExecuteContext, crossChainUpdateParams.sendingChainID, {
 					...channelData,
 				});
-			jest.spyOn(interopMod.events.get(InvalidOutboxRootverification), 'error');
-			jest.spyOn(interopMod.events.get(InvalidSMTVerification), 'error');
+			jest.spyOn(interopMod.events.get(InvalidOutboxRootVerificationEvent), 'error');
+			jest.spyOn(interopMod.events.get(InvalidSMTVerificationEvent), 'error');
 		});
 
 		it('should reject when outboxRootWitness is empty but partnerchain outbox root does not match inboxRoot', async () => {
@@ -1592,14 +1592,12 @@ describe('Base interoperability internal method', () => {
 				),
 			).rejects.toThrow('Inbox root does not match partner chain outbox root');
 
-			expect(interopMod['events'].get(InvalidOutboxRootverification).error).toHaveBeenCalledWith(
-				commandExecuteContext,
-				crossChainUpdateParams.sendingChainID,
-				{
-					inboxRoot: expect.anything(),
-					partnerChainOutboxRoot: channelData.partnerChainOutboxRoot,
-				},
-			);
+			expect(
+				interopMod['events'].get(InvalidOutboxRootVerificationEvent).error,
+			).toHaveBeenCalledWith(commandExecuteContext, crossChainUpdateParams.sendingChainID, {
+				inboxRoot: expect.anything(),
+				partnerChainOutboxRoot: channelData.partnerChainOutboxRoot,
+			});
 		});
 
 		it('should reject when certificate state root does not contain valid inclusion proof for inbox update', async () => {
@@ -1614,7 +1612,7 @@ describe('Base interoperability internal method', () => {
 				),
 			).rejects.toThrow('Invalid inclusion proof for inbox update');
 
-			expect(interopMod['events'].get(InvalidSMTVerification).error).toHaveBeenCalledWith(
+			expect(interopMod['events'].get(InvalidSMTVerificationEvent).error).toHaveBeenCalledWith(
 				commandExecuteContext,
 			);
 		});

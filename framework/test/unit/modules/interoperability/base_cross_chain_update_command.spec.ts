@@ -998,7 +998,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 	});
 
-	describe('afterExecuteCommon', () => {
+	describe('afterCrossChainMessagesExecute', () => {
 		let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
 		let chainValidatorsStore: ChainValidatorsStore;
 
@@ -1042,7 +1042,9 @@ describe('BaseCrossChainUpdateCommand', () => {
 				certificateThreshold: BigInt(20),
 			} as any);
 
-			await expect(command['afterExecuteCommon'](executeContext)).resolves.toBeUndefined();
+			await expect(
+				command['afterCrossChainMessagesExecute'](executeContext),
+			).resolves.toBeUndefined();
 			expect(command['internalMethod'].updateValidators).toHaveBeenCalledWith(
 				expect.anything(),
 				executeContext.params,
@@ -1051,7 +1053,9 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 		it('should update validators if activeValidatorsUpdate is empty but params.certificateThreshold !== sendingChainValidators.certificateThreshold', async () => {
 			executeContext.params.activeValidatorsUpdate.bftWeightsUpdateBitmap = EMPTY_BUFFER;
-			await expect(command['afterExecuteCommon'](executeContext)).resolves.toBeUndefined();
+			await expect(
+				command['afterCrossChainMessagesExecute'](executeContext),
+			).resolves.toBeUndefined();
 
 			expect(command['internalMethod'].updateValidators).toHaveBeenCalledWith(
 				expect.anything(),
@@ -1061,7 +1065,9 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 		it('should not update certificate and updatePartnerChainOutboxRoot if certificate is empty', async () => {
 			executeContext.params.certificate = EMPTY_BYTES;
-			await expect(command['afterExecuteCommon'](executeContext)).resolves.toBeUndefined();
+			await expect(
+				command['afterCrossChainMessagesExecute'](executeContext),
+			).resolves.toBeUndefined();
 			expect(command['internalMethod'].updateCertificate).not.toHaveBeenCalled();
 			expect(command['internalMethod'].updatePartnerChainOutboxRoot).not.toHaveBeenCalled();
 		});
@@ -1075,7 +1081,9 @@ describe('BaseCrossChainUpdateCommand', () => {
 					bitmap: EMPTY_BUFFER,
 				},
 			};
-			await expect(command['afterExecuteCommon'](executeContext)).resolves.toBeUndefined();
+			await expect(
+				command['afterCrossChainMessagesExecute'](executeContext),
+			).resolves.toBeUndefined();
 
 			expect(command['internalMethod'].updatePartnerChainOutboxRoot).not.toHaveBeenCalled();
 		});

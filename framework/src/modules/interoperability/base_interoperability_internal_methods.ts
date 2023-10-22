@@ -65,8 +65,8 @@ import { TerminatedOutboxCreatedEvent } from './events/terminated_outbox_created
 import { BaseCCMethod } from './base_cc_method';
 import { verifyAggregateCertificateSignature } from '../../engine/consensus/certificate_generation/utils';
 import { InvalidCertificateSignatureEvent } from './events/invalid_certificate_signature';
-import { InvalidSMTVerification } from './events/invalid_smt_verification';
-import { InvalidOutboxRootverification } from './events/invalid_outbox_root_verification';
+import { InvalidSMTVerificationEvent } from './events/invalid_smt_verification';
+import { InvalidOutboxRootVerificationEvent } from './events/invalid_outbox_root_verification';
 
 export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMethod {
 	protected readonly interoperableModuleMethods = new Map<string, BaseCCMethod>();
@@ -696,7 +696,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 
 		if (params.certificate.length === 0) {
 			if (!newInboxRoot.equals(channel.partnerChainOutboxRoot)) {
-				this.events.get(InvalidOutboxRootverification).error(context, params.sendingChainID, {
+				this.events.get(InvalidOutboxRootVerificationEvent).error(context, params.sendingChainID, {
 					inboxRoot: newInboxRoot,
 					partnerChainOutboxRoot: channel.partnerChainOutboxRoot,
 				});
@@ -724,7 +724,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		const smt = new SparseMerkleTree();
 		const valid = await smt.verifyInclusionProof(certificate.stateRoot, [outboxKey], proof);
 		if (!valid) {
-			this.events.get(InvalidSMTVerification).error(context);
+			this.events.get(InvalidSMTVerificationEvent).error(context);
 			throw new Error('Invalid inclusion proof for inbox update.');
 		}
 	}
