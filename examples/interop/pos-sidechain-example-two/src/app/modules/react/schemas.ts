@@ -3,7 +3,7 @@
  */
 export const crossChainReactParamsSchema = {
 	/** The unique identifier of the schema. */
-	$id: '/lisk/ccReactParams',
+	$id: '/lisk/react/ccReactParams',
 	type: 'object',
 	/** The required parameters for the command. */
 	required: [

@@ -48,7 +48,12 @@ import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/termina
 import { ChainAccountUpdatedEvent } from './events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
 import { BaseInternalMethod } from '../BaseInternalMethod';
-import { MethodContext, ImmutableMethodContext, NotFoundError } from '../../state_machine';
+import {
+	MethodContext,
+	ImmutableMethodContext,
+	NotFoundError,
+	CommandExecuteContext,
+} from '../../state_machine';
 import { ChainValidatorsStore } from './stores/chain_validators';
 import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../engine/consensus/certificate_generation/types';
@@ -60,6 +65,8 @@ import { TerminatedOutboxCreatedEvent } from './events/terminated_outbox_created
 import { BaseCCMethod } from './base_cc_method';
 import { verifyAggregateCertificateSignature } from '../../engine/consensus/certificate_generation/utils';
 import { InvalidCertificateSignatureEvent } from './events/invalid_certificate_signature';
+import { InvalidSMTVerificationEvent } from './events/invalid_smt_verification';
+import { InvalidOutboxRootVerificationEvent } from './events/invalid_outbox_root_verification';
 
 export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMethod {
 	protected readonly interoperableModuleMethods = new Map<string, BaseCCMethod>();
@@ -665,7 +672,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 	 * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#verifypartnerchainoutboxroot
 	 */
 	public async verifyPartnerChainOutboxRoot(
-		context: ImmutableMethodContext,
+		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 		params: CrossChainUpdateTransactionParams,
 	): Promise<void> {
 		const channel = await this.stores.get(ChannelDataStore).get(context, params.sendingChainID);
@@ -689,6 +696,10 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 
 		if (params.certificate.length === 0) {
 			if (!newInboxRoot.equals(channel.partnerChainOutboxRoot)) {
+				this.events.get(InvalidOutboxRootVerificationEvent).error(context, params.sendingChainID, {
+					inboxRoot: newInboxRoot,
+					partnerChainOutboxRoot: channel.partnerChainOutboxRoot,
+				});
 				throw new Error('Inbox root does not match partner chain outbox root.');
 			}
 			return;
@@ -713,6 +724,7 @@ export abstract class BaseInteroperabilityInternalMethod extends BaseInternalMet
 		const smt = new SparseMerkleTree();
 		const valid = await smt.verifyInclusionProof(certificate.stateRoot, [outboxKey], proof);
 		if (!valid) {
+			this.events.get(InvalidSMTVerificationEvent).error(context);
 			throw new Error('Invalid inclusion proof for inbox update.');
 		}
 	}

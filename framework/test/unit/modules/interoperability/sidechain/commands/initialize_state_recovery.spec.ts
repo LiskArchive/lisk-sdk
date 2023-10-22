@@ -50,7 +50,7 @@ import {
 import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 import { getMainchainID } from '../../../../../../src/modules/interoperability/utils';
-import { InvalidSMTVerification } from '../../../../../../src/modules/interoperability/events/invalid_smt_verification';
+import { InvalidSMTVerificationEvent } from '../../../../../../src/modules/interoperability/events/invalid_smt_verification';
 
 describe('Sidechain InitializeStateRecoveryCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
@@ -368,7 +368,7 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 	});
 
 	describe('execute', () => {
-		let invalidSMTVerificationEvent: InvalidSMTVerification;
+		let invalidSMTVerificationEvent: InvalidSMTVerificationEvent;
 		beforeEach(() => {
 			mainchainAccount = {
 				name: 'mainchain',
@@ -380,9 +380,9 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 				},
 				status: ChainStatus.ACTIVE,
 			};
-			invalidSMTVerificationEvent = new InvalidSMTVerification(interopMod.name);
+			invalidSMTVerificationEvent = new InvalidSMTVerificationEvent(interopMod.name);
 			stateRecoveryInitCommand['events'].register(
-				InvalidSMTVerification,
+				InvalidSMTVerificationEvent,
 				invalidSMTVerificationEvent,
 			);
 		});

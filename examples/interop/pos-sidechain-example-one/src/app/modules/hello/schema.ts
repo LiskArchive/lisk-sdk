@@ -82,7 +82,7 @@ export const getHelloRequestSchema = {
  */
 export const crossChainReactParamsSchema = {
 	/** The unique identifier of the schema. */
-	$id: '/lisk/ccReactParams',
+	$id: '/lisk/hello/ccReactParams',
 	type: 'object',
 	/** The required parameters for the command. */
 	required: ['reactionType', 'helloMessageID', 'data'],

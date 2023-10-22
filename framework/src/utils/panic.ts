@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 Lisk Foundation
+ * Copyright © 2023 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const EVENT_INDEX_INIT_GENESIS_STATE = Buffer.from([0]);
-export const EVENT_INDEX_FINALIZE_GENESIS_STATE = Buffer.from([1]);
+import { Logger } from '../logger';
 
-export const EVENT_INDEX_BEFORE_TRANSACTIONS = Buffer.from([2]);
-export const EVENT_INDEX_AFTER_TRANSACTIONS = Buffer.from([3]);
-
-export const EVENT_TRANSACTION_NAME = 'commandExecutionResult';
-export const EVENT_TOPIC_TRANSACTION_EXECUTION = Buffer.from([4]);
+export const panic = (logger: Logger, error?: Error): void => {
+	logger.fatal(
+		{ error: error ?? new Error('Something unexpected happened') },
+		'Raising panic and shutting down the application',
+	);
+	process.exit(1);
+};
