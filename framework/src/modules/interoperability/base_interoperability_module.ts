@@ -46,8 +46,9 @@ import { InvalidCertificateSignatureEvent } from './events/invalid_certificate_s
 import { InvalidRegistrationSignatureEvent } from './events/invalid_registration_signature';
 import { TerminatedOutboxCreatedEvent } from './events/terminated_outbox_created';
 import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
-import { InvalidSMTVerification } from './events/invalid_smt_verification';
-import { InvalidRMTVerification } from './events/invalid_rmt_verification';
+import { InvalidSMTVerificationEvent } from './events/invalid_smt_verification';
+import { InvalidRMTVerificationEvent } from './events/invalid_rmt_verification';
+import { InvalidOutboxRootVerificationEvent } from './events/invalid_outbox_root_verification';
 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	protected interoperableCCCommands = new Map<string, BaseCCCommand[]>();
@@ -77,11 +78,15 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		);
 		this.events.register(TerminatedStateCreatedEvent, new TerminatedStateCreatedEvent(this.name));
 		this.events.register(TerminatedOutboxCreatedEvent, new TerminatedOutboxCreatedEvent(this.name));
-		this.events.register(InvalidSMTVerification, new InvalidSMTVerification(this.name));
-		this.events.register(InvalidRMTVerification, new InvalidRMTVerification(this.name));
+		this.events.register(InvalidSMTVerificationEvent, new InvalidSMTVerificationEvent(this.name));
+		this.events.register(InvalidRMTVerificationEvent, new InvalidRMTVerificationEvent(this.name));
 		this.events.register(
 			InvalidCertificateSignatureEvent,
 			new InvalidCertificateSignatureEvent(this.name),
+		);
+		this.events.register(
+			InvalidOutboxRootVerificationEvent,
+			new InvalidOutboxRootVerificationEvent(this.name),
 		);
 	}
 

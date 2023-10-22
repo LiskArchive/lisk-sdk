@@ -47,6 +47,7 @@ import {
 	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
+	EVENT_TOPIC_CCM_EXECUTION,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
@@ -362,7 +363,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			jest.spyOn(sidechainCCUUpdateCommand, 'apply' as never).mockResolvedValue(undefined as never);
 		});
 
-		it('should call executeCommon', async () => {
+		it('should call beforeCrossChainMessagesExecution', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -375,15 +376,40 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 				}),
 			}).createCommandExecuteContext(sidechainCCUUpdateCommand.schema);
 			jest
-				.spyOn(sidechainCCUUpdateCommand, 'executeCommon' as never)
+				.spyOn(sidechainCCUUpdateCommand, 'beforeCrossChainMessagesExecution' as never)
 				.mockResolvedValue([[], true] as never);
 
 			await expect(sidechainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
-			expect(sidechainCCUUpdateCommand['executeCommon']).toHaveBeenCalledTimes(1);
-			expect(sidechainCCUUpdateCommand['executeCommon']).toHaveBeenCalledWith(
+			expect(sidechainCCUUpdateCommand['beforeCrossChainMessagesExecution']).toHaveBeenCalledTimes(
+				1,
+			);
+			expect(sidechainCCUUpdateCommand['beforeCrossChainMessagesExecution']).toHaveBeenCalledWith(
 				expect.anything(),
 				false,
 			);
+		});
+
+		it('should call panic which shutdown the application when apply fails', async () => {
+			const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+				return undefined as never;
+			});
+			executeContext = createTransactionContext({
+				chainID,
+				stateStore,
+				transaction: new Transaction({
+					...defaultTransaction,
+					command: sidechainCCUUpdateCommand.name,
+					params: codec.encode(crossChainUpdateTransactionParams, {
+						...params,
+					}),
+				}),
+			}).createCommandExecuteContext(sidechainCCUUpdateCommand.schema);
+			jest
+				.spyOn(sidechainCCUUpdateCommand, 'apply' as never)
+				.mockRejectedValue(new Error('Something went wrong.') as never);
+			await expect(sidechainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
+			expect(mockExit).toHaveBeenCalledWith(1);
+			expect(sidechainCCUUpdateCommand['apply']).toHaveBeenCalledTimes(1);
 		});
 
 		it('should call apply for ccm and add to the inbox where receiving chain is the main chain', async () => {
@@ -406,7 +432,9 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 				expect(sidechainCCUUpdateCommand['apply']).toHaveBeenCalledWith({
 					...executeContext,
 					ccm: decodedCCM,
-					eventQueue: executeContext.eventQueue.getChildQueue(ccmID),
+					eventQueue: executeContext.eventQueue.getChildQueue(
+						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
+					),
 				});
 			}
 			expect(sidechainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(
