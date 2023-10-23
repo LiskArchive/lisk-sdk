@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 
 import { BaseCCCommand, CrossChainMessageContext, codec, cryptography, db } from 'lisk-sdk';
-import { crossChainReactParamsSchema, CCReactMessageParams } from '../schema';
+import { crossChainReactParamsSchema, CCReactMessageParams } from '../schemas';
 import { MAX_RESERVED_ERROR_STATUS, CROSS_CHAIN_COMMAND_NAME_REACT } from '../constants';
 import { ReactionStore, ReactionStoreData } from '../stores/reaction';
 import { MessageStore } from '../stores/message';
@@ -39,11 +39,7 @@ export class ReactCCCommand extends BaseCCCommand {
 		logger.info(params, 'parameters');
 		const { helloMessageID, reactionType } = params;
 		const reactionSubstore = this.stores.get(ReactionStore);
-
-		logger.info({ helloMessageID }, 'Contents of helloMessageID');
 		const messageCreatorAddress = cryptography.address.getAddressFromLisk32Address(helloMessageID);
-		logger.info({ messageCreatorAddress }, 'Contents of messageCreatorAddress');
-
 		let msgReactions: ReactionStoreData;
 
 		try {
@@ -54,29 +50,22 @@ export class ReactCCCommand extends BaseCCCommand {
 				logger.error({ error }, 'Error when getting the reaction substore');
 				throw error;
 			}
-
 			logger.info(
 				{ helloMessageID, crossChainCommand: this.name },
 				`No entry exists for given helloMessageID ${helloMessageID}. Creating a default entry.`,
 			);
 			msgReactions = { reactions: { like: [] } };
 		}
-
-		logger.info(
-			{ msgReactions },
-			'+++++++++++++++++++++++++++++=============++++++++++++++++++++++++',
-		);
-		logger.info({ msgReactions }, 'Contents of the reaction store PRE');
-		logger.info(msgReactions, 'Contents of the reaction store PRE');
 		if (reactionType === 0) {
-			// TODO: Check if the Likes array already contains the sender address. If yes, remove the address to unlike the post.
-			msgReactions.reactions.like.push(ctx.transaction.senderAddress);
+			const hasLiked = msgReactions.reactions.like.indexOf(ctx.transaction.senderAddress);
+			if (hasLiked > -1) {
+				msgReactions.reactions.like = msgReactions.reactions.like.splice(hasLiked, 1);
+			} else {
+				msgReactions.reactions.like.push(ctx.transaction.senderAddress);
+			}
 		} else {
 			logger.error({ reactionType }, 'invalid reaction type');
 		}
-
-		logger.info(msgReactions, 'Contents of the reaction store POST');
-		logger.info({ msgReactions }, 'Contents of the reaction store POST');
 		await reactionSubstore.set(ctx, messageCreatorAddress, msgReactions);
 	}
 }

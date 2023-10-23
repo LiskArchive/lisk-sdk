@@ -7,7 +7,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from 'lisk-sdk';
-import { createHelloSchema } from '../schema';
+import { createHelloSchema } from '../schemas';
 import { MessageStore } from '../stores/message';
 import { counterKey, CounterStore, CounterStoreData } from '../stores/counter';
 import { ModuleConfig } from '../types';

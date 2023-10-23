@@ -25,7 +25,7 @@ import {
 	getHelloCounterResponseSchema,
 	getHelloRequestSchema,
 	getHelloResponseSchema,
-} from './schema';
+} from './schemas';
 import { CounterStore } from './stores/counter';
 import { MessageStore } from './stores/message';
 import { ReactionStore, reactionStoreSchema } from './stores/reaction';
@@ -107,7 +107,6 @@ export class HelloModule extends BaseInteroperableModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
 		// verify transaction will be called multiple times in the transaction pool
-		context.logger.info('TX VERIFICATION');
 		const result = {
 			status: 1,
 		};
