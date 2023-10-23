@@ -79,14 +79,18 @@ export const registerMainchain = async (mc: string, sc: string, sidechainDevVali
 
 	// Add validator private keys to the sidechain validator list
 	const activeValidatorsBLSKeys: { blsPublicKey: Buffer; blsPrivateKey: Buffer }[] = [];
-	for (const v of sidechainActiveValidators as { blsKey: string; bftWeight: string }[]) {
-		const validatorInfo = sidechainDevValidators.find(
-			configValidator => configValidator.plain.blsKey === v.blsKey,
+
+	for (const activeValidator of sidechainActiveValidators as {
+		blsKey: string;
+		bftWeight: string;
+	}[]) {
+		const sidechainDevValidator = sidechainDevValidators.find(
+			devValidator => devValidator.plain.blsKey === activeValidator.blsKey,
 		);
-		if (validatorInfo) {
+		if (sidechainDevValidator) {
 			activeValidatorsBLSKeys.push({
-				blsPublicKey: Buffer.from(v.blsKey, 'hex'),
-				blsPrivateKey: Buffer.from(validatorInfo.plain.blsPrivateKey, 'hex'),
+				blsPublicKey: Buffer.from(activeValidator.blsKey, 'hex'),
+				blsPrivateKey: Buffer.from(sidechainDevValidator.plain.blsPrivateKey, 'hex'),
 			});
 		}
 	}
