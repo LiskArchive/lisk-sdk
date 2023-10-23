@@ -169,6 +169,88 @@ describe('transaction:create command', () => {
 				'Missing 3 required args:',
 			);
 		});
+
+		it('should throw if casting fails', async () => {
+			jest.spyOn(inquirer, 'prompt').mockResolvedValue({
+				attributesArray: 'a,12312321',
+			});
+
+			await expect(
+				CreateCommandExtended.run(
+					['nft', 'arrayOfItems', '100000000', `--passphrase=${passphrase}`],
+					config,
+				),
+			).rejects.toThrow();
+		});
+
+		describe('prompt for arrays and array of objects', () => {
+			it('should inquire arrays as CSV', async () => {
+				jest.spyOn(inquirer, 'prompt').mockResolvedValue({
+					attributesArray: '13213213,12312321',
+				});
+
+				await CreateCommandExtended.run(
+					['nft', 'arrayOfItems', '100000000', `--passphrase=${passphrase}`],
+					config,
+				);
+				verifyIfInquirerCallsFor([
+					{
+						type: 'input',
+						name: 'attributesArray',
+						message: 'Please enter: attributesArray(comma separated values (a,b)): ',
+					},
+				]);
+
+				expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
+			});
+
+			it('should inquire each item of the array as a CSV and prompt to add more', async () => {
+				jest
+					.spyOn(inquirer, 'prompt')
+					.mockResolvedValueOnce({
+						attributesArray: 'pos, 0000',
+					})
+					.mockResolvedValueOnce({
+						askAgain: true,
+					})
+					.mockResolvedValueOnce({
+						attributesArray: 'token, 0000',
+					})
+					.mockResolvedValue({
+						askAgain: false,
+					});
+
+				await CreateCommandExtended.run(
+					['nft', 'arrayOfObjects', '100000000', `--passphrase=${passphrase}`],
+					config,
+				);
+
+				verifyIfInquirerCallsFor([
+					{
+						type: 'input',
+						name: 'attributesArray',
+						message: 'Please enter: attributesArray(module,attributes): ',
+					},
+					{
+						type: 'confirm',
+						name: 'askAgain',
+						message: 'Want to enter another attributesArray',
+					},
+					{
+						type: 'input',
+						name: 'attributesArray',
+						message: 'Please enter: attributesArray(module,attributes): ',
+					},
+					{
+						type: 'confirm',
+						name: 'askAgain',
+						message: 'Want to enter another attributesArray',
+					},
+				]);
+
+				expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
+			});
+		});
 	});
 
 	describe('transaction:create 2', () => {
@@ -192,77 +274,6 @@ describe('transaction:create command', () => {
 			await expect(
 				CreateCommandExtended.run(['newMod', 'transfer', '100000000'], config),
 			).rejects.toThrow('Module: newMod is not registered');
-		});
-	});
-
-	describe('transaction:create prompt for arrays', () => {
-		it('should inquire arrays as CSV', async () => {
-			jest.spyOn(inquirer, 'prompt').mockResolvedValue({
-				attributesArray: '13213213,12312321',
-			});
-
-			await CreateCommandExtended.run(
-				['nft', 'arrayOfItems', '100000000', `--passphrase=${passphrase}`],
-				config,
-			);
-			verifyIfInquirerCallsFor([
-				{
-					type: 'input',
-					name: 'attributesArray',
-					message: 'Please enter: attributesArray(comma separated values (a,b)): ',
-				},
-			]);
-
-			expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
-		});
-	});
-
-	describe('transaction:create prompt for array of objects', () => {
-		it('should inquire each item of the array as a CSV and prompt to add more', async () => {
-			jest
-				.spyOn(inquirer, 'prompt')
-				.mockResolvedValueOnce({
-					attributesArray: 'pos, 0000',
-				})
-				.mockResolvedValueOnce({
-					askAgain: true,
-				})
-				.mockResolvedValueOnce({
-					attributesArray: 'token, 0000',
-				})
-				.mockResolvedValue({
-					askAgain: false,
-				});
-
-			await CreateCommandExtended.run(
-				['nft', 'arrayOfObjects', '100000000', `--passphrase=${passphrase}`],
-				config,
-			);
-
-			verifyIfInquirerCallsFor([
-				{
-					type: 'input',
-					name: 'attributesArray',
-					message: 'Please enter: attributesArray(module,attributes): ',
-				},
-				{
-					type: 'confirm',
-					name: 'askAgain',
-					message: 'Want to enter another attributesArray',
-				},
-				{
-					type: 'input',
-					name: 'attributesArray',
-					message: 'Please enter: attributesArray(module,attributes): ',
-				},
-				{
-					type: 'confirm',
-					name: 'askAgain',
-					message: 'Want to enter another attributesArray',
-				},
-			]);
-
-			expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 		});
 	});
 
