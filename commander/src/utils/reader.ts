@@ -201,7 +201,7 @@ const castArray = (items: string[], schemaType: string): string[] | number[] | b
 	return items;
 };
 
-export const getNestedParametersFromPrompt = async (property: {
+const getNestedParametersFromPrompt = async (property: {
 	name: string;
 	items: { properties: Record<string, unknown> };
 }) => {
