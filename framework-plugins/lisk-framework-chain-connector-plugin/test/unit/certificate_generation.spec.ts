@@ -151,7 +151,9 @@ describe('certificate generation', () => {
 					[lastCertifiedBlock],
 					[validatorsDataAtLastCertifiedHeight],
 				),
-			).toThrow('No block header found for the given aggregate height');
+			).toThrow(
+				'No block header found for the given the previous height 5 of aggregate commit at height 6 when calling checkChainOfTrust.',
+			);
 		});
 
 		it('should throw error when there is no validatorsData at {aggregateCommit.height - 1}', () => {

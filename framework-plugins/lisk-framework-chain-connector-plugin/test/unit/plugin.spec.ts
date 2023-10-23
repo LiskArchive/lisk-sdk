@@ -157,6 +157,7 @@ describe('ChainConnectorPlugin', () => {
 		invoke: jest.fn(),
 		subscribe: jest.fn(),
 		connect: jest.fn(),
+		node: { getNodeInfo: jest.fn() },
 	});
 
 	const chainConnectorStoreMock = {
@@ -227,6 +228,10 @@ describe('ChainConnectorPlugin', () => {
 			.mockResolvedValue({
 				chainID: ownChainID.toString('hex'),
 			});
+
+		jest.spyOn(sendingChainAPIClientMock.node, 'getNodeInfo').mockResolvedValue({
+			syncing: false,
+		} as never);
 
 		when(receivingChainAPIClientMock.invoke)
 			.calledWith('interoperability_getOwnChainAccount')
@@ -677,6 +682,47 @@ describe('ChainConnectorPlugin', () => {
 			expect(chainConnectorPlugin['_submitCCU']).toHaveBeenCalled();
 		});
 
+		it('should not computeCCUParams if node is syncing', async () => {
+			jest
+				.spyOn(certificateGenerationUtil, 'getNextCertificateFromAggregateCommits')
+				.mockReturnValue(sampleNextCertificate);
+
+			jest.spyOn(testing.mocks.loggerMock, 'debug');
+			await initChainConnectorPlugin(chainConnectorPlugin, defaultConfig);
+			chainConnectorPlugin['_apiClient'] = sendingChainAPIClientMock;
+			await chainConnectorPlugin.load();
+
+			const saveDataOnNewBlockMock = jest.fn();
+			chainConnectorPlugin['_saveDataOnNewBlock'] = saveDataOnNewBlockMock;
+			saveDataOnNewBlockMock.mockResolvedValue({
+				aggregateCommits: [],
+				blockHeaders: [],
+				validatorsHashPreimage: [],
+				crossChainMessages: [],
+			});
+			jest.spyOn(sendingChainAPIClientMock.node, 'getNodeInfo').mockResolvedValue({
+				syncing: true,
+			} as never);
+			await chainConnectorPlugin['_newBlockHandler']({
+				blockHeader: block.header.toJSON(),
+			});
+
+			const numOfBlocksSinceLastCertificate =
+				block.header.height - chainConnectorPlugin['_lastCertificate'].height;
+			expect(chainConnectorPlugin['logger'].debug).toHaveBeenCalledWith(
+				{
+					syncing: chainConnectorPlugin['_syncing'],
+					ccuFrequency: chainConnectorPlugin['_ccuFrequency'],
+					nextPossibleCCUHeight:
+						chainConnectorPlugin['_ccuFrequency'] - numOfBlocksSinceLastCertificate,
+				},
+				'No attempt to create CCU either due to ccuFrequency or the node is syncing',
+			);
+			// For chain_newBlock and chain_deleteBlock
+			expect(sendingChainAPIClientMock.subscribe).toHaveBeenCalledTimes(2);
+			expect(chainConnectorPlugin['_submitCCU']).not.toHaveBeenCalled();
+		});
+
 		it('should invoke "chain_getEvents" on _sendingChainClient', async () => {
 			jest
 				.spyOn(certificateGenerationUtil, 'getNextCertificateFromAggregateCommits')
@@ -830,6 +876,7 @@ describe('ChainConnectorPlugin', () => {
 			 * 5. consensus_getBFTHeights
 			 */
 			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledTimes(5);
+			expect(sendingChainAPIClientMock.node.getNodeInfo).toHaveBeenCalledTimes(1);
 			/**
 			 * Two calls to below RPC through receivingChainAPIClient
 			 * 1. interoperability_getChainAccount: in load() function

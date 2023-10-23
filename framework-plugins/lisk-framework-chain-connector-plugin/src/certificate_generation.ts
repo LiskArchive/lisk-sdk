@@ -32,7 +32,9 @@ export const getCertificateFromAggregateCommit = (
 	const blockHeader = blockHeaders.find(header => header.height === aggregateCommit.height);
 
 	if (!blockHeader) {
-		throw new Error('No block header found for the given aggregate height.');
+		throw new Error(
+			`No block header found for the given aggregate height ${aggregateCommit.height} when calling getCertificateFromAggregateCommit.`,
+		);
 	}
 
 	return {
@@ -55,7 +57,11 @@ export const checkChainOfTrust = (
 ): boolean => {
 	const blockHeader = blockHeaders.find(header => header.height === aggregateCommit.height - 1);
 	if (!blockHeader) {
-		throw new Error('No block header found for the given aggregate height.');
+		throw new Error(
+			`No block header found for the given the previous height ${
+				aggregateCommit.height - 1
+			} of aggregate commit at height ${aggregateCommit.height} when calling checkChainOfTrust.`,
+		);
 	}
 
 	// Certificate signers and certificate threshold for aggregateCommit are those authenticated by the last certificate
@@ -68,7 +74,11 @@ export const checkChainOfTrust = (
 		data.validatorsHash.equals(blockHeader.validatorsHash),
 	);
 	if (!validatorData) {
-		throw new Error('No validators data found for the given validatorsHash.');
+		throw new Error(
+			`No validators data found for the given validatorsHash ${blockHeader.validatorsHash.toString(
+				'hex',
+			)}.`,
+		);
 	}
 
 	for (let i = 0; i < validatorData.validators.length; i += 1) {
@@ -100,14 +110,20 @@ export const getNextCertificateFromAggregateCommits = (
 		header => header.height === lastCertificate.height,
 	);
 	if (!blockHeaderAtLastCertifiedHeight) {
-		throw new Error('No block header found for the last certified height.');
+		throw new Error(
+			`No block header found for the last certified height ${lastCertificate.height}.`,
+		);
 	}
 
 	const validatorDataAtLastCertifiedHeight = validatorsHashPreimage.find(data =>
 		data.validatorsHash.equals(blockHeaderAtLastCertifiedHeight?.validatorsHash),
 	);
 	if (!validatorDataAtLastCertifiedHeight) {
-		throw new Error('No validatorsHash preimage data present for the given validatorsHash.');
+		throw new Error(
+			`No validatorsHash preimage data present for the given validatorsHash ${blockHeaderAtLastCertifiedHeight?.validatorsHash.toString(
+				'hex',
+			)}.`,
+		);
 	}
 
 	const blsKeyToBFTWeight: Record<string, bigint> = {};
