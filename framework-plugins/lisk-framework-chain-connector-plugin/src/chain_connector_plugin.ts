@@ -235,7 +235,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				await this._saveDataOnNewBlock(newBlockHeader);
 				await this._initializeReceivingChainClient();
 				this.logger.error(
-					{ err: (error as Error) },
+					{ err: error as Error },
 					'Error occurred while accessing receivingChainAPIClient but all data is saved on newBlock.',
 				);
 
