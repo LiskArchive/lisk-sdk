@@ -33,6 +33,7 @@ import { ChainAccountStore } from '../../stores/chain_account';
 import { TerminatedStateStore } from '../../stores/terminated_state';
 import { ChannelDataStore, channelSchema } from '../../stores/channel_data';
 import { TerminatedOutboxStore } from '../../stores/terminated_outbox';
+import { InvalidSMTVerificationEvent } from '../../events/invalid_smt_verification';
 
 export interface MessageRecoveryInitializationParams {
 	chainID: Buffer;
@@ -50,8 +51,8 @@ export class InitializeMessageRecoveryCommand extends BaseInteroperabilityComman
 	): Promise<VerificationResult> {
 		const { params } = context;
 
+		// The command fails if the channel parameter is not a valid serialized channel.
 		const deserializedChannel = codec.decode<ChannelData>(channelSchema, params.channel);
-
 		validator.validate(channelSchema, deserializedChannel);
 
 		const ownchainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
@@ -63,6 +64,7 @@ export class InitializeMessageRecoveryCommand extends BaseInteroperabilityComman
 			};
 		}
 
+		// The command fails if the chain is not registered.
 		const chainAccountExist = await this.stores.get(ChainAccountStore).has(context, params.chainID);
 		if (!chainAccountExist) {
 			return {
@@ -71,6 +73,7 @@ export class InitializeMessageRecoveryCommand extends BaseInteroperabilityComman
 			};
 		}
 
+		// The command fails if the chain is not terminated.
 		const terminatedAccountExists = await this.stores
 			.get(TerminatedStateStore)
 			.has(context, params.chainID);
@@ -81,10 +84,7 @@ export class InitializeMessageRecoveryCommand extends BaseInteroperabilityComman
 			};
 		}
 
-		const terminatedAccount = await this.stores
-			.get(TerminatedStateStore)
-			.get(context, params.chainID);
-
+		// The command fails if there exist already a terminated outbox account.
 		const terminatedOutboxAccountExists = await this.stores
 			.get(TerminatedOutboxStore)
 			.has(context, params.chainID);
@@ -92,31 +92,6 @@ export class InitializeMessageRecoveryCommand extends BaseInteroperabilityComman
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Terminated outbox account already exists.'),
-			};
-		}
-
-		const ownChainAccount = await this.stores.get(OwnChainAccountStore).get(context, EMPTY_BYTES);
-		const queryKey = Buffer.concat([
-			// key contains both module and store key
-			this.stores.get(ChannelDataStore).key,
-			utils.hash(ownChainAccount.chainID),
-		]);
-		const query = {
-			key: queryKey,
-			value: utils.hash(params.channel),
-			bitmap: params.bitmap,
-		};
-
-		const smt = new SparseMerkleTree();
-		const valid = await smt.verifyInclusionProof(terminatedAccount.stateRoot, [queryKey], {
-			siblingHashes: params.siblingHashes,
-			queries: [query],
-		});
-
-		if (!valid) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Message recovery initialization proof of inclusion is not valid.'),
 			};
 		}
 
@@ -129,6 +104,32 @@ export class InitializeMessageRecoveryCommand extends BaseInteroperabilityComman
 		context: CommandExecuteContext<MessageRecoveryInitializationParams>,
 	): Promise<void> {
 		const { params } = context;
+		const terminatedAccount = await this.stores
+			.get(TerminatedStateStore)
+			.get(context, params.chainID);
+
+		const queryKey = Buffer.concat([
+			// key contains both module and store key
+			this.stores.get(ChannelDataStore).key,
+			utils.hash(context.chainID),
+		]);
+		const query = {
+			key: queryKey,
+			value: utils.hash(params.channel),
+			bitmap: params.bitmap,
+		};
+		// The SMT verification step is computationally expensive. Therefore, it is done in the
+		// execution step such that the transaction fee must be paid.
+		const smt = new SparseMerkleTree();
+		const valid = await smt.verifyInclusionProof(terminatedAccount.stateRoot, [queryKey], {
+			siblingHashes: params.siblingHashes,
+			queries: [query],
+		});
+
+		if (!valid) {
+			this.events.get(InvalidSMTVerificationEvent).error(context);
+			throw new Error('Message recovery initialization proof of inclusion is not valid.');
+		}
 		const partnerChannel = codec.decode<ChannelData>(channelSchema, params.channel);
 		const channel = await this.stores.get(ChannelDataStore).get(context, params.chainID);
 		await this.internalMethod.createTerminatedOutboxAccount(
