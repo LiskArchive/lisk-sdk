@@ -40,7 +40,7 @@ import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_
 import { createTransactionContext } from '../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { createStoreGetter } from '../../../../src/testing/utils';
-import { InvalidSMTVerification } from '../../../../src/modules/interoperability/events/invalid_smt_verification';
+import { InvalidSMTVerificationEvent } from '../../../../src/modules/interoperability/events/invalid_smt_verification';
 import { computeStorePrefix } from '../../../../src/modules/base_store';
 
 describe('RecoverStateCommand', () => {
@@ -190,7 +190,7 @@ describe('RecoverStateCommand', () => {
 		});
 
 		it('should return error if proof of inclusion is not valid', async () => {
-			const invalidSMTVerificationEvent = interopMod.events.get(InvalidSMTVerification);
+			const invalidSMTVerificationEvent = interopMod.events.get(InvalidSMTVerificationEvent);
 			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
 			jest.spyOn(invalidSMTVerificationEvent, 'error');
 

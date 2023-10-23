@@ -31,7 +31,7 @@ import { TerminatedStateAccount, TerminatedStateStore } from '../../stores/termi
 import { ChainAccount, StateRecoveryInitParams } from '../../types';
 import { getMainchainID } from '../../utils';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
-import { InvalidSMTVerification } from '../../events/invalid_smt_verification';
+import { InvalidSMTVerificationEvent } from '../../events/invalid_smt_verification';
 
 export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<SidechainInteroperabilityInternalMethod> {
 	public schema = stateRecoveryInitParamsSchema;
@@ -117,7 +117,7 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 
 		const verified = await smt.verifyInclusionProof(stateRoot, [queryKey], proofOfInclusion);
 		if (!verified) {
-			this.events.get(InvalidSMTVerification).error(context);
+			this.events.get(InvalidSMTVerificationEvent).error(context);
 			throw new Error('State recovery initialization proof of inclusion is not valid.');
 		}
 
