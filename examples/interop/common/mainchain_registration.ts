@@ -108,12 +108,12 @@ export const registerMainchain = async (mc: string, sc: string, sidechainDevVali
 		sidechainValidatorsSignatures.push({ publicKey: validator.blsPublicKey, signature });
 	}
 
-	const publicKeysList = activeValidatorsBLSKeys.map(v => v.blsPublicKey);
+	const publicBLSKeys = activeValidatorsBLSKeys.map(v => v.blsPublicKey);
 	console.log('Total active sidechain validators:', sidechainValidatorsSignatures.length);
 
 	// Create an aggregated signature
 	const { aggregationBits, signature } = bls.createAggSig(
-		publicKeysList,
+		publicBLSKeys,
 		sidechainValidatorsSignatures,
 	);
 
