@@ -1,6 +1,6 @@
 {
 	"name": "lisk-sdk",
-	"version": "6.0.0-rc.4",
+	"version": "6.0.0-rc.5",
 	"description": "Official SDK for the Lisk blockchain application platform",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -41,7 +41,7 @@
 		"@liskhq/lisk-tree": "^0.4.0-rc.2",
 		"@liskhq/lisk-utils": "^0.4.0-rc.0",
 		"@liskhq/lisk-validator": "^0.8.0-rc.2",
-		"lisk-framework": "^0.11.0-rc.4"
+		"lisk-framework": "^0.11.0-rc.5"
 	},
 	"devDependencies": {
 		"eslint": "8.28.0",
