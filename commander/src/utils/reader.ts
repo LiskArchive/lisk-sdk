@@ -22,16 +22,6 @@ import * as readline from 'readline';
 
 import { FileSystemError, ValidationError } from './error';
 
-// interface PropertyValue {
-// 	readonly dataType: string;
-// 	readonly type: string;
-// 	readonly items: { type: string; properties: Record<string, unknown> };
-// }
-
-// interface NestedPropertyTemplate {
-// 	[key: string]: string[];
-// }
-
 interface NestedAsset {
 	[key: string]: Array<Record<string, unknown>>;
 }
@@ -225,7 +215,7 @@ export const getNestedParametersFromPrompt = async (property: {
 		const nestedPropertiesAnswer: Record<string, string> = await inquirer.prompt({
 			type: 'input',
 			name: property.name,
-			message: `Please enter: ${property.name}(${nestedPropertiesCsv})`,
+			message: `Please enter: ${property.name}(${nestedPropertiesCsv}): `,
 		});
 
 		const properties = nestedPropertiesAnswer[property.name].split(',');
@@ -288,26 +278,22 @@ export const getParamsFromPrompt = async (
 			property.items?.type === undefined &&
 			property.items?.dataType !== undefined
 		) {
-			const answer = (await inquirer.prompt([
-				{
-					type: 'input',
-					name: propertyName,
-					message: `Please enter: ${propertyName}(comma separated values (a,b)): `,
-				},
-			])) as Record<string, string>;
+			const answer: Record<string, string> = await inquirer.prompt({
+				type: 'input',
+				name: propertyName,
+				message: `Please enter: ${propertyName}(comma separated values (a,b)): `,
+			});
 
 			result[propertyName] = castArray(
 				answer[propertyName] === '' ? [] : answer[propertyName].split(','),
 				property.items.dataType,
 			);
 		} else {
-			const answer = (await inquirer.prompt([
-				{
-					type: 'input',
-					name: propertyName,
-					message: `Please enter: ${propertyName}: `,
-				},
-			])) as Record<string, string>;
+			const answer: Record<string, string> = await inquirer.prompt({
+				type: 'input',
+				name: propertyName,
+				message: `Please enter: ${propertyName}: `,
+			});
 
 			result[propertyName] = castValue(
 				answer[propertyName],

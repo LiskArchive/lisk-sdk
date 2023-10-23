@@ -22,7 +22,12 @@ import { emptySchema } from '@liskhq/lisk-codec';
 import { join } from 'path';
 import * as appUtils from '../../../../src/utils/application';
 import * as readerUtils from '../../../../src/utils/reader';
-import { tokenTransferParamsSchema, posVoteParamsSchema } from '../../../helpers/transactions';
+import {
+	tokenTransferParamsSchema,
+	posVoteParamsSchema,
+	schemaWithArray,
+	schemaWithArrayOfObjects,
+} from '../../../helpers/transactions';
 import { CreateCommand } from '../../../../src/bootstrapping/commands/transaction/create';
 import { getConfig } from '../../../helpers/config';
 import { PromiseResolvedType } from '../../../../src/types';
@@ -70,7 +75,7 @@ describe('transaction:create command', () => {
 	const verifyIfInquirerCallsFor = (questions: Array<Record<string, unknown>>) => {
 		expect(inquirer.prompt).toHaveBeenCalledTimes(questions.length);
 		for (let i = 0; i < 1; i += 1) {
-			expect(inquirer.prompt).toHaveBeenNthCalledWith(i + 1, [questions[i]]);
+			expect(inquirer.prompt).toHaveBeenNthCalledWith(i + 1, questions[i]);
 		}
 	};
 
@@ -114,6 +119,19 @@ describe('transaction:create command', () => {
 						{
 							name: 'unlock',
 							params: emptySchema,
+						},
+					],
+				},
+				{
+					name: 'nft',
+					commands: [
+						{
+							name: 'arrayOfItems',
+							params: schemaWithArray,
+						},
+						{
+							name: 'arrayOfObjects',
+							params: schemaWithArrayOfObjects,
 						},
 					],
 				},
@@ -174,6 +192,77 @@ describe('transaction:create command', () => {
 			await expect(
 				CreateCommandExtended.run(['newMod', 'transfer', '100000000'], config),
 			).rejects.toThrow('Module: newMod is not registered');
+		});
+	});
+
+	describe('transaction:create prompt for arrays', () => {
+		it('should inquire arrays as CSV', async () => {
+			jest.spyOn(inquirer, 'prompt').mockResolvedValue({
+				attributesArray: '13213213,12312321',
+			});
+
+			await CreateCommandExtended.run(
+				['nft', 'arrayOfItems', '100000000', `--passphrase=${passphrase}`],
+				config,
+			);
+			verifyIfInquirerCallsFor([
+				{
+					type: 'input',
+					name: 'attributesArray',
+					message: 'Please enter: attributesArray(comma separated values (a,b)): ',
+				},
+			]);
+
+			expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	describe('transaction:create prompt for array of objects', () => {
+		it('should inquire each item of the array as a CSV and prompt to add more', async () => {
+			jest
+				.spyOn(inquirer, 'prompt')
+				.mockResolvedValueOnce({
+					attributesArray: 'pos, 0000',
+				})
+				.mockResolvedValueOnce({
+					askAgain: true,
+				})
+				.mockResolvedValueOnce({
+					attributesArray: 'token, 0000',
+				})
+				.mockResolvedValue({
+					askAgain: false,
+				});
+
+			await CreateCommandExtended.run(
+				['nft', 'arrayOfObjects', '100000000', `--passphrase=${passphrase}`],
+				config,
+			);
+
+			verifyIfInquirerCallsFor([
+				{
+					type: 'input',
+					name: 'attributesArray',
+					message: 'Please enter: attributesArray(module,attributes): ',
+				},
+				{
+					type: 'confirm',
+					name: 'askAgain',
+					message: 'Want to enter another attributesArray',
+				},
+				{
+					type: 'input',
+					name: 'attributesArray',
+					message: 'Please enter: attributesArray(module,attributes): ',
+				},
+				{
+					type: 'confirm',
+					name: 'askAgain',
+					message: 'Want to enter another attributesArray',
+				},
+			]);
+
+			expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 		});
 	});
 
