@@ -6,7 +6,6 @@ import {
 	registrationSignatureMessageSchema,
 	mainchainRegParams as mainchainRegParamsSchema,
 	MESSAGE_TAG_CHAIN_REG,
-	MODULE_NAME_INTEROPERABILITY,
 } from 'lisk-sdk';
 
 /**
@@ -36,7 +35,7 @@ export const registerMainchain = async (mc: string, sc: string, sidechainDevVali
 	// Connect to the sidechain node
 	const sidechainClient = await apiClient.createIPCClient(`~/.lisk/${sc}`);
 
-	// Get node info data from sidechain and mainchain
+	// Get node info from sidechain and mainchain
 	const mainchainNodeInfo = await mainchainClient.invoke('system_getNodeInfo');
 	const sidechainNodeInfo = await sidechainClient.invoke('system_getNodeInfo');
 
@@ -79,27 +78,27 @@ export const registerMainchain = async (mc: string, sc: string, sidechainDevVali
 	);
 
 	// Add validator private keys to the sidechain validator list
-	const activeValidatorsWithPrivateKey: { blsPublicKey: Buffer; blsPrivateKey: Buffer }[] = [];
+	const activeValidatorsBLSKeys: { blsPublicKey: Buffer; blsPrivateKey: Buffer }[] = [];
 	for (const v of sidechainActiveValidators as { blsKey: string; bftWeight: string }[]) {
 		const validatorInfo = sidechainDevValidators.find(
 			configValidator => configValidator.plain.blsKey === v.blsKey,
 		);
 		if (validatorInfo) {
-			activeValidatorsWithPrivateKey.push({
+			activeValidatorsBLSKeys.push({
 				blsPublicKey: Buffer.from(v.blsKey, 'hex'),
 				blsPrivateKey: Buffer.from(validatorInfo.plain.blsPrivateKey, 'hex'),
 			});
 		}
 	}
-	console.log('Total activeValidatorsWithPrivateKey:', activeValidatorsWithPrivateKey.length);
+	console.log('Total activeValidatorsBLSKeys:', activeValidatorsBLSKeys.length);
 
 	// Sort active validators from sidechain lexicographically after their BLS public key
-	activeValidatorsWithPrivateKey.sort((a, b) => a.blsPublicKey.compare(b.blsPublicKey));
+	activeValidatorsBLSKeys.sort((a, b) => a.blsPublicKey.compare(b.blsPublicKey));
 
 	const sidechainValidatorsSignatures: { publicKey: Buffer; signature: Buffer }[] = [];
 
 	// Sign parameters with each active sidechain validator
-	for (const validator of activeValidatorsWithPrivateKey) {
+	for (const validator of activeValidatorsBLSKeys) {
 		const signature = bls.signData(
 			MESSAGE_TAG_CHAIN_REG,
 			params.ownChainID,
@@ -109,7 +108,7 @@ export const registerMainchain = async (mc: string, sc: string, sidechainDevVali
 		sidechainValidatorsSignatures.push({ publicKey: validator.blsPublicKey, signature });
 	}
 
-	const publicKeysList = activeValidatorsWithPrivateKey.map(v => v.blsPublicKey);
+	const publicKeysList = activeValidatorsBLSKeys.map(v => v.blsPublicKey);
 	console.log('Total active sidechain validators:', sidechainValidatorsSignatures.length);
 
 	// Create an aggregated signature
@@ -133,7 +132,7 @@ export const registerMainchain = async (mc: string, sc: string, sidechainDevVali
 
 	// Create registerMainchain transaction
 	const tx = new Transaction({
-		module: MODULE_NAME_INTEROPERABILITY,
+		module: 'interoperability',
 		command: 'registerMainchain',
 		fee: BigInt(2000000000),
 		params: codec.encodeJSON(mainchainRegParamsSchema, mainchainRegParams),
