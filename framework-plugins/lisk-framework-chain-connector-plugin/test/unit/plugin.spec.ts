@@ -711,7 +711,7 @@ describe('ChainConnectorPlugin', () => {
 				block.header.height - chainConnectorPlugin['_lastCertificate'].height;
 			expect(chainConnectorPlugin['logger'].debug).toHaveBeenCalledWith(
 				{
-					syncing: chainConnectorPlugin['_syncing'],
+					syncing: true,
 					ccuFrequency: chainConnectorPlugin['_ccuFrequency'],
 					nextPossibleCCUHeight:
 						chainConnectorPlugin['_ccuFrequency'] - numOfBlocksSinceLastCertificate,

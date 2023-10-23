@@ -110,7 +110,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _ccuSaveLimit!: number;
 	private _receivingChainFinalizedHeight!: number;
 	private _heightToDeleteIndex!: Map<number, FinalizedHeightInfo>;
-	private _syncing = false;
 
 	public get nodeModulePath(): string {
 		return __filename;
@@ -214,7 +213,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		// Save blockHeader, aggregateCommit, validatorsData and cross chain messages if any.
 		try {
 			const nodeInfo = await this._sendingChainClient.node.getNodeInfo();
-			this._syncing = nodeInfo.syncing;
 			// Fetch last certificate from the receiving chain and update the _lastCertificate
 			try {
 				chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
@@ -247,10 +245,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				await this._saveDataOnNewBlock(newBlockHeader);
 
 			const numOfBlocksSinceLastCertificate = newBlockHeader.height - this._lastCertificate.height;
-			if (this._syncing || this._ccuFrequency > numOfBlocksSinceLastCertificate) {
+			if (nodeInfo.syncing || this._ccuFrequency > numOfBlocksSinceLastCertificate) {
 				this.logger.debug(
 					{
-						syncing: this._syncing,
+						syncing: nodeInfo.syncing,
 						ccuFrequency: this._ccuFrequency,
 						nextPossibleCCUHeight: this._ccuFrequency - numOfBlocksSinceLastCertificate,
 					},
