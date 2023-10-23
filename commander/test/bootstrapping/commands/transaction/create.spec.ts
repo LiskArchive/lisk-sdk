@@ -56,6 +56,24 @@ describe('transaction:create command', () => {
 		],
 	};
 
+	const questionsForTokenTransfer = [
+		{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
+		{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
+		{
+			message: 'Please enter: recipientAddress: ',
+			name: 'recipientAddress',
+			type: 'input',
+		},
+		{ message: 'Please enter: data: ', name: 'data', type: 'input' },
+	];
+
+	const verifyIfInquirerCallsFor = (questions: Array<Record<string, unknown>>) => {
+		expect(inquirer.prompt).toHaveBeenCalledTimes(questions.length);
+		for (let i = 0; i < 1; i += 1) {
+			expect(inquirer.prompt).toHaveBeenNthCalledWith(i + 1, [questions[i]]);
+		}
+	};
+
 	let config: Awaited<ReturnType<typeof getConfig>>;
 	let clientMock: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>>;
 
@@ -395,17 +413,7 @@ describe('transaction:create command', () => {
 						],
 						config,
 					);
-					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
-					expect(inquirer.prompt).toHaveBeenCalledWith([
-						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
-						{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
-						{
-							message: 'Please enter: recipientAddress: ',
-							name: 'recipientAddress',
-							type: 'input',
-						},
-						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
-					]);
+					verifyIfInquirerCallsFor(questionsForTokenTransfer);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: expect.any(String),
@@ -426,17 +434,7 @@ describe('transaction:create command', () => {
 						],
 						config,
 					);
-					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
-					expect(inquirer.prompt).toHaveBeenCalledWith([
-						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
-						{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
-						{
-							message: 'Please enter: recipientAddress: ',
-							name: 'recipientAddress',
-							type: 'input',
-						},
-						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
-					]);
+					verifyIfInquirerCallsFor(questionsForTokenTransfer);
 					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase');
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
@@ -690,17 +688,7 @@ describe('transaction:create command', () => {
 						['token', 'transfer', '100000000', `--passphrase=${passphrase}`],
 						config,
 					);
-					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
-					expect(inquirer.prompt).toHaveBeenCalledWith([
-						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
-						{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
-						{
-							message: 'Please enter: recipientAddress: ',
-							name: 'recipientAddress',
-							type: 'input',
-						},
-						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
-					]);
+					verifyIfInquirerCallsFor(questionsForTokenTransfer);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: mockEncodedTransaction.toString('hex'),
@@ -714,17 +702,7 @@ describe('transaction:create command', () => {
 						['token', 'transfer', '100000000', '--nonce=999'],
 						config,
 					);
-					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
-					expect(inquirer.prompt).toHaveBeenCalledWith([
-						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
-						{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
-						{
-							message: 'Please enter: recipientAddress: ',
-							name: 'recipientAddress',
-							type: 'input',
-						},
-						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
-					]);
+					verifyIfInquirerCallsFor(questionsForTokenTransfer);
 					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase');
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
@@ -736,17 +714,7 @@ describe('transaction:create command', () => {
 			describe('transaction:create token transfer 100000000', () => {
 				it('should prompt user for params and passphrase.', async () => {
 					await CreateCommandExtended.run(['token', 'transfer', '100000000'], config);
-					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
-					expect(inquirer.prompt).toHaveBeenCalledWith([
-						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
-						{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
-						{
-							message: 'Please enter: recipientAddress: ',
-							name: 'recipientAddress',
-							type: 'input',
-						},
-						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
-					]);
+					verifyIfInquirerCallsFor(questionsForTokenTransfer);
 					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase');
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
