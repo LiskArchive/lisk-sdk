@@ -165,6 +165,50 @@ export const posVoteParamsSchema = {
 	},
 };
 
+export const schemaWithArray = {
+	$id: '/lisk/schemaWithArray',
+	type: 'object',
+	required: ['attributesArray'],
+	properties: {
+		attributesArray: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'uint64',
+			},
+		},
+	},
+};
+
+export const schemaWithArrayOfObjects = {
+	$id: '/lisk/schemaWithArrayOfObjects',
+	type: 'object',
+	required: ['attributesArray'],
+	properties: {
+		attributesArray: {
+			type: 'array',
+			fieldNumber: 4,
+			items: {
+				type: 'object',
+				required: ['module', 'attributes'],
+				properties: {
+					module: {
+						dataType: 'string',
+						minLength: 0,
+						maxLength: 10,
+						pattern: '^[a-zA-Z0-9]*$',
+						fieldNumber: 1,
+					},
+					attributes: {
+						dataType: 'bytes',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+	},
+};
+
 export const genesisBlockID = Buffer.from(
 	'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
 	'hex',
