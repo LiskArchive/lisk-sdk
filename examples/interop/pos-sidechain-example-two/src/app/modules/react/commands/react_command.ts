@@ -10,23 +10,16 @@ import {
 } from 'lisk-sdk';
 import { CROSS_CHAIN_COMMAND_NAME_REACT } from '../constants';
 import {
-	crossChainReactParamsSchema,
+	CCReactCommandParamsSchema,
 	CCReactMessageParams,
-	crossChainReactMessageSchema,
+	CCReactMessageParamsSchema,
+	CCReactCommandParams,
 } from '../schemas';
 import { InteroperabilityMethod } from '../types';
 
-interface Params {
-	reactionType: number;
-	helloMessageID: string;
-	data: string;
-	receivingChainID: Buffer;
-	messageFee: bigint;
-}
-
 export class ReactCrossChainCommand extends BaseCommand {
 	private _interoperabilityMethod!: InteroperabilityMethod;
-	public schema = crossChainReactParamsSchema;
+	public schema = CCReactCommandParamsSchema;
 
 	public get name(): string {
 		return CROSS_CHAIN_COMMAND_NAME_REACT;
@@ -41,7 +34,9 @@ export class ReactCrossChainCommand extends BaseCommand {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
+	public async verify(
+		context: CommandVerifyContext<CCReactCommandParams>,
+	): Promise<VerificationResult> {
 		const { params, logger } = context;
 
 		logger.info('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
@@ -63,7 +58,7 @@ export class ReactCrossChainCommand extends BaseCommand {
 		};
 	}
 
-	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
+	public async execute(context: CommandExecuteContext<CCReactCommandParams>): Promise<void> {
 		const {
 			params,
 			transaction: { senderAddress },
@@ -82,7 +77,7 @@ export class ReactCrossChainCommand extends BaseCommand {
 			CROSS_CHAIN_COMMAND_NAME_REACT,
 			params.receivingChainID,
 			params.messageFee,
-			codec.encode(crossChainReactMessageSchema, reactCCM),
+			codec.encode(CCReactMessageParamsSchema, reactCCM),
 			context.header.timestamp,
 		);
 	}
