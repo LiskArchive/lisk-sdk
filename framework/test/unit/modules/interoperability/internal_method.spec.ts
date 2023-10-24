@@ -21,20 +21,26 @@ import { validator } from '@liskhq/lisk-validator';
 import {
 	BLS_PUBLIC_KEY_LENGTH,
 	BLS_SIGNATURE_LENGTH,
+	CCMStatusCode,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
 	EMPTY_BYTES,
 	EMPTY_HASH,
 	HASH_LENGTH,
 	MAX_UINT64,
 	MESSAGE_TAG_CERTIFICATE,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
+	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
 import * as utils from '../../../../src/modules/interoperability/utils';
-import { MainchainInteroperabilityModule, testing } from '../../../../src';
 import {
 	CrossChainUpdateTransactionParams,
+	MainchainInteroperabilityModule,
+	Transaction,
+	testing,
+	CCMsg,
 	OwnChainAccount,
-} from '../../../../src/modules/interoperability/types';
+} from '../../../../src';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
@@ -49,10 +55,10 @@ import {
 import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
 import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
 import { StoreGetter } from '../../../../src/modules/base_store';
-import { MethodContext } from '../../../../src/state_machine';
+import { CommandExecuteContext, EventQueue, MethodContext } from '../../../../src/state_machine';
 import { ChainAccountUpdatedEvent } from '../../../../src/modules/interoperability/events/chain_account_updated';
 import { TerminatedStateCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_state_created';
-import { createTransientMethodContext } from '../../../../src/testing';
+import { createTransactionContext, createTransientMethodContext } from '../../../../src/testing';
 import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
 import {
 	certificateSchema,
@@ -63,6 +69,13 @@ import { Certificate } from '../../../../src/engine/consensus/certificate_genera
 import { TerminatedOutboxCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_outbox_created';
 import { createStoreGetter } from '../../../../src/testing/utils';
 import { InvalidCertificateSignatureEvent } from '../../../../src/modules/interoperability/events/invalid_certificate_signature';
+import { EVENT_TOPIC_TRANSACTION_EXECUTION } from '../../../../src/state_machine/constants';
+import { InvalidOutboxRootVerificationEvent } from '../../../../src/modules/interoperability/events/invalid_outbox_root_verification';
+import {
+	ccmSchema,
+	crossChainUpdateTransactionParams,
+} from '../../../../src/modules/interoperability/schemas';
+import { InvalidSMTVerificationEvent } from '../../../../src/modules/interoperability/events/invalid_smt_verification';
 
 describe('Base interoperability internal method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -190,7 +203,15 @@ describe('Base interoperability internal method', () => {
 			interopMod.events,
 			new Map(),
 		);
-		methodContext = createTransientMethodContext({ stateStore });
+		const defaultTopic = Buffer.concat([
+			EVENT_TOPIC_TRANSACTION_EXECUTION,
+			cryptoUtils.hash(cryptoUtils.getRandomBytes(1)),
+		]);
+		methodContext = createTransientMethodContext({
+			stateStore,
+			eventQueue: new EventQueue(0, [], [defaultTopic]),
+		});
+		// Adding transaction ID as default topic
 		storeContext = createStoreGetter(stateStore);
 		await channelDataSubstore.set(methodContext, chainID, channelData);
 		await ownChainAccountSubstore.set(methodContext, EMPTY_BYTES, ownChainAccount);
@@ -1456,56 +1477,144 @@ describe('Base interoperability internal method', () => {
 	});
 
 	describe('verifyPartnerChainOutboxRoot', () => {
-		const encodedCertificate = codec.encode(certificateSchema, defaultCertificate);
-		const txParams: CrossChainUpdateTransactionParams = {
-			certificate: encodedCertificate,
-			activeValidatorsUpdate: {
-				blsKeysUpdate: [],
-				bftWeightsUpdate: [],
-				bftWeightsUpdateBitmap: Buffer.from([]),
+		const certificate: Certificate = {
+			blockID: cryptography.utils.getRandomBytes(HASH_LENGTH),
+			height: 21,
+			timestamp: Math.floor(Date.now() / 1000),
+			stateRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
+			validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
+			aggregationBits: cryptography.utils.getRandomBytes(1),
+			signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
+		};
+		const encodedDefaultCertificate = codec.encode(certificateSchema, {
+			...certificate,
+		});
+		// const txParams: CrossChainUpdateTransactionParams = {
+		// 	certificate: encodedDefaultCertificate,
+		// 	activeValidatorsUpdate: {
+		// 		blsKeysUpdate: [],
+		// 		bftWeightsUpdate: [],
+		// 		bftWeightsUpdateBitmap: Buffer.from([]),
+		// 	},
+		// 	certificateThreshold: BigInt(10),
+		// 	sendingChainID: cryptoUtils.getRandomBytes(4),
+		// 	inboxUpdate: {
+		// 		crossChainMessages: [],
+		// 		messageWitnessHashes: [],
+		// 		outboxRootWitness: {
+		// 			bitmap: cryptoUtils.getRandomBytes(4),
+		// 			siblingHashes: [cryptoUtils.getRandomBytes(32)],
+		// 		},
+		// 	},
+		// };
+		// const chainID = Buffer.alloc(4, 0);
+		const senderPublicKey = cryptoUtils.getRandomBytes(32);
+		const defaultTransaction = {
+			fee: BigInt(0),
+			module: interopMod.name,
+			nonce: BigInt(1),
+			senderPublicKey,
+			signatures: [],
+		};
+
+		const defaultSendingChainID = 20;
+		const defaultSendingChainIDBuffer = cryptoUtils.intToBuffer(defaultSendingChainID, 4);
+		const defaultCCMs: CCMsg[] = [
+			{
+				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+				fee: BigInt(0),
+				module: MODULE_NAME_INTEROPERABILITY,
+				nonce: BigInt(1),
+				params: Buffer.alloc(2),
+				receivingChainID: Buffer.from([0, 0, 0, 2]),
+				sendingChainID: defaultSendingChainIDBuffer,
+				status: CCMStatusCode.OK,
 			},
-			certificateThreshold: BigInt(10),
-			sendingChainID: cryptoUtils.getRandomBytes(4),
-			inboxUpdate: {
-				crossChainMessages: [],
-				messageWitnessHashes: [],
-				outboxRootWitness: {
-					bitmap: cryptoUtils.getRandomBytes(4),
-					siblingHashes: [cryptoUtils.getRandomBytes(32)],
-				},
+		];
+		const defaultCCMsEncoded = defaultCCMs.map(ccMsg => codec.encode(ccmSchema, ccMsg));
+		const defaultInboxUpdateValue = {
+			crossChainMessages: defaultCCMsEncoded,
+			messageWitnessHashes: [Buffer.alloc(32)],
+			outboxRootWitness: {
+				bitmap: Buffer.alloc(1),
+				siblingHashes: [Buffer.alloc(32)],
 			},
 		};
 
+		let commandExecuteContext: CommandExecuteContext;
+		let crossChainUpdateParams: CrossChainUpdateTransactionParams;
+
 		beforeEach(async () => {
-			await interopMod.stores.get(ChannelDataStore).set(methodContext, txParams.sendingChainID, {
-				...channelData,
-			});
+			crossChainUpdateParams = {
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [],
+					bftWeightsUpdate: [],
+					bftWeightsUpdateBitmap: Buffer.alloc(0),
+				},
+				certificate: encodedDefaultCertificate,
+				inboxUpdate: { ...defaultInboxUpdateValue },
+				certificateThreshold: BigInt(20),
+				sendingChainID: cryptoUtils.intToBuffer(defaultSendingChainID, 4),
+			};
+			commandExecuteContext = createTransactionContext({
+				chainID,
+				stateStore,
+				transaction: new Transaction({
+					...defaultTransaction,
+					command: '',
+					params: codec.encode(crossChainUpdateTransactionParams, crossChainUpdateParams),
+				}),
+			}).createCommandExecuteContext(crossChainUpdateTransactionParams);
+			await interopMod.stores
+				.get(ChannelDataStore)
+				.set(commandExecuteContext, crossChainUpdateParams.sendingChainID, {
+					...channelData,
+				});
+			jest.spyOn(interopMod.events.get(InvalidOutboxRootVerificationEvent), 'error');
+			jest.spyOn(interopMod.events.get(InvalidSMTVerificationEvent), 'error');
 		});
 
 		it('should reject when outboxRootWitness is empty but partnerchain outbox root does not match inboxRoot', async () => {
 			await expect(
-				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
-					...txParams,
-					inboxUpdate: {
-						...txParams.inboxUpdate,
-						outboxRootWitness: {
-							bitmap: Buffer.alloc(0),
-							siblingHashes: [],
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(
+					commandExecuteContext as any,
+					{
+						...crossChainUpdateParams,
+						inboxUpdate: {
+							...crossChainUpdateParams.inboxUpdate,
+							outboxRootWitness: {
+								bitmap: Buffer.alloc(0),
+								siblingHashes: [],
+							},
 						},
+						certificate: Buffer.alloc(0),
 					},
-					certificate: Buffer.alloc(0),
-				}),
+				),
 			).rejects.toThrow('Inbox root does not match partner chain outbox root');
+
+			expect(
+				interopMod['events'].get(InvalidOutboxRootVerificationEvent).error,
+			).toHaveBeenCalledWith(commandExecuteContext, crossChainUpdateParams.sendingChainID, {
+				inboxRoot: expect.anything(),
+				partnerChainOutboxRoot: channelData.partnerChainOutboxRoot,
+			});
 		});
 
 		it('should reject when certificate state root does not contain valid inclusion proof for inbox update', async () => {
 			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
 
 			await expect(
-				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
-					...txParams,
-				}),
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(
+					commandExecuteContext as any,
+					{
+						...crossChainUpdateParams,
+					},
+				),
 			).rejects.toThrow('Invalid inclusion proof for inbox update');
+
+			expect(interopMod['events'].get(InvalidSMTVerificationEvent).error).toHaveBeenCalledWith(
+				commandExecuteContext,
+			);
 		});
 
 		it('should resolve when certificate is empty and inbox root matches partner outbox root', async () => {
@@ -1515,17 +1624,21 @@ describe('Base interoperability internal method', () => {
 				.mockReturnValue(channelData.partnerChainOutboxRoot);
 
 			await expect(
-				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
-					...txParams,
-					inboxUpdate: {
-						...txParams.inboxUpdate,
-						outboxRootWitness: {
-							bitmap: Buffer.alloc(0),
-							siblingHashes: [],
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(
+					commandExecuteContext as any,
+					{
+						...crossChainUpdateParams,
+						inboxUpdate: {
+							crossChainMessages: [],
+							messageWitnessHashes: [],
+							outboxRootWitness: {
+								bitmap: Buffer.alloc(0),
+								siblingHashes: [],
+							},
 						},
+						certificate: Buffer.alloc(0),
 					},
-					certificate: Buffer.alloc(0),
-				}),
+				),
 			).resolves.toBeUndefined();
 		});
 
@@ -1535,9 +1648,12 @@ describe('Base interoperability internal method', () => {
 			jest.spyOn(regularMerkleTree, 'calculateRootFromRightWitness').mockReturnValue(nextRoot);
 
 			await expect(
-				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(methodContext, {
-					...txParams,
-				}),
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(
+					commandExecuteContext as any,
+					{
+						...crossChainUpdateParams,
+					},
+				),
 			).resolves.toBeUndefined();
 
 			const outboxKey = Buffer.concat([
@@ -1545,15 +1661,15 @@ describe('Base interoperability internal method', () => {
 				cryptoUtils.hash(ownChainAccount.chainID),
 			]);
 			expect(SparseMerkleTree.prototype.verify).toHaveBeenCalledWith(
-				defaultCertificate.stateRoot,
+				certificate.stateRoot,
 				[outboxKey],
 				{
-					siblingHashes: txParams.inboxUpdate.outboxRootWitness.siblingHashes,
+					siblingHashes: crossChainUpdateParams.inboxUpdate.outboxRootWitness.siblingHashes,
 					queries: [
 						{
 							key: outboxKey,
 							value: cryptoUtils.hash(codec.encode(outboxRootSchema, { root: nextRoot })),
-							bitmap: txParams.inboxUpdate.outboxRootWitness.bitmap,
+							bitmap: crossChainUpdateParams.inboxUpdate.outboxRootWitness.bitmap,
 						},
 					],
 				},

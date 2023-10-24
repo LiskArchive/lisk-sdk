@@ -24,7 +24,7 @@ import { GenerationContext } from './generator_context';
 import { GenesisBlockContext } from './genesis_block_context';
 import { TransactionContext } from './transaction_context';
 import { VerifyStatus, VerificationResult } from './types';
-import { EVENT_TRANSACTION_NAME } from './constants';
+import { EVENT_TOPIC_TRANSACTION_EXECUTION, EVENT_TRANSACTION_NAME } from './constants';
 
 export class StateMachine {
 	private readonly _modules: BaseModule[] = [];
@@ -218,7 +218,7 @@ export class StateMachine {
 			ctx.transaction.module,
 			EVENT_TRANSACTION_NAME,
 			codec.encode(standardEventDataSchema, { success: status === TransactionExecutionResult.OK }),
-			[ctx.transaction.id],
+			[Buffer.concat([EVENT_TOPIC_TRANSACTION_EXECUTION, ctx.transaction.id])],
 		);
 
 		return status;

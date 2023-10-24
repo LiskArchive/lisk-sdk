@@ -48,6 +48,10 @@
 			"ccuFee": "500000000",
 			"receivingChainIPCPath": "~/.lisk/mainchain-node-two",
 			"registrationHeight": 10
+		},
+		"dashboard": {
+			"applicationUrl": "ws://127.0.0.1:7886/rpc-ws",
+			"port": 4007
 		}
 	}
 }
