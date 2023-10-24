@@ -61,7 +61,7 @@ import {
 	BaseInteroperableModule,
 	MODULE_NAME_INTEROPERABILITY,
 } from './modules/interoperability';
-import { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_rewards';
+import { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_reward';
 import { Engine } from './engine';
 import { BaseInteroperabilityModule } from './modules/interoperability/base_interoperability_module';
 

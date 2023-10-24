@@ -19,7 +19,6 @@ import {
 	ChainStatus,
 	EMPTY_BYTES,
 	MainchainInteroperabilityModule,
-	getMainchainID,
 } from '../../../../src';
 import {
 	MAX_NUM_VALIDATORS,
@@ -43,12 +42,9 @@ import { InvalidCertificateSignatureEvent } from '../../../../src/modules/intero
 import { InvalidRegistrationSignatureEvent } from '../../../../src/modules/interoperability/events/invalid_registration_signature';
 import { TerminatedOutboxCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_outbox_created';
 import { TerminatedStateCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_state_created';
-import { InvalidRMTVerification } from '../../../../src/modules/interoperability/events/invalid_rmt_verification';
-import { InvalidSMTVerification } from '../../../../src/modules/interoperability/events/invalid_smt_verification';
-import {
-	ChainInfo,
-	TerminatedStateAccountWithChainID,
-} from '../../../../src/modules/interoperability/types';
+import { InvalidRMTVerificationEvent } from '../../../../src/modules/interoperability/events/invalid_rmt_verification';
+import { InvalidSMTVerificationEvent } from '../../../../src/modules/interoperability/events/invalid_smt_verification';
+// import { ChainInfo, TerminatedStateAccountWithChainID } from '../../../../src/modules/interoperability/types';
 
 describe('initGenesisState Common Tests', () => {
 	const chainID = Buffer.from([0, 0, 0, 0]);
@@ -100,8 +96,8 @@ describe('initGenesisState Common Tests', () => {
 			expect(interopMod.events.get(TerminatedStateCreatedEvent)).toBeDefined();
 			expect(interopMod.events.get(TerminatedOutboxCreatedEvent)).toBeDefined();
 			expect(interopMod.events.get(InvalidCertificateSignatureEvent)).toBeDefined();
-			expect(interopMod.events.get(InvalidRMTVerification)).toBeDefined();
-			expect(interopMod.events.get(InvalidSMTVerification)).toBeDefined();
+			expect(interopMod.events.get(InvalidRMTVerificationEvent)).toBeDefined();
+			expect(interopMod.events.get(InvalidSMTVerificationEvent)).toBeDefined();
 		});
 	});
 
@@ -493,7 +489,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 		});
 	});
 
-	describe('_verifyTerminatedStateAccountsCommon', () => {
+	describe('_verifyTerminatedStateAccountsIDs', () => {
 		certificateThreshold = BigInt(10);
 		const validChainInfos = [
 			{
@@ -579,46 +575,6 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 
 			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
 				'terminatedStateAccounts must be ordered lexicographically by chainID.',
-			);
-		});
-
-		it('should call _verifyChainID the same number of times as size of terminatedStateAccounts', () => {
-			const interopModPrototype = Object.getPrototypeOf(interopMod);
-			jest.spyOn(interopModPrototype, '_verifyChainID' as any);
-
-			const chainInfoLocal: ChainInfo = {
-				...chainInfo,
-				chainData: {
-					...chainData,
-					status: ChainStatus.TERMINATED,
-					lastCertificate: {
-						...lastCertificate,
-						validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
-					},
-				},
-				chainValidators: {
-					activeValidators,
-					certificateThreshold,
-				},
-			};
-
-			const terminatedStateAccounts: TerminatedStateAccountWithChainID[] = [
-				{
-					chainID: chainInfoLocal.chainID,
-					terminatedStateAccount,
-				},
-				{
-					chainID: Buffer.from([0, 0, 0, 2]),
-					terminatedStateAccount,
-				},
-			];
-
-			interopModPrototype._verifyTerminatedStateAccountsCommon(
-				terminatedStateAccounts,
-				getMainchainID(params.chainID as Buffer),
-			);
-			expect(interopModPrototype['_verifyChainID']).toHaveBeenCalledTimes(
-				terminatedStateAccounts.length,
 			);
 		});
 	});

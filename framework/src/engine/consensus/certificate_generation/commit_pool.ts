@@ -104,7 +104,7 @@ export class CommitPool {
 		}
 
 		// Validation Step 2
-		const maxRemovalHeight = await this._getMaxRemovalHeight();
+		const maxRemovalHeight = await this.getMaxRemovalHeight();
 		if (commit.height <= maxRemovalHeight) {
 			return false;
 		}
@@ -307,6 +307,13 @@ export class CommitPool {
 		};
 	}
 
+	public async getMaxRemovalHeight() {
+		const blockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(
+			this._chain.finalizedHeight,
+		);
+		return Math.max(blockHeader.aggregateCommit.height, this._minCertifyHeight - 1);
+	}
+
 	private async _selectAggregateCommit(methodContext: StateStore): Promise<AggregateCommit> {
 		const { maxHeightCertified, maxHeightPrecommitted } = await this._bftMethod.getBFTHeights(
 			methodContext,
@@ -368,7 +375,7 @@ export class CommitPool {
 	}
 
 	private async _job(methodContext: StateStore): Promise<void> {
-		const removalHeight = await this._getMaxRemovalHeight();
+		const removalHeight = await this.getMaxRemovalHeight();
 		const currentHeight = this._chain.lastBlock.header.height;
 		const { maxHeightPrecommitted } = await this._bftMethod.getBFTHeights(methodContext);
 
@@ -513,13 +520,6 @@ export class CommitPool {
 		}
 
 		return deleteHeights;
-	}
-
-	private async _getMaxRemovalHeight() {
-		const blockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(
-			this._chain.finalizedHeight,
-		);
-		return blockHeader.aggregateCommit.height;
 	}
 
 	private _getAllCommits(): SingleCommit[] {

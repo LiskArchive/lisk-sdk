@@ -545,6 +545,19 @@ export const getValidatorResponseSchema = {
 	...validatorJSONSchema,
 };
 
+export const getConstantsResponseSchema = {
+	$id: 'modules/pos/endpoint/getConstantsResponseSchema',
+	type: 'object',
+	properties: {
+		...configSchema.properties,
+		defaultCommission: {
+			type: 'integer',
+			format: 'uint32',
+		},
+	},
+	required: [...configSchema.required, 'defaultCommission'],
+};
+
 export const getStakerRequestSchema = getValidatorRequestSchema;
 
 export const getStakerResponseSchema = {

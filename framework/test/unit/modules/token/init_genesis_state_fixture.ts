@@ -222,22 +222,6 @@ export const invalidGenesisAssets = [
 		'contains 0 amount locked balance',
 	],
 	[
-		'Empty account on userSubstore',
-		{
-			...validData,
-			userSubstore: [
-				...validData.userSubstore,
-				{
-					address: Buffer.alloc(20, 2),
-					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
-					availableBalance: BigInt('0'),
-					lockedBalances: [],
-				},
-			],
-		},
-		'has empty data',
-	],
-	[
 		'Duplicate address and tokenID for userSubstore',
 		{
 			...validData,

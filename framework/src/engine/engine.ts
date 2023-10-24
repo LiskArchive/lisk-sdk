@@ -137,6 +137,7 @@ export class Engine {
 		await this._network.stop();
 		await this._generator.stop();
 		await this._consensus.stop();
+		this._legacyChainHandler.stop();
 		this._rpcServer.stop();
 		this._closeDB();
 		this._logger.info('Engine cleanup completed');
@@ -228,6 +229,7 @@ export class Engine {
 
 		const legacyEndpoint = new LegacyEndpoint({
 			db: this._legacyDB,
+			legacyConfig: this._config.legacy,
 		});
 
 		const chainEndpoint = new ChainEndpoint({

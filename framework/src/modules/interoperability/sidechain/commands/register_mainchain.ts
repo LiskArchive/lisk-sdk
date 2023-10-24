@@ -112,7 +112,7 @@ export class RegisterMainchainCommand extends BaseInteroperabilityCommand<Sidech
 				};
 			}
 
-			if (currentValidator.bftWeight <= 0) {
+			if (currentValidator.bftWeight === BigInt(0)) {
 				return {
 					status: VerifyStatus.FAIL,
 					error: new Error('Validator bft weight must be positive integer.'),

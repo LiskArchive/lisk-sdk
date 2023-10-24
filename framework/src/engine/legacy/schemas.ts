@@ -135,3 +135,24 @@ export const legacyChainBracketInfoSchema = {
 	},
 	required: ['startHeight', 'snapshotBlockHeight', 'lastBlockHeight'],
 };
+
+export const getLegacyBlocksFromIdRequestSchema = {
+	$id: '/legacy/getBlocksFromIdRequest',
+	title: 'Get Blocks From Id Request',
+	type: 'object',
+	required: ['blockID', 'snapshotBlockID'],
+	properties: {
+		blockID: {
+			fieldNumber: 1,
+			dataType: 'bytes',
+			minLength: 32,
+			maxLength: 32,
+		},
+		snapshotBlockID: {
+			fieldNumber: 2,
+			dataType: 'bytes',
+			minLength: 32,
+			maxLength: 32,
+		},
+	},
+};

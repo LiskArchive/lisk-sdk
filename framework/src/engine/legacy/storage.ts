@@ -12,9 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Batch, Database } from '@liskhq/lisk-db';
+import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
 import { utils } from '@liskhq/lisk-cryptography';
-import { encodeLegacyChainBracketInfo } from './codec';
+import { codec } from '@liskhq/lisk-codec';
+import { decodeLegacyChainBracketInfo, encodeLegacyChainBracketInfo } from './codec';
 import { LegacyChainBracketInfo } from './types';
 import {
 	buildBlockIDDbKey,
@@ -23,6 +24,7 @@ import {
 	buildLegacyBracketDBKey,
 	buildTxsBlockIDDbKey,
 } from './utils';
+import { blockSchemaV2 } from './schemas';
 
 export class Storage {
 	private readonly _db: Database;
@@ -37,7 +39,20 @@ export class Storage {
 	}
 
 	public async getBlockByID(id: Buffer): Promise<Buffer> {
-		return this._db.get(buildBlockIDDbKey(id));
+		const blockHeader = await this._db.get(buildBlockIDDbKey(id));
+		let payload: Buffer[] = [];
+		try {
+			payload = await this.getTransactionsByBlockID(id);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+		}
+
+		return codec.encode(blockSchemaV2, {
+			header: blockHeader,
+			payload,
+		});
 	}
 
 	public async getBlockByHeight(height: number): Promise<Buffer> {
@@ -70,7 +85,7 @@ export class Storage {
 		// each txID is hashed value of 32 length
 		const idLength = 32;
 		for (let i = 0; i < txIdsBuffer.length; i += idLength) {
-			const txId = txIdsBuffer.subarray(i, (i += idLength));
+			const txId = txIdsBuffer.subarray(i, i + idLength);
 			txIds.push(txId);
 		}
 
@@ -102,11 +117,13 @@ export class Storage {
 		await this._db.write(batch);
 	}
 
-	public async getLegacyChainBracketInfo(snapshotBlockID: Buffer): Promise<Buffer> {
-		return this._db.get(buildLegacyBracketDBKey(snapshotBlockID));
+	public async getBracketInfo(snapshotBlockID: Buffer): Promise<LegacyChainBracketInfo> {
+		const encodedBracketInfo = await this._db.get(buildLegacyBracketDBKey(snapshotBlockID));
+
+		return decodeLegacyChainBracketInfo(encodedBracketInfo);
 	}
 
-	public async setLegacyChainBracketInfo(
+	public async setBracketInfo(
 		snapshotBlockID: Buffer,
 		bracketInfo: LegacyChainBracketInfo,
 	): Promise<void> {
@@ -114,6 +131,20 @@ export class Storage {
 			buildLegacyBracketDBKey(snapshotBlockID),
 			encodeLegacyChainBracketInfo(bracketInfo),
 		);
+	}
+
+	public async hasBracketInfo(snapshotBlockID: Buffer): Promise<boolean> {
+		try {
+			const bracketInfo = await this.getBracketInfo(snapshotBlockID);
+
+			return !!bracketInfo;
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+
+			return false;
+		}
 	}
 
 	private async _getBlockIDsBetweenHeights(
