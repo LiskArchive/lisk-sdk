@@ -44,7 +44,6 @@ import { TerminatedOutboxCreatedEvent } from '../../../../src/modules/interopera
 import { TerminatedStateCreatedEvent } from '../../../../src/modules/interoperability/events/terminated_state_created';
 import { InvalidRMTVerificationEvent } from '../../../../src/modules/interoperability/events/invalid_rmt_verification';
 import { InvalidSMTVerificationEvent } from '../../../../src/modules/interoperability/events/invalid_smt_verification';
-// import { ChainInfo, TerminatedStateAccountWithChainID } from '../../../../src/modules/interoperability/types';
 
 describe('initGenesisState Common Tests', () => {
 	const chainID = Buffer.from([0, 0, 0, 0]);

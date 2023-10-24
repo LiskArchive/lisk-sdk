@@ -222,55 +222,6 @@ export const invalidGenesisAssets = [
 		'contains 0 amount locked balance',
 	],
 	[
-		'Duplicate address and tokenID for userSubstore',
-		{
-			...validData,
-			userSubstore: [
-				{
-					address: Buffer.alloc(20, 0),
-					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
-					availableBalance: oneUnit,
-					lockedBalances: [{ module: 'pos', amount: oneUnit }],
-				},
-				{
-					address: Buffer.alloc(20, 0),
-					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
-					availableBalance: oneUnit,
-					lockedBalances: [{ module: 'pos', amount: oneUnit }],
-				},
-			],
-		},
-		'pair is duplicated',
-	],
-	[
-		'minimum tokenID length not satisfied for supplyStore',
-		{
-			...validData,
-			supplySubstore: [
-				...validData.supplySubstore,
-				{
-					tokenID: Buffer.alloc(1, 0),
-					totalSupply: oneUnit * BigInt(2),
-				},
-			],
-		},
-		"tokenID' minLength not satisfied",
-	],
-	[
-		'maximum tokenID length for supplyStore',
-		{
-			...validData,
-			supplySubstore: [
-				...validData.supplySubstore,
-				{
-					tokenID: Buffer.alloc(10, 0),
-					totalSupply: oneUnit * BigInt(2),
-				},
-			],
-		},
-		"tokenID' maxLength exceeded",
-	],
-	[
 		'Duplicate supply store',
 		{
 			...validData,

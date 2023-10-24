@@ -356,6 +356,254 @@ describe('initGenesisState', () => {
 			});
 		});
 
+		describe('terminatedStateAccounts', () => {
+			it('should not throw error if length of terminatedStateAccounts is zero', async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						// this is needed to verify `validatorsHash` related tests (above)
+						chainInfos: [
+							{
+								...chainInfo,
+								chainData: {
+									...chainData,
+									lastCertificate: {
+										...lastCertificate,
+										validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+									},
+								},
+								chainValidators: {
+									activeValidators,
+									certificateThreshold,
+								},
+							},
+						],
+						terminatedStateAccounts: [],
+					},
+					params,
+				);
+
+				await expect(interopMod.initGenesisState(context)).resolves.not.toThrow();
+			});
+
+			it('should call _verifyTerminatedStateAccountsIDs', async () => {
+				jest.spyOn(interopMod, '_verifyTerminatedStateAccountsIDs' as any);
+
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						chainInfos: [
+							{
+								...chainInfo,
+								chainData: {
+									...chainData,
+									status: ChainStatus.TERMINATED,
+									lastCertificate: {
+										...lastCertificate,
+										validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+									},
+								},
+								chainValidators: {
+									activeValidators,
+									certificateThreshold,
+								},
+							},
+						],
+						terminatedStateAccounts: [
+							{
+								chainID: chainInfo.chainID,
+								terminatedStateAccount,
+							},
+						],
+					},
+					params,
+				);
+
+				await expect(interopMod.initGenesisState(context)).resolves.toBeUndefined();
+				expect(interopMod['_verifyTerminatedStateAccountsIDs']).toHaveBeenCalledTimes(1);
+			});
+
+			it('should throw error if chainInfo.chainID exists in terminatedStateAccounts & chainInfo.chainData.status is ACTIVE', async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						chainInfos: [
+							{
+								...chainInfo,
+								chainData: {
+									...chainData,
+									status: ChainStatus.ACTIVE,
+									lastCertificate: {
+										...lastCertificate,
+										validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+									},
+								},
+								chainValidators: {
+									activeValidators,
+									certificateThreshold,
+								},
+							},
+						],
+						terminatedStateAccounts: [
+							{
+								chainID: chainInfo.chainID,
+								terminatedStateAccount,
+							},
+						],
+					},
+					params,
+				);
+
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					`For each terminatedStateAccount there should be a corresponding chainInfo at TERMINATED state`,
+				);
+			});
+
+			it('should throw error if chainInfo.chainID exists in terminatedStateAccounts & chainInfo.chainData.status is REGISTERED', async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						// this is needed to verify `validatorsHash` related tests (above)
+						chainInfos: [
+							{
+								...chainInfo,
+								chainData: {
+									...chainData,
+									lastCertificate: {
+										...lastCertificate,
+										validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+									},
+								},
+								chainValidators: {
+									activeValidators,
+									certificateThreshold,
+								},
+							},
+						],
+						terminatedStateAccounts: [
+							{
+								chainID: chainInfo.chainID,
+								terminatedStateAccount,
+							},
+						],
+					},
+					params,
+				);
+
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					`For each terminatedStateAccount there should be a corresponding chainInfo at TERMINATED state`,
+				);
+			});
+
+			it('should throw error if chainID in terminatedStateAccounts does not exist in chainInfo', async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						// this is needed to verify `validatorsHash` related tests (above)
+						chainInfos: [
+							{
+								...chainInfo,
+								chainData: {
+									...chainData,
+									lastCertificate: {
+										...lastCertificate,
+										validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+									},
+								},
+								chainValidators: {
+									activeValidators,
+									certificateThreshold,
+								},
+							},
+						],
+						terminatedStateAccounts: [
+							{
+								chainID: Buffer.from([0, 0, 0, 2]),
+								terminatedStateAccount,
+							},
+						],
+					},
+					params,
+				);
+
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					'For each terminatedStateAccount there should be a corresponding chainInfo at TERMINATED state',
+				);
+			});
+
+			it('should throw error if some stateAccount in terminatedStateAccounts have stateRoot not equal to chainData.lastCertificate.stateRoot', async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						// this is needed to verify `validatorsHash` related tests (above)
+						chainInfos: validChainInfos,
+						terminatedStateAccounts: [
+							{
+								chainID: Buffer.from([0, 0, 0, 1]),
+								terminatedStateAccount: {
+									...terminatedStateAccount,
+									stateRoot: Buffer.from(utils.getRandomBytes(HASH_LENGTH)),
+								},
+							},
+						],
+					},
+					params,
+				);
+
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					"stateAccount.stateRoot doesn't match chainInfo.chainData.lastCertificate.stateRoot.",
+				);
+			});
+
+			it('should throw error if some stateAccount in terminatedStateAccounts have mainchainStateRoot not equal to EMPTY_HASH', async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						// this is needed to verify `validatorsHash` related tests (above)
+						chainInfos: validChainInfos,
+						terminatedStateAccounts: [
+							{
+								chainID: Buffer.from([0, 0, 0, 1]),
+								terminatedStateAccount: {
+									...terminatedStateAccount,
+									mainchainStateRoot: Buffer.from(utils.getRandomBytes(HASH_LENGTH)),
+								},
+							},
+						],
+					},
+					params,
+				);
+
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					`stateAccount.mainchainStateRoot is not equal to ${EMPTY_HASH.toString('hex')}.`,
+				);
+			});
+
+			it('should throw error if some stateAccount in terminatedStateAccounts is not initialized', async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...genesisInteroperability,
+						// this is needed to verify `validatorsHash` related tests (above)
+						chainInfos: validChainInfos,
+						terminatedStateAccounts: [
+							{
+								chainID: Buffer.from([0, 0, 0, 1]),
+								terminatedStateAccount: {
+									...terminatedStateAccount,
+									initialized: false,
+								},
+							},
+						],
+					},
+					params,
+				);
+
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					'stateAccount is not initialized.',
+				);
+			});
+		});
+
 		it('should check that _verifyChannelData is called from _verifyChainInfos', async () => {
 			jest.spyOn(interopMod, '_verifyChannelData' as any);
 
