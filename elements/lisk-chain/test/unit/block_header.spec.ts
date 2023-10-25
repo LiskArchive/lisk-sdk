@@ -57,7 +57,7 @@ const getGenesisBlockAttrs = () => ({
 	maxHeightGenerated: 0,
 	validatorsHash: utils.hash(Buffer.alloc(0)),
 	aggregateCommit: {
-		height: 0,
+		height: 1009988,
 		aggregationBits: Buffer.alloc(0),
 		certificateSignature: EMPTY_BUFFER,
 	},
