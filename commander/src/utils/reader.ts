@@ -256,38 +256,28 @@ export const getParamsFromPrompt = async (
 			items?: { dataType?: string; type?: 'object'; properties?: Record<string, unknown> };
 		};
 
-		if (
-			property.type === 'array' &&
-			property.items?.type === 'object' &&
-			property.items.properties !== undefined
-		) {
-			const nestedResult = await getNestedParametersFromPrompt({
-				name: propertyName,
-				items: {
-					properties: property.items.properties,
-				},
-			});
+		if (property.type === 'array') {
+			if (property.items?.type === 'object' && property.items.properties !== undefined) {
+				const nestedResult = await getNestedParametersFromPrompt({
+					name: propertyName,
+					items: {
+						properties: property.items.properties,
+					},
+				});
 
-			result[propertyName] = nestedResult[propertyName];
+				result[propertyName] = nestedResult[propertyName];
+			} else if (property.items?.type === undefined && property.items?.dataType !== undefined) {
+				const answer: Record<string, string> = await inquirer.prompt({
+					type: 'input',
+					name: propertyName,
+					message: `Please enter: ${propertyName}(comma separated values (a,b)): `,
+				});
 
-			continue;
-		}
-
-		if (
-			property.type === 'array' &&
-			property.items?.type === undefined &&
-			property.items?.dataType !== undefined
-		) {
-			const answer: Record<string, string> = await inquirer.prompt({
-				type: 'input',
-				name: propertyName,
-				message: `Please enter: ${propertyName}(comma separated values (a,b)): `,
-			});
-
-			result[propertyName] = castArray(
-				answer[propertyName] === '' ? [] : answer[propertyName].split(','),
-				property.items.dataType,
-			);
+				result[propertyName] = castArray(
+					answer[propertyName] === '' ? [] : answer[propertyName].split(','),
+					property.items.dataType,
+				);
+			}
 		} else {
 			const answer: Record<string, string> = await inquirer.prompt({
 				type: 'input',
