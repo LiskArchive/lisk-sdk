@@ -207,11 +207,9 @@ const getNestedParametersFromPrompt = async (property: {
 }) => {
 	let addMore = false;
 	const nestedArray: Array<Record<string, unknown>> = [];
-
+	const nestedProperties = Object.keys(property.items.properties);
+	const nestedPropertiesCsv = nestedProperties.join(',');
 	do {
-		const nestedProperties = Object.keys(property.items.properties);
-		const nestedPropertiesCsv = nestedProperties.join(',');
-
 		const nestedPropertiesAnswer: Record<string, string> = await inquirer.prompt({
 			type: 'input',
 			name: property.name,
