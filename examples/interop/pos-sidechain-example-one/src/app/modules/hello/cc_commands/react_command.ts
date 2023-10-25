@@ -1,13 +1,13 @@
 /* eslint-disable class-methods-use-this */
 
 import { BaseCCCommand, CrossChainMessageContext, codec, cryptography, db } from 'lisk-sdk';
-import { crossChainReactParamsSchema, CCReactMessageParams } from '../schemas';
+import { CCReactMessageParamsSchema, CCReactMessageParams } from '../schemas';
 import { MAX_RESERVED_ERROR_STATUS, CROSS_CHAIN_COMMAND_NAME_REACT } from '../constants';
 import { ReactionStore, ReactionStoreData } from '../stores/reaction';
 import { MessageStore } from '../stores/message';
 
 export class ReactCCCommand extends BaseCCCommand {
-	public schema = crossChainReactParamsSchema;
+	public schema = CCReactMessageParamsSchema;
 
 	public get name(): string {
 		return CROSS_CHAIN_COMMAND_NAME_REACT;
@@ -21,7 +21,7 @@ export class ReactCCCommand extends BaseCCCommand {
 			throw new Error('Invalid CCM status code.');
 		}
 
-		const params = codec.decode<CCReactMessageParams>(crossChainReactParamsSchema, ccm.params);
+		const params = codec.decode<CCReactMessageParams>(CCReactMessageParamsSchema, ccm.params);
 		const messageCreatorAddress = cryptography.address.getAddressFromLisk32Address(
 			params.helloMessageID,
 		);
@@ -35,7 +35,7 @@ export class ReactCCCommand extends BaseCCCommand {
 		logger.info('Executing React CCM');
 		// const methodContext = ctx.getMethodContext();
 		// const { sendingChainID, status, receivingChainID } = ccm;
-		const params = codec.decode<CCReactMessageParams>(crossChainReactParamsSchema, ccm.params);
+		const params = codec.decode<CCReactMessageParams>(CCReactMessageParamsSchema, ccm.params);
 		logger.info(params, 'parameters');
 		const { helloMessageID, reactionType } = params;
 		const reactionSubstore = this.stores.get(ReactionStore);

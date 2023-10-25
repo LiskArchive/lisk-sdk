@@ -80,7 +80,7 @@ export const getHelloRequestSchema = {
 /**
  * Parameters of the cross-chain token transfer command
  */
-export const crossChainReactParamsSchema = {
+export const CCReactMessageParamsSchema = {
 	/** The unique identifier of the schema. */
 	$id: '/lisk/hello/ccReactParams',
 	type: 'object',
