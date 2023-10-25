@@ -33,15 +33,17 @@ export class ReactCCCommand extends BaseCCCommand {
 	public async execute(ctx: CrossChainMessageContext): Promise<void> {
 		const { ccm, logger } = ctx;
 		logger.info('Executing React CCM');
-		// const methodContext = ctx.getMethodContext();
 		// const { sendingChainID, status, receivingChainID } = ccm;
+		// Decode the provided CCM parameters
 		const params = codec.decode<CCReactMessageParams>(CCReactMessageParamsSchema, ccm.params);
 		logger.info(params, 'parameters');
+		// Get helloMessageID and reactionType from the parameters
 		const { helloMessageID, reactionType } = params;
 		const reactionSubstore = this.stores.get(ReactionStore);
 		const messageCreatorAddress = cryptography.address.getAddressFromLisk32Address(helloMessageID);
 		let msgReactions: ReactionStoreData;
 
+		// Get existing reactions for a Hello message, or initialize an empty reaction object, if none exists,yet.
 		try {
 			msgReactions = await reactionSubstore.get(ctx, messageCreatorAddress);
 		} catch (error) {
@@ -56,16 +58,23 @@ export class ReactCCCommand extends BaseCCCommand {
 			);
 			msgReactions = { reactions: { like: [] } };
 		}
+
+		// Check if the reactions is a like
 		if (reactionType === 0) {
 			const hasLiked = msgReactions.reactions.like.indexOf(ctx.transaction.senderAddress);
+			// If the sender has already liked the message
 			if (hasLiked > -1) {
+				// Remove the sender address from the likes for the message
 				msgReactions.reactions.like = msgReactions.reactions.like.splice(hasLiked, 1);
+				// If the sender has not liked the message yet
 			} else {
+				// Add the sender address to the likes of the message
 				msgReactions.reactions.like.push(ctx.transaction.senderAddress);
 			}
 		} else {
 			logger.error({ reactionType }, 'invalid reaction type');
 		}
+		// Update the reaction store with the reactions for the specified Hello message
 		await reactionSubstore.set(ctx, messageCreatorAddress, msgReactions);
 	}
 }
