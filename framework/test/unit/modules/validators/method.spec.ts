@@ -532,8 +532,9 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should be able to correctly set generator key for validator if address exists', async () => {
+			const anotherGeneratorKey = utils.getRandomBytes(ED25519_PUBLIC_KEY_LENGTH);
 			const generatorEventData = codec.encode(generatorKeyRegDataSchema, {
-				generatorKey,
+				generatorKey: anotherGeneratorKey,
 				result: KeyRegResult.SUCCESS,
 			});
 			const validatorAccount = {
@@ -545,12 +546,12 @@ describe('ValidatorsModuleMethod', () => {
 			const isSet = await validatorsModule.method.setValidatorGeneratorKey(
 				methodContext,
 				address,
-				generatorKey,
+				anotherGeneratorKey,
 			);
 			const setValidatorAccount = await validatorsSubStore.get(methodContext, address);
 
 			expect(isSet).toBe(true);
-			expect(setValidatorAccount.generatorKey.equals(generatorKey)).toBe(true);
+			expect(setValidatorAccount.generatorKey.equals(anotherGeneratorKey)).toBe(true);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
 				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
