@@ -854,6 +854,7 @@ describe('ValidatorsModuleMethod', () => {
 
 			expect(isSet).toBe(true);
 			expect(setValidatorAccount.generatorKey.equals(generatorKey)).toBe(true);
+			expect(setValidatorAccount.blsKey.equals(INVALID_BLS_KEY)).toBe(true);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
 				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
