@@ -57,6 +57,12 @@ describe('address', () => {
 	});
 
 	describe('#getLisk32AddressFromPublicKey', () => {
+		it('should reject when publicKey length is not 32', () => {
+			expect(() => getLisk32AddressFromPublicKey(Buffer.alloc(31), 'lsk')).toThrow(
+				'publicKey length must be 32.',
+			);
+		});
+
 		it('should generate lisk32 address from publicKey', () => {
 			const address = getLisk32AddressFromPublicKey(defaultPublicKey, 'lsk');
 

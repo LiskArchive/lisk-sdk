@@ -118,7 +118,12 @@ const addressToLisk32 = (address: Buffer): string => {
 export const getLisk32AddressFromPublicKey = (
 	publicKey: Buffer,
 	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
-): string => `${prefix}${addressToLisk32(getAddressFromPublicKey(publicKey))}`;
+): string => {
+	if (publicKey.length !== 32) {
+		throw new Error('publicKey length must be 32.');
+	}
+	return `${prefix}${addressToLisk32(getAddressFromPublicKey(publicKey))}`;
+};
 
 export const validateLisk32Address = (
 	address: string,
