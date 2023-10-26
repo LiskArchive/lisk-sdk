@@ -74,6 +74,15 @@ describe('ValidatorsModuleMethod', () => {
 		'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d27',
 		'hex',
 	);
+	const anotherProofOfPossession = Buffer.from(
+		'b92b11d66348e197c62d14af1453620d550c21d59ce572d95a03f0eaa0d0d195efbb2f2fd1577dc1a04ecdb453065d9d168ce7648bc5328e5ea47bb07d3ce6fd75f35ee51064a9903da8b90f7dc8ab4f2549b834cb5911b883097133f66b9ab9',
+		'hex',
+	);
+	const anotherBLSKey = Buffer.from(
+		'92f020ce5e37befb86493a82686b0eedddb264350b0873cf1eeaa1fefe39d938f05f272452c1ef5e6ceb4d9b23687e31',
+		'hex',
+	);
+
 	const invalidAddressShort = utils.getRandomBytes(ADDRESS_LENGTH - 1);
 	const invalidAddressLong = utils.getRandomBytes(ADDRESS_LENGTH + 1);
 	const invalidGeneratorKeyShort = utils.getRandomBytes(ED25519_PUBLIC_KEY_LENGTH - 1);
@@ -355,6 +364,31 @@ describe('ValidatorsModuleMethod', () => {
 				[address],
 				false,
 			);
+		});
+
+		it('should not be able to correctly set bls key for validator if address exists with valid blsKey, key is not registered and proof of possession is valid', async () => {
+			const validatorAccount = {
+				generatorKey,
+				blsKey,
+			};
+			await validatorsSubStore.set(methodContext, address, validatorAccount);
+			const isSet = await validatorsModule.method.setValidatorBLSKey(
+				methodContext,
+				address,
+				anotherBLSKey,
+				anotherProofOfPossession,
+			);
+
+			const setValidatorAccount = await validatorsSubStore.get(methodContext, address);
+
+			const hasKey = await blsKeysSubStore.has(methodContext, blsKey);
+
+			expect(setValidatorAccount.blsKey).toEqual(blsKey);
+
+			expect(isSet).toBe(false);
+			expect(setValidatorAccount.blsKey).toEqual(blsKey);
+			expect(hasKey).toBe(false);
+			expect(methodContext.eventQueue.add).not.toHaveBeenCalled();
 		});
 
 		it('should not be able to set bls key for validator if address does not exist', async () => {
