@@ -143,6 +143,8 @@ describe('ValidatorsModuleMethod', () => {
 				[address],
 				false,
 			);
+			await expect(validatorsSubStore.has(methodContext, address)).resolves.toBe(true);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(true);
 		});
 
 		it('should not be able to create new validator account if validator address already exists, bls key is not registered and proof of possession is valid', async () => {
@@ -172,6 +174,7 @@ describe('ValidatorsModuleMethod', () => {
 				[address],
 				true,
 			);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 
 		it('should not be able to create new validator account if validator address does not exist, bls key is already registered and proof of possession is valid', async () => {
@@ -200,6 +203,7 @@ describe('ValidatorsModuleMethod', () => {
 				[address],
 				true,
 			);
+			await expect(validatorsSubStore.has(methodContext, address)).resolves.toBe(false);
 		});
 
 		it('should not be able to create new validator account if validator address does not exist, bls key is not registered and proof of possession is invalid', async () => {
@@ -225,6 +229,8 @@ describe('ValidatorsModuleMethod', () => {
 				[address],
 				true,
 			);
+			await expect(validatorsSubStore.has(methodContext, address)).resolves.toBe(false);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 
 		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but validatorAddress is shorter than 20 bytes', async () => {
@@ -237,8 +243,8 @@ describe('ValidatorsModuleMethod', () => {
 					proofOfPossession,
 				),
 			).rejects.toThrow(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
-			await expect(validatorsSubStore.get(methodContext, invalidAddressShort)).rejects.toThrow();
-			await expect(blsKeysSubStore.get(methodContext, blsKey)).rejects.toThrow();
+			await expect(validatorsSubStore.has(methodContext, invalidAddressShort)).resolves.toBe(false);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 
 		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but validatorAddress is longer than 20 bytes', async () => {
@@ -251,8 +257,8 @@ describe('ValidatorsModuleMethod', () => {
 					proofOfPossession,
 				),
 			).rejects.toThrow(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
-			await expect(validatorsSubStore.get(methodContext, invalidAddressLong)).rejects.toThrow();
-			await expect(blsKeysSubStore.get(methodContext, blsKey)).rejects.toThrow();
+			await expect(validatorsSubStore.has(methodContext, invalidAddressLong)).resolves.toBe(false);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 
 		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but generator key is shorter than 32 bytes', async () => {
@@ -265,8 +271,8 @@ describe('ValidatorsModuleMethod', () => {
 					proofOfPossession,
 				),
 			).rejects.toThrow();
-			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
-			await expect(blsKeysSubStore.get(methodContext, blsKey)).rejects.toThrow();
+			await expect(validatorsSubStore.has(methodContext, address)).resolves.toBe(false);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 
 		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but generator key is longer than 32 bytes', async () => {
@@ -279,8 +285,8 @@ describe('ValidatorsModuleMethod', () => {
 					proofOfPossession,
 				),
 			).rejects.toThrow();
-			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
-			await expect(blsKeysSubStore.get(methodContext, blsKey)).rejects.toThrow();
+			await expect(validatorsSubStore.has(methodContext, address)).resolves.toBe(false);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 
 		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but bls key is shorter than 48 bytes', async () => {
@@ -293,8 +299,8 @@ describe('ValidatorsModuleMethod', () => {
 					proofOfPossession,
 				),
 			).rejects.toThrow();
-			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
-			await expect(blsKeysSubStore.get(methodContext, invalidBlsKeyShort)).rejects.toThrow();
+			await expect(validatorsSubStore.has(methodContext, address)).resolves.toBe(false);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 
 		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but bls key is longer than 48 bytes', async () => {
@@ -307,8 +313,8 @@ describe('ValidatorsModuleMethod', () => {
 					proofOfPossession,
 				),
 			).rejects.toThrow();
-			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
-			await expect(blsKeysSubStore.get(methodContext, invalidBlsKeyLong)).rejects.toThrow();
+			await expect(validatorsSubStore.has(methodContext, address)).resolves.toBe(false);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 	});
 
