@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
+import { utils, address as addressUtils } from '@liskhq/lisk-cryptography';
 import { ValidatorsMethod, ValidatorsModule } from '../../../../src/modules/validators';
 import {
 	MODULE_NAME_VALIDATORS,
@@ -973,6 +973,136 @@ describe('ValidatorsModuleMethod', () => {
 			expect(() => validatorsModule.method['_validateLengths'](validatorArgs)).toThrow(
 				`Generator key must be ${ED25519_PUBLIC_KEY_LENGTH} bytes long.`,
 			);
+		});
+	});
+
+	describe('setValidatorsParams', () => {
+		it('should update ValidatorsParamsStore with the provided validators, preCommitThreshold, certificateThreshold and call setNextValidators', async () => {
+			const validatorSetter = {
+				setNextValidators: jest.fn().mockReturnValue(undefined),
+			};
+
+			const validators = [
+				{
+					generatorKey: Buffer.from(
+						'91fdf7f2a3eb93e493f736a4f9fce0e1df082836bf6d06e739bb3b0e1690fada',
+						'hex',
+					),
+					blsKey: Buffer.from(
+						'a84b3fc0a53fcb07c6057442cf11b37ef0a3d3216fc8e245f9cbf43c13193515f0de3ab9ef4f6b0e04ecdb4df212d96a',
+						'hex',
+					),
+					address: addressUtils.getAddressFromLisk32Address(
+						'lsk8kpswabbcjrnfp89demrfvryx9sgjsma87pusk',
+					),
+					bftWeight: BigInt(54),
+				},
+				{
+					generatorKey: Buffer.from(
+						'b53ef930d84d3ce5b4947c2502da06bcbc0fb2c71ee96f3b3a35340516712c71',
+						'hex',
+					),
+					blsKey: Buffer.from(
+						'8d4151757d14b1a30f7088f0bb1505bfd94a471872d565de563dbce32f696cb77afcc026170c343d0329ad554df564f6',
+						'hex',
+					),
+					address: addressUtils.getAddressFromLisk32Address(
+						'lskkjm548jqdrgzqrozpkew9z82kqfvtpmvavj7d6',
+					),
+					bftWeight: BigInt(33),
+				},
+			];
+
+			for (const validator of validators) {
+				await validatorsSubStore.set(methodContext, validator.address, {
+					generatorKey: validator.generatorKey,
+					blsKey: validator.blsKey,
+				});
+			}
+
+			const preCommitThreshold = BigInt(100);
+			const certificateThreshold = BigInt(200);
+
+			await validatorsMethod.setValidatorsParams(
+				methodContext,
+				validatorSetter,
+				preCommitThreshold,
+				certificateThreshold,
+				validators,
+			);
+
+			const expectedValidatorParams = {
+				certificateThreshold,
+				preCommitThreshold,
+				validators,
+			};
+
+			const validatorParams = await validatorsParamsSubStore.get(methodContext, EMPTY_KEY);
+
+			expect(validatorParams).toEqual(expectedValidatorParams);
+
+			expect(validatorSetter.setNextValidators).toHaveBeenNthCalledWith(
+				1,
+				preCommitThreshold,
+				certificateThreshold,
+				validators,
+			);
+		});
+
+		it('should throw if provided validator does not exist in Validator', async () => {
+			const validatorSetter = {
+				setNextValidators: jest.fn().mockReturnValue(undefined),
+			};
+
+			const validators = [
+				{
+					generatorKey: Buffer.from(
+						'91fdf7f2a3eb93e493f736a4f9fce0e1df082836bf6d06e739bb3b0e1690fada',
+						'hex',
+					),
+					blsKey: Buffer.from(
+						'a84b3fc0a53fcb07c6057442cf11b37ef0a3d3216fc8e245f9cbf43c13193515f0de3ab9ef4f6b0e04ecdb4df212d96a',
+						'hex',
+					),
+					address: addressUtils.getAddressFromLisk32Address(
+						'lsk8kpswabbcjrnfp89demrfvryx9sgjsma87pusk',
+					),
+					bftWeight: BigInt(54),
+				},
+				{
+					generatorKey: Buffer.from(
+						'b53ef930d84d3ce5b4947c2502da06bcbc0fb2c71ee96f3b3a35340516712c71',
+						'hex',
+					),
+					blsKey: Buffer.from(
+						'8d4151757d14b1a30f7088f0bb1505bfd94a471872d565de563dbce32f696cb77afcc026170c343d0329ad554df564f6',
+						'hex',
+					),
+					address: addressUtils.getAddressFromLisk32Address(
+						'lskkjm548jqdrgzqrozpkew9z82kqfvtpmvavj7d6',
+					),
+					bftWeight: BigInt(33),
+				},
+			];
+
+			const preCommitThreshold = BigInt(100);
+			const certificateThreshold = BigInt(200);
+
+			await expect(
+				validatorsMethod.setValidatorsParams(
+					methodContext,
+					validatorSetter,
+					preCommitThreshold,
+					certificateThreshold,
+					validators,
+				),
+			).rejects.toThrow('does not exist');
+
+			const validatorParamsExits = await validatorsParamsSubStore.has(methodContext, EMPTY_KEY);
+
+			expect(validatorParamsExits).toBe(false);
+
+			expect(validatorSetter.setNextValidators).not.toHaveBeenCalled();
 		});
 	});
 });
