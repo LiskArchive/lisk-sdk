@@ -1195,34 +1195,36 @@ describe('StakeCommand', () => {
 						`Sender can only stake upto ${MAX_NUMBER_SENT_STAKES}.`,
 					);
 
-					const failedEventIndex = MAX_NUMBER_SENT_STAKES - existingSentStakesCount;
-					const totalEventsCount = failedEventIndex + 1;
+					// count events until the first failed one
+					const totalEventsCount = MAX_NUMBER_SENT_STAKES - existingSentStakesCount + 1;
 
 					checkEventResult(
 						context.eventQueue,
 						totalEventsCount,
 						ValidatorStakedEvent,
-						failedEventIndex,
+						totalEventsCount - 1,
 						{
 							senderAddress,
-							validatorAddress: transactionParamsDecoded.stakes[failedEventIndex].validatorAddress,
-							amount: transactionParamsDecoded.stakes[failedEventIndex].amount,
+							validatorAddress:
+								transactionParamsDecoded.stakes[totalEventsCount - 1].validatorAddress,
+							amount: transactionParamsDecoded.stakes[totalEventsCount - 1].amount,
 						},
 						PoSEventResult.STAKE_FAILED_TOO_MANY_SENT_STAKES,
 					);
 				});
 			});
 
-			describe('when transaction.params.stakes negative amount decrease StakerData.stakes array entries, yet positive amount makes account exceeds more than 10', () => {
+			describe(`when transaction.params.stakes downstakes decrease stakerData.sentStakes entries, yet upstakes make account exceeds more than ${MAX_NUMBER_SENT_STAKES} stakes`, () => {
 				it('should throw error and emit ValidatorStakedEvent with STAKE_FAILED_TOO_MANY_SENT_STAKES failure', async () => {
-					const initialValidatorAmount = 8;
+					const amount = liskToBeddows(20);
 					const stakerData = await stakerStore.getOrDefault(
 						createStoreGetter(stateStore),
 						senderAddress,
 					);
 
-					// Suppose account already staked for 8 validators
-					for (let i = 0; i < initialValidatorAmount; i += 1) {
+					// Suppose account only has room for 2 more validators to stake with
+					const existingSentStakesCount = MAX_NUMBER_SENT_STAKES - 2;
+					for (let i = 0; i < existingSentStakesCount; i += 1) {
 						const uniqueValidatorAddress = Buffer.concat([Buffer.alloc(19, 1), Buffer.alloc(1, i)]);
 
 						const validatorInfo = {
@@ -1246,7 +1248,7 @@ describe('StakeCommand', () => {
 
 						const stake = {
 							validatorAddress: uniqueValidatorAddress,
-							amount: liskToBeddows(20),
+							amount,
 							sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 						};
 						stakerData.stakes.push(stake);
@@ -1254,27 +1256,26 @@ describe('StakeCommand', () => {
 
 					await stakerStore.set(createStoreGetter(stateStore), senderAddress, stakerData);
 
-					// We have 2 negative stakes
-					const stakes = [
-						{
-							validatorAddress: stakerData.stakes[0].validatorAddress,
-							amount: liskToBeddows(-10),
-						},
-						{
-							validatorAddress: stakerData.stakes[1].validatorAddress,
-							amount: liskToBeddows(-10),
-						},
-					];
+					// We have 2 downstakes
+					const downstakeCount = 2;
+					const stakes = [];
 
-					// We have 3 positive stakes
-					for (let i = 0; i < 3; i += 1) {
+					for (let i = 0; i < downstakeCount; i += 1) {
+						stakes.push({
+							validatorAddress: stakerData.stakes[i].validatorAddress,
+							amount: -amount,
+						});
+					}
+
+					// We have 7 upstakes
+					for (let i = 0; i < 7; i += 1) {
 						const uniqueValidatorAddress = Buffer.concat([Buffer.alloc(19, 2), Buffer.alloc(1, i)]);
 
 						const validatorInfo = {
 							consecutiveMissedBlocks: 0,
 							isBanned: false,
 							lastGeneratedHeight: 5,
-							name: `someValidator${i + initialValidatorAmount}`,
+							name: `someValidator${i + existingSentStakesCount}`,
 							reportMisbehaviorHeights: [],
 							selfStake: BigInt(0),
 							totalStake: BigInt(0),
@@ -1291,13 +1292,13 @@ describe('StakeCommand', () => {
 
 						stakes.push({
 							validatorAddress: uniqueValidatorAddress,
-							amount: liskToBeddows(10),
+							amount,
 						});
 					}
 
-					// Account already contains 8 positive stakes
-					// now we added 2 negative stakes and 3 new positive stakes
-					// which will make total positive stakes to grow over 10
+					// Account can only take 2 more new upstakes
+					// now we remove 2 of existing stakes and add 7 new stakes
+					// which will make total stakes to grow over the allowed maximum
 					transactionParamsDecoded = { stakes };
 
 					transaction.params = codec.encode(stakeCommand.schema, transactionParamsDecoded);
@@ -1311,15 +1312,19 @@ describe('StakeCommand', () => {
 						`Sender can only stake upto ${MAX_NUMBER_SENT_STAKES}.`,
 					);
 
+					// count events until the first failed one
+					const totalEventsCount =
+						MAX_NUMBER_SENT_STAKES - existingSentStakesCount + 2 * downstakeCount + 1;
+
 					checkEventResult(
 						context.eventQueue,
-						5,
+						totalEventsCount,
 						ValidatorStakedEvent,
-						4,
+						totalEventsCount - 1,
 						{
 							senderAddress,
-							validatorAddress: stakes[4].validatorAddress,
-							amount: stakes[4].amount,
+							validatorAddress: stakes[totalEventsCount - 1].validatorAddress,
+							amount: stakes[totalEventsCount - 1].amount,
 						},
 						PoSEventResult.STAKE_FAILED_TOO_MANY_SENT_STAKES,
 					);
