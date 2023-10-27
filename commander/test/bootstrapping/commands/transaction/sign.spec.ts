@@ -30,7 +30,7 @@ import * as appUtils from '../../../../src/utils/application';
 import * as readerUtils from '../../../../src/utils/reader';
 import { SignCommand } from '../../../../src/bootstrapping/commands/transaction/sign';
 import { getConfig } from '../../../helpers/config';
-import { accountsForMultisignature } from '../../../helpers/account';
+import { legacyAccounts, modernAccounts } from '../../../helpers/account';
 import {
 	createIPCClientMock,
 	mockCommands,
@@ -40,26 +40,26 @@ import {
 import { Awaited } from '../../../types';
 
 describe('transaction:sign command', () => {
-	const senderPassphrase = accountsForMultisignature.targetAccount.passphrase;
+	const senderPassphrase = legacyAccounts.targetAccount.passphrase;
 
 	const mandatoryPassphrases = [
-		accountsForMultisignature.mandatoryOne.passphrase,
-		accountsForMultisignature.mandatoryTwo.passphrase,
+		legacyAccounts.mandatoryOne.passphrase,
+		legacyAccounts.mandatoryTwo.passphrase,
 	];
 
 	const optionalPassphrases = [
-		accountsForMultisignature.optionalOne.passphrase,
-		accountsForMultisignature.optionalTwo.passphrase,
+		legacyAccounts.optionalOne.passphrase,
+		legacyAccounts.optionalTwo.passphrase,
 	];
 
 	const mandatoryKeys = [
-		accountsForMultisignature.mandatoryOne.publicKey.toString('hex'),
-		accountsForMultisignature.mandatoryTwo.publicKey.toString('hex'),
+		legacyAccounts.mandatoryOne.publicKey.toString('hex'),
+		legacyAccounts.mandatoryTwo.publicKey.toString('hex'),
 	];
 
 	const optionalKeys = [
-		accountsForMultisignature.optionalOne.publicKey.toString('hex'),
-		accountsForMultisignature.optionalTwo.publicKey.toString('hex'),
+		legacyAccounts.optionalOne.publicKey.toString('hex'),
+		legacyAccounts.optionalTwo.publicKey.toString('hex'),
 	];
 
 	const signMultiSigCmdArgs = (unsignedTransaction: string, passphraseToSign: string): string[] => {
@@ -209,16 +209,16 @@ describe('transaction:sign command', () => {
 
 		describe('sign multi signature registration transaction', () => {
 			const messageForRegistration = {
-				address: accountsForMultisignature.targetAccount.publicKey,
+				address: legacyAccounts.targetAccount.address,
 				nonce: BigInt(2),
 				numberOfSignatures: 4,
 				mandatoryKeys: [
-					accountsForMultisignature.mandatoryOne.publicKey,
-					accountsForMultisignature.mandatoryTwo.publicKey,
+					legacyAccounts.mandatoryOne.publicKey,
+					legacyAccounts.mandatoryTwo.publicKey,
 				].sort((k1, k2) => k1.compare(k2)),
 				optionalKeys: [
-					accountsForMultisignature.optionalOne.publicKey,
-					accountsForMultisignature.optionalTwo.publicKey,
+					legacyAccounts.optionalOne.publicKey,
+					legacyAccounts.optionalTwo.publicKey,
 				].sort((k1, k2) => k1.compare(k2)),
 			};
 
@@ -238,7 +238,7 @@ describe('transaction:sign command', () => {
 				MESSAGE_TAG_MULTISIG_REG,
 				networkIdentifier,
 				messageBytes,
-				accountsForMultisignature.mandatoryTwo.privateKey,
+				legacyAccounts.mandatoryTwo.privateKey,
 			);
 			decodedParams.signatures.push(sign1);
 
@@ -246,7 +246,7 @@ describe('transaction:sign command', () => {
 				MESSAGE_TAG_MULTISIG_REG,
 				networkIdentifier,
 				messageBytes,
-				accountsForMultisignature.mandatoryOne.privateKey,
+				legacyAccounts.mandatoryOne.privateKey,
 			);
 			decodedParams.signatures.push(sign2);
 
@@ -254,7 +254,7 @@ describe('transaction:sign command', () => {
 				MESSAGE_TAG_MULTISIG_REG,
 				networkIdentifier,
 				messageBytes,
-				accountsForMultisignature.optionalOne.privateKey,
+				legacyAccounts.optionalOne.privateKey,
 			);
 			decodedParams.signatures.push(sign3);
 
@@ -262,7 +262,7 @@ describe('transaction:sign command', () => {
 				MESSAGE_TAG_MULTISIG_REG,
 				networkIdentifier,
 				messageBytes,
-				accountsForMultisignature.optionalTwo.privateKey,
+				legacyAccounts.optionalTwo.privateKey,
 			);
 			decodedParams.signatures.push(sign4);
 
@@ -271,25 +271,21 @@ describe('transaction:sign command', () => {
 				command: 'registerMultisignature',
 				nonce: BigInt('2'),
 				fee: BigInt('1500000000'),
-				senderPublicKey: accountsForMultisignature.targetAccount.publicKey,
+				senderPublicKey: legacyAccounts.targetAccount.publicKey,
 				params: codec.encode(registerMultisignatureParamsSchema, decodedParams),
 				signatures: [],
 			};
 
 			const unsignedMultiSigTransaction = codec.encode(transactionSchema, msTx);
 			const TAG_TRANSACTION = 'LSK_TX_';
-			const decodedBaseTransaction: any = codec.decode(
-				transactionSchema,
-				unsignedMultiSigTransaction,
-			);
 			const signatureSender = ed.signDataWithPrivateKey(
 				TAG_TRANSACTION,
 				networkIdentifier,
 				unsignedMultiSigTransaction,
-				accountsForMultisignature.targetAccount.privateKey,
+				legacyAccounts.targetAccount.privateKey,
 			);
 			const signedTransaction = codec.encode(transactionSchema, {
-				...decodedBaseTransaction,
+				...msTx,
 				signatures: [signatureSender],
 			});
 
@@ -297,9 +293,10 @@ describe('transaction:sign command', () => {
 				await SignCommandExtended.run(
 					[
 						unsignedMultiSigTransaction.toString('hex'),
-						`--passphrase=${accountsForMultisignature.targetAccount.passphrase}`,
+						`--passphrase=${legacyAccounts.targetAccount.passphrase}`,
 						`--chain-id=${chainIDStr}`,
 						'--offline',
+						'--key-derivation-path=legacy',
 					],
 					config,
 				);
@@ -313,10 +310,11 @@ describe('transaction:sign command', () => {
 				await SignCommandExtended.run(
 					[
 						unsignedMultiSigTransaction.toString('hex'),
-						`--passphrase=${accountsForMultisignature.targetAccount.passphrase}`,
+						`--passphrase=${legacyAccounts.targetAccount.passphrase}`,
 						`--chain-id=${chainIDStr}`,
 						'--offline',
 						'--json',
+						'--key-derivation-path=legacy',
 					],
 					config,
 				);
@@ -324,35 +322,70 @@ describe('transaction:sign command', () => {
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 					transaction: signedTransaction.toString('hex'),
 				});
+			});
+
+			it('should return a signed transaction when using accounts with modern key path derivation', async () => {
+				const params = {
+					numberOfSignatures: 3,
+					mandatoryKeys: [modernAccounts[0].publicKey, modernAccounts[1].publicKey].sort(
+						(key1, key2) => key1.compare(key2),
+					),
+					optionalKeys: [modernAccounts[2].publicKey],
+					signatures: [] as Buffer[],
+				};
+
+				const message = {
+					address: modernAccounts[0].address,
+					nonce: BigInt(3),
+					numberOfSignatures: params.numberOfSignatures,
+					mandatoryKeys: params.mandatoryKeys,
+					optionalKeys: params.optionalKeys,
+				};
+				const messageEncoded = codec.encode(multisigRegMsgSchema, message);
+
+				for (let i = 0; i < params.numberOfSignatures; i += 1) {
+					const messageSignature = ed.signData(
+						MESSAGE_TAG_MULTISIG_REG,
+						networkIdentifier,
+						messageEncoded,
+						modernAccounts[i].privateKey,
+					);
+					params.signatures.push(messageSignature);
+				}
+
+				const rawTx = {
+					module: 'auth',
+					command: 'registerMultisignature',
+					nonce: BigInt(3),
+					fee: BigInt('1000000000'),
+					senderPublicKey: modernAccounts[0].publicKey,
+					params: codec.encode(registerMultisignatureParamsSchema, params),
+					signatures: [] as Buffer[],
+				};
+				const unsignedTx = codec.encode(transactionSchema, rawTx);
+
+				const txSignature = ed.signDataWithPrivateKey(
+					TAG_TRANSACTION,
+					networkIdentifier,
+					unsignedTx,
+					modernAccounts[0].privateKey,
+				);
+				rawTx.signatures = [txSignature];
+
+				const signedTx = codec.encode(transactionSchema, rawTx);
+
+				await SignCommandExtended.run(
+					[
+						unsignedTx.toString('hex'),
+						`--passphrase=${modernAccounts[0].passphrase}`,
+						`--chain-id=${chainIDStr}`,
+						'--offline',
+					],
+					config,
+				);
+				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-					transaction: {
-						id: expect.any(String),
-						module: 'auth',
-						command: 'registerMultisignature',
-						nonce: '2',
-						fee: '1500000000',
-						senderPublicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-						params: {
-							numberOfSignatures: 4,
-							mandatoryKeys: [
-								accountsForMultisignature.mandatoryTwo.publicKey.toString('hex'),
-								accountsForMultisignature.mandatoryOne.publicKey.toString('hex'),
-							],
-							optionalKeys: [
-								accountsForMultisignature.optionalOne.publicKey.toString('hex'),
-								accountsForMultisignature.optionalTwo.publicKey.toString('hex'),
-							],
-							signatures: [
-								'b782005d5b55f390bf1e10ed88a076e448124a9be882414977876a3fd134a2047e14c6aeb8b58915c4bb51ba3490b7643710432019dac171467bad214e0ced07',
-								'082501104f42f0c8a47291b51630e6869aebb653fe224dca74a9027fc8494f5a2d6537bb1bc1b94d8b1a1af00d14fb50b9e0cd36e3bfb8ea3265c5e956064c0c',
-								'aa72f005da46a8782ff5edd5b2546baf6a8bb0d67284c4e7631abf6629feba65854203d961fb4c2a31c12c525c0b7c4f9c8a47118789f93cf6ebd158b294c707',
-								'6a3a179fbb076ca8e8c3e42e1e6d2ae447f39ae413df083e14685fd02a562ab3fac085080709387e3ecbf305b58b4f1957ea497e9e7834d55a8a71a946f5050d',
-							],
-						},
-						signatures: [
-							'06f78300e3fae75408e3526fd08de832e953e0d252f441f57003a1f4ad84f350edf0a20a641f43abe7fb81121306750e23effd31f6f04fbd1156a9088585440c',
-						],
-					},
+					transaction: signedTx.toString('hex'),
 				});
 			});
 		});
@@ -522,16 +555,16 @@ describe('transaction:sign command', () => {
 		// eslint-disable-next-line jest/no-disabled-tests
 		describe('sign multi signature registration transaction', () => {
 			const messageForRegistration = {
-				address: accountsForMultisignature.targetAccount.publicKey,
+				address: legacyAccounts.targetAccount.publicKey,
 				nonce: BigInt(2),
 				numberOfSignatures: 4,
 				mandatoryKeys: [
-					accountsForMultisignature.mandatoryOne.publicKey,
-					accountsForMultisignature.mandatoryTwo.publicKey,
+					legacyAccounts.mandatoryOne.publicKey,
+					legacyAccounts.mandatoryTwo.publicKey,
 				].sort((k1, k2) => k1.compare(k2)),
 				optionalKeys: [
-					accountsForMultisignature.optionalOne.publicKey,
-					accountsForMultisignature.optionalTwo.publicKey,
+					legacyAccounts.optionalOne.publicKey,
+					legacyAccounts.optionalTwo.publicKey,
 				].sort((k1, k2) => k1.compare(k2)),
 			};
 
@@ -551,7 +584,7 @@ describe('transaction:sign command', () => {
 				MESSAGE_TAG_MULTISIG_REG,
 				chainID,
 				messageBytes,
-				accountsForMultisignature.mandatoryTwo.privateKey,
+				legacyAccounts.mandatoryTwo.privateKey,
 			);
 			decodedParams.signatures.push(sign1);
 
@@ -559,7 +592,7 @@ describe('transaction:sign command', () => {
 				MESSAGE_TAG_MULTISIG_REG,
 				chainID,
 				messageBytes,
-				accountsForMultisignature.mandatoryOne.privateKey,
+				legacyAccounts.mandatoryOne.privateKey,
 			);
 			decodedParams.signatures.push(sign2);
 
@@ -567,7 +600,7 @@ describe('transaction:sign command', () => {
 				MESSAGE_TAG_MULTISIG_REG,
 				chainID,
 				messageBytes,
-				accountsForMultisignature.optionalOne.privateKey,
+				legacyAccounts.optionalOne.privateKey,
 			);
 			decodedParams.signatures.push(sign3);
 
@@ -575,7 +608,7 @@ describe('transaction:sign command', () => {
 				MESSAGE_TAG_MULTISIG_REG,
 				chainID,
 				messageBytes,
-				accountsForMultisignature.optionalTwo.privateKey,
+				legacyAccounts.optionalTwo.privateKey,
 			);
 			decodedParams.signatures.push(sign4);
 
@@ -584,7 +617,7 @@ describe('transaction:sign command', () => {
 				command: 'registerMultisignature',
 				nonce: BigInt('2'),
 				fee: BigInt('1500000000'),
-				senderPublicKey: accountsForMultisignature.targetAccount.publicKey,
+				senderPublicKey: legacyAccounts.targetAccount.publicKey,
 				params: codec.encode(registerMultisignatureParamsSchema, decodedParams),
 				signatures: [],
 			};
@@ -599,7 +632,7 @@ describe('transaction:sign command', () => {
 				command: 'registerMultisignature',
 				nonce: '2',
 				fee: '1500000000',
-				senderPublicKey: accountsForMultisignature.targetAccount.publicKey.toString('hex'),
+				senderPublicKey: legacyAccounts.targetAccount.publicKey.toString('hex'),
 				params: { ...decodedParamsJSON },
 				signatures: [],
 			};
@@ -614,7 +647,7 @@ describe('transaction:sign command', () => {
 				TAG_TRANSACTION,
 				chainID,
 				unsignedMultiSigTransaction,
-				accountsForMultisignature.targetAccount.privateKey,
+				legacyAccounts.targetAccount.privateKey,
 			);
 			const signedTransaction = codec.encode(transactionSchema, {
 				...decodedBaseTransaction,
@@ -632,7 +665,7 @@ describe('transaction:sign command', () => {
 				await SignCommandExtended.run(
 					[
 						unsignedMultiSigTransaction.toString('hex'),
-						`--passphrase=${accountsForMultisignature.targetAccount.passphrase}`,
+						`--passphrase=${legacyAccounts.targetAccount.passphrase}`,
 					],
 					config,
 				);
@@ -657,7 +690,7 @@ describe('transaction:sign command', () => {
 				await SignCommandExtended.run(
 					[
 						unsignedMultiSigTransaction.toString('hex'),
-						`--passphrase=${accountsForMultisignature.targetAccount.passphrase}`,
+						`--passphrase=${legacyAccounts.targetAccount.passphrase}`,
 						'--json',
 					],
 					config,
