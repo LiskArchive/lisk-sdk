@@ -97,7 +97,7 @@ export class StakeCommand extends BaseCommand {
 				return {
 					status: VerifyStatus.FAIL,
 					error: new ValidationError(
-						'Amount should be multiple of 10 * 10^8.',
+						`Amount should be multiple of ${this._baseStakeAmount}.`,
 						stake.amount.toString(),
 					),
 				};
