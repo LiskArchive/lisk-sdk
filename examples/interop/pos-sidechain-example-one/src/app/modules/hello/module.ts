@@ -112,7 +112,7 @@ export class HelloModule extends BaseInteroperableModule {
 
 	// Lifecycle hooks
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
+	public async verifyTransaction(_context: TransactionVerifyContext): Promise<VerificationResult> {
 		// verify transaction will be called multiple times in the transaction pool
 		const result = {
 			status: 1,
