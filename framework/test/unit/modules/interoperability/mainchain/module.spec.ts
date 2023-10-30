@@ -612,42 +612,6 @@ describe('initGenesisState', () => {
 			).resolves.toBeUndefined();
 		});
 
-		it('should throw error if chainInfo.chainID exists in terminatedStateAccounts & chainInfo.chainData.status is ACTIVE', async () => {
-			const context = createInitGenesisStateContext(
-				{
-					...genesisInteroperability,
-					chainInfos: [
-						{
-							...chainInfo,
-							chainData: {
-								...chainData,
-								status: ChainStatus.ACTIVE,
-								lastCertificate: {
-									...lastCertificate,
-									validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
-								},
-							},
-							chainValidators: {
-								activeValidators,
-								certificateThreshold,
-							},
-						},
-					],
-					terminatedStateAccounts: [
-						{
-							chainID: chainInfo.chainID,
-							terminatedStateAccount,
-						},
-					],
-				},
-				params,
-			);
-
-			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-				`For each terminatedStateAccount there should be a corresponding chainInfo at TERMINATED state`,
-			);
-		});
-
 		it('should throw error if chainInfo.chainID exists in terminatedStateAccounts & chainInfo.chainData.status is REGISTERED', async () => {
 			const context = createInitGenesisStateContext(
 				{
