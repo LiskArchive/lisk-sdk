@@ -366,7 +366,12 @@ describe('ValidatorsModuleMethod', () => {
 			);
 		});
 
-		it('should not be able to correctly set bls key for validator if address exists with valid blsKey, key is not registered and proof of possession is valid', async () => {
+		it('should be able to correctly set bls key for validator if address exists with valid blsKey, key is not registered and proof of possession is valid', async () => {
+			const blsEventData = codec.encode(blsKeyRegDataSchema, {
+				blsKey: anotherBLSKey,
+				proofOfPossession: anotherProofOfPossession,
+				result: KeyRegResult.SUCCESS,
+			});
 			const validatorAccount = {
 				generatorKey,
 				blsKey,
@@ -380,15 +385,18 @@ describe('ValidatorsModuleMethod', () => {
 			);
 
 			const setValidatorAccount = await validatorsSubStore.get(methodContext, address);
+			const hasKey = await blsKeysSubStore.has(methodContext, anotherBLSKey);
 
-			const hasKey = await blsKeysSubStore.has(methodContext, blsKey);
-
-			expect(setValidatorAccount.blsKey).toEqual(blsKey);
-
-			expect(isSet).toBe(false);
-			expect(setValidatorAccount.blsKey).toEqual(blsKey);
-			expect(hasKey).toBe(false);
-			expect(methodContext.eventQueue.add).not.toHaveBeenCalled();
+			expect(isSet).toBe(true);
+			expect(setValidatorAccount.blsKey).toEqual(anotherBLSKey);
+			expect(hasKey).toBe(true);
+			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
+				MODULE_NAME_VALIDATORS,
+				validatorsModule.events.get(BlsKeyRegistrationEvent).name,
+				blsEventData,
+				[address],
+				false,
+			);
 		});
 
 		it('should not be able to set bls key for validator if address does not exist', async () => {
