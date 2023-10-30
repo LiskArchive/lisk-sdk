@@ -17,6 +17,7 @@ import {
 	BINARY_ADDRESS_LENGTH,
 	DEFAULT_LISK32_ADDRESS_PREFIX,
 	LISK32_ADDRESS_LENGTH,
+	ED25519_PUBLIC_KEY_LENGTH,
 } from './constants';
 import { getPublicKey } from './nacl';
 import { hash } from './utils';
@@ -119,7 +120,7 @@ export const getLisk32AddressFromPublicKey = (
 	publicKey: Buffer,
 	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
 ): string => {
-	if (publicKey.length !== 32) {
+	if (publicKey.length !== ED25519_PUBLIC_KEY_LENGTH) {
 		throw new Error('publicKey length must be 32.');
 	}
 	return `${prefix}${addressToLisk32(getAddressFromPublicKey(publicKey))}`;
