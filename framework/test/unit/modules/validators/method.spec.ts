@@ -673,14 +673,14 @@ describe('ValidatorsModuleMethod', () => {
 			).resolves.toBeObject();
 		});
 
-		it('should be able to return generators with at least one generator assigned more than one slot if input timestamps are valid and difference between input timestamps is greater than one round', async () => {
+		it('should be able to return generators with at least one generator assigned more than one slot if input timestamps are valid and difference between input timestamps is greater than one round plus two blocks', async () => {
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
 
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
 				methodContext,
 				0,
-				timePerRound + 2 * blockTime + 1,
+				timePerRound + 2 * blockTime,
 			);
 			let genWithCountGreaterThanOne = 0;
 			for (const generatorAddress of Object.keys(result)) {
@@ -692,14 +692,14 @@ describe('ValidatorsModuleMethod', () => {
 			expect(genWithCountGreaterThanOne).toBeGreaterThan(0);
 		});
 
-		it('should be able to return with all generators assigned at least 2 slots and at least one generator assigned more than 2 slots if input timestamps are valid and difference between input timestamps is greater than 2 rounds', async () => {
+		it('should be able to return with all generators assigned at least 2 slots and at least one generator assigned more than 2 slots if input timestamps are valid and difference between timestamps is larger or equal to length of two rounds plus two block slots', async () => {
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
 
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
 				methodContext,
 				0,
-				timePerRound * 2 + 2 * blockTime + 1,
+				timePerRound * 2 + 2 * blockTime,
 			);
 
 			let genWithCountGreaterThanOne = 0;
@@ -762,10 +762,36 @@ describe('ValidatorsModuleMethod', () => {
 			).resolves.toEqual({});
 		});
 
-		it('should return empty result when startSlotNumber equals endSlotNumber but in the same block slot', async () => {
+		it('should return empty result when startTimestamp equals endTimestamp but in the same block slot', async () => {
 			await expect(
 				validatorsModule.method.getGeneratorsBetweenTimestamps(methodContext, 2, 2),
 			).resolves.toEqual({});
+		});
+
+		it('should return 3 generators from indicies 100, 0 and 1 of generator list, all having assigned 1 slot', async () => {
+			const { validators } = await validatorsParamsSubStore.get(methodContext, EMPTY_KEY);
+			const generatorAddressesInStore = validators.map(validator =>
+				validator.address.toString('binary'),
+			);
+			const expectedGenerators = [
+				generatorAddressesInStore[100],
+				generatorAddressesInStore[0],
+				generatorAddressesInStore[1],
+			];
+
+			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
+				methodContext,
+				99 * blockTime,
+				103 * blockTime,
+			);
+
+			const actualGenerators = Object.keys(result);
+
+			for (const generatorAddress of actualGenerators) {
+				expect(result[generatorAddress]).toBe(1);
+			}
+
+			expect(expectedGenerators).toEqual(actualGenerators);
 		});
 	});
 
