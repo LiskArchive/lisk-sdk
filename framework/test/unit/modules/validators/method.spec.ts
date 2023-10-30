@@ -681,7 +681,7 @@ describe('ValidatorsModuleMethod', () => {
 			).resolves.toBeObject();
 		});
 
-		it('should be able to return generators with at least one generator assigned more than one slot if input timestamps are valid and difference between input timestamps is greater than one round plus two blocks', async () => {
+		it('should be able to return generators with at least one generator assigned more than one slot if input timestamps are valid and difference between input timestamps is greater than or equal to one round plus two blocks', async () => {
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
 
@@ -770,7 +770,7 @@ describe('ValidatorsModuleMethod', () => {
 			).resolves.toEqual({});
 		});
 
-		it('should return empty result when startTimestamp equals endTimestamp but in the same block slot', async () => {
+		it('should return empty result when startTimestamp equals endTimestamp', async () => {
 			await expect(
 				validatorsModule.method.getGeneratorsBetweenTimestamps(methodContext, 2, 2),
 			).resolves.toEqual({});
