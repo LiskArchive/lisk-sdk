@@ -121,7 +121,7 @@ export const getLisk32AddressFromPublicKey = (
 	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
 ): string => {
 	if (publicKey.length !== ED25519_PUBLIC_KEY_LENGTH) {
-		throw new Error('publicKey length must be 32.');
+		throw new Error(`publicKey length must be ${ED25519_PUBLIC_KEY_LENGTH}.`);
 	}
 	return `${prefix}${addressToLisk32(getAddressFromPublicKey(publicKey))}`;
 };

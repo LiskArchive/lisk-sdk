@@ -24,6 +24,7 @@ import {
 	LISK32_CHARSET,
 	DEFAULT_LISK32_ADDRESS_PREFIX,
 	LISK32_ADDRESS_LENGTH,
+	ED25519_PUBLIC_KEY_LENGTH,
 } from '../src/constants';
 import * as utils from '../src/utils';
 
@@ -57,10 +58,10 @@ describe('address', () => {
 	});
 
 	describe('#getLisk32AddressFromPublicKey', () => {
-		it('should reject when publicKey length is not 32', () => {
-			expect(() => getLisk32AddressFromPublicKey(Buffer.alloc(31), 'lsk')).toThrow(
-				'publicKey length must be 32.',
-			);
+		it('should reject when publicKey length not equal to ED25519_PUBLIC_KEY_LENGTH', () => {
+			expect(() =>
+				getLisk32AddressFromPublicKey(Buffer.alloc(ED25519_PUBLIC_KEY_LENGTH - 1), 'lsk'),
+			).toThrow(`publicKey length must be ${ED25519_PUBLIC_KEY_LENGTH}.`);
 		});
 
 		it('should generate lisk32 address from publicKey', () => {
