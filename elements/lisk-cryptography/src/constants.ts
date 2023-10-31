@@ -25,5 +25,4 @@ export const SHA256 = 'sha256';
 export const LISK32_CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
 export const LISK32_ADDRESS_LENGTH = 41;
 export const MESSAGE_TAG_NON_PROTOCOL_MESSAGE = 'LSK_NPM_';
-
 export const ED25519_PUBLIC_KEY_LENGTH = 32;
