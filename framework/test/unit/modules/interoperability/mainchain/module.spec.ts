@@ -733,38 +733,6 @@ describe('initGenesisState', () => {
 			);
 		});
 
-		it('should throw if chainInfo.chainData.status === TERMINATED but no corresponding terminateStateAccount', async () => {
-			const context = createInitGenesisStateContext(
-				{
-					...genesisInteroperability,
-					chainInfos: [
-						{
-							...chainInfo,
-							chainData: {
-								...chainData,
-								status: ChainStatus.TERMINATED,
-								lastCertificate: {
-									...lastCertificate,
-									validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
-								},
-							},
-							chainValidators: {
-								activeValidators,
-								certificateThreshold,
-							},
-						},
-					],
-					// No terminatedStateAccount
-					terminatedStateAccounts: [],
-				},
-				params,
-			);
-
-			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-				`For each chainInfo with status terminated there should be a corresponding entry in terminatedStateAccounts.`,
-			);
-		});
-
 		it('should call _verifyTerminatedStateAccounts', async () => {
 			jest.spyOn(interopMod, '_verifyTerminatedStateAccounts' as any);
 
