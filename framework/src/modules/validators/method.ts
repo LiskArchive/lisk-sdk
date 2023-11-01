@@ -208,9 +208,6 @@ export class ValidatorsMethod extends BaseMethod {
 		}
 
 		const validatorAccount = await validatorsSubStore.get(methodContext, validatorAddress);
-		if (!validatorAccount.blsKey.equals(INVALID_BLS_KEY)) {
-			return false;
-		}
 
 		if (!bls.popVerify(blsKey, proofOfPossession)) {
 			this.events.get(BlsKeyRegistrationEvent).log(methodContext, validatorAddress, {
