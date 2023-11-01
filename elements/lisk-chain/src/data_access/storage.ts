@@ -506,7 +506,7 @@ export class Storage {
 			const ids = await this._db.get(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, blockID));
 			const idLength = 32;
 			for (let i = 0; i < ids.length; i += idLength) {
-				txIDs.push(ids.slice(i, i + idLength));
+				txIDs.push(ids.subarray(i, i + idLength));
 			}
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {

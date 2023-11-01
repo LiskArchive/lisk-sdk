@@ -79,7 +79,7 @@ export class TokenMethod extends BaseMethod {
 	}
 
 	public getTokenIDLSK(): Buffer {
-		const networkID = this._config.ownChainID.slice(0, 1);
+		const networkID = this._config.ownChainID.subarray(0, 1);
 		// 3 bytes for remaining chainID bytes
 		return Buffer.concat([networkID, Buffer.alloc(3 + LOCAL_ID_LENGTH, 0)]);
 	}
@@ -413,6 +413,9 @@ export class TokenMethod extends BaseMethod {
 		if (amount <= BigInt(0)) {
 			return;
 		}
+		if (messageFee < BigInt(0)) {
+			return;
+		}
 
 		const eventData = {
 			senderAddress,
@@ -640,6 +643,10 @@ export class TokenMethod extends BaseMethod {
 		receivingChainID: Buffer,
 		fee: bigint,
 	): Promise<void> {
+		if (fee < BigInt(0)) {
+			throw new Error('Invalid Message Fee');
+		}
+
 		const messageFeeTokenID = await this._interoperabilityMethod.getMessageFeeTokenID(
 			methodContext,
 			receivingChainID,

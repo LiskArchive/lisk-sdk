@@ -95,7 +95,7 @@ export class PrefixedStateReadWriter {
 		};
 		const result = await this._readWriter.range(optionsWithKey);
 		return result.map(kv => ({
-			key: kv.key.slice(this._prefix.length),
+			key: kv.key.subarray(this._prefix.length),
 			value: kv.value,
 		}));
 	}
@@ -111,7 +111,7 @@ export class PrefixedStateReadWriter {
 		};
 		const result = await this._readWriter.range(optionsWithKey);
 		return result.map(kv => ({
-			key: kv.key.slice(this._prefix.length),
+			key: kv.key.subarray(this._prefix.length),
 			value: codec.decode<T>(schema, kv.value),
 		}));
 	}

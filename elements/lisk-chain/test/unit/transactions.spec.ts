@@ -33,6 +33,20 @@ describe('blocks/transactions', () => {
 			expect(() => transaction.validate()).not.toThrow();
 		});
 
+		it('should not throw an error if params length is less than MAX_PARAMS_SIZE', () => {
+			transaction = new Transaction({
+				module: 'token',
+				command: 'transfer',
+				fee: BigInt(613000),
+				// 126 is the size of other properties
+				params: utils.getRandomBytes(MAX_PARAMS_SIZE - 1),
+				nonce: BigInt(2),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(64)],
+			});
+			expect(() => transaction.validate()).not.toThrow();
+		});
+
 		it('should throw when module name is invalid', () => {
 			transaction = new Transaction({
 				module: 'token_mod',

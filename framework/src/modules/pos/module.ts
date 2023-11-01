@@ -55,6 +55,7 @@ import {
 	getRegistrationFeeResponseSchema,
 	getExpectedSharedRewardsRequestSchema,
 	getExpectedSharedRewardsResponseSchema,
+	getConstantsResponseSchema,
 } from './schemas';
 import {
 	RandomMethod,
@@ -70,12 +71,11 @@ import {
 	equalUnlocking,
 	isUsername,
 	selectStandbyValidators,
-	shuffleValidatorList,
 	sortUnlocking,
 	getModuleConfig,
 	getValidatorWeight,
-	ValidatorWeight,
 	isSharingCoefficientSorted,
+	ValidatorWeight,
 } from './utils';
 import { ValidatorStore } from './stores/validator';
 import { GenesisDataStore } from './stores/genesis';
@@ -93,6 +93,7 @@ import { CommissionChangeEvent } from './events/commission_change';
 import { ClaimRewardsCommand } from './commands/claim_rewards';
 import { getMainchainID } from '../interoperability/utils';
 import { RewardsAssignedEvent } from './events/rewards_assigned';
+import { shuffleValidatorList } from '../utils';
 
 export class PoSModule extends BaseModule {
 	public method = new PoSMethod(this.stores, this.events);
@@ -206,7 +207,7 @@ export class PoSModule extends BaseModule {
 				},
 				{
 					name: this.endpoint.getConstants.name,
-					response: configSchema,
+					response: getConstantsResponseSchema,
 				},
 				{
 					name: this.endpoint.getPoSTokenID.name,
@@ -690,7 +691,7 @@ export class PoSModule extends BaseModule {
 		}
 
 		// Update the validators
-		const shuffledValidators = shuffleValidatorList(randomSeed1, validators);
+		const shuffledValidators = shuffleValidatorList<ValidatorWeight>(randomSeed1, validators);
 		let aggregateBFTWeight = BigInt(0);
 		const bftValidators: { address: Buffer; bftWeight: bigint }[] = [];
 		for (const v of shuffledValidators) {

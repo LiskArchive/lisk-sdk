@@ -21,6 +21,7 @@ import { Logger } from './logger';
 import { computeValidatorsHash } from './engine';
 import { EventQueue, GenesisBlockContext, StateMachine } from './state_machine';
 import { PrefixedStateReadWriter } from './state_machine/prefixed_state_read_writer';
+import { sortValidatorsByBLSKey } from './engine/bft/utils';
 
 export interface GenesisBlockGenerateInput {
 	chainID: Buffer;
@@ -67,7 +68,7 @@ export const generateGenesisBlock = async (
 		impliesMaxPrevotes: true,
 		assetRoot,
 		aggregateCommit: {
-			height: 0,
+			height,
 			aggregationBits: EMPTY_BUFFER,
 			certificateSignature: EMPTY_BUFFER,
 		},
@@ -114,8 +115,13 @@ export const generateGenesisBlock = async (
 		}
 	}
 	header.eventRoot = await eventSMT.update(EMPTY_HASH, data);
+
+	sortValidatorsByBLSKey(blockCtx.nextValidators.validators);
+
 	header.validatorsHash = computeValidatorsHash(
-		blockCtx.nextValidators.validators,
+		blockCtx.nextValidators.validators
+			.filter(v => v.bftWeight > BigInt(0))
+			.map(v => ({ bftWeight: v.bftWeight, blsKey: v.blsKey })),
 		blockCtx.nextValidators.certificateThreshold,
 	);
 

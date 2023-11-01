@@ -14,11 +14,9 @@
 import * as fs from 'fs';
 import { EventEmitter } from 'events';
 import { BlockAssets, Chain, Transaction } from '@liskhq/lisk-chain';
-import { bls, utils, address as cryptoAddress, legacy } from '@liskhq/lisk-cryptography';
+import { utils, address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase, Database } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { when } from 'jest-when';
-import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { Generator } from '../../../../src/engine/generator';
 import { Consensus } from '../../../../src/engine/generator/types';
 import { Network } from '../../../../src/engine/network';
@@ -34,11 +32,12 @@ import {
 	plainGeneratorKeysSchema,
 } from '../../../../src/engine/generator/schemas';
 import { BFTModule } from '../../../../src/engine/bft';
-import { createFakeBlockHeader } from '../../../../src/testing';
 import { ABI } from '../../../../src/abi';
 import { defaultConfig } from '../../../../src/testing/fixtures';
 import { testing } from '../../../../src';
 import { GeneratorStore } from '../../../../src/engine/generator/generator_store';
+import { CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED } from '../../../../src/engine/consensus/constants';
+import { SingleCommitHandler } from '../../../../src/engine/generator/single_commit_handler';
 
 describe('generator', () => {
 	const logger = fakeLogger;
@@ -138,6 +137,7 @@ describe('generator', () => {
 				}),
 				setBFTParameters: jest.fn(),
 				getBFTParameters: jest.fn().mockResolvedValue({ validators: [] }),
+				getBFTParametersActiveValidators: jest.fn().mockResolvedValue({ validators: [] }),
 				existBFTParameters: jest.fn().mockResolvedValue(false),
 				getGeneratorAtTimestamp: jest.fn(),
 				impliesMaximalPrevotes: jest.fn().mockResolvedValue(false),
@@ -188,6 +188,7 @@ describe('generator', () => {
 						}),
 					);
 				}
+				jest.spyOn(SingleCommitHandler.prototype, 'initAllSingleCommits');
 			});
 
 			it('should load all 101 validators', async () => {
@@ -201,7 +202,6 @@ describe('generator', () => {
 			});
 
 			it('should handle finalized height change between maxRemovalHeight and max height precommitted', async () => {
-				jest.spyOn(generator, '_handleFinalizedHeightChanged' as any).mockReturnValue([] as never);
 				jest
 					.spyOn(generator['_bft'].method, 'getBFTHeights')
 					.mockResolvedValue({ maxHeightPrecommitted: 515, maxHeightCertified: 313 } as never);
@@ -213,7 +213,7 @@ describe('generator', () => {
 					logger,
 					genesisHeight: 0,
 				});
-				expect(generator['_handleFinalizedHeightChanged']).toHaveBeenCalledWith(200, 515);
+				expect(generator['_singleCommitHandler'].initAllSingleCommits).toHaveBeenCalled();
 			});
 		});
 
@@ -496,6 +496,9 @@ describe('generator', () => {
 				.spyOn(generator['_bft'].method, 'getBFTParameters')
 				.mockResolvedValue({ validatorsHash, validators: [] } as never);
 			jest
+				.spyOn(generator['_bft'].method, 'getBFTParametersActiveValidators')
+				.mockResolvedValue({ validatorsHash, validators: [] } as never);
+			jest
 				.spyOn(generator['_consensus'], 'getAggregateCommit')
 				.mockResolvedValue(aggregateCommit as never);
 			await generator.init({
@@ -636,44 +639,8 @@ describe('generator', () => {
 	});
 
 	describe('events CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED', () => {
-		const passphrase = Mnemonic.generateMnemonic(256);
-		const keys = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
-		const address = cryptoAddress.getAddressFromPublicKey(keys.publicKey);
-		const blsSecretKey = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
-		const keypair = {
-			...keys,
-			blsSecretKey,
-			blsPublicKey: bls.getPublicKeyFromPrivateKey(blsSecretKey),
-		};
-		const blsKey = bls.getPublicKeyFromPrivateKey(keypair.blsSecretKey);
-		const blockHeader = createFakeBlockHeader();
-
 		beforeEach(async () => {
-			generator['_keypairs'].set(address, keypair);
-			when(generator['_bft'].method.existBFTParameters as jest.Mock)
-				.calledWith(expect.anything(), 1)
-				.mockResolvedValue(true as never)
-				.calledWith(expect.anything(), 12)
-				.mockResolvedValue(true as never)
-				.calledWith(expect.anything(), 21)
-				.mockResolvedValue(true as never)
-				.calledWith(expect.anything(), 51)
-				.mockResolvedValue(false as never)
-				.calledWith(expect.anything(), 55)
-				.mockResolvedValue(true as never);
-			when(generator['_bft'].method.getBFTParameters as jest.Mock)
-				.calledWith(expect.anything(), 11)
-				.mockResolvedValue({ validators: [{ address, blsKey }] })
-				.calledWith(expect.anything(), 20)
-				.mockResolvedValue({ validators: [{ address, blsKey: Buffer.alloc(48) }] })
-				.calledWith(expect.anything(), 50)
-				.mockResolvedValue({ validators: [{ address, blsKey }] })
-				.calledWith(expect.anything(), 54)
-				.mockResolvedValue({ validators: [] });
-
-			jest
-				.spyOn(generator['_chain'].dataAccess, 'getBlockHeaderByHeight')
-				.mockResolvedValue(blockHeader as never);
+			jest.spyOn(SingleCommitHandler.prototype, 'handleFinalizedHeightChanged');
 			await generator.init({
 				blockchainDB,
 				generatorDB,
@@ -681,67 +648,23 @@ describe('generator', () => {
 				genesisHeight: 0,
 			});
 			await generator.start();
-			jest.spyOn(generator['_consensus'], 'certifySingleCommit');
 		});
 
-		it('should call certifySingleCommit for range when params for height + 1 exist', async () => {
-			// Act
-			await Promise.all(generator['_handleFinalizedHeightChanged'](10, 50));
+		afterEach(async () => {
+			await generator.stop();
+		});
 
-			// Assert
-			expect(generator['_consensus'].certifySingleCommit).toHaveBeenCalledTimes(2);
-			expect(generator['_consensus'].certifySingleCommit).toHaveBeenCalledWith(blockHeader, {
-				address,
-				blsPublicKey: blsKey,
-				blsSecretKey: keypair.blsSecretKey,
+		it('should call singleCommitHandler.handleFinalizedHeightChanged', async () => {
+			generator['_consensus'].events.emit(CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED, {
+				from: 30001,
+				to: 30003,
 			});
-		});
+			await Promise.resolve();
 
-		it('should not call certifySingleCommit for range when params for height + 1 does not exist', async () => {
-			// Act
-			await Promise.all(generator['_handleFinalizedHeightChanged'](51, 54));
-
-			// Assert
-			expect(generator['_consensus'].certifySingleCommit).not.toHaveBeenCalled();
-		});
-
-		it('should not call certifySingleCommit for finalized height + 1 when BFT params exist', async () => {
-			// Act
-			await Promise.all(generator['_handleFinalizedHeightChanged'](53, 54));
-
-			// Assert
-			expect(generator['_consensus'].certifySingleCommit).not.toHaveBeenCalled();
-		});
-
-		it('should not call certifySingleCommit for the validator who has not registered bls key', async () => {
-			// Act
-			await Promise.all(generator['_handleFinalizedHeightChanged'](20, 21));
-
-			// Assert
-			expect(generator['_consensus'].certifySingleCommit).not.toHaveBeenCalled();
-		});
-
-		it('should call certifySingleCommit for finalized height + 1 when BFT params does not exist', async () => {
-			// For height 50, it should ceritifySingleCommit event though BFTParameter does not exist
-			await Promise.all(generator['_handleFinalizedHeightChanged'](15, 50));
-
-			// Assert
-			expect(generator['_consensus'].certifySingleCommit).toHaveBeenCalledTimes(1);
-			expect(generator['_consensus'].certifySingleCommit).toHaveBeenCalledWith(blockHeader, {
-				address,
-				blsPublicKey: blsKey,
-				blsSecretKey: keypair.blsSecretKey,
-			});
-		});
-
-		it('should not call certifySingleCommit when validator is not active at the height', async () => {
-			// height 20 returns existBFTParameters true, but no active validators.
-			// Therefore, it should not certify single commit
-			// Act
-			await Promise.all(generator['_handleFinalizedHeightChanged'](15, 54));
-
-			// Assert
-			expect(generator['_consensus'].certifySingleCommit).not.toHaveBeenCalled();
+			expect(generator['_singleCommitHandler'].handleFinalizedHeightChanged).toHaveBeenCalledWith(
+				30001,
+				30003,
+			);
 		});
 	});
 });

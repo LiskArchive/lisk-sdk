@@ -22,11 +22,8 @@ interface CommandCommandArgs {
 }
 
 export default class CommandCommand extends BaseBootstrapCommand {
-	static description = 'Creates an command skeleton for the given module name, name and id.';
-	static examples = [
-		'generate:command moduleName commandName commandID',
-		'generate:command nft transfer 1',
-	];
+	static description = 'Creates a command skeleton for the given module name and command name.';
+	static examples = ['generate:command moduleName commandName', 'generate:command nft transfer'];
 	static args = [
 		{
 			name: 'moduleName',

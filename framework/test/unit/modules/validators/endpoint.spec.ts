@@ -21,20 +21,26 @@ import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_
 import { createTransientModuleEndpointContext } from '../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { createStoreGetter } from '../../../../src/testing/utils';
+import {
+	ADDRESS_LENGTH,
+	BLS_POP_LENGTH,
+	BLS_PUBLIC_KEY_LENGTH,
+	ED25519_PUBLIC_KEY_LENGTH,
+} from '../../../../src/modules/validators/constants';
 
 describe('ValidatorsModuleEndpoint', () => {
 	let validatorsModule: ValidatorsModule;
 	let stateStore: PrefixedStateReadWriter;
-	const pk = utils.getRandomBytes(48);
-	const address = utils.getRandomBytes(48);
-	const proof = utils.getRandomBytes(96);
-	const validatorAddress = utils.getRandomBytes(20);
-	const blsKey = utils.getRandomBytes(48);
-	const generatorKey = utils.getRandomBytes(32);
+	const proof = utils.getRandomBytes(BLS_POP_LENGTH);
+	const validatorAddress = utils.getRandomBytes(ADDRESS_LENGTH);
+	const blsKey = utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH);
+	const generatorKey = utils.getRandomBytes(ED25519_PUBLIC_KEY_LENGTH);
+	const validBLSKey =
+		'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81';
 	const validProof =
 		'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26';
 
-	beforeAll(() => {
+	beforeEach(() => {
 		validatorsModule = new ValidatorsModule();
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	});
@@ -45,14 +51,16 @@ describe('ValidatorsModuleEndpoint', () => {
 				const context = createTransientModuleEndpointContext({
 					stateStore,
 					params: {
-						proofOfPossession: proof.toString('hex'),
-						blsKey: pk.toString('hex'),
+						proofOfPossession: validProof,
+						blsKey: validBLSKey,
 					},
 				});
 
 				await validatorsModule.stores
 					.get(BLSKeyStore)
-					.set(createStoreGetter(stateStore), pk, { address });
+					.set(createStoreGetter(stateStore), Buffer.from(validBLSKey, 'hex'), {
+						address: utils.getRandomBytes(ADDRESS_LENGTH),
+					});
 
 				await expect(validatorsModule.endpoint.validateBLSKey(context)).resolves.toStrictEqual({
 					valid: false,
@@ -64,7 +72,7 @@ describe('ValidatorsModuleEndpoint', () => {
 					stateStore,
 					params: {
 						proofOfPossession: proof.toString('hex'),
-						blsKey: pk.toString('hex'),
+						blsKey: blsKey.toString('hex'),
 					},
 				});
 				await expect(validatorsModule.endpoint.validateBLSKey(context)).resolves.toStrictEqual({
@@ -77,8 +85,7 @@ describe('ValidatorsModuleEndpoint', () => {
 					stateStore,
 					params: {
 						proofOfPossession: validProof,
-						blsKey:
-							'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81',
+						blsKey: validBLSKey,
 					},
 				});
 				await expect(validatorsModule.endpoint.validateBLSKey(context)).resolves.toStrictEqual({
@@ -87,7 +94,7 @@ describe('ValidatorsModuleEndpoint', () => {
 			});
 
 			it('should resolve with false when proof of possession is invalid but bls key has a valid length', async () => {
-				const validPk =
+				const anotherValidBLSKey =
 					'a491d1b0ecd9bb917989f0e74f0dea0422eac4a873e5e2644f368dffb9a6e20fd6e10c1b77654d067c0618f6e5a7f79a';
 				const invalidProof =
 					'b803eb0ed93ea10224a73b6b9c725796be9f5fefd215ef7a5b97234cc956cf6870db6127b7e4d824ec62276078e787db05584ce1adbf076bc0808ca0f15b73d59060254b25393d95dfc7abe3cda566842aaedf50bbb062aae1bbb6ef3b1fffff';
@@ -95,7 +102,7 @@ describe('ValidatorsModuleEndpoint', () => {
 					stateStore,
 					params: {
 						proofOfPossession: invalidProof,
-						blsKey: validPk,
+						blsKey: anotherValidBLSKey,
 					},
 				});
 				await expect(validatorsModule.endpoint.validateBLSKey(context)).resolves.toStrictEqual({
@@ -103,32 +110,32 @@ describe('ValidatorsModuleEndpoint', () => {
 				});
 			});
 
-			it('should resolve with false when bls key length is less than 48 bytes and proof of possession has valid length', async () => {
-				const invalidPk = utils.getRandomBytes(47).toString('hex');
+			it('should throw when BLS key length is too short and proof of possession has valid length', async () => {
+				const shortBLSKey = utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH - 1).toString('hex');
 				const context = createTransientModuleEndpointContext({
 					stateStore,
 					params: {
 						proofOfPossession: validProof,
-						blsKey: invalidPk,
+						blsKey: shortBLSKey,
 					},
 				});
-				await expect(validatorsModule.endpoint.validateBLSKey(context)).resolves.toStrictEqual({
-					valid: false,
-				});
+				await expect(validatorsModule.endpoint.validateBLSKey(context)).rejects.toThrow(
+					`Property '.blsKey' must NOT have fewer than ${BLS_PUBLIC_KEY_LENGTH * 2} characters`,
+				);
 			});
 
-			it('should resolve with false when bls key length is greater than 48 bytes and proof of possession has valid length', async () => {
-				const invalidPk = utils.getRandomBytes(49).toString('hex');
+			it('should throw when BLS key length is too long and proof of possession has valid length', async () => {
+				const longBLSKey = utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH + 1).toString('hex');
 				const context = createTransientModuleEndpointContext({
 					stateStore,
 					params: {
 						proofOfPossession: validProof,
-						blsKey: invalidPk,
+						blsKey: longBLSKey,
 					},
 				});
-				await expect(validatorsModule.endpoint.validateBLSKey(context)).resolves.toStrictEqual({
-					valid: false,
-				});
+				await expect(validatorsModule.endpoint.validateBLSKey(context)).rejects.toThrow(
+					`Property '.blsKey' must NOT have more than ${BLS_PUBLIC_KEY_LENGTH * 2} characters`,
+				);
 			});
 		});
 

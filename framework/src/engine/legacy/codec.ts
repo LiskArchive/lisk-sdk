@@ -14,7 +14,12 @@
 
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { blockHeaderSchemaV2, blockSchemaV2, legacyChainBracketInfoSchema } from './schemas';
+import {
+	blockHeaderSchemaV2,
+	blockSchemaV2,
+	legacyChainBracketInfoSchema,
+	transactionSchemaV2,
+} from './schemas';
 import {
 	LegacyBlock,
 	LegacyBlockJSON,
@@ -22,6 +27,9 @@ import {
 	RawLegacyBlock,
 	LegacyBlockWithID,
 	LegacyBlockHeaderWithID,
+	LegacyTransaction,
+	LegacyTransactionJSON,
+	LegacyBlockHeader,
 } from './types';
 
 interface LegacyBlockSchema {
@@ -36,6 +44,14 @@ export const blockSchemaMap: Record<number, LegacyBlockSchema> = {
 	},
 };
 
+export const getBlockSchema = (version: number) => {
+	const blockSchema = blockSchemaMap[version];
+	if (!blockSchema) {
+		throw new Error(`Legacy block version ${version} is not registered.`);
+	}
+	return blockSchema;
+};
+
 // Implement read version logic when adding more versions
 const readVersion = (): number => 2;
 
@@ -43,10 +59,7 @@ export const decodeBlock = (
 	data: Buffer,
 ): { block: LegacyBlockWithID; schema: LegacyBlockSchema } => {
 	const version = readVersion();
-	const blockSchema = blockSchemaMap[version];
-	if (!blockSchema) {
-		throw new Error(`Legacy block version ${version} is not registered.`);
-	}
+	const blockSchema = getBlockSchema(version);
 	const rawBlock = codec.decode<RawLegacyBlock>(blockSchema.block, data);
 	const id = utils.hash(rawBlock.header);
 	return {
@@ -58,6 +71,17 @@ export const decodeBlock = (
 			},
 		},
 		schema: blockSchema,
+	};
+};
+
+export const decodeBlockHeader = (blockHeader: Buffer): LegacyBlockHeaderWithID => {
+	const version = readVersion();
+	const blockSchema = getBlockSchema(version);
+	const id = utils.hash(blockHeader);
+
+	return {
+		...codec.decode<LegacyBlockHeaderWithID>(blockSchema.header, blockHeader),
+		id,
 	};
 };
 
@@ -77,11 +101,23 @@ export const decodeBlockJSON = (
 	};
 };
 
+export const getLegacyTransactionJSONWithSchema = (
+	data: Buffer,
+): { transaction: LegacyTransactionJSON; schema: Schema } => {
+	const legacyTransaction = codec.decode<LegacyTransaction>(transactionSchemaV2, data);
+	const id = utils.hash(data);
+
+	return {
+		transaction: {
+			...codec.toJSON(transactionSchemaV2, legacyTransaction),
+			id: id.toString('hex'),
+		},
+		schema: transactionSchemaV2,
+	};
+};
+
 export const encodeBlock = (data: LegacyBlock): Buffer => {
-	const blockSchema = blockSchemaMap[data.header.version];
-	if (!blockSchema) {
-		throw new Error(`Legacy block version ${data.header.version} is not registered.`);
-	}
+	const blockSchema = getBlockSchema(data.header.version);
 	const headerBytes = codec.encode(blockSchema.header, data.header);
 
 	return codec.encode(blockSchema.block, {
@@ -90,5 +126,13 @@ export const encodeBlock = (data: LegacyBlock): Buffer => {
 	});
 };
 
+export const encodeBlockHeader = (blockHeader: LegacyBlockHeader): Buffer => {
+	const blockSchema = getBlockSchema(blockHeader.version);
+	return codec.encode(blockSchema.header, blockHeader);
+};
+
 export const encodeLegacyChainBracketInfo = (data: LegacyChainBracketInfo): Buffer =>
 	codec.encode(legacyChainBracketInfoSchema, data);
+
+export const decodeLegacyChainBracketInfo = (data: Buffer): LegacyChainBracketInfo =>
+	codec.decode<LegacyChainBracketInfo>(legacyChainBracketInfoSchema, data);

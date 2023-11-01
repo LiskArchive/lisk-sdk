@@ -16,7 +16,7 @@ import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils, address } from '@liskhq/lisk-cryptography';
 import { NFTModule } from '../../../../../src/modules/nft/module';
-import { TransferCommand, Params } from '../../../../../src/modules/nft/commands/transfer';
+import { TransferCommand, TransferParams } from '../../../../../src/modules/nft/commands/transfer';
 import { createTransactionContext } from '../../../../../src/testing';
 import { transferParamsSchema } from '../../../../../src/modules/nft/schemas';
 import {
@@ -27,20 +27,24 @@ import {
 } from '../../../../../src/modules/nft/constants';
 import { NFTAttributes, NFTStore } from '../../../../../src/modules/nft/stores/nft';
 import { createStoreGetter } from '../../../../../src/testing/utils';
-import { VerifyStatus } from '../../../../../src';
+import { NFTMethod, VerifyStatus } from '../../../../../src';
 import { InternalMethod } from '../../../../../src/modules/nft/internal_method';
-import { NFTMethod } from '../../../../../src/modules/nft/method';
 import { UserStore } from '../../../../../src/modules/nft/stores/user';
 import { EventQueue } from '../../../../../src/state_machine';
 import { TransferEvent } from '../../../../../src/modules/nft/events/transfer';
+import { InteroperabilityMethod, TokenMethod } from '../../../../../src/modules/nft/types';
 
 describe('Transfer command', () => {
 	const module = new NFTModule();
-	const method = new NFTMethod(module.stores, module.events);
+	const nftMethod = new NFTMethod(module.stores, module.events);
+	let interoperabilityMethod!: InteroperabilityMethod;
+	let tokenMethod!: TokenMethod;
 	const internalMethod = new InternalMethod(module.stores, module.events);
+	internalMethod.addDependencies(nftMethod, interoperabilityMethod, tokenMethod);
+
 	let command: TransferCommand;
 
-	const validParams: Params = {
+	const validParams: TransferParams = {
 		nftID: Buffer.alloc(LENGTH_NFT_ID, 1),
 		recipientAddress: utils.getRandomBytes(20),
 		data: '',
@@ -75,7 +79,7 @@ describe('Transfer command', () => {
 				command: 'transfer',
 				fee: BigInt(5000000),
 				nonce: BigInt(0),
-				senderPublicKey: utils.getRandomBytes(32),
+				senderPublicKey,
 				params: codec.encode(transferParamsSchema, {
 					...validParams,
 					...params,
@@ -95,58 +99,20 @@ describe('Transfer command', () => {
 
 	beforeEach(() => {
 		command = new TransferCommand(module.stores, module.events);
-		command.init({ method, internalMethod });
+		command.init({ internalMethod });
 	});
 
 	describe('verify', () => {
-		it('should fail if nftID does not have valid length', async () => {
-			const nftMinLengthContext = createTransactionContextWithOverridingParams({
-				nftID: Buffer.alloc(LENGTH_NFT_ID - 1, 1),
-			});
-
-			const nftMaxLengthContext = createTransactionContextWithOverridingParams({
-				nftID: Buffer.alloc(LENGTH_NFT_ID + 1, 1),
-			});
-
-			await expect(
-				command.verify(nftMinLengthContext.createCommandVerifyContext(transferParamsSchema)),
-			).rejects.toThrow("'.nftID' minLength not satisfied");
-
-			await expect(
-				command.verify(nftMaxLengthContext.createCommandExecuteContext(transferParamsSchema)),
-			).rejects.toThrow("'.nftID' maxLength exceeded");
-		});
-
-		it('should fail if recipientAddress is not 20 bytes', async () => {
-			const recipientAddressIncorrectLengthContext = createTransactionContextWithOverridingParams({
-				recipientAddress: utils.getRandomBytes(22),
-			});
-
-			await expect(
-				command.verify(
-					recipientAddressIncorrectLengthContext.createCommandVerifyContext(transferParamsSchema),
-				),
-			).rejects.toThrow("'.recipientAddress' address length invalid");
-		});
-
-		it('should fail if data exceeds 64 characters', async () => {
-			const dataIncorrectLengthContext = createTransactionContextWithOverridingParams({
-				data: '1'.repeat(65),
-			});
-
-			await expect(
-				command.verify(dataIncorrectLengthContext.createCommandVerifyContext(transferParamsSchema)),
-			).rejects.toThrow("'.data' must NOT have more than 64 characters");
-		});
-
 		it('should fail if nftID does not exist', async () => {
 			const nftIDNotExistingContext = createTransactionContextWithOverridingParams({
 				nftID: Buffer.alloc(LENGTH_NFT_ID, 0),
 			});
 
-			await expect(
-				command.verify(nftIDNotExistingContext.createCommandVerifyContext(transferParamsSchema)),
-			).rejects.toThrow('NFT substore entry does not exist');
+			const nftIDNotExistingVerification = await command.verify(
+				nftIDNotExistingContext.createCommandVerifyContext(transferParamsSchema),
+			);
+			expect(nftIDNotExistingVerification.status).toBe(VerifyStatus.FAIL);
+			expect(nftIDNotExistingVerification.error?.message).toBe('NFT does not exist');
 		});
 
 		it('should fail if NFT is escrowed to another chain', async () => {
@@ -154,29 +120,43 @@ describe('Transfer command', () => {
 				nftID,
 			});
 
-			await nftStore.set(createStoreGetter(nftEscrowedContext.stateStore), nftID, {
+			await nftStore.save(createStoreGetter(nftEscrowedContext.stateStore), nftID, {
 				owner: chainID,
 				attributesArray: [],
 			});
 
-			await expect(
-				command.verify(nftEscrowedContext.createCommandVerifyContext(transferParamsSchema)),
-			).rejects.toThrow('NFT is escrowed to another chain');
+			const nftEscrowedVerification = await command.verify(
+				nftEscrowedContext.createCommandVerifyContext(transferParamsSchema),
+			);
+			expect(nftEscrowedVerification.status).toBe(VerifyStatus.FAIL);
+			expect(nftEscrowedVerification.error?.message).toBe('NFT is escrowed to another chain');
 		});
 
 		it('should fail if owner of the NFT is not the sender', async () => {
 			const nftIncorrectOwnerContext = createTransactionContextWithOverridingParams({
 				nftID,
 			});
+			const newOwner = utils.getRandomBytes(LENGTH_ADDRESS);
 
 			await nftStore.save(createStoreGetter(nftIncorrectOwnerContext.stateStore), nftID, {
-				owner: utils.getRandomBytes(LENGTH_ADDRESS),
+				owner: newOwner,
 				attributesArray: [],
 			});
+			await userStore.set(
+				createStoreGetter(nftIncorrectOwnerContext.stateStore),
+				userStore.getKey(newOwner, nftID),
+				{
+					lockingModule: 'token',
+				},
+			);
 
-			await expect(
-				command.verify(nftIncorrectOwnerContext.createCommandVerifyContext(transferParamsSchema)),
-			).rejects.toThrow('Transfer not initiated by the NFT owner');
+			const nftIncorrectOwnerVerification = await command.verify(
+				nftIncorrectOwnerContext.createCommandVerifyContext(transferParamsSchema),
+			);
+			expect(nftIncorrectOwnerVerification.status).toBe(VerifyStatus.FAIL);
+			expect(nftIncorrectOwnerVerification.error?.message).toBe(
+				'Transfer not initiated by the NFT owner',
+			);
 		});
 
 		it('should fail if NFT exists and is locked by its owner', async () => {
@@ -198,9 +178,11 @@ describe('Transfer command', () => {
 				},
 			);
 
-			await expect(
-				command.verify(lockedNFTContext.createCommandVerifyContext(transferParamsSchema)),
-			).rejects.toThrow('Locked NFTs cannot be transferred');
+			const lockedNFTVerification = await command.verify(
+				lockedNFTContext.createCommandVerifyContext(transferParamsSchema),
+			);
+			expect(lockedNFTVerification.status).toBe(VerifyStatus.FAIL);
+			expect(lockedNFTVerification.error?.message).toBe('Locked NFTs cannot be transferred');
 		});
 
 		it('should verify if unlocked NFT exists and its owner is performing the transfer', async () => {

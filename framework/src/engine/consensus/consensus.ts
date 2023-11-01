@@ -35,7 +35,7 @@ import { ApplyPenaltyError } from '../../errors';
 import { AbortError, ApplyPenaltyAndRestartError, RestartError } from './synchronizer/errors';
 import { BlockExecutor } from './synchronizer/type';
 import { Network } from '../network';
-import { NetworkEndpoint, EndpointArgs } from './network_endpoint';
+import { NetworkEndpoint } from './network_endpoint';
 import { LegacyNetworkEndpoint } from '../legacy/network_endpoint';
 import { EventPostBlockData, postBlockEventSchema } from './schema';
 import {
@@ -158,7 +158,7 @@ export class Consensus {
 			network: this._network,
 			db: this._db,
 			commitPool: this._commitPool,
-		} as EndpointArgs); // TODO: Remove casting in issue where commitPool is added here
+		});
 		this._legacyEndpoint = new LegacyNetworkEndpoint({
 			logger: this._logger,
 			network: this._network,
@@ -396,10 +396,7 @@ export class Consensus {
 	}
 
 	public async getMaxRemovalHeight(): Promise<number> {
-		const finalizedBlockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(
-			this._chain.finalizedHeight,
-		);
-		return finalizedBlockHeader.aggregateCommit.height;
+		return this._commitPool.getMaxRemovalHeight();
 	}
 
 	private async _execute(block: Block, peerID: string): Promise<void> {

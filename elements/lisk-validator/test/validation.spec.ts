@@ -327,8 +327,8 @@ describe('validation', () => {
 			return expect(isSInt32(2147483648)).toBeFalse();
 		});
 
-		it('should return false when a number "-2147483648" which is just below the limit of sint32', () => {
-			return expect(isSInt32(-2147483648)).toBeFalse();
+		it('should return false when a number "-2147483649" which is just below the limit of sint32', () => {
+			return expect(isSInt32(-2147483649)).toBeFalse();
 		});
 
 		it('should return true when a valid number was provided', () => {

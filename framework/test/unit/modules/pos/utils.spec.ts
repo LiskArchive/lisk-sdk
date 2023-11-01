@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
+
 import { math } from '@liskhq/lisk-utils';
 import { defaultConfig, TOKEN_ID_LENGTH } from '../../../../src/modules/pos/constants';
 import {
@@ -19,43 +19,11 @@ import {
 	ModuleConfigJSON,
 	StakeSharingCoefficient,
 } from '../../../../src/modules/pos/types';
-import {
-	calculateStakeRewards,
-	getModuleConfig,
-	shuffleValidatorList,
-} from '../../../../src/modules/pos/utils';
-import * as validatorShufflingScenario from '../../../fixtures/pos_validator_shuffling/uniformly_shuffled_validator_list.json';
+import { calculateStakeRewards, getModuleConfig } from '../../../../src/modules/pos/utils';
 
 const { q96 } = math;
 
 describe('utils', () => {
-	describe('shuffleValidatorList', () => {
-		const { previousRoundSeed1 } = validatorShufflingScenario.testCases.input;
-		const addressList = [...validatorShufflingScenario.testCases.input.validatorList].map(
-			address => ({
-				address: Buffer.from(address, 'hex'),
-				weight: BigInt(1),
-			}),
-		);
-		it('should return a list of uniformly shuffled list of validators', () => {
-			const shuffledValidatorList = shuffleValidatorList(
-				Buffer.from(previousRoundSeed1, 'hex'),
-				addressList,
-			);
-
-			expect(shuffledValidatorList).toHaveLength(addressList.length);
-			shuffledValidatorList.forEach(validator =>
-				expect(
-					addressList.map(a => cryptoAddress.getLisk32AddressFromAddress(a.address)),
-				).toContain(cryptoAddress.getLisk32AddressFromAddress(validator.address)),
-			);
-
-			expect(shuffledValidatorList.map(b => b.address.toString('hex'))).toEqual(
-				validatorShufflingScenario.testCases.output.validatorList,
-			);
-		});
-	});
-
 	describe('getModuleConfig', () => {
 		it('converts ModuleConfigJSON to ModuleConfig', () => {
 			const expected: ModuleConfig = {

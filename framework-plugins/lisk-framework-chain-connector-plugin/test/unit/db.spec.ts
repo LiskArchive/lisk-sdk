@@ -187,6 +187,7 @@ describe('Plugins DB', () => {
 							bitmap: Buffer.alloc(1),
 							siblingHashes: [Buffer.alloc(2)],
 						},
+						outboxSize: 2,
 					},
 					{
 						ccms: [
@@ -216,6 +217,7 @@ describe('Plugins DB', () => {
 							bitmap: Buffer.alloc(1),
 							siblingHashes: [Buffer.alloc(2)],
 						},
+						outboxSize: 2,
 					},
 				];
 			});

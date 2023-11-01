@@ -237,8 +237,13 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		ctx: GenesisBlockExecuteContext,
 		genesisInteroperability: GenesisInteroperability,
 	) {
-		const { ownChainName, ownChainNonce, chainInfos, terminatedStateAccounts } =
-			genesisInteroperability;
+		const {
+			ownChainName,
+			ownChainNonce,
+			chainInfos,
+			terminatedStateAccounts,
+			terminatedOutboxAccounts,
+		} = genesisInteroperability;
 
 		// If chainInfos is empty, then check that:
 		//
@@ -257,6 +262,9 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			if (terminatedStateAccounts.length !== 0) {
 				throw new Error(`terminatedStateAccounts must be empty, ${ifChainInfosIsEmpty}.`);
 			}
+			if (terminatedOutboxAccounts.length !== 0) {
+				throw new Error(`terminatedOutboxAccounts must be empty, ${ifChainInfosIsEmpty}.`);
+			}
 		} else {
 			// ownChainName
 			// has length between MIN_CHAIN_NAME_LENGTH and MAX_CHAIN_NAME_LENGTH,
@@ -267,7 +275,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 				ownChainName.length > MAX_CHAIN_NAME_LENGTH // will only run if not already applied in schema
 			) {
 				throw new Error(
-					`ownChainName.length must be between ${MIN_CHAIN_NAME_LENGTH} and ${MAX_CHAIN_NAME_LENGTH}`,
+					`ownChainName.length must be inclusively between ${MIN_CHAIN_NAME_LENGTH} and ${MAX_CHAIN_NAME_LENGTH}.`,
 				);
 			}
 			// CAUTION!
@@ -290,7 +298,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			}
 			// mainchainInfo.chainID == getMainchainID();
 			const mainchainInfo = chainInfos[0];
-			const mainchainID = getMainchainID(mainchainInfo.chainID);
+			const mainchainID = getMainchainID(ctx.chainID);
 			if (!mainchainInfo.chainID.equals(mainchainID)) {
 				throw new Error(`mainchainInfo.chainID must be equal to ${mainchainID.toString('hex')}.`);
 			}
@@ -320,9 +328,11 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
 		mainchainID: Buffer,
 	) {
-		this._verifyTerminatedStateAccountsCommon(terminatedStateAccounts, mainchainID);
+		this._verifyTerminatedStateAccountsIDs(terminatedStateAccounts.map(a => a.chainID));
 
 		for (const stateAccount of terminatedStateAccounts) {
+			this._verifyChainID(stateAccount.chainID, mainchainID, 'stateAccount.');
+
 			// and stateAccount.chainID != OWN_CHAIN_ID.
 			if (stateAccount.chainID.equals(ctx.chainID)) {
 				throw new Error(`stateAccount.chainID must not be equal to OWN_CHAIN_ID.`);
@@ -335,7 +345,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 			if (terminatedStateAccount.initialized) {
 				if (terminatedStateAccount.stateRoot.equals(EMPTY_HASH)) {
 					throw new Error(
-						`stateAccount.stateRoot mst be not equal to "${EMPTY_HASH.toString(
+						`stateAccount.stateRoot must not be equal to "${EMPTY_HASH.toString(
 							'hex',
 						)}", if initialized is true.`,
 					);
@@ -358,7 +368,7 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 				}
 				if (terminatedStateAccount.mainchainStateRoot.equals(EMPTY_HASH)) {
 					throw new Error(
-						`terminatedStateAccount.mainchainStateRoot must be not equal to "${EMPTY_HASH.toString(
+						`terminatedStateAccount.mainchainStateRoot must not be equal to "${EMPTY_HASH.toString(
 							'hex',
 						)}", if initialized is false.`,
 					);

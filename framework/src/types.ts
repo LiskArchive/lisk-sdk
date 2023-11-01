@@ -80,6 +80,9 @@ export interface SystemConfig {
 	dataPath: string;
 	logLevel: string;
 	keepEventsForHeights: number;
+	backup: {
+		height: number;
+	};
 	enableMetrics: boolean;
 }
 

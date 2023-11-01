@@ -18,8 +18,9 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../../state_machine';
+import { panic } from '../../../../utils/panic';
 import { BaseCrossChainUpdateCommand } from '../../base_cross_chain_update_command';
-import { CONTEXT_STORE_KEY_CCM_PROCESSING } from '../../constants';
+import { CONTEXT_STORE_KEY_CCM_PROCESSING, EVENT_TOPIC_CCM_EXECUTION } from '../../constants';
 import { CrossChainUpdateTransactionParams } from '../../types';
 import { getIDFromCCMBytes } from '../../utils';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
@@ -40,11 +41,15 @@ export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdate
 	public async execute(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	): Promise<void> {
-		const [decodedCCMs, ok] = await this.executeCommon(context, false);
+		const { params } = context;
+
+		// This call can throw error and fails a transaction
+		await this.verifyCertificateSignatureAndPartnerChainOutboxRoot(context);
+
+		const [decodedCCMs, ok] = await this.beforeCrossChainMessagesExecution(context, false);
 		if (!ok) {
 			return;
 		}
-		const { params } = context;
 
 		try {
 			// Update the context to indicate that now we start the CCM processing.
@@ -57,7 +62,9 @@ export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdate
 				const ccmContext = {
 					...context,
 					ccm,
-					eventQueue: context.eventQueue.getChildQueue(ccmID),
+					eventQueue: context.eventQueue.getChildQueue(
+						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
+					),
 				};
 
 				await this.apply(ccmContext);
@@ -67,11 +74,13 @@ export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdate
 				// would refer to an inbox where the message has not been appended yet).
 				await this.internalMethod.appendToInboxTree(context, params.sendingChainID, ccmBytes);
 			}
+		} catch (error) {
+			panic(context.logger, error as Error);
 		} finally {
 			// Update the context to indicate that now we stop the CCM processing.
 			context.contextStore.delete(CONTEXT_STORE_KEY_CCM_PROCESSING);
 		}
 
-		await this.afterExecuteCommon(context);
+		await this.afterCrossChainMessagesExecute(context);
 	}
 }

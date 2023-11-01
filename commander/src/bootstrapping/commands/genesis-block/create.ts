@@ -18,9 +18,10 @@ import { Application, PartialApplicationConfig } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
 import { Command, Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
-import { join, resolve } from 'path';
+import { isAbsolute, join, resolve } from 'path';
 import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
+import { homedir } from 'os';
 import { GenesisAssetsInput, genesisAssetsSchema } from '../../../utils/genesis_creation';
 import { flagsWithParser } from '../../../utils/flags';
 import { getNetworkConfigFilesPath } from '../../../utils/path';
@@ -31,6 +32,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 	static examples = [
 		'genesis-block:create --output mydir',
 		'genesis-block:create --output mydir --assets-file ./assets.json',
+		'genesis-block:create --output mydir --assets-file ./assets.json --height 2 --timestamp 1592924699 --previous-block-id 085d7c9b7bddc8052be9eefe185f407682a495f1b4498677df1480026b74f2e9',
 	];
 
 	static flags = {
@@ -46,11 +48,39 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			description: 'Path to file which contains genesis block asset in JSON format',
 			required: true,
 		}),
+		'export-json': flagParser.boolean({
+			description: 'Export genesis block as JSON format along with blob',
+			default: false,
+		}),
+		height: flagParser.integer({
+			char: 'h',
+			description: 'Genesis block height',
+			required: false,
+		}),
+		timestamp: flagParser.integer({
+			char: 't',
+			description: 'Timestamp',
+			required: false,
+		}),
+		'previous-block-id': flagParser.string({
+			char: 'p',
+			description: 'Previous block id',
+			required: false,
+		}),
 	};
 
 	async run(): Promise<void> {
 		const {
-			flags: { output, config: configFilePath, network, 'assets-file': assetsFile },
+			flags: {
+				output,
+				config: configFilePath,
+				network,
+				'assets-file': assetsFile,
+				height,
+				timestamp,
+				'previous-block-id': previousBlockIDString,
+				'export-json': exportJSON,
+			},
 		} = await this.parse(BaseGenesisBlockCommand);
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;
@@ -71,7 +101,12 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			config = objects.mergeDeep(config, customConfig);
 		}
 		// determine proper path
-		const configPath = join(process.cwd(), output);
+		let configPath = output;
+		if (output.includes('~')) {
+			configPath = configPath.replace('~', homedir());
+		} else if (!isAbsolute(output)) {
+			configPath = join(process.cwd(), output);
+		}
 		const app = this.getApplication(config);
 		// If assetsFile exist, create from assetsFile and default config/accounts are not needed
 		const assetsJSON = (await fs.readJSON(resolve(assetsFile))) as GenesisAssetsInput;
@@ -84,11 +119,25 @@ export abstract class BaseGenesisBlockCommand extends Command {
 				schema: a.schema,
 			})),
 			chainID: Buffer.from(app.config.genesis.chainID, 'hex'),
+			height,
+			timestamp,
+			previousBlockID: previousBlockIDString
+				? Buffer.from(previousBlockIDString, 'hex')
+				: undefined,
 		});
 		fs.mkdirSync(configPath, { recursive: true });
 		fs.writeFileSync(resolve(configPath, 'genesis_block.blob'), genesisBlock.getBytes(), {
 			mode: OWNER_READ_WRITE,
 		});
+		if (exportJSON) {
+			fs.writeFileSync(
+				resolve(configPath, 'genesis_block.json'),
+				JSON.stringify(genesisBlock.toJSON(), undefined, '  '),
+				{
+					mode: OWNER_READ_WRITE,
+				},
+			);
+		}
 		this.log(`Genesis block files saved at: ${configPath}`);
 	}
 

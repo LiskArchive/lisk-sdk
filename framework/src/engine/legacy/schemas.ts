@@ -82,6 +82,49 @@ export const blockHeaderSchemaV2 = {
 	],
 };
 
+// https://github.com/LiskHQ/lisk-sdk/blob/release/5.3.0/elements/lisk-chain/src/transaction.ts
+export const transactionSchemaV2 = {
+	$id: '/block/v2/transaction',
+	type: 'object',
+	required: ['moduleID', 'assetID', 'nonce', 'fee', 'senderPublicKey', 'asset'],
+	properties: {
+		moduleID: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+			minimum: 2,
+		},
+		assetID: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		nonce: {
+			dataType: 'uint64',
+			fieldNumber: 3,
+		},
+		fee: {
+			dataType: 'uint64',
+			fieldNumber: 4,
+		},
+		senderPublicKey: {
+			dataType: 'bytes',
+			fieldNumber: 5,
+			minLength: 32,
+			maxLength: 32,
+		},
+		asset: {
+			dataType: 'bytes',
+			fieldNumber: 6,
+		},
+		signatures: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+			},
+			fieldNumber: 7,
+		},
+	},
+};
+
 export const legacyChainBracketInfoSchema = {
 	$id: '/legacy/legacyChainBracketInfo',
 	type: 'object',
@@ -91,4 +134,25 @@ export const legacyChainBracketInfoSchema = {
 		lastBlockHeight: { dataType: 'uint32', fieldNumber: 3 },
 	},
 	required: ['startHeight', 'snapshotBlockHeight', 'lastBlockHeight'],
+};
+
+export const getLegacyBlocksFromIdRequestSchema = {
+	$id: '/legacy/getBlocksFromIdRequest',
+	title: 'Get Blocks From Id Request',
+	type: 'object',
+	required: ['blockID', 'snapshotBlockID'],
+	properties: {
+		blockID: {
+			fieldNumber: 1,
+			dataType: 'bytes',
+			minLength: 32,
+			maxLength: 32,
+		},
+		snapshotBlockID: {
+			fieldNumber: 2,
+			dataType: 'bytes',
+			minLength: 32,
+			maxLength: 32,
+		},
+	},
 };

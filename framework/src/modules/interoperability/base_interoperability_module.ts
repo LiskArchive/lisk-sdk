@@ -35,12 +35,7 @@ import { OwnChainAccountStore } from './stores/own_chain_account';
 import { RegisteredNamesStore } from './stores/registered_names';
 import { TerminatedOutboxStore } from './stores/terminated_outbox';
 import { TerminatedStateStore } from './stores/terminated_state';
-import {
-	ChainInfo,
-	GenesisInteroperability,
-	OwnChainAccount,
-	TerminatedStateAccountWithChainID,
-} from './types';
+import { ChainInfo, GenesisInteroperability, OwnChainAccount } from './types';
 import { computeValidatorsHash, getTokenIDLSK } from './utils';
 import { genesisInteroperabilitySchema } from './schemas';
 import { CcmProcessedEvent } from './events/ccm_processed';
@@ -51,8 +46,9 @@ import { InvalidCertificateSignatureEvent } from './events/invalid_certificate_s
 import { InvalidRegistrationSignatureEvent } from './events/invalid_registration_signature';
 import { TerminatedOutboxCreatedEvent } from './events/terminated_outbox_created';
 import { TerminatedStateCreatedEvent } from './events/terminated_state_created';
-import { InvalidSMTVerification } from './events/invalid_smt_verification';
-import { InvalidRMTVerification } from './events/invalid_rmt_verification';
+import { InvalidSMTVerificationEvent } from './events/invalid_smt_verification';
+import { InvalidRMTVerificationEvent } from './events/invalid_rmt_verification';
+import { InvalidOutboxRootVerificationEvent } from './events/invalid_outbox_root_verification';
 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	protected interoperableCCCommands = new Map<string, BaseCCCommand[]>();
@@ -82,11 +78,15 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		);
 		this.events.register(TerminatedStateCreatedEvent, new TerminatedStateCreatedEvent(this.name));
 		this.events.register(TerminatedOutboxCreatedEvent, new TerminatedOutboxCreatedEvent(this.name));
-		this.events.register(InvalidSMTVerification, new InvalidSMTVerification(this.name));
-		this.events.register(InvalidRMTVerification, new InvalidRMTVerification(this.name));
+		this.events.register(InvalidSMTVerificationEvent, new InvalidSMTVerificationEvent(this.name));
+		this.events.register(InvalidRMTVerificationEvent, new InvalidRMTVerificationEvent(this.name));
 		this.events.register(
 			InvalidCertificateSignatureEvent,
 			new InvalidCertificateSignatureEvent(this.name),
+		);
+		this.events.register(
+			InvalidOutboxRootVerificationEvent,
+			new InvalidOutboxRootVerificationEvent(this.name),
 		);
 	}
 
@@ -133,21 +133,18 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		}
 
 		// activeValidators must be ordered lexicographically by blsKey property
-		const sortedByBlsKeys = [...activeValidators].sort((a, b) => a.blsKey.compare(b.blsKey));
-		for (let i = 0; i < activeValidators.length; i += 1) {
-			if (!activeValidators[i].blsKey.equals(sortedByBlsKeys[i].blsKey)) {
-				throw new Error('activeValidators must be ordered lexicographically by blsKey property.');
-			}
+		const blsKeys = activeValidators.map(v => v.blsKey);
+		if (!objectUtils.isBufferArrayOrdered(blsKeys)) {
+			throw new Error('activeValidators must be ordered lexicographically by blsKey property.');
 		}
 
 		// all blsKey properties must be pairwise distinct
-		const blsKeys = activeValidators.map(v => v.blsKey);
 		if (!objectUtils.bufferArrayUniqueItems(blsKeys)) {
 			throw new Error(`All blsKey properties must be pairwise distinct.`);
 		}
 
 		// for each validator in activeValidators, validator.bftWeight > 0 must hold
-		if (activeValidators.filter(v => v.bftWeight <= 0).length > 0) {
+		if (activeValidators.filter(v => v.bftWeight <= BigInt(0)).length > 0) {
 			throw new Error(`validator.bftWeight must be > 0.`);
 		}
 
@@ -189,28 +186,15 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 		}
 	}
 
-	protected _verifyTerminatedStateAccountsCommon(
-		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
-		mainchainID: Buffer,
-	) {
+	protected _verifyTerminatedStateAccountsIDs(chainIDs: Buffer[]) {
 		// Each entry stateAccount in terminatedStateAccounts has a unique stateAccount.chainID
-		const chainIDs = terminatedStateAccounts.map(a => a.chainID);
 		if (!objectUtils.bufferArrayUniqueItems(chainIDs)) {
 			throw new Error(`terminatedStateAccounts don't hold unique chainID.`);
 		}
 
 		// terminatedStateAccounts is ordered lexicographically by stateAccount.chainID
-		const sortedByChainID = [...terminatedStateAccounts].sort((a, b) =>
-			a.chainID.compare(b.chainID),
-		);
-
-		for (let i = 0; i < terminatedStateAccounts.length; i += 1) {
-			const stateAccountWithChainID = terminatedStateAccounts[i];
-			if (!stateAccountWithChainID.chainID.equals(sortedByChainID[i].chainID)) {
-				throw new Error('terminatedStateAccounts must be ordered lexicographically by chainID.');
-			}
-
-			this._verifyChainID(stateAccountWithChainID.chainID, mainchainID, 'stateAccount.');
+		if (!objectUtils.isBufferArrayOrdered(chainIDs)) {
+			throw new Error('terminatedStateAccounts must be ordered lexicographically by chainID.');
 		}
 	}
 

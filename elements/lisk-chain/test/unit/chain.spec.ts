@@ -201,7 +201,7 @@ describe('chain', () => {
 		beforeEach(async () => {
 			stateStore = new StateStore(db);
 			jest.spyOn(stateStore, 'finalize');
-			const subStore = stateStore.getStore(utils.intToBuffer(2, 4), 0);
+			const subStore = stateStore.getStore(utils.intToBuffer(2, 4), Buffer.from([0, 0]));
 			await subStore.set(utils.getRandomBytes(20), utils.getRandomBytes(100));
 			batch = new Batch();
 			jest.spyOn(batch, 'set');

@@ -26,6 +26,7 @@ import {
 	BlockHeader,
 	BlockAssets,
 } from './types';
+import { EVENT_TOPIC_TRANSACTION_EXECUTION } from './constants';
 
 interface ContextParams {
 	chainID: Buffer;
@@ -77,7 +78,9 @@ export class TransactionContext {
 		if (!this._assets) {
 			throw new Error('Transaction Execution requires block assets in the context.');
 		}
-		const childQueue = this._eventQueue.getChildQueue(this._transaction.id);
+		const childQueue = this._eventQueue.getChildQueue(
+			Buffer.concat([EVENT_TOPIC_TRANSACTION_EXECUTION, this._transaction.id]),
+		);
 		return {
 			logger: this._logger,
 			chainID: this._chainID,
@@ -132,7 +135,9 @@ export class TransactionContext {
 		if (!this._assets) {
 			throw new Error('Transaction Execution requires block assets in the context.');
 		}
-		const childQueue = this._eventQueue.getChildQueue(this._transaction.id);
+		const childQueue = this._eventQueue.getChildQueue(
+			Buffer.concat([EVENT_TOPIC_TRANSACTION_EXECUTION, this._transaction.id]),
+		);
 		return {
 			logger: this._logger,
 			chainID: this._chainID,
