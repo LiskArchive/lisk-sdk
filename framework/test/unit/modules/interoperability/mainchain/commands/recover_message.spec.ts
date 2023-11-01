@@ -31,6 +31,7 @@ import {
 	CONTEXT_STORE_KEY_CCM_PROCESSING,
 	CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
+	EVENT_TOPIC_CCM_EXECUTION,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { RecoverMessageCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/recover_message';
@@ -57,7 +58,7 @@ import {
 	CCMProcessedResult,
 } from '../../../../../../src/modules/interoperability/events/ccm_processed';
 import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperability/events/ccm_send_success';
-import { InvalidRMTVerification } from '../../../../../../src/modules/interoperability/events/invalid_rmt_verification';
+import { InvalidRMTVerificationEvent } from '../../../../../../src/modules/interoperability/events/invalid_rmt_verification';
 
 describe('MessageRecoveryCommand', () => {
 	const interopModule = new MainchainInteroperabilityModule();
@@ -491,7 +492,7 @@ describe('MessageRecoveryCommand', () => {
 			jest.spyOn(command, '_forwardRecovery' as never);
 			jest.spyOn(interopModule.stores.get(TerminatedOutboxStore), 'set');
 			jest.spyOn(commandExecuteContext['contextStore'], 'set');
-			jest.spyOn(command['events'].get(InvalidRMTVerification), 'error');
+			jest.spyOn(command['events'].get(InvalidRMTVerificationEvent), 'error');
 		});
 
 		it('should return error if message recovery proof of inclusion is not valid', async () => {
@@ -525,7 +526,7 @@ describe('MessageRecoveryCommand', () => {
 			await expect(command.execute(commandExecuteContext)).rejects.toThrow(
 				'Message recovery proof of inclusion is not valid.',
 			);
-			expect(command['events'].get(InvalidRMTVerification).error).toHaveBeenCalledWith(
+			expect(command['events'].get(InvalidRMTVerificationEvent).error).toHaveBeenCalledWith(
 				commandExecuteContext,
 			);
 		});
@@ -540,7 +541,9 @@ describe('MessageRecoveryCommand', () => {
 				const ctx: CrossChainMessageContext = {
 					...commandExecuteContext,
 					ccm,
-					eventQueue: commandExecuteContext.eventQueue.getChildQueue(utils.hash(crossChainMessage)),
+					eventQueue: commandExecuteContext.eventQueue.getChildQueue(
+						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, utils.hash(crossChainMessage)]),
+					),
 				};
 
 				expect(command['_applyRecovery']).toHaveBeenCalledWith(ctx);
@@ -567,7 +570,9 @@ describe('MessageRecoveryCommand', () => {
 				const ctx: CrossChainMessageContext = {
 					...commandExecuteContext,
 					ccm,
-					eventQueue: commandExecuteContext.eventQueue.getChildQueue(utils.hash(crossChainMessage)),
+					eventQueue: commandExecuteContext.eventQueue.getChildQueue(
+						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, utils.hash(crossChainMessage)]),
+					),
 				};
 
 				expect(command['_forwardRecovery']).toHaveBeenCalledWith(ctx);

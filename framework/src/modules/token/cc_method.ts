@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseCCMethod } from '../interoperability/base_cc_method';
 import {
@@ -200,6 +201,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 
 		try {
 			account = codec.decode<UserStoreData>(userStoreSchema, ctx.storeValue);
+			validator.validate(userStoreSchema, account);
 		} catch (error) {
 			this.events
 				.get(RecoverEvent)

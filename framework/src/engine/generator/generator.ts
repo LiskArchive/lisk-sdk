@@ -74,6 +74,7 @@ import { BFTModule } from '../bft';
 import { isEmptyConsensusUpdate } from '../consensus';
 import { getPathFromDataPath } from '../../utils/path';
 import { defaultMetrics } from '../metrics/metrics';
+import { SingleCommitHandler } from './single_commit_handler';
 
 interface GeneratorArgs {
 	config: EngineConfig;
@@ -111,7 +112,6 @@ export class Generator {
 	private readonly _forgingStrategy: HighFeeGenerationStrategy;
 	private readonly _blockTime: number;
 	private readonly _metrics = {
-		signedCommits: defaultMetrics.counter('generator_signedCommits'),
 		blockGeneration: defaultMetrics.counter('generator_blockGeneration'),
 	};
 
@@ -119,6 +119,7 @@ export class Generator {
 	private _generatorDB!: Database;
 	private _blockchainDB!: Database;
 	private _genesisHeight!: number;
+	private _singleCommitHandler!: SingleCommitHandler;
 
 	public constructor(args: GeneratorArgs) {
 		this._abi = args.abi;
@@ -174,12 +175,22 @@ export class Generator {
 		this._blockchainDB = args.blockchainDB;
 		this._genesisHeight = args.genesisHeight;
 
+		this._singleCommitHandler = new SingleCommitHandler(
+			this._logger,
+			this._chain,
+			this._consensus,
+			this._bft,
+			this._keypairs,
+			this._blockchainDB,
+		);
+
 		this._broadcaster.init({
 			logger: this._logger,
 		});
 		this._endpoint.init({
 			generatorDB: this._generatorDB,
 			genesisHeight: this._genesisHeight,
+			singleCommitHandler: this._singleCommitHandler,
 		});
 		this._networkEndpoint.init({
 			logger: this._logger,
@@ -209,14 +220,7 @@ export class Generator {
 			this.events.emit(GENERATOR_EVENT_NEW_TRANSACTION, e);
 		});
 
-		const stateStore = new StateStore(this._blockchainDB);
-
-		// On node start, it re generates certificate from maxRemovalHeight to maxHeightPrecommitted.
-		// in the _handleFinalizedHeightChanged, it loops between maxRemovalHeight + 1 and  maxHeightPrecommitted.
-		// @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#initial-single-commit-creation
-		const maxRemovalHeight = await this._consensus.getMaxRemovalHeight();
-		const { maxHeightPrecommitted } = await this._bft.method.getBFTHeights(stateStore);
-		await Promise.all(this._handleFinalizedHeightChanged(maxRemovalHeight, maxHeightPrecommitted));
+		await this._singleCommitHandler.initAllSingleCommits();
 	}
 
 	public get endpoint(): Endpoint {
@@ -258,9 +262,9 @@ export class Generator {
 		this._consensus.events.on(
 			CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED,
 			({ from, to }: { from: number; to: number }) => {
-				Promise.all(this._handleFinalizedHeightChanged(from, to)).catch((err: Error) =>
-					this._logger.error({ err }, 'Fail to certify single commit'),
-				);
+				this._singleCommitHandler
+					.handleFinalizedHeightChanged(from, to)
+					.catch((err: Error) => this._logger.error({ err }, 'Fail to certify single commit'));
 			},
 		);
 	}
@@ -643,82 +647,6 @@ export class Generator {
 		this._metrics.blockGeneration.inc(1);
 
 		return generatedBlock;
-	}
-
-	private _handleFinalizedHeightChanged(from: number, to: number): Promise<void>[] {
-		if (from >= to) {
-			return [];
-		}
-		const promises = [];
-		const stateStore = new StateStore(this._blockchainDB);
-		for (const [address, pairs] of this._keypairs.entries()) {
-			for (let height = from + 1; height < to; height += 1) {
-				promises.push(
-					this._certifySingleCommitForChangedHeight(
-						stateStore,
-						height,
-						address,
-						pairs.blsPublicKey,
-						pairs.blsSecretKey,
-					),
-				);
-			}
-			promises.push(
-				this._certifySingleCommit(stateStore, to, address, pairs.blsPublicKey, pairs.blsSecretKey),
-			);
-		}
-		return promises;
-	}
-
-	private async _certifySingleCommitForChangedHeight(
-		stateStore: StateStore,
-		height: number,
-		generatorAddress: Buffer,
-		blsPK: Buffer,
-		blsSK: Buffer,
-	): Promise<void> {
-		const paramExist = await this._bft.method.existBFTParameters(stateStore, height + 1);
-		if (!paramExist) {
-			return;
-		}
-		await this._certifySingleCommit(stateStore, height, generatorAddress, blsPK, blsSK);
-	}
-
-	private async _certifySingleCommit(
-		stateStore: StateStore,
-		height: number,
-		generatorAddress: Buffer,
-		blsPK: Buffer,
-		blsSK: Buffer,
-	): Promise<void> {
-		const params = await this._bft.method.getBFTParametersActiveValidators(stateStore, height);
-		const registeredValidator = params.validators.find(v => v.address.equals(generatorAddress));
-		if (!registeredValidator) {
-			return;
-		}
-		if (!registeredValidator.blsKey.equals(blsPK)) {
-			this._logger.warn(
-				{ address: addressUtil.getLisk32AddressFromAddress(generatorAddress) },
-				'Validator does not have registered BLS key',
-			);
-			return;
-		}
-
-		const blockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(height);
-		const validatorInfo = {
-			address: generatorAddress,
-			blsPublicKey: blsPK,
-			blsSecretKey: blsSK,
-		};
-		this._consensus.certifySingleCommit(blockHeader, validatorInfo);
-		this._logger.debug(
-			{
-				height,
-				generator: addressUtil.getLisk32AddressFromAddress(generatorAddress),
-			},
-			'Certified single commit',
-		);
-		this._metrics.signedCommits.inc(1);
 	}
 
 	private async _executeTransactions(

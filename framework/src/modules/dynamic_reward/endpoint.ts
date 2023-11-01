@@ -70,9 +70,9 @@ export class DynamicRewardEndpoint extends RewardEndpoint {
 			this._config,
 			defaultReward,
 		);
-		const stakeRewardActiveValidators = getStakeRewardActiveValidators(
+		const stakeRewardActiveValidators = await getStakeRewardActiveValidators(
 			context,
-			this._posMethod,
+			this._validatorMethod,
 			defaultReward,
 			minimalRewardActiveValidators,
 		);

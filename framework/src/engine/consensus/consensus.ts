@@ -396,10 +396,7 @@ export class Consensus {
 	}
 
 	public async getMaxRemovalHeight(): Promise<number> {
-		const finalizedBlockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(
-			this._chain.finalizedHeight,
-		);
-		return finalizedBlockHeader.aggregateCommit.height;
+		return this._commitPool.getMaxRemovalHeight();
 	}
 
 	private async _execute(block: Block, peerID: string): Promise<void> {

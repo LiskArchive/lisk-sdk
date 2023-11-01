@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
+import { utils, address as addressUtils } from '@liskhq/lisk-cryptography';
 import { ValidatorsMethod, ValidatorsModule } from '../../../../src/modules/validators';
 import {
 	MODULE_NAME_VALIDATORS,
@@ -74,6 +74,15 @@ describe('ValidatorsModuleMethod', () => {
 		'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d27',
 		'hex',
 	);
+	const anotherProofOfPossession = Buffer.from(
+		'b92b11d66348e197c62d14af1453620d550c21d59ce572d95a03f0eaa0d0d195efbb2f2fd1577dc1a04ecdb453065d9d168ce7648bc5328e5ea47bb07d3ce6fd75f35ee51064a9903da8b90f7dc8ab4f2549b834cb5911b883097133f66b9ab9',
+		'hex',
+	);
+	const anotherBLSKey = Buffer.from(
+		'92f020ce5e37befb86493a82686b0eedddb264350b0873cf1eeaa1fefe39d938f05f272452c1ef5e6ceb4d9b23687e31',
+		'hex',
+	);
+
 	const invalidAddressShort = utils.getRandomBytes(ADDRESS_LENGTH - 1);
 	const invalidAddressLong = utils.getRandomBytes(ADDRESS_LENGTH + 1);
 	const invalidGeneratorKeyShort = utils.getRandomBytes(ED25519_PUBLIC_KEY_LENGTH - 1);
@@ -143,6 +152,8 @@ describe('ValidatorsModuleMethod', () => {
 				[address],
 				false,
 			);
+			await expect(validatorsSubStore.has(methodContext, address)).resolves.toBe(true);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(true);
 		});
 
 		it('should not be able to create new validator account if validator address already exists, bls key is not registered and proof of possession is valid', async () => {
@@ -172,6 +183,7 @@ describe('ValidatorsModuleMethod', () => {
 				[address],
 				true,
 			);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 
 		it('should not be able to create new validator account if validator address does not exist, bls key is already registered and proof of possession is valid', async () => {
@@ -200,6 +212,7 @@ describe('ValidatorsModuleMethod', () => {
 				[address],
 				true,
 			);
+			await expect(validatorsSubStore.has(methodContext, address)).resolves.toBe(false);
 		});
 
 		it('should not be able to create new validator account if validator address does not exist, bls key is not registered and proof of possession is invalid', async () => {
@@ -225,6 +238,8 @@ describe('ValidatorsModuleMethod', () => {
 				[address],
 				true,
 			);
+			await expect(validatorsSubStore.has(methodContext, address)).resolves.toBe(false);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 
 		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but validatorAddress is shorter than 20 bytes', async () => {
@@ -237,8 +252,8 @@ describe('ValidatorsModuleMethod', () => {
 					proofOfPossession,
 				),
 			).rejects.toThrow(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
-			await expect(validatorsSubStore.get(methodContext, invalidAddressShort)).rejects.toThrow();
-			await expect(blsKeysSubStore.get(methodContext, blsKey)).rejects.toThrow();
+			await expect(validatorsSubStore.has(methodContext, invalidAddressShort)).resolves.toBe(false);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 
 		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but validatorAddress is longer than 20 bytes', async () => {
@@ -251,8 +266,8 @@ describe('ValidatorsModuleMethod', () => {
 					proofOfPossession,
 				),
 			).rejects.toThrow(`Validator address must be ${ADDRESS_LENGTH} bytes long.`);
-			await expect(validatorsSubStore.get(methodContext, invalidAddressLong)).rejects.toThrow();
-			await expect(blsKeysSubStore.get(methodContext, blsKey)).rejects.toThrow();
+			await expect(validatorsSubStore.has(methodContext, invalidAddressLong)).resolves.toBe(false);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 
 		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but generator key is shorter than 32 bytes', async () => {
@@ -265,8 +280,8 @@ describe('ValidatorsModuleMethod', () => {
 					proofOfPossession,
 				),
 			).rejects.toThrow();
-			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
-			await expect(blsKeysSubStore.get(methodContext, blsKey)).rejects.toThrow();
+			await expect(validatorsSubStore.has(methodContext, address)).resolves.toBe(false);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 
 		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but generator key is longer than 32 bytes', async () => {
@@ -279,8 +294,8 @@ describe('ValidatorsModuleMethod', () => {
 					proofOfPossession,
 				),
 			).rejects.toThrow();
-			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
-			await expect(blsKeysSubStore.get(methodContext, blsKey)).rejects.toThrow();
+			await expect(validatorsSubStore.has(methodContext, address)).resolves.toBe(false);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 
 		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but bls key is shorter than 48 bytes', async () => {
@@ -293,8 +308,8 @@ describe('ValidatorsModuleMethod', () => {
 					proofOfPossession,
 				),
 			).rejects.toThrow();
-			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
-			await expect(blsKeysSubStore.get(methodContext, invalidBlsKeyShort)).rejects.toThrow();
+			await expect(validatorsSubStore.has(methodContext, address)).resolves.toBe(false);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 
 		it('should not be able to register validator keys if validator address does not exist, bls key is not registered and proof of possession is valid but bls key is longer than 48 bytes', async () => {
@@ -307,8 +322,8 @@ describe('ValidatorsModuleMethod', () => {
 					proofOfPossession,
 				),
 			).rejects.toThrow();
-			await expect(validatorsSubStore.get(methodContext, address)).rejects.toThrow();
-			await expect(blsKeysSubStore.get(methodContext, invalidBlsKeyLong)).rejects.toThrow();
+			await expect(validatorsSubStore.has(methodContext, address)).resolves.toBe(false);
+			await expect(blsKeysSubStore.has(methodContext, blsKey)).resolves.toBe(false);
 		});
 	});
 
@@ -341,6 +356,39 @@ describe('ValidatorsModuleMethod', () => {
 
 			expect(isSet).toBe(true);
 			expect(setValidatorAccount.blsKey.toString('hex')).toBe(blsKey.toString('hex'));
+			expect(hasKey).toBe(true);
+			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
+				MODULE_NAME_VALIDATORS,
+				validatorsModule.events.get(BlsKeyRegistrationEvent).name,
+				blsEventData,
+				[address],
+				false,
+			);
+		});
+
+		it('should be able to correctly set bls key for validator if address exists with valid blsKey, key is not registered and proof of possession is valid', async () => {
+			const blsEventData = codec.encode(blsKeyRegDataSchema, {
+				blsKey: anotherBLSKey,
+				proofOfPossession: anotherProofOfPossession,
+				result: KeyRegResult.SUCCESS,
+			});
+			const validatorAccount = {
+				generatorKey,
+				blsKey,
+			};
+			await validatorsSubStore.set(methodContext, address, validatorAccount);
+			const isSet = await validatorsModule.method.setValidatorBLSKey(
+				methodContext,
+				address,
+				anotherBLSKey,
+				anotherProofOfPossession,
+			);
+
+			const setValidatorAccount = await validatorsSubStore.get(methodContext, address);
+			const hasKey = await blsKeysSubStore.has(methodContext, anotherBLSKey);
+
+			expect(isSet).toBe(true);
+			expect(setValidatorAccount.blsKey).toEqual(anotherBLSKey);
 			expect(hasKey).toBe(true);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
@@ -492,8 +540,9 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should be able to correctly set generator key for validator if address exists', async () => {
+			const anotherGeneratorKey = utils.getRandomBytes(ED25519_PUBLIC_KEY_LENGTH);
 			const generatorEventData = codec.encode(generatorKeyRegDataSchema, {
-				generatorKey,
+				generatorKey: anotherGeneratorKey,
 				result: KeyRegResult.SUCCESS,
 			});
 			const validatorAccount = {
@@ -505,12 +554,12 @@ describe('ValidatorsModuleMethod', () => {
 			const isSet = await validatorsModule.method.setValidatorGeneratorKey(
 				methodContext,
 				address,
-				generatorKey,
+				anotherGeneratorKey,
 			);
 			const setValidatorAccount = await validatorsSubStore.get(methodContext, address);
 
 			expect(isSet).toBe(true);
-			expect(setValidatorAccount.generatorKey.equals(generatorKey)).toBe(true);
+			expect(setValidatorAccount.generatorKey.equals(anotherGeneratorKey)).toBe(true);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
 				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
@@ -632,14 +681,14 @@ describe('ValidatorsModuleMethod', () => {
 			).resolves.toBeObject();
 		});
 
-		it('should be able to return generators with at least one generator assigned more than one slot if input timestamps are valid and difference between input timestamps is greater than one round', async () => {
+		it('should be able to return generators with at least one generator assigned more than one slot if input timestamps are valid and difference between input timestamps is greater than or equal to one round plus two blocks', async () => {
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
 
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
 				methodContext,
 				0,
-				timePerRound + 2 * blockTime + 1,
+				timePerRound + 2 * blockTime,
 			);
 			let genWithCountGreaterThanOne = 0;
 			for (const generatorAddress of Object.keys(result)) {
@@ -651,14 +700,14 @@ describe('ValidatorsModuleMethod', () => {
 			expect(genWithCountGreaterThanOne).toBeGreaterThan(0);
 		});
 
-		it('should be able to return with all generators assigned at least 2 slots and at least one generator assigned more than 2 slots if input timestamps are valid and difference between input timestamps is greater than 2 rounds', async () => {
+		it('should be able to return with all generators assigned at least 2 slots and at least one generator assigned more than 2 slots if input timestamps are valid and difference between timestamps is larger or equal to length of two rounds plus two block slots', async () => {
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
 
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
 				methodContext,
 				0,
-				timePerRound * 2 + 2 * blockTime + 1,
+				timePerRound * 2 + 2 * blockTime,
 			);
 
 			let genWithCountGreaterThanOne = 0;
@@ -721,10 +770,36 @@ describe('ValidatorsModuleMethod', () => {
 			).resolves.toEqual({});
 		});
 
-		it('should return empty result when startSlotNumber equals endSlotNumber but in the same block slot', async () => {
+		it('should return empty result when startTimestamp equals endTimestamp', async () => {
 			await expect(
 				validatorsModule.method.getGeneratorsBetweenTimestamps(methodContext, 2, 2),
 			).resolves.toEqual({});
+		});
+
+		it('should return 3 generators from indicies 100, 0 and 1 of generator list, all having assigned 1 slot', async () => {
+			const { validators } = await validatorsParamsSubStore.get(methodContext, EMPTY_KEY);
+			const generatorAddressesInStore = validators.map(validator =>
+				validator.address.toString('binary'),
+			);
+			const expectedGenerators = [
+				generatorAddressesInStore[100],
+				generatorAddressesInStore[0],
+				generatorAddressesInStore[1],
+			];
+
+			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
+				methodContext,
+				99 * blockTime,
+				103 * blockTime,
+			);
+
+			const actualGenerators = Object.keys(result);
+
+			for (const generatorAddress of actualGenerators) {
+				expect(result[generatorAddress]).toBe(1);
+			}
+
+			expect(expectedGenerators).toEqual(actualGenerators);
 		});
 	});
 
@@ -813,6 +888,7 @@ describe('ValidatorsModuleMethod', () => {
 
 			expect(isSet).toBe(true);
 			expect(setValidatorAccount.generatorKey.equals(generatorKey)).toBe(true);
+			expect(setValidatorAccount.blsKey.equals(INVALID_BLS_KEY)).toBe(true);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
 				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
@@ -931,6 +1007,136 @@ describe('ValidatorsModuleMethod', () => {
 			expect(() => validatorsModule.method['_validateLengths'](validatorArgs)).toThrow(
 				`Generator key must be ${ED25519_PUBLIC_KEY_LENGTH} bytes long.`,
 			);
+		});
+	});
+
+	describe('setValidatorsParams', () => {
+		it('should update ValidatorsParamsStore with the provided validators, preCommitThreshold, certificateThreshold and call setNextValidators', async () => {
+			const validatorSetter = {
+				setNextValidators: jest.fn().mockReturnValue(undefined),
+			};
+
+			const validators = [
+				{
+					generatorKey: Buffer.from(
+						'91fdf7f2a3eb93e493f736a4f9fce0e1df082836bf6d06e739bb3b0e1690fada',
+						'hex',
+					),
+					blsKey: Buffer.from(
+						'a84b3fc0a53fcb07c6057442cf11b37ef0a3d3216fc8e245f9cbf43c13193515f0de3ab9ef4f6b0e04ecdb4df212d96a',
+						'hex',
+					),
+					address: addressUtils.getAddressFromLisk32Address(
+						'lsk8kpswabbcjrnfp89demrfvryx9sgjsma87pusk',
+					),
+					bftWeight: BigInt(54),
+				},
+				{
+					generatorKey: Buffer.from(
+						'b53ef930d84d3ce5b4947c2502da06bcbc0fb2c71ee96f3b3a35340516712c71',
+						'hex',
+					),
+					blsKey: Buffer.from(
+						'8d4151757d14b1a30f7088f0bb1505bfd94a471872d565de563dbce32f696cb77afcc026170c343d0329ad554df564f6',
+						'hex',
+					),
+					address: addressUtils.getAddressFromLisk32Address(
+						'lskkjm548jqdrgzqrozpkew9z82kqfvtpmvavj7d6',
+					),
+					bftWeight: BigInt(33),
+				},
+			];
+
+			for (const validator of validators) {
+				await validatorsSubStore.set(methodContext, validator.address, {
+					generatorKey: validator.generatorKey,
+					blsKey: validator.blsKey,
+				});
+			}
+
+			const preCommitThreshold = BigInt(100);
+			const certificateThreshold = BigInt(200);
+
+			await validatorsMethod.setValidatorsParams(
+				methodContext,
+				validatorSetter,
+				preCommitThreshold,
+				certificateThreshold,
+				validators,
+			);
+
+			const expectedValidatorParams = {
+				certificateThreshold,
+				preCommitThreshold,
+				validators,
+			};
+
+			const validatorParams = await validatorsParamsSubStore.get(methodContext, EMPTY_KEY);
+
+			expect(validatorParams).toEqual(expectedValidatorParams);
+
+			expect(validatorSetter.setNextValidators).toHaveBeenNthCalledWith(
+				1,
+				preCommitThreshold,
+				certificateThreshold,
+				validators,
+			);
+		});
+
+		it('should throw if provided validator does not exist in Validator', async () => {
+			const validatorSetter = {
+				setNextValidators: jest.fn().mockReturnValue(undefined),
+			};
+
+			const validators = [
+				{
+					generatorKey: Buffer.from(
+						'91fdf7f2a3eb93e493f736a4f9fce0e1df082836bf6d06e739bb3b0e1690fada',
+						'hex',
+					),
+					blsKey: Buffer.from(
+						'a84b3fc0a53fcb07c6057442cf11b37ef0a3d3216fc8e245f9cbf43c13193515f0de3ab9ef4f6b0e04ecdb4df212d96a',
+						'hex',
+					),
+					address: addressUtils.getAddressFromLisk32Address(
+						'lsk8kpswabbcjrnfp89demrfvryx9sgjsma87pusk',
+					),
+					bftWeight: BigInt(54),
+				},
+				{
+					generatorKey: Buffer.from(
+						'b53ef930d84d3ce5b4947c2502da06bcbc0fb2c71ee96f3b3a35340516712c71',
+						'hex',
+					),
+					blsKey: Buffer.from(
+						'8d4151757d14b1a30f7088f0bb1505bfd94a471872d565de563dbce32f696cb77afcc026170c343d0329ad554df564f6',
+						'hex',
+					),
+					address: addressUtils.getAddressFromLisk32Address(
+						'lskkjm548jqdrgzqrozpkew9z82kqfvtpmvavj7d6',
+					),
+					bftWeight: BigInt(33),
+				},
+			];
+
+			const preCommitThreshold = BigInt(100);
+			const certificateThreshold = BigInt(200);
+
+			await expect(
+				validatorsMethod.setValidatorsParams(
+					methodContext,
+					validatorSetter,
+					preCommitThreshold,
+					certificateThreshold,
+					validators,
+				),
+			).rejects.toThrow('does not exist');
+
+			const validatorParamsExits = await validatorsParamsSubStore.has(methodContext, EMPTY_KEY);
+
+			expect(validatorParamsExits).toBe(false);
+
+			expect(validatorSetter.setNextValidators).not.toHaveBeenCalled();
 		});
 	});
 });

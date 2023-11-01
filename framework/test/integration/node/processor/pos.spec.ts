@@ -26,6 +26,7 @@ import * as testing from '../../../../src/testing';
 import { defaultConfig } from '../../../../src/modules/token/constants';
 import { ValidatorAccountJSON } from '../../../../src/modules/pos/stores/validator';
 import { StakerDataJSON } from '../../../../src/modules/pos/types';
+import { EVENT_TOPIC_TRANSACTION_EXECUTION } from '../../../../src/state_machine/constants';
 
 describe('PoS and reward', () => {
 	let processEnv: testing.BlockProcessingEnv;
@@ -96,10 +97,10 @@ describe('PoS and reward', () => {
 
 			const events = await processEnv.getEvents(newBlock.header.height);
 			expect(events.find(e => e.name === 'generatorKeyRegistration')?.topics[0]).toEqual(
-				registrationTx.id.toString('hex'),
+				Buffer.concat([EVENT_TOPIC_TRANSACTION_EXECUTION, registrationTx.id]).toString('hex'),
 			);
 			expect(events.find(e => e.name === 'blsKeyRegistration')?.topics[0]).toEqual(
-				registrationTx.id.toString('hex'),
+				Buffer.concat([EVENT_TOPIC_TRANSACTION_EXECUTION, registrationTx.id]).toString('hex'),
 			);
 			expect(events.find(e => e.name === 'commandExecutionResult')).toHaveProperty('data', '0801');
 
@@ -140,10 +141,10 @@ describe('PoS and reward', () => {
 
 			const events = await processEnv.getEvents(newBlock.header.height);
 			expect(events.find(e => e.name === 'generatorKeyRegistration')?.topics[0]).toEqual(
-				registrationTx.id.toString('hex'),
+				Buffer.concat([EVENT_TOPIC_TRANSACTION_EXECUTION, registrationTx.id]).toString('hex'),
 			);
 			expect(events.find(e => e.name === 'blsKeyRegistration')?.topics[0]).toEqual(
-				registrationTx.id.toString('hex'),
+				Buffer.concat([EVENT_TOPIC_TRANSACTION_EXECUTION, registrationTx.id]).toString('hex'),
 			);
 			expect(events.find(e => e.name === 'commandExecutionResult')).toHaveProperty('data', '0801');
 

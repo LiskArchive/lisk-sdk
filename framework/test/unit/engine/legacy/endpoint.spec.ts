@@ -24,18 +24,39 @@ import {
 	transactionSchemaV2,
 } from '../../../../src/engine/legacy/schemas';
 import { LegacyBlockJSON, LegacyTransactionJSON } from '../../../../src/engine/legacy/types';
+import { Storage } from '../../../../src/engine/legacy/storage';
 
 const bufferToHex = (b: Buffer) => Buffer.from(b).toString('hex');
+const randomSnapshotBlockID = utils.getRandomBytes(20);
+const expectedSnapshotBlockID = utils.getRandomBytes(20);
 
 describe('Legacy endpoint', () => {
+	const { header, payload } = blockFixtures[0];
 	let encodedBlock: Buffer;
 	let legacyEndpoint: LegacyEndpoint;
 
 	beforeEach(() => {
-		legacyEndpoint = new LegacyEndpoint({ db: new InMemoryDatabase() as any });
+		legacyEndpoint = new LegacyEndpoint({
+			db: new InMemoryDatabase() as any,
+			legacyConfig: {
+				sync: true,
+				brackets: [
+					{
+						startHeight: 0,
+						snapshotBlockID: randomSnapshotBlockID.toString('hex'),
+						snapshotHeight: 100,
+					},
+					{
+						startHeight: 16270306,
+						snapshotBlockID: expectedSnapshotBlockID.toString('hex'),
+						snapshotHeight: 16270316,
+					},
+				],
+			},
+		});
 		encodedBlock = codec.encode(blockSchemaV2, {
-			header: codec.encode(blockHeaderSchemaV2, blockFixtures[0].header),
-			payload: blockFixtures[0].payload,
+			header: codec.encode(blockHeaderSchemaV2, header),
+			payload,
 		});
 
 		jest.spyOn(legacyEndpoint.storage, 'getBlockByID').mockResolvedValue(encodedBlock);
@@ -44,25 +65,19 @@ describe('Legacy endpoint', () => {
 
 	describe('LegacyEndpoint', () => {
 		const matchBlockExpectations = (block: LegacyBlockJSON) => {
-			expect(block.header.id).toEqual(bufferToHex(blockFixtures[0].header.id));
-			expect(block.header.version).toEqual(blockFixtures[0].header.version);
-			expect(block.header.timestamp).toEqual(blockFixtures[0].header.timestamp);
-			expect(block.header.height).toEqual(blockFixtures[0].header.height);
-			expect(block.header.previousBlockID).toEqual(
-				bufferToHex(blockFixtures[0].header.previousBlockID),
-			);
-			expect(block.header.transactionRoot).toEqual(
-				bufferToHex(blockFixtures[0].header.transactionRoot),
-			);
-			expect(block.header.generatorPublicKey).toEqual(
-				bufferToHex(blockFixtures[0].header.generatorPublicKey),
-			);
-			expect(BigInt(block.header.reward as number)).toEqual(blockFixtures[0].header.reward);
-			expect(block.header.asset).toEqual(bufferToHex(blockFixtures[0].header.asset));
-			expect(block.header.signature).toEqual(bufferToHex(blockFixtures[0].header.signature));
+			expect(block.header.id).toEqual(bufferToHex(header.id));
+			expect(block.header.version).toEqual(header.version);
+			expect(block.header.timestamp).toEqual(header.timestamp);
+			expect(block.header.height).toEqual(header.height);
+			expect(block.header.previousBlockID).toEqual(bufferToHex(header.previousBlockID));
+			expect(block.header.transactionRoot).toEqual(bufferToHex(header.transactionRoot));
+			expect(block.header.generatorPublicKey).toEqual(bufferToHex(header.generatorPublicKey));
+			expect(BigInt(block.header.reward as number)).toEqual(header.reward);
+			expect(block.header.asset).toEqual(bufferToHex(header.asset));
+			expect(block.header.signature).toEqual(bufferToHex(header.signature));
 
-			expect(block.payload).toHaveLength(blockFixtures[0].payload.length);
-			expect(block.payload[0]).toEqual(bufferToHex(blockFixtures[0].payload[0]));
+			expect(block.payload).toHaveLength(payload.length);
+			expect(block.payload[0]).toEqual(bufferToHex(payload[0]));
 		};
 
 		const matchTxExpectations = (
@@ -83,7 +98,7 @@ describe('Legacy endpoint', () => {
 
 		it('getBlockByID', async () => {
 			const block = await legacyEndpoint.getBlockByID({
-				params: { id: bufferToHex(blockFixtures[0].header.id) },
+				params: { id: bufferToHex(header.id) },
 			} as any);
 
 			matchBlockExpectations(block);
@@ -91,14 +106,14 @@ describe('Legacy endpoint', () => {
 
 		it('getBlockByHeight', async () => {
 			const block = await legacyEndpoint.getBlockByHeight({
-				params: { height: blockFixtures[0].header.height },
+				params: { height: header.height },
 			} as any);
 
 			matchBlockExpectations(block);
 		});
 
 		it('getTransactionByID', async () => {
-			const tx = blockFixtures[0].payload[0];
+			const tx = payload[0];
 			jest.spyOn(legacyEndpoint['storage'], 'getTransactionByID').mockResolvedValue(tx);
 
 			const txId = utils.hash(tx).toString('hex');
@@ -110,8 +125,8 @@ describe('Legacy endpoint', () => {
 		});
 
 		it('getTransactionsByBlockID', async () => {
-			const blockId = blockFixtures[0].header.id;
-			const tx = blockFixtures[0].payload[0];
+			const blockId = header.id;
+			const tx = payload[0];
 			const txId = utils.hash(tx).toString('hex');
 
 			jest.spyOn(legacyEndpoint['storage'], 'getTransactionsByBlockID').mockResolvedValue([tx]);
@@ -122,6 +137,44 @@ describe('Legacy endpoint', () => {
 
 			expect(transactions).toBeArray();
 			matchTxExpectations(transactions[0], tx, txId);
+		});
+
+		it('getLegacyBrackets', async () => {
+			const blockId = header.id;
+			const legacyConfig = {
+				sync: true,
+				brackets: [
+					{
+						startHeight: header.height - 200,
+						snapshotBlockID: blockId.toString('hex'),
+						snapshotHeight: header.height,
+					},
+				],
+			};
+
+			const legacyStorage = new Storage(new InMemoryDatabase() as any);
+			await legacyStorage.setBracketInfo(blockId, {
+				startHeight: header.height - 200,
+				lastBlockHeight: header.height - 100,
+				snapshotBlockHeight: header.height,
+			});
+			legacyEndpoint = new LegacyEndpoint({
+				db: legacyStorage as any,
+				legacyConfig,
+			});
+
+			(legacyEndpoint as any)['storage'] = legacyStorage;
+
+			const brackets = await legacyEndpoint.getLegacyBrackets({} as any);
+
+			expect(brackets).toEqual([
+				{
+					startHeight: legacyConfig.brackets[0].startHeight,
+					snapshotBlockID: legacyConfig.brackets[0].snapshotBlockID,
+					snapshotBlockHeight: header.height,
+					lastBlockHeight: header.height - 100,
+				},
+			]);
 		});
 	});
 });

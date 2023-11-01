@@ -15,10 +15,11 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { LegacyConfig } from '../../../../src';
 import { LegacyChainHandler } from '../../../../src/engine/legacy/legacy_chain_handler';
 import { Network } from '../../../../src/engine/network';
-import { encodeBlock, encodeLegacyChainBracketInfo } from '../../../../src/engine/legacy/codec';
+import { encodeBlock } from '../../../../src/engine/legacy/codec';
 import { Peer, LegacyBlock } from '../../../../src/engine/legacy/types';
 import { getBlocksFromIdResponseSchema } from '../../../../src/engine/consensus/schema';
 import { blockFixtures } from './fixtures';
@@ -27,7 +28,6 @@ import { fakeLogger } from '../../../utils/mocks';
 const randomSnapshotBlockID = utils.getRandomBytes(20);
 const expectedSnapshotBlockID = utils.getRandomBytes(20);
 
-// https://lisk.observer/block/19583716
 describe('Legacy Chain Handler', () => {
 	let legacyChainHandler: LegacyChainHandler;
 	let legacyConfig: LegacyConfig;
@@ -40,11 +40,6 @@ describe('Legacy Chain Handler', () => {
 			sync: true,
 			brackets: [
 				{
-					startHeight: 0,
-					snapshotBlockID: randomSnapshotBlockID.toString('hex'),
-					snapshotHeight: 100,
-				},
-				{
 					startHeight: 16270306,
 					snapshotBlockID: expectedSnapshotBlockID.toString('hex'),
 					snapshotHeight: 16270316,
@@ -55,13 +50,13 @@ describe('Legacy Chain Handler', () => {
 			{
 				peerId: 'peerId-1',
 				options: {
-					legacy: [expectedSnapshotBlockID],
+					legacy: [expectedSnapshotBlockID.toString('hex')],
 				},
 			},
 			{
 				peerId: 'peerId-2',
 				options: {
-					legacy: [randomSnapshotBlockID, expectedSnapshotBlockID],
+					legacy: [randomSnapshotBlockID.toString('hex'), expectedSnapshotBlockID.toString('hex')],
 				},
 			},
 		];
@@ -74,7 +69,7 @@ describe('Legacy Chain Handler', () => {
 
 		legacyChainHandler = new LegacyChainHandler({ legacyConfig, network, logger: fakeLogger });
 		await legacyChainHandler.init({
-			db: { get: jest.fn(), write: jest.fn(), set: jest.fn() } as never,
+			db: new InMemoryDatabase() as never,
 		});
 
 		jest.spyOn(legacyChainHandler['_network'], 'getConnectedPeers').mockImplementation(() => {
@@ -82,40 +77,8 @@ describe('Legacy Chain Handler', () => {
 		});
 
 		jest
-			.spyOn(legacyChainHandler['_storage'], 'getLegacyChainBracketInfo')
-			.mockReturnValueOnce(
-				encodeLegacyChainBracketInfo({
-					startHeight: 0,
-					snapshotBlockHeight: 0,
-					lastBlockHeight: 0,
-				}) as any, // this means this bracket is already synced, since it's lastBlockHeight equals bracket's startHeight
-			)
-			.mockReturnValueOnce(
-				encodeLegacyChainBracketInfo({
-					startHeight: 16270306,
-					snapshotBlockHeight: 16270316,
-					lastBlockHeight: 16270316,
-				}) as any,
-			);
-
-		jest
 			.spyOn(legacyChainHandler['_storage'], 'getBlockByHeight')
 			.mockReturnValueOnce(encodeBlock(legacyBlock16270316) as any); // we want to return blocks from this height ONCE
-
-		// `getLegacyBlocksFromId` should return blocks in DESC order (starting from 16270316 (excluding) till 16270306)
-		const reversedFixtures = blockFixtures
-			.slice(0, blockFixtures.length - 1)
-			.sort((a, b) => b.header.height - a.header.height);
-		const encodedBlocks = reversedFixtures.map(block => encodeBlock(block));
-
-		jest
-			.spyOn(network, 'requestFromPeer')
-			.mockReturnValueOnce({
-				data: codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks }),
-			} as any)
-			.mockReturnValueOnce({
-				data: [],
-			} as any);
 	});
 
 	describe('constructor', () => {
@@ -125,20 +88,106 @@ describe('Legacy Chain Handler', () => {
 	});
 
 	describe('sync', () => {
+		beforeEach(() => {
+			// `getLegacyBlocksFromId` should return blocks in DESC order (starting from 16270316 (excluding) till 16270306)
+			const reversedFixtures = blockFixtures
+				.slice(0, blockFixtures.length - 1)
+				.sort((a, b) => b.header.height - a.header.height);
+			const encodedBlocks = reversedFixtures.map(block => encodeBlock(block));
+
+			jest
+				.spyOn(network, 'requestFromPeer')
+				.mockReturnValueOnce({
+					data: codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks }),
+				} as any)
+				.mockReturnValueOnce({
+					data: codec.encode(getBlocksFromIdResponseSchema, { blocks: [] }),
+				} as any)
+				.mockReturnValueOnce({
+					data: codec.encode(getBlocksFromIdResponseSchema, { blocks: [] }),
+				} as any);
+		});
 		it('should sync blocks in range for given config brackets', async () => {
 			jest.spyOn(legacyChainHandler['_storage'], 'saveBlock');
-			jest.spyOn(legacyChainHandler['_storage'], 'setLegacyChainBracketInfo');
+			jest.spyOn(legacyChainHandler['_storage'], 'setBracketInfo');
 			jest.spyOn(legacyChainHandler['_network'], 'applyNodeInfo');
+			jest.spyOn(legacyChainHandler as any, '_trySyncBlocks');
 
 			await legacyChainHandler.sync();
-
 			// starting from 16270316 (excluding) till 16270306 = 10,
 			// but we save blocks only if ```block.header.height > bracket.startHeight```
-			expect(legacyChainHandler['_storage'].saveBlock).toHaveBeenCalledTimes(9);
+			expect(legacyChainHandler['_trySyncBlocks']).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	describe('_syncBlocks', () => {
+		let reversedFixtures;
+		let encodedBlocks: any[];
+		beforeEach(() => {
+			reversedFixtures = blockFixtures
+				.slice(0, blockFixtures.length - 1)
+				.sort((a, b) => b.header.height - a.header.height);
+			encodedBlocks = reversedFixtures.map(block => encodeBlock(block));
+		});
+		it('should sync blocks in range for given config brackets', async () => {
+			jest
+				.spyOn(network, 'requestFromPeer')
+				.mockReturnValueOnce({
+					data: codec.encode(getBlocksFromIdResponseSchema, { blocks: encodedBlocks }),
+				} as any)
+				.mockReturnValueOnce({
+					data: codec.encode(getBlocksFromIdResponseSchema, { blocks: [] }),
+				} as any)
+				.mockReturnValueOnce({
+					data: codec.encode(getBlocksFromIdResponseSchema, { blocks: [] }),
+				} as any);
+			jest.spyOn(legacyChainHandler['_storage'], 'saveBlock');
+			jest.spyOn(legacyChainHandler['_storage'], 'setBracketInfo');
+			jest.spyOn(legacyChainHandler['_network'], 'applyNodeInfo');
+			jest.spyOn(legacyChainHandler as any, '_trySyncBlocks');
+			await legacyChainHandler['_syncBlocks'](
+				legacyConfig.brackets[0],
+				legacyBlock16270316.header.id as Buffer,
+				0,
+			);
+
+			expect(legacyChainHandler['_storage'].saveBlock).toHaveBeenCalledTimes(10);
 
 			// should be 1, since if `lastBlock.header.height > bracket.startHeight` is skipped
 			// & only the final `_updateBracketInfo(...)` is called
-			expect(legacyChainHandler['_storage'].setLegacyChainBracketInfo).toHaveBeenCalledTimes(1);
+			expect(legacyChainHandler['_storage'].setBracketInfo).toHaveBeenCalledTimes(1);
+		});
+
+		it('should throw error when no peers are found', async () => {
+			jest.spyOn(legacyChainHandler['_network'], 'getConnectedPeers').mockImplementation(() => []);
+			await expect(
+				legacyChainHandler['_syncBlocks'](
+					legacyConfig.brackets[0],
+					legacyBlock16270316.header.id as Buffer,
+					0,
+				),
+			).rejects.toThrow('No peer found with legacy info.: Attempting to sync again after 12000 ms');
+		});
+
+		it('should throw error when no peers are found with legacy data', async () => {
+			jest.spyOn(legacyChainHandler['_network'], 'getConnectedPeers').mockImplementation(
+				() =>
+					[
+						{
+							peerId: 'peerId-1',
+							options: {
+								legacy: [randomSnapshotBlockID.toString('hex')],
+							},
+						},
+					] as any,
+			);
+			await expect(
+				legacyChainHandler['_syncBlocks'](
+					legacyConfig.brackets[0],
+					legacyBlock16270316.header.id as Buffer,
+					0,
+				),
+			).rejects.toThrow('No peer found with legacy info.: Attempting to sync again after 12000 ms');
 		});
 	});
 });

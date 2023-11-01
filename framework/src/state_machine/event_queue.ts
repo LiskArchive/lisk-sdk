@@ -74,8 +74,7 @@ export class EventQueue {
 	}
 
 	public getChildQueue(topicID: Buffer): EventQueue {
-		const allTopics = [...this._defaultTopics, topicID];
-		return new EventQueue(this._height, this._events, allTopics);
+		return new EventQueue(this._height, this._events, [topicID]);
 	}
 
 	public createSnapshot(): number {

@@ -223,5 +223,25 @@ describe('CommitList', () => {
 			// Assert
 			expect(commitList.exists(singleSampleCommit)).toBeFalse();
 		});
+
+		it('should not delete anything if the height does not exist', () => {
+			const originalSize = commitList.size();
+
+			commitList.deleteSingle({
+				...singleSampleCommit,
+				height: 9999,
+			});
+			expect(commitList.size()).toBe(originalSize);
+		});
+
+		it('should not delete anything if commit does not exist', () => {
+			const originalSize = commitList.size();
+
+			commitList.deleteSingle({
+				...singleSampleCommit,
+				validatorAddress: utils.getRandomBytes(20),
+			});
+			expect(commitList.size()).toBe(originalSize);
+		});
 	});
 });

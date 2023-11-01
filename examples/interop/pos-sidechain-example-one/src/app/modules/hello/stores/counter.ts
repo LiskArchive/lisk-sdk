@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Lisk Foundation
+ * Copyright © 2022 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -11,17 +11,26 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { configSchema as rewardConfigSchema } from '../reward/schemas';
+import { BaseStore } from 'lisk-sdk';
 
-export const configSchema = {
-	$id: '/dynamicReward/config',
+export interface CounterStoreData {
+	counter: number;
+}
+
+export const counterKey = Buffer.alloc(0);
+
+export const counterStoreSchema = {
+	$id: '/hello/counter',
 	type: 'object',
+	required: ['counter'],
 	properties: {
-		...rewardConfigSchema.properties,
-		factorMinimumRewardActiveValidators: {
-			type: 'integer',
-			minimum: 1,
+		counter: {
+			dataType: 'uint32',
+			fieldNumber: 1,
 		},
 	},
-	required: [...rewardConfigSchema.required, 'factorMinimumRewardActiveValidators'],
 };
+
+export class CounterStore extends BaseStore<CounterStoreData> {
+	public schema = counterStoreSchema;
+}

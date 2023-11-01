@@ -37,6 +37,7 @@ export const getTransactionStats = async (
 	state: SharedState,
 ): Promise<TransactionStats> => ({
 	transactions: state.transactions,
-	connectedPeers: (await client.invoke<ReadonlyArray<PeerInfo>>('app_getConnectedPeers')).length,
+	connectedPeers: (await client.invoke<ReadonlyArray<PeerInfo>>('network_getConnectedPeers'))
+		.length,
 	averageReceivedTransactions: getAverage(state.transactions),
 });

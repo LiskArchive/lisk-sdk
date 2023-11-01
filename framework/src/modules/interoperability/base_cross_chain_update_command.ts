@@ -19,7 +19,7 @@ import { CommandExecuteContext, CommandVerifyContext } from '../../state_machine
 import { BaseInteroperabilityCommand } from './base_interoperability_command';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
 import { BaseInteroperabilityMethod } from './base_interoperability_method';
-import { CCMStatusCode, EMPTY_BYTES, EmptyCCM } from './constants';
+import { CCMStatusCode, EMPTY_BYTES, EVENT_TOPIC_CCM_EXECUTION, EmptyCCM } from './constants';
 import { CCMProcessedCode, CcmProcessedEvent, CCMProcessedResult } from './events/ccm_processed';
 import { CcmSendSuccessEvent } from './events/ccm_send_success';
 import { ccmSchema, crossChainUpdateTransactionParams } from './schemas';
@@ -34,6 +34,7 @@ import { ChainAccountStore, ChainStatus } from './stores/chain_account';
 import {
 	emptyActiveValidatorsUpdate,
 	getEncodedCCMAndID,
+	getIDFromCCMBytes,
 	getMainchainID,
 	isInboxUpdateEmpty,
 	validateFormat,
@@ -126,35 +127,8 @@ export abstract class BaseCrossChainUpdateCommand<
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 		isMainchain: boolean,
 	): Promise<[CCMsg[], boolean]> {
-		const { params, transaction } = context;
+		const { params } = context;
 		const { inboxUpdate } = params;
-
-		// Verify certificate signature. We do it here because if it fails, the transaction fails rather than being invalid.
-		await this.internalMethod.verifyCertificateSignature(context, params);
-
-		if (!isInboxUpdateEmpty(inboxUpdate)) {
-			// This check is expensive. Therefore, it is done in the execute step instead of the verify
-			// step. Otherwise, a malicious relayer could spam the transaction pool with computationally
-			// costly CCU verifications without paying fees.
-			try {
-				await this.internalMethod.verifyPartnerChainOutboxRoot(context, params);
-			} catch (error) {
-				return [[], false];
-			}
-
-			// Initialize the relayer account for the message fee token.
-			// This is necessary to ensure that the relayer can receive the CCM fees
-			// If the account already exists, nothing is done.
-			const messageFeeTokenID = await this._interopsMethod.getMessageFeeTokenID(
-				context,
-				params.sendingChainID,
-			);
-			await this._tokenMethod.initializeUserAccount(
-				context,
-				transaction.senderAddress,
-				messageFeeTokenID,
-			);
-		}
 
 		const ccms: CCMsg[] = [];
 		let ccm: CCMsg;
@@ -162,16 +136,25 @@ export abstract class BaseCrossChainUpdateCommand<
 		// Process cross-chain messages in inbox update.
 		// First process basic checks for all CCMs.
 		for (const ccmBytes of inboxUpdate.crossChainMessages) {
+			const ccmID = getIDFromCCMBytes(ccmBytes);
+			const ccmContext = {
+				...context,
+				eventQueue: context.eventQueue.getChildQueue(
+					Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
+				),
+			};
 			try {
 				// Verify general format. Past this point, we can access ccm root properties.
 				ccm = codec.decode<CCMsg>(ccmSchema, ccmBytes);
 			} catch (error) {
-				await this.internalMethod.terminateChainInternal(context, params.sendingChainID);
-				this.events.get(CcmProcessedEvent).log(context, params.sendingChainID, context.chainID, {
-					ccm: EmptyCCM,
-					result: CCMProcessedResult.DISCARDED,
-					code: CCMProcessedCode.INVALID_CCM_DECODING_EXCEPTION,
-				});
+				await this.internalMethod.terminateChainInternal(ccmContext, params.sendingChainID);
+				this.events
+					.get(CcmProcessedEvent)
+					.log(ccmContext, params.sendingChainID, ccmContext.chainID, {
+						ccm: EmptyCCM,
+						result: CCMProcessedResult.DISCARDED,
+						code: CCMProcessedCode.INVALID_CCM_DECODING_EXCEPTION,
+					});
 				// In this case, we do not even update the chain account with the new certificate.
 				return [[], false];
 			}
@@ -179,11 +162,11 @@ export abstract class BaseCrossChainUpdateCommand<
 			try {
 				validateFormat(ccm);
 			} catch (error) {
-				await this.internalMethod.terminateChainInternal(context, params.sendingChainID);
+				await this.internalMethod.terminateChainInternal(ccmContext, params.sendingChainID);
 				ccm = { ...ccm, params: EMPTY_BYTES };
 				this.events
 					.get(CcmProcessedEvent)
-					.log(context, params.sendingChainID, ccm.receivingChainID, {
+					.log(ccmContext, params.sendingChainID, ccm.receivingChainID, {
 						ccm,
 						result: CCMProcessedResult.DISCARDED,
 						code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
@@ -193,15 +176,13 @@ export abstract class BaseCrossChainUpdateCommand<
 			}
 
 			try {
-				// Verify whether the CCM respects the routing rules,
-				// which differ on mainchain and sidechains.
-				this._verifyRoutingRules(context, isMainchain, ccm);
+				this.verifyRoutingRules(ccm, params, ccmContext.chainID, isMainchain);
 				ccms.push(ccm);
 			} catch (error) {
-				await this.internalMethod.terminateChainInternal(context, params.sendingChainID);
+				await this.internalMethod.terminateChainInternal(ccmContext, params.sendingChainID);
 				this.events
 					.get(CcmProcessedEvent)
-					.log(context, params.sendingChainID, ccm.receivingChainID, {
+					.log(ccmContext, params.sendingChainID, ccm.receivingChainID, {
 						ccm,
 						result: CCMProcessedResult.DISCARDED,
 						code: CCMProcessedCode.INVALID_CCM_ROUTING_EXCEPTION,
@@ -214,36 +195,31 @@ export abstract class BaseCrossChainUpdateCommand<
 		return [ccms, true];
 	}
 
-	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#verifyroutingrules
-	private _verifyRoutingRules(
-		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
-		isMainchain: boolean,
+	protected verifyRoutingRules(
 		ccm: CCMsg,
+		ccuParams: CrossChainUpdateTransactionParams,
+		ownChainID: Buffer,
+		isMainchain: boolean,
 	) {
-		// Sending and receiving chains must differ.
-		if (ccm.receivingChainID.equals(ccm.sendingChainID)) {
-			throw new Error('Sending and receiving chains must differ.');
-		}
-
-		// Processing on the mainchain
+		// The CCM must come from the sending chain.
 		if (isMainchain) {
-			// The CCM must come from the sending chain.
-			if (!ccm.sendingChainID.equals(context.params.sendingChainID)) {
+			if (!ccm.sendingChainID.equals(ccuParams.sendingChainID)) {
 				throw new Error('CCM is not from the sending chain.');
 			}
 			if (ccm.status === CCMStatusCode.CHANNEL_UNAVAILABLE) {
 				throw new Error('CCM status channel unavailable can only be set on the mainchain.');
 			}
-		} else {
-			// The CCM must come be directed to the sidechain, unless it was bounced on the mainchain.
-			// eslint-disable-next-line no-lonely-if
-			if (!context.chainID.equals(ccm.receivingChainID)) {
-				throw new Error('CCM is not directed to the sidechain.');
-			}
+		} else if (!ownChainID.equals(ccm.receivingChainID)) {
+			// The CCM must be directed to the sidechain.
+			throw new Error('CCM is not directed to the sidechain.');
+		}
+		// Sending and receiving chains must differ.
+		if (ccm.receivingChainID.equals(ccm.sendingChainID)) {
+			throw new Error('Sending and receiving chains must differ.');
 		}
 	}
 
-	protected async afterCrossChainMessagesExecution(
+	protected async afterCrossChainMessagesExecute(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	) {
 		const { params } = context;
@@ -618,6 +594,35 @@ export abstract class BaseCrossChainUpdateCommand<
 				ccm,
 			});
 			return false;
+		}
+	}
+
+	// verifyCertificateSignature and verifyPartnerChainOutboxRoot checks are expensive. Therefore, it is done in the execute step instead of the verify
+	// step. Otherwise, a malicious relayer could spam the transaction pool with computationally
+	// costly CCU verifications without paying fees.
+	protected async verifyCertificateSignatureAndPartnerChainOutboxRoot(
+		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
+	) {
+		const { params, transaction } = context;
+		const { inboxUpdate } = params;
+		// Verify certificate signature. We do it here because if it fails, the transaction fails rather than being invalid.
+		await this.internalMethod.verifyCertificateSignature(context, params);
+
+		if (!isInboxUpdateEmpty(inboxUpdate)) {
+			await this.internalMethod.verifyPartnerChainOutboxRoot(context, params);
+
+			// Initialize the relayer account for the message fee token.
+			// This is necessary to ensure that the relayer can receive the CCM fees
+			// If the account already exists, nothing is done.
+			const messageFeeTokenID = await this._interopsMethod.getMessageFeeTokenID(
+				context,
+				params.sendingChainID,
+			);
+			await this._tokenMethod.initializeUserAccount(
+				context,
+				transaction.senderAddress,
+				messageFeeTokenID,
+			);
 		}
 	}
 }
