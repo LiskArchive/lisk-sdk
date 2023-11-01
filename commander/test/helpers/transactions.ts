@@ -165,6 +165,136 @@ export const posVoteParamsSchema = {
 	},
 };
 
+export const schemaWithArray = {
+	$id: '/lisk/schemaWithArray',
+	type: 'object',
+	required: ['attributesArray'],
+	properties: {
+		attributesArray: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'uint64',
+			},
+		},
+	},
+};
+
+export const schemaWithArrayOfObjects = {
+	$id: '/lisk/schemaWithArrayOfObjects',
+	type: 'object',
+	required: ['attributesArray'],
+	properties: {
+		attributesArray: {
+			type: 'array',
+			fieldNumber: 4,
+			items: {
+				type: 'object',
+				required: ['module', 'attributes'],
+				properties: {
+					module: {
+						dataType: 'string',
+						minLength: 0,
+						maxLength: 10,
+						pattern: '^[a-zA-Z0-9]*$',
+						fieldNumber: 1,
+					},
+					attributes: {
+						dataType: 'bytes',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+	},
+};
+
+export const castValidationSchema = {
+	$id: '/lisk/castValidation',
+	type: 'object',
+	required: [
+		'uInt64',
+		'sIn64',
+		'uInt32',
+		'sInt32',
+		'uInt64Array',
+		'sInt64Array',
+		'uInt32Array',
+		'sInt32Array',
+	],
+	properties: {
+		uInt64: {
+			dataType: 'uint64',
+			fieldNumber: 1,
+		},
+		sInt64: {
+			dataType: 'sint64',
+			fieldNumber: 2,
+		},
+		uInt32: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+		sInt32: {
+			dataType: 'sint32',
+			fieldNumber: 4,
+		},
+		uInt64Array: {
+			type: 'array',
+			fieldNumber: 5,
+			items: {
+				dataType: 'uint64',
+			},
+		},
+		sInt64Array: {
+			type: 'array',
+			fieldNumber: 6,
+			items: {
+				dataType: 'sint64',
+			},
+		},
+		uInt32Array: {
+			type: 'array',
+			fieldNumber: 7,
+			items: {
+				dataType: 'uint32',
+			},
+		},
+		sInt32Array: {
+			type: 'array',
+			fieldNumber: 8,
+			items: {
+				dataType: 'sint32',
+			},
+		},
+		nested: {
+			type: 'array',
+			fieldNumber: 9,
+			items: {
+				type: 'object',
+				properties: {
+					uInt64: {
+						dataType: 'uint64',
+						fieldNumber: 1,
+					},
+					sInt64: {
+						dataType: 'sint64',
+						fieldNumber: 2,
+					},
+					uInt32: {
+						dataType: 'uint32',
+						fieldNumber: 3,
+					},
+					sInt32: {
+						dataType: 'sint32',
+						fieldNumber: 4,
+					},
+				},
+			},
+		},
+	},
+};
+
 export const genesisBlockID = Buffer.from(
 	'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
 	'hex',

@@ -12,101 +12,66 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as inquirer from 'inquirer';
+import { getParamsFromPrompt } from '../../../../src/utils/reader';
+import { castValidationSchema } from '../../../helpers/transactions';
 
-import {
-	prepareQuestions,
-	transformAsset,
-	transformNestedAsset,
-} from '../../../../src/utils/reader';
-import {
-	tokenTransferParamsSchema,
-	registerMultisignatureParamsSchema,
-	posVoteParamsSchema,
-} from '../../../helpers/transactions';
-
-describe('prompt', () => {
-	describe('prepareQuestions', () => {
-		it('should return array of questions for given asset schema', () => {
-			const questions = prepareQuestions(tokenTransferParamsSchema);
-			expect(questions).toEqual([
-				{ type: 'input', name: 'tokenID', message: 'Please enter: tokenID: ' },
-				{ type: 'input', name: 'amount', message: 'Please enter: amount: ' },
-				{
-					type: 'input',
-					name: 'recipientAddress',
-					message: 'Please enter: recipientAddress: ',
-				},
-				{ type: 'input', name: 'data', message: 'Please enter: data: ' },
-			]);
-		});
-	});
-
-	describe('transformAsset', () => {
-		it('should transform result according to asset schema', () => {
-			const questions = prepareQuestions(registerMultisignatureParamsSchema);
-			const transformedAsset = transformAsset(registerMultisignatureParamsSchema, {
-				numberOfSignatures: '4',
-				mandatoryKeys: 'a,b',
-				optionalKeys: '',
-				signatures: 'c,d',
+describe('getParamsFromPrompt', () => {
+	it('should cast uint64, sint64 types to BigInt and uint32, sint32 to Number', async () => {
+		const uInt64 = '12312321';
+		const sInt64 = '-12321312';
+		const uInt32 = '10';
+		const sInt32 = '-10';
+		jest
+			.spyOn(inquirer, 'prompt')
+			.mockResolvedValueOnce({
+				uInt64,
+			})
+			.mockResolvedValueOnce({
+				sInt64,
+			})
+			.mockResolvedValueOnce({
+				uInt32,
+			})
+			.mockResolvedValueOnce({
+				sInt32,
+			})
+			.mockResolvedValueOnce({
+				uInt64Array: `${uInt64},${uInt64}`,
+			})
+			.mockResolvedValueOnce({
+				sInt64Array: `${sInt64},${sInt64}`,
+			})
+			.mockResolvedValueOnce({
+				uInt32Array: `${uInt32},${uInt32}`,
+			})
+			.mockResolvedValueOnce({
+				sInt32Array: `${sInt32},${sInt32}`,
+			})
+			.mockResolvedValueOnce({
+				nested: `${uInt64},${sInt64},${uInt32},${sInt32}`,
+			})
+			.mockResolvedValue({
+				askAgain: false,
 			});
-			expect(questions).toEqual([
-				{
-					type: 'input',
-					name: 'numberOfSignatures',
-					message: 'Please enter: numberOfSignatures: ',
-				},
-				{
-					type: 'input',
-					name: 'mandatoryKeys',
-					message: 'Please enter: mandatoryKeys(comma separated values (a,b)): ',
-				},
-				{
-					type: 'input',
-					name: 'optionalKeys',
-					message: 'Please enter: optionalKeys(comma separated values (a,b)): ',
-				},
-				{
-					type: 'input',
-					name: 'signatures',
-					message: 'Please enter: signatures(comma separated values (a,b)): ',
-				},
-			]);
-			expect(transformedAsset).toEqual({
-				numberOfSignatures: 4,
-				mandatoryKeys: ['a', 'b'],
-				optionalKeys: [],
-				signatures: ['c', 'd'],
-			});
-		});
-	});
 
-	describe('transformNestedAsset', () => {
-		it('should transform result according to nested asset schema', () => {
-			const questions = prepareQuestions(posVoteParamsSchema);
-			const transformedAsset = transformNestedAsset(posVoteParamsSchema, [
-				{ stakes: 'a,100' },
-				{ stakes: 'b,300' },
-			]);
-
-			expect(questions).toEqual([
+		await expect(getParamsFromPrompt(castValidationSchema)).resolves.toEqual({
+			uInt64: BigInt(uInt64),
+			sInt64: BigInt(sInt64),
+			uInt32: Number(uInt32),
+			sInt32: Number(sInt32),
+			uInt64Array: [BigInt(uInt64), BigInt(uInt64)],
+			sInt64Array: [BigInt(sInt64), BigInt(sInt64)],
+			uInt32Array: [Number(uInt32), Number(uInt32)],
+			sInt32Array: [Number(sInt32), Number(sInt32)],
+			nested: [
 				{
-					type: 'input',
-					name: 'stakes',
-					message: 'Please enter: stakes(validatorAddress, amount): ',
+					uInt64: BigInt(uInt64),
+					sInt64: BigInt(sInt64),
+					uInt32: Number(uInt32),
+					sInt32: Number(sInt32),
 				},
-				{
-					type: 'confirm',
-					name: 'askAgain',
-					message: 'Want to enter another stakes(validatorAddress, amount)',
-				},
-			]);
-			expect(transformedAsset).toEqual({
-				stakes: [
-					{ validatorAddress: 'a', amount: 100 },
-					{ validatorAddress: 'b', amount: 300 },
-				],
-			});
+			],
 		});
 	});
 });

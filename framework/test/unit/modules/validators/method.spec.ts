@@ -82,7 +82,6 @@ describe('ValidatorsModuleMethod', () => {
 		'92f020ce5e37befb86493a82686b0eedddb264350b0873cf1eeaa1fefe39d938f05f272452c1ef5e6ceb4d9b23687e31',
 		'hex',
 	);
-
 	const invalidAddressShort = utils.getRandomBytes(ADDRESS_LENGTH - 1);
 	const invalidAddressLong = utils.getRandomBytes(ADDRESS_LENGTH + 1);
 	const invalidGeneratorKeyShort = utils.getRandomBytes(ED25519_PUBLIC_KEY_LENGTH - 1);
