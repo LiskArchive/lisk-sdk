@@ -35,10 +35,12 @@ describe('ValidatorsModuleEndpoint', () => {
 	const validatorAddress = utils.getRandomBytes(ADDRESS_LENGTH);
 	const blsKey = utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH);
 	const generatorKey = utils.getRandomBytes(ED25519_PUBLIC_KEY_LENGTH);
+	const validBLSKey =
+		'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81';
 	const validProof =
 		'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26';
 
-	beforeAll(() => {
+	beforeEach(() => {
 		validatorsModule = new ValidatorsModule();
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	});
@@ -49,14 +51,16 @@ describe('ValidatorsModuleEndpoint', () => {
 				const context = createTransientModuleEndpointContext({
 					stateStore,
 					params: {
-						proofOfPossession: proof.toString('hex'),
-						blsKey: blsKey.toString('hex'),
+						proofOfPossession: validProof,
+						blsKey: validBLSKey,
 					},
 				});
 
-				await validatorsModule.stores.get(BLSKeyStore).set(createStoreGetter(stateStore), blsKey, {
-					address: utils.getRandomBytes(ADDRESS_LENGTH),
-				});
+				await validatorsModule.stores
+					.get(BLSKeyStore)
+					.set(createStoreGetter(stateStore), Buffer.from(validBLSKey, 'hex'), {
+						address: utils.getRandomBytes(ADDRESS_LENGTH),
+					});
 
 				await expect(validatorsModule.endpoint.validateBLSKey(context)).resolves.toStrictEqual({
 					valid: false,
@@ -81,8 +85,7 @@ describe('ValidatorsModuleEndpoint', () => {
 					stateStore,
 					params: {
 						proofOfPossession: validProof,
-						blsKey:
-							'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81',
+						blsKey: validBLSKey,
 					},
 				});
 				await expect(validatorsModule.endpoint.validateBLSKey(context)).resolves.toStrictEqual({
@@ -91,7 +94,7 @@ describe('ValidatorsModuleEndpoint', () => {
 			});
 
 			it('should resolve with false when proof of possession is invalid but bls key has a valid length', async () => {
-				const validBLSKey =
+				const anotherValidBLSKey =
 					'a491d1b0ecd9bb917989f0e74f0dea0422eac4a873e5e2644f368dffb9a6e20fd6e10c1b77654d067c0618f6e5a7f79a';
 				const invalidProof =
 					'b803eb0ed93ea10224a73b6b9c725796be9f5fefd215ef7a5b97234cc956cf6870db6127b7e4d824ec62276078e787db05584ce1adbf076bc0808ca0f15b73d59060254b25393d95dfc7abe3cda566842aaedf50bbb062aae1bbb6ef3b1fffff';
@@ -99,7 +102,7 @@ describe('ValidatorsModuleEndpoint', () => {
 					stateStore,
 					params: {
 						proofOfPossession: invalidProof,
-						blsKey: validBLSKey,
+						blsKey: anotherValidBLSKey,
 					},
 				});
 				await expect(validatorsModule.endpoint.validateBLSKey(context)).resolves.toStrictEqual({
