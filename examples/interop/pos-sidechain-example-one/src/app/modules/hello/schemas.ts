@@ -78,9 +78,25 @@ export const getHelloRequestSchema = {
 };
 
 /**
- * Parameters of the cross-chain token transfer command
+ * Parameters of the reactCrossChain CCM
  */
-export const crossChainReactParamsSchema = {
+export interface CCReactMessageParams {
+	/**
+	 * A number indicating the type of the reaction.
+	 */
+	reactionType: number;
+	/**
+	 * ID of the message.
+	 */
+	helloMessageID: string;
+	/** Optional field for data / messages. */
+	data: string;
+}
+
+/**
+ * Schema for the parameters of the reactCrossChain CCM
+ */
+export const CCReactMessageParamsSchema = {
 	/** The unique identifier of the schema. */
 	$id: '/lisk/hello/ccReactParams',
 	type: 'object',
@@ -92,14 +108,10 @@ export const crossChainReactParamsSchema = {
 			dataType: 'uint32',
 			fieldNumber: 1,
 		},
-		/**
-		 * ID of the message.
-		 */
 		helloMessageID: {
 			dataType: 'string',
 			fieldNumber: 2,
 		},
-		/** Optional field for data / messages. */
 		data: {
 			dataType: 'string',
 			fieldNumber: 3,
@@ -108,9 +120,3 @@ export const crossChainReactParamsSchema = {
 		},
 	},
 };
-
-export interface CCReactMessageParams {
-	reactionType: number;
-	helloMessageID: string;
-	data: string;
-}
