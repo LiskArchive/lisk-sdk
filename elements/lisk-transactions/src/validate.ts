@@ -13,7 +13,8 @@
  *
  */
 
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
+import { emptySchema } from '@liskhq/lisk-codec';
 import { baseTransactionSchema } from './schema';
 
 /**
@@ -25,7 +26,7 @@ import { baseTransactionSchema } from './schema';
  * const validation = validateTransaction(transaction, paramsSchema);
  * ```
  *
- * @param transactionObject The transaction to validate.
+ * @param transaction The transaction to validate.
  * @param paramsSchema The parameters schema for the transaction.
  *
  * @returns `undefined`, if the transaction is valid and no errors are found.
@@ -34,24 +35,19 @@ import { baseTransactionSchema } from './schema';
  * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
  * @see {@link @liskhq/lisk-validator!LiskValidator.validate}
  */
+
 export const validateTransaction = (
-	transactionObject: Record<string, unknown>,
-	paramsSchema?: object,
-): LiskValidationError | Error | undefined => {
-	const transactionObjectWithEmptyParameters = {
-		...transactionObject,
+	transaction: Record<string, unknown>,
+	paramsSchema: object = emptySchema,
+) => {
+	const transactionWithEmptyParams = {
+		...transaction,
 		params: Buffer.alloc(0),
 	};
-	validator.validate(baseTransactionSchema, transactionObjectWithEmptyParameters);
+	validator.validate(baseTransactionSchema, transactionWithEmptyParams);
 
-	if (!paramsSchema) {
-		return undefined;
+	if (typeof transaction.params !== 'object' || transaction.params === null) {
+		throw new Error('Transaction object params must be of type object and not null');
 	}
-
-	if (typeof transactionObject.params !== 'object' || transactionObject.params === null) {
-		return new Error('Transaction object params must be of type object and not null');
-	}
-	validator.validate(paramsSchema, transactionObject.params);
-
-	return undefined;
+	validator.validate(paramsSchema, transaction.params);
 };

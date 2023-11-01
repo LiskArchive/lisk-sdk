@@ -240,7 +240,7 @@ describe('sign', () => {
 
 		it('should return a signed transaction for an undefined params schema', () => {
 			const signedTransaction = signTransaction(
-				{ ...validTransaction, params: undefined },
+				{ ...validTransaction },
 				chainID,
 				privateKey,
 				undefined,
