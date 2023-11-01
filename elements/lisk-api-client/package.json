@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-api-client",
-	"version": "6.0.0-beta.6",
+	"version": "6.1.0-beta.1",
 	"description": "An API client for the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -35,16 +35,16 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-codec": "^0.3.0-beta.5",
-		"@liskhq/lisk-cryptography": "^4.0.0-beta.4",
-		"@liskhq/lisk-transactions": "^6.0.0-beta.5",
-		"@liskhq/lisk-validator": "^0.7.0-beta.5",
+		"@liskhq/lisk-codec": "^0.5.0-beta.0",
+		"@liskhq/lisk-cryptography": "^4.1.0-beta.1",
+		"@liskhq/lisk-transactions": "^6.1.0-beta.1",
+		"@liskhq/lisk-validator": "^0.9.0-beta.0",
 		"isomorphic-ws": "4.0.1",
 		"ws": "8.11.0",
 		"zeromq": "6.0.0-beta.6"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-chain": "^0.4.0-beta.6",
+		"@liskhq/lisk-chain": "^0.6.0-beta.0",
 		"@types/jest": "29.2.3",
 		"@types/jest-when": "3.5.2",
 		"@types/node": "18.15.3",

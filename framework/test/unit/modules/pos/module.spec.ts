@@ -1033,7 +1033,8 @@ describe('PoS module', () => {
 					.mockReturnValue(missedBlocks);
 
 				validatorData[missedValidatorIndex].consecutiveMissedBlocks = 50;
-				validatorData[missedValidatorIndex].lastGeneratedHeight = nextForgedHeight - 260000 + 5000;
+				validatorData[missedValidatorIndex].lastGeneratedHeight =
+					nextForgedHeight - defaultConfig.failSafeInactiveWindow + 5000;
 
 				await validatorStore.set(
 					createStoreGetter(stateStore),

@@ -18,7 +18,7 @@ import { address, utils } from '@liskhq/lisk-cryptography';
 import { NFTModule } from '../../../../../src/modules/nft/module';
 import {
 	TransferCrossChainCommand,
-	Params,
+	TransferCrossChainParams,
 } from '../../../../../src/modules/nft/commands/transfer_cross_chain';
 import { crossChainTransferParamsSchema } from '../../../../../src/modules/nft/schemas';
 import {
@@ -76,13 +76,12 @@ describe('TransferCrossChainComand', () => {
 	let lockedExistingNFT: { nftID: any; owner: any };
 	let escrowedNFT: { nftID: any; owner: any };
 
-	const validParams: Params = {
+	const validParams: TransferCrossChainParams = {
 		nftID: Buffer.alloc(LENGTH_NFT_ID),
 		receivingChainID,
 		recipientAddress: utils.getRandomBytes(LENGTH_ADDRESS),
 		data: '',
 		messageFee: BigInt(100000),
-		messageFeeTokenID,
 		includeAttributes: false,
 	};
 
@@ -147,7 +146,7 @@ describe('TransferCrossChainComand', () => {
 			ownChainID,
 		});
 
-		internalMethod.addDependencies(nftMethod, interoperabilityMethod);
+		internalMethod.addDependencies(nftMethod, interoperabilityMethod, tokenMethod);
 
 		command.init({ nftMethod, tokenMethod, interoperabilityMethod, internalMethod });
 
@@ -207,212 +206,118 @@ describe('TransferCrossChainComand', () => {
 		it('should fail if receiving chain id is same as the own chain id', async () => {
 			const receivingChainIDContext = createTransactionContextWithOverridingParams({
 				receivingChainID: ownChainID,
+				nftID: existingNFT.nftID,
 			});
-
-			await expect(
-				command.verify(
-					receivingChainIDContext.createCommandVerifyContext(crossChainTransferParamsSchema),
-				),
-			).rejects.toThrow('Receiving chain cannot be the sending chain');
-		});
-
-		it('should fail if NFT does not have valid length', async () => {
-			const nftMinLengthContext = createTransactionContextWithOverridingParams({
-				nftID: utils.getRandomBytes(LENGTH_NFT_ID - 1),
-			});
-
-			const nftMaxLengthContext = createTransactionContextWithOverridingParams({
-				nftID: utils.getRandomBytes(LENGTH_NFT_ID + 1),
-			});
-
-			await expect(
-				command.verify(
-					nftMinLengthContext.createCommandVerifyContext(crossChainTransferParamsSchema),
-				),
-			).rejects.toThrow("'.nftID' minLength not satisfied");
-
-			await expect(
-				command.verify(
-					nftMaxLengthContext.createCommandExecuteContext(crossChainTransferParamsSchema),
-				),
-			).rejects.toThrow("'.nftID' maxLength exceeded");
-		});
-
-		it('should fail if receivingChainID does not have valid length', async () => {
-			const receivingChainIDMinLengthContext = createTransactionContextWithOverridingParams({
-				receivingChainID: utils.getRandomBytes(LENGTH_CHAIN_ID - 1),
-			});
-
-			const receivingChainIDMaxLengthContext = createTransactionContextWithOverridingParams({
-				receivingChainID: utils.getRandomBytes(LENGTH_CHAIN_ID + 1),
-			});
-
-			await expect(
-				command.verify(
-					receivingChainIDMinLengthContext.createCommandVerifyContext(
-						crossChainTransferParamsSchema,
-					),
-				),
-			).rejects.toThrow("'.receivingChainID' minLength not satisfied");
-
-			await expect(
-				command.verify(
-					receivingChainIDMaxLengthContext.createCommandVerifyContext(
-						crossChainTransferParamsSchema,
-					),
-				),
-			).rejects.toThrow("'.receivingChainID' maxLength exceeded");
-		});
-
-		it('should fail if recipientAddress does not have valid length', async () => {
-			const recipientAddressMinLengthContext = createTransactionContextWithOverridingParams({
-				recipientAddress: utils.getRandomBytes(LENGTH_ADDRESS - 1),
-			});
-
-			const recipientAddressMaxLenghtContext = createTransactionContextWithOverridingParams({
-				recipientAddress: utils.getRandomBytes(LENGTH_ADDRESS + 1),
-			});
-
-			await expect(
-				command.verify(
-					recipientAddressMinLengthContext.createCommandVerifyContext(
-						crossChainTransferParamsSchema,
-					),
-				),
-			).rejects.toThrow("'.recipientAddress' address length invalid");
-
-			await expect(
-				command.verify(
-					recipientAddressMaxLenghtContext.createCommandVerifyContext(
-						crossChainTransferParamsSchema,
-					),
-				),
-			).rejects.toThrow("'.recipientAddress' address length invalid");
-		});
-
-		it('should fail if data has more than 64 characters', async () => {
-			const dataMaxLengthContext = createTransactionContextWithOverridingParams({
-				data: '1'.repeat(65),
-			});
-
-			await expect(
-				command.verify(
-					dataMaxLengthContext.createCommandVerifyContext(crossChainTransferParamsSchema),
-				),
-			).rejects.toThrow("'.data' must NOT have more than 64 characters");
-		});
-
-		it('should fail if messageFeeTokenID does not have valid length', async () => {
-			const messageFeeTokenIDMinLengthContext = createTransactionContextWithOverridingParams({
-				messageFeeTokenID: utils.getRandomBytes(LENGTH_TOKEN_ID - 1),
-			});
-
-			const messageFeeTokenIDMaxLengthContext = createTransactionContextWithOverridingParams({
-				messageFeeTokenID: utils.getRandomBytes(LENGTH_TOKEN_ID + 1),
-			});
-
-			await expect(
-				command.verify(
-					messageFeeTokenIDMinLengthContext.createCommandVerifyContext(
-						crossChainTransferParamsSchema,
-					),
-				),
-			).rejects.toThrow("'.messageFeeTokenID' minLength not satisfied");
-
-			await expect(
-				command.verify(
-					messageFeeTokenIDMaxLengthContext.createCommandVerifyContext(
-						crossChainTransferParamsSchema,
-					),
-				),
-			).rejects.toThrow("'.messageFeeTokenID' maxLength exceeded");
+			const receivingChainIDVerification = await command.verify(
+				receivingChainIDContext.createCommandVerifyContext(crossChainTransferParamsSchema),
+			);
+			expect(receivingChainIDVerification.status).toBe(VerifyStatus.FAIL);
+			expect(receivingChainIDVerification.error?.message).toBe(
+				'Receiving chain cannot be the sending chain',
+			);
 		});
 
 		it('should fail if NFT does not exist', async () => {
-			const context = createTransactionContextWithOverridingParams({
+			const nftIDNotExistingContext = createTransactionContextWithOverridingParams({
 				nftID: utils.getRandomBytes(LENGTH_NFT_ID),
 			});
 
-			await expect(
-				command.verify(context.createCommandVerifyContext(crossChainTransferParamsSchema)),
-			).rejects.toThrow('NFT substore entry does not exist');
+			const nftIDNotExistingVerification = await command.verify(
+				nftIDNotExistingContext.createCommandVerifyContext(crossChainTransferParamsSchema),
+			);
+			expect(nftIDNotExistingVerification.status).toBe(VerifyStatus.FAIL);
+			expect(nftIDNotExistingVerification.error?.message).toBe('NFT does not exist');
 		});
 
 		it('should fail if NFT is escrowed', async () => {
-			const context = createTransactionContextWithOverridingParams({
+			const nftEscrowedContext = createTransactionContextWithOverridingParams({
 				nftID: escrowedNFT.nftID,
+				receivingChainID: escrowedNFT.nftID.subarray(0, LENGTH_CHAIN_ID),
 			});
 
-			await expect(
-				command.verify(context.createCommandVerifyContext(crossChainTransferParamsSchema)),
-			).rejects.toThrow('NFT is escrowed to another chain');
+			const nftEscrowedVerification = await command.verify(
+				nftEscrowedContext.createCommandVerifyContext(crossChainTransferParamsSchema),
+			);
+			expect(nftEscrowedVerification.status).toBe(VerifyStatus.FAIL);
+			expect(nftEscrowedVerification.error?.message).toBe('NFT is escrowed to another chain');
 		});
 
-		it('should fail if NFT is not native to either the sending or receiving chain', async () => {
-			const nftID = utils.getRandomBytes(LENGTH_ADDRESS);
+		it('should fail if NFT is not native neither to the sending nor to the receiving chain', async () => {
+			const nftID = utils.getRandomBytes(LENGTH_NFT_ID);
 
-			const context = createTransactionContextWithOverridingParams({
-				nftID,
-			});
+			const context = createTransactionContextWithOverridingParams({ nftID });
 
 			await nftStore.save(methodContext, nftID, {
 				owner,
 				attributesArray: [],
 			});
 
-			await expect(
-				command.verify(context.createCommandVerifyContext(crossChainTransferParamsSchema)),
-			).rejects.toThrow('');
-		});
-
-		it('should fail if messageFeeTokenID for receiving chain differs from the messageFeeTokenID of parameters', async () => {
-			const context = createTransactionContextWithOverridingParams({
-				nftID: existingNFT.nftID,
-				messageFeeTokenID: utils.getRandomBytes(LENGTH_TOKEN_ID),
+			await userStore.set(methodContext, userStore.getKey(owner, nftID), {
+				lockingModule: NFT_NOT_LOCKED,
 			});
 
-			await expect(
-				command.verify(context.createCommandVerifyContext(crossChainTransferParamsSchema)),
-			).rejects.toThrow('Mismatching message fee Token ID');
+			const receivingChainIDVerification = await command.verify(
+				context.createCommandVerifyContext(crossChainTransferParamsSchema),
+			);
+			expect(receivingChainIDVerification.status).toBe(VerifyStatus.FAIL);
+			expect(receivingChainIDVerification.error?.message).toBe(
+				'NFT must be native to either the sending or the receiving chain',
+			);
 		});
 
 		it('should fail if the owner of the NFT is not the sender', async () => {
-			const context = createTransactionContextWithOverridingParams({
+			const ownerNotSenderContext = createTransactionContextWithOverridingParams({
 				nftID: existingNFT.nftID,
 			});
 
 			const nft = await nftStore.get(methodContext, existingNFT.nftID);
-			nft.owner = utils.getRandomBytes(LENGTH_ADDRESS);
+			const newOwner = utils.getRandomBytes(LENGTH_ADDRESS);
+			nft.owner = newOwner;
 			await nftStore.save(methodContext, existingNFT.nftID, nft);
+			await userStore.set(methodContext, userStore.getKey(newOwner, existingNFT.nftID), {
+				lockingModule: NFT_NOT_LOCKED,
+			});
 
-			await expect(
-				command.verify(context.createCommandVerifyContext(crossChainTransferParamsSchema)),
-			).rejects.toThrow('Transfer not initiated by the NFT owner');
+			const receivingChainIDVerification = await command.verify(
+				ownerNotSenderContext.createCommandVerifyContext(crossChainTransferParamsSchema),
+			);
+			expect(receivingChainIDVerification.status).toBe(VerifyStatus.FAIL);
+			expect(receivingChainIDVerification.error?.message).toBe(
+				'Transfer not initiated by the NFT owner',
+			);
 		});
 
 		it('should fail if NFT is locked', async () => {
-			const context = createTransactionContextWithOverridingParams({
+			const nftLockedContext = createTransactionContextWithOverridingParams({
 				nftID: lockedExistingNFT.nftID,
 			});
 
-			await expect(
-				command.verify(context.createCommandVerifyContext(crossChainTransferParamsSchema)),
-			).rejects.toThrow('Locked NFTs cannot be transferred');
+			const receivingChainIDVerification = await command.verify(
+				nftLockedContext.createCommandVerifyContext(crossChainTransferParamsSchema),
+			);
+			expect(receivingChainIDVerification.status).toBe(VerifyStatus.FAIL);
+			expect(receivingChainIDVerification.error?.message).toBe('Locked NFTs cannot be transferred');
 		});
 
 		it('should fail if senders has insufficient balance of value messageFee and token messageFeeTokenID', async () => {
-			const context = createTransactionContextWithOverridingParams({
+			const insufficientMessageFeeBalanceContext = createTransactionContextWithOverridingParams({
 				messageFeeTokenID,
 				messageFee: availableBalance + BigInt(1),
 				nftID: existingNFT.nftID,
 			});
 
-			await expect(
-				command.verify(context.createCommandVerifyContext(crossChainTransferParamsSchema)),
-			).rejects.toThrow('Insufficient balance for the message fee');
+			const receivingChainIDVerification = await command.verify(
+				insufficientMessageFeeBalanceContext.createCommandVerifyContext(
+					crossChainTransferParamsSchema,
+				),
+			);
+			expect(receivingChainIDVerification.status).toBe(VerifyStatus.FAIL);
+			expect(receivingChainIDVerification.error?.message).toBe(
+				'Insufficient balance for the message fee',
+			);
 		});
 
-		it('should verify if NFT is native', async () => {
+		it('should pass verification when NFT is native', async () => {
 			const context = createTransactionContextWithOverridingParams({
 				nftID: existingNFT.nftID,
 			});
@@ -422,7 +327,7 @@ describe('TransferCrossChainComand', () => {
 			).resolves.toEqual({ status: VerifyStatus.OK });
 		});
 
-		it('should verify if NFT is native to receiving chain', async () => {
+		it('should pass verification when NFT is native to receiving chain', async () => {
 			const nftID = Buffer.concat([
 				receivingChainID,
 				utils.getRandomBytes(LENGTH_NFT_ID - LENGTH_CHAIN_ID),

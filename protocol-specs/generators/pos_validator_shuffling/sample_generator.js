@@ -25,7 +25,7 @@ const generateValidators = num => {
 	for (let i = 0; i < num; i += 1) {
 		const passphrase = Mnemonic.generateMnemonic();
 		const { publicKey } = ed.getKeys(passphrase);
-		const address = utils.hash(Buffer.from(publicKey, 'hex')).slice(0, 20);
+		const address = utils.hash(Buffer.from(publicKey, 'hex')).subarray(0, 20);
 
 		validatorList.push({
 			address,

@@ -16,6 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
 import {
+	CommandExecuteContext,
 	CommandVerifyContext,
 	MainchainInteroperabilityModule,
 	Transaction,
@@ -45,6 +46,7 @@ import { TerminatedStateStore } from '../../../../../../src/modules/interoperabi
 import { OwnChainAccount } from '../../../../../../src/modules/interoperability/types';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { createTransactionContext, InMemoryPrefixedStateDB } from '../../../../../../src/testing';
+import { InvalidSMTVerificationEvent } from '../../../../../../src/modules/interoperability/events/invalid_smt_verification';
 
 describe('InitializeMessageRecoveryCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -240,70 +242,23 @@ describe('InitializeMessageRecoveryCommand', () => {
 			expect(result.error?.message).toInclude(`Terminated outbox account already exists.`);
 		});
 
-		it('should reject when proof of inclusion is not valid', async () => {
-			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
-
-			const result = await command.verify(defaultContext);
-
-			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				'Message recovery initialization proof of inclusion is not valid.',
-			);
-		});
-
 		it('should resolve when ownchainID !== mainchainID', async () => {
 			await interopMod.stores
 				.get(OwnChainAccountStore)
 				.set(stateStore, EMPTY_BYTES, { ...ownChainAccount, chainID: Buffer.from([2, 2, 2, 2]) });
-			const queryKey = Buffer.concat([
-				interopMod.stores.get(ChannelDataStore).key,
-				utils.hash(Buffer.from([2, 2, 2, 2])),
-			]);
 
 			await expect(command.verify(defaultContext)).resolves.toEqual({ status: VerifyStatus.OK });
-			expect(SparseMerkleTree.prototype.verify).toHaveBeenCalledWith(
-				terminatedState.stateRoot,
-				[queryKey],
-				{
-					siblingHashes: defaultParams.siblingHashes,
-					queries: [
-						{
-							key: queryKey,
-							value: utils.hash(defaultParams.channel),
-							bitmap: defaultParams.bitmap,
-						},
-					],
-				},
-			);
 		});
 
 		it('should resolve when params is valid', async () => {
-			const queryKey = Buffer.concat([
-				interopMod.stores.get(ChannelDataStore).key,
-				utils.hash(ownChainAccount.chainID),
-			]);
-
 			await expect(command.verify(defaultContext)).resolves.toEqual({ status: VerifyStatus.OK });
-			expect(SparseMerkleTree.prototype.verify).toHaveBeenCalledWith(
-				terminatedState.stateRoot,
-				[queryKey],
-				{
-					siblingHashes: defaultParams.siblingHashes,
-					queries: [
-						{
-							key: queryKey,
-							value: utils.hash(defaultParams.channel),
-							bitmap: defaultParams.bitmap,
-						},
-					],
-				},
-			);
 		});
 	});
 
 	describe('execute', () => {
-		it('should create terminated outbox account', async () => {
-			const context = createTransactionContext({
+		let executeContext: CommandExecuteContext<MessageRecoveryInitializationParams>;
+		beforeEach(() => {
+			executeContext = createTransactionContext({
 				stateStore,
 				transaction: new Transaction({
 					...defaultTx,
@@ -313,7 +268,33 @@ describe('InitializeMessageRecoveryCommand', () => {
 					}),
 				}),
 			}).createCommandExecuteContext<MessageRecoveryInitializationParams>(command.schema);
-			await expect(command.execute(context)).resolves.toBeUndefined();
+		});
+
+		it('should reject when proof of inclusion is not valid and log SMT verification event', async () => {
+			jest.spyOn(SparseMerkleTree.prototype, 'verifyInclusionProof').mockResolvedValue(false);
+			jest.spyOn(command['events'].get(InvalidSMTVerificationEvent), 'error');
+
+			await expect(command.execute(executeContext)).rejects.toThrow(
+				'Message recovery initialization proof of inclusion is not valid',
+			);
+			expect(command['events'].get(InvalidSMTVerificationEvent).error).toHaveBeenCalledOnceWith(
+				executeContext,
+			);
+		});
+
+		it('should create terminated outbox account', async () => {
+			await interopMod.stores.get(TerminatedOutboxStore).set(stateStore, targetChainID, {
+				outboxRoot: utils.getRandomBytes(32),
+				outboxSize: 10,
+				partnerChainInboxSize: 20,
+			});
+			jest.spyOn(SparseMerkleTree.prototype, 'verifyInclusionProof').mockResolvedValue(true);
+			const queryKey = Buffer.concat([
+				interopMod.stores.get(ChannelDataStore).key,
+				utils.hash(executeContext.chainID),
+			]);
+
+			await expect(command.execute(executeContext)).resolves.toBeUndefined();
 
 			expect(command['internalMethod'].createTerminatedOutboxAccount).toHaveBeenCalledWith(
 				expect.anything(),
@@ -321,6 +302,21 @@ describe('InitializeMessageRecoveryCommand', () => {
 				storedChannel.outbox.root,
 				storedChannel.outbox.size,
 				paramsChannel.inbox.size,
+			);
+
+			expect(SparseMerkleTree.prototype.verifyInclusionProof).toHaveBeenCalledWith(
+				terminatedState.stateRoot,
+				[queryKey],
+				{
+					siblingHashes: defaultParams.siblingHashes,
+					queries: [
+						{
+							key: queryKey,
+							value: utils.hash(defaultParams.channel),
+							bitmap: defaultParams.bitmap,
+						},
+					],
+				},
 			);
 		});
 	});

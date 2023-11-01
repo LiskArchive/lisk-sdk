@@ -166,21 +166,35 @@ describe('getPrivateKeyFromPhraseAndPath', () => {
 		);
 	});
 
+	it('should derive distinct keys from same valid phrase but distinct paths', async () => {
+		const privateKeyFromPassphrase = await getPrivateKeyFromPhraseAndPath(
+			passphrase,
+			`m/44'/134'/0'`,
+		);
+
+		const anotherPrivateKeyFromPassphrase = await getPrivateKeyFromPhraseAndPath(
+			passphrase,
+			`m/44'/134'/1'`,
+		);
+
+		expect(privateKeyFromPassphrase).not.toEqual(anotherPrivateKeyFromPassphrase);
+	});
+
 	it('should fail for empty string path', async () => {
 		await expect(getPrivateKeyFromPhraseAndPath(passphrase, '')).rejects.toThrow(
-			'Invalid path format',
+			'Invalid key derivation path format',
 		);
 	});
 
 	it('should fail if path does not start with "m"', async () => {
 		await expect(getPrivateKeyFromPhraseAndPath(passphrase, `/44'/134'/0'`)).rejects.toThrow(
-			'Invalid path format',
+			'Invalid key derivation path format',
 		);
 	});
 
 	it('should fail if path does not include at least one "/"', async () => {
 		await expect(getPrivateKeyFromPhraseAndPath(passphrase, 'm441340')).rejects.toThrow(
-			'Invalid path format',
+			'Invalid key derivation path format',
 		);
 	});
 
@@ -190,24 +204,24 @@ describe('getPrivateKeyFromPhraseAndPath', () => {
 				passphrase,
 				`m//134'/0'`, // should be number with or without ' between every back slash
 			),
-		).rejects.toThrow('Invalid path format');
+		).rejects.toThrow('Invalid key derivation path format');
 	});
 
 	it('should fail for path with invalid characters', async () => {
 		await expect(getPrivateKeyFromPhraseAndPath(passphrase, `m/a'/134b'/0'`)).rejects.toThrow(
-			'Invalid path format',
+			'Invalid key derivation path format',
 		);
 	});
 
 	it('should fail for path with non-sanctioned special characters', async () => {
 		await expect(getPrivateKeyFromPhraseAndPath(passphrase, `m/4a'/#134b'/0'`)).rejects.toThrow(
-			'Invalid path format',
+			'Invalid key derivation path format',
 		);
 	});
 
 	it(`should fail for path with segment greater than ${MAX_UINT32} / 2`, async () => {
 		await expect(
 			getPrivateKeyFromPhraseAndPath(passphrase, `m/44'/134'/${MAX_UINT32}'`),
-		).rejects.toThrow('Invalid path format');
+		).rejects.toThrow('Invalid key derivation path format');
 	});
 });

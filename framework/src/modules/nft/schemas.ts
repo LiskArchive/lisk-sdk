@@ -16,7 +16,6 @@ import {
 	LENGTH_CHAIN_ID,
 	LENGTH_COLLECTION_ID,
 	LENGTH_NFT_ID,
-	LENGTH_TOKEN_ID,
 	MAX_LENGTH_MODULE_NAME,
 	MIN_LENGTH_MODULE_NAME,
 	MAX_LENGTH_DATA,
@@ -114,7 +113,6 @@ export const crossChainTransferParamsSchema = {
 		'recipientAddress',
 		'data',
 		'messageFee',
-		'messageFeeTokenID',
 		'includeAttributes',
 	],
 	properties: {
@@ -145,15 +143,9 @@ export const crossChainTransferParamsSchema = {
 			dataType: 'uint64',
 			fieldNumber: 5,
 		},
-		messageFeeTokenID: {
-			dataType: 'bytes',
-			minLength: LENGTH_TOKEN_ID,
-			maxLength: LENGTH_TOKEN_ID,
-			fieldNumber: 6,
-		},
 		includeAttributes: {
 			dataType: 'boolean',
-			fieldNumber: 7,
+			fieldNumber: 6,
 		},
 	},
 };
@@ -278,25 +270,11 @@ export const getNFTResponseSchema = {
 	},
 };
 
-export const getCollectionIDsRequestSchema = {
-	$id: '/nft/endpoint/getCollectionIDsRequest',
+export const getSupportedCollectionIDsResponseSchema = {
+	$id: '/nft/endpoint/getSupportedCollectionIDsRespone',
 	type: 'object',
 	properties: {
-		chainID: {
-			type: 'string',
-			format: 'hex',
-			minLength: LENGTH_CHAIN_ID * 2,
-			maxLength: LENGTH_CHAIN_ID * 2,
-		},
-	},
-	required: ['chainID'],
-};
-
-export const getCollectionIDsResponseSchema = {
-	$id: '/nft/endpoint/getCollectionIDsRespone',
-	type: 'object',
-	properties: {
-		collectionIDs: {
+		supportedCollectionIDs: {
 			type: 'array',
 			items: {
 				type: 'string',
@@ -306,8 +284,8 @@ export const getCollectionIDsResponseSchema = {
 	},
 };
 
-export const collectionExistsRequestSchema = {
-	$id: '/nft/endpoint/collectionExistsRequest',
+export const isCollectionIDSupportedRequestSchema = {
+	$id: '/nft/endpoint/isCollectionIDSupportedRequest',
 	type: 'object',
 	properties: {
 		chainID: {
@@ -326,11 +304,11 @@ export const collectionExistsRequestSchema = {
 	required: ['chainID', 'collectionID'],
 };
 
-export const collectionExistsResponseSchema = {
-	$id: '/nft/endpoint/collectionExistsResponse',
+export const isCollectionIDSupportedResponseSchema = {
+	$id: '/nft/endpoint/isCollectionIDSupportedResponse',
 	type: 'object',
 	properties: {
-		collectionExists: {
+		isCollectionIDSupported: {
 			type: 'boolean',
 		},
 	},
@@ -368,14 +346,14 @@ export const isNFTSupportedRequestSchema = {
 	$id: '/nft/endpoint/isNFTSupportedRequest',
 	type: 'object',
 	properties: {
-		id: {
+		nftID: {
 			type: 'string',
 			format: 'hex',
 			minLength: LENGTH_NFT_ID * 2,
 			maxLength: LENGTH_NFT_ID * 2,
 		},
 	},
-	required: ['id'],
+	required: ['nftID'],
 };
 
 export const isNFTSupportedResponseSchema = {

@@ -1,10 +1,11 @@
 import { bls, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { TransactionAttrs } from '@liskhq/lisk-chain';
-import { MAX_UINT64 } from '@liskhq/lisk-validator';
+import { MAX_UINT64, validator } from '@liskhq/lisk-validator';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
+	MAX_NUM_VALIDATORS,
 	PoAModule,
 	Transaction,
 	VerifyStatus,
@@ -17,7 +18,6 @@ import {
 	EMPTY_BYTES,
 	KEY_SNAPSHOT_0,
 	KEY_SNAPSHOT_2,
-	MAX_NUM_VALIDATORS,
 	MODULE_NAME_POA,
 	UpdateAuthorityResult,
 } from '../../../../../src/modules/poa/constants';
@@ -120,6 +120,29 @@ describe('UpdateAuthority', () => {
 		});
 	});
 
+	describe('verifySchema', () => {
+		it('should throw error when length of newValidators is less than 1', () => {
+			expect(() =>
+				validator.validate(updateAuthorityCommand.schema, {
+					...updateAuthorityValidatorParams,
+					newValidators: [],
+				}),
+			).toThrow('must NOT have fewer than 1 items');
+		});
+
+		it('should throw error when length of newValidators is greater than MAX_NUM_VALIDATORS', () => {
+			expect(() =>
+				validator.validate(updateAuthorityCommand.schema, {
+					...updateAuthorityValidatorParams,
+					newValidators: Array.from(Array(MAX_NUM_VALIDATORS + 1).keys()).map(_ => ({
+						address: utils.getRandomBytes(20),
+						weight: BigInt(1),
+					})),
+				}),
+			).toThrow(`must NOT have more than ${MAX_NUM_VALIDATORS} items`);
+		});
+	});
+
 	describe('verify', () => {
 		let context: CommandVerifyContext<UpdateAuthorityParams>;
 		beforeEach(() => {
@@ -132,46 +155,7 @@ describe('UpdateAuthority', () => {
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 		});
 
-		it('should throw error when length of newValidators is less than 1', async () => {
-			context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction: buildTransaction({
-						params: buildUpdateAuthorityValidatorParams({
-							newValidators: [],
-						}),
-					}),
-					chainID,
-				})
-				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
-
-			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
-				`newValidators length must be between 1 and ${MAX_NUM_VALIDATORS} (inclusive).`,
-			);
-		});
-
-		it('should throw error when length of newValidators is greater than MAX_NUM_VALIDATORS', async () => {
-			context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction: buildTransaction({
-						params: buildUpdateAuthorityValidatorParams({
-							newValidators: Array.from(Array(MAX_NUM_VALIDATORS + 1).keys()).map(_ => ({
-								address: utils.getRandomBytes(20),
-								weight: BigInt(1),
-							})),
-						}),
-					}),
-					chainID,
-				})
-				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
-
-			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
-				`newValidators length must be between 1 and ${MAX_NUM_VALIDATORS} (inclusive)`,
-			);
-		});
-
-		it('should throw error when newValidators are not lexicographically ordered', async () => {
+		it('should return error when newValidators are not lexicographically ordered', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -193,12 +177,15 @@ describe('UpdateAuthority', () => {
 				})
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
-			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
-				'Addresses in newValidators are not lexicographically ordered.',
+			const result = await updateAuthorityCommand.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
+				`Addresses in newValidators are not lexicographically ordered.`,
 			);
 		});
 
-		it('should throw error when addresses are in newValidators are not unique', async () => {
+		it('should return error when addresses are in newValidators are not unique', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -223,13 +210,13 @@ describe('UpdateAuthority', () => {
 					chainID,
 				})
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
+			const result = await updateAuthorityCommand.verify(context);
 
-			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
-				'Addresses in newValidators are not unique.',
-			);
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Addresses in newValidators are not unique.`);
 		});
 
-		it('should throw error when validator is not in ValidatorStore', async () => {
+		it('should return error when validator is not in ValidatorStore', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -247,13 +234,69 @@ describe('UpdateAuthority', () => {
 					chainID,
 				})
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
+			const result = await updateAuthorityCommand.verify(context);
 
-			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
 				`No validator found for given address ${address2.toString('hex')}.`,
 			);
 		});
 
-		it('should throw error when totalWeight is greater than MAX_UINT64', async () => {
+		it('should return error when validator weight is zero', async () => {
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction: buildTransaction({
+						params: buildUpdateAuthorityValidatorParams({
+							newValidators: [
+								{
+									address: address0,
+									weight: BigInt(0),
+								},
+								{
+									address: address1,
+									weight: BigInt(1),
+								},
+							],
+						}),
+					}),
+					chainID,
+				})
+				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
+			const result = await updateAuthorityCommand.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Validator weight cannot be zero.`);
+		});
+
+		it('should return error when totalWeight is zero', async () => {
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction: buildTransaction({
+						params: buildUpdateAuthorityValidatorParams({
+							newValidators: [
+								{
+									address: address0,
+									weight: BigInt(0),
+								},
+								{
+									address: address1,
+									weight: BigInt(0),
+								},
+							],
+						}),
+					}),
+					chainID,
+				})
+				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
+			const result = await updateAuthorityCommand.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Validator weight cannot be zero.`);
+		});
+
+		it('should return error when totalWeight is greater than MAX_UINT64', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -274,13 +317,13 @@ describe('UpdateAuthority', () => {
 					chainID,
 				})
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
+			const result = await updateAuthorityCommand.verify(context);
 
-			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
-				`Validators total weight exceeds ${MAX_UINT64}`,
-			);
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(`Validators total weight exceeds ${MAX_UINT64}`);
 		});
 
-		it('should throw error when trsParams.threshold is less than (totalWeight / 3) + 1 ', async () => {
+		it('should return error when trsParams.threshold is less than (totalWeight / 3) + 1 ', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -294,16 +337,20 @@ describe('UpdateAuthority', () => {
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			const totalWeight = updateAuthorityValidatorParams.newValidators.reduce(
-				(acc, validator) => acc + validator.weight,
+				(acc, v) => acc + v.weight,
 				BigInt(0),
 			);
 			const minThreshold = totalWeight / BigInt(3) + BigInt(1);
-			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
+
+			const result = await updateAuthorityCommand.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
 				`Threshold must be between ${minThreshold} and ${totalWeight} (inclusive).`,
 			);
 		});
 
-		it('should throw error when trsParams.threshold is greater than totalWeight', async () => {
+		it('should return error when trsParams.threshold is greater than totalWeight', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -317,16 +364,20 @@ describe('UpdateAuthority', () => {
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			const totalWeight = updateAuthorityValidatorParams.newValidators.reduce(
-				(acc, validator) => acc + validator.weight,
+				(acc, v) => acc + v.weight,
 				BigInt(0),
 			);
 			const minThreshold = totalWeight / BigInt(3) + BigInt(1);
-			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
+
+			const result = await updateAuthorityCommand.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
 				`Threshold must be between ${minThreshold} and ${totalWeight}`,
 			);
 		});
 
-		it('should throw error when trsParams.validatorsUpdateNonce does not equal to chainProperties.validatorsUpdateNonce', async () => {
+		it('should return error when trsParams.validatorsUpdateNonce does not equal to chainProperties.validatorsUpdateNonce', async () => {
 			context = testing
 				.createTransactionContext({
 					stateStore,
@@ -340,7 +391,11 @@ describe('UpdateAuthority', () => {
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 
 			const chainProperties = await chainPropertiesStore.get(context, EMPTY_BYTES);
-			await expect(updateAuthorityCommand.verify(context)).rejects.toThrow(
+
+			const result = await updateAuthorityCommand.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
 				`validatorsUpdateNonce must be equal to ${chainProperties.validatorsUpdateNonce}.`,
 			);
 		});

@@ -136,22 +136,6 @@ export const invalidGenesisAssets = [
 		"tokenID' maxLength exceeded",
 	],
 	[
-		'Overflow uint64 for available balance',
-		{
-			...validData,
-			userSubstore: [
-				{
-					address: Buffer.alloc(20, 0),
-					tokenID: Buffer.from([9, 0, 0, 0, 0, 0, 0, 0, 0]),
-					availableBalance: BigInt('1000000000000000000000000000'),
-					lockedBalances: [{ module: 'pos', amount: oneUnit }],
-				},
-				...validData.userSubstore.slice(1),
-			],
-		},
-		'Value out of range of uint64',
-	],
-	[
 		'Unsorted userstore by address',
 		{
 			...validData,
@@ -236,71 +220,6 @@ export const invalidGenesisAssets = [
 			],
 		},
 		'contains 0 amount locked balance',
-	],
-	[
-		'Empty account on userSubstore',
-		{
-			...validData,
-			userSubstore: [
-				...validData.userSubstore,
-				{
-					address: Buffer.alloc(20, 2),
-					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
-					availableBalance: BigInt('0'),
-					lockedBalances: [],
-				},
-			],
-		},
-		'has empty data',
-	],
-	[
-		'Duplicate address and tokenID for userSubstore',
-		{
-			...validData,
-			userSubstore: [
-				{
-					address: Buffer.alloc(20, 0),
-					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
-					availableBalance: oneUnit,
-					lockedBalances: [{ module: 'pos', amount: oneUnit }],
-				},
-				{
-					address: Buffer.alloc(20, 0),
-					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
-					availableBalance: oneUnit,
-					lockedBalances: [{ module: 'pos', amount: oneUnit }],
-				},
-			],
-		},
-		'pair is duplicated',
-	],
-	[
-		'minimum tokenID length not satisfied for supplyStore',
-		{
-			...validData,
-			supplySubstore: [
-				...validData.supplySubstore,
-				{
-					tokenID: Buffer.alloc(1, 0),
-					totalSupply: oneUnit * BigInt(2),
-				},
-			],
-		},
-		"tokenID' minLength not satisfied",
-	],
-	[
-		'maximum tokenID length for supplyStore',
-		{
-			...validData,
-			supplySubstore: [
-				...validData.supplySubstore,
-				{
-					tokenID: Buffer.alloc(10, 0),
-					totalSupply: oneUnit * BigInt(2),
-				},
-			],
-		},
-		"tokenID' maxLength exceeded",
 	],
 	[
 		'Duplicate supply store',

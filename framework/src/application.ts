@@ -20,7 +20,13 @@ import { Block } from '@liskhq/lisk-chain';
 import { Database, StateDB } from '@liskhq/lisk-db';
 import { validator } from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
-import { APP_EVENT_SHUTDOWN, APP_EVENT_READY, OWNER_READ_WRITE } from './constants';
+import {
+	APP_EVENT_SHUTDOWN,
+	APP_EVENT_READY,
+	OWNER_READ_WRITE,
+	STATE_DB_NAME,
+	MODULE_DB_NAME,
+} from './constants';
 import {
 	ApplicationConfig,
 	PluginConfig,
@@ -55,7 +61,7 @@ import {
 	BaseInteroperableModule,
 	MODULE_NAME_INTEROPERABILITY,
 } from './modules/interoperability';
-import { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_rewards';
+import { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_reward';
 import { Engine } from './engine';
 import { BaseInteroperabilityModule } from './modules/interoperability/base_interoperability_module';
 
@@ -297,10 +303,10 @@ export class Application {
 
 		// Initialize database instances
 		const { data: dbFolder } = systemDirs(this.config.system.dataPath);
-		this.logger.debug({ dbFolder }, 'Create module.db database instance.');
-		this._moduleDB = new Database(path.join(dbFolder, 'module.db'));
-		this.logger.debug({ dbFolder }, 'Create state.db database instance.');
-		this._stateDB = new StateDB(path.join(dbFolder, 'state.db'));
+		this.logger.debug({ dbFolder }, `Create ${MODULE_DB_NAME} database instance.`);
+		this._moduleDB = new Database(path.join(dbFolder, MODULE_DB_NAME));
+		this.logger.debug({ dbFolder }, `Create ${STATE_DB_NAME} database instance.`);
+		this._stateDB = new StateDB(path.join(dbFolder, STATE_DB_NAME));
 
 		await this._mutex.runExclusive<void>(async () => {
 			// Initialize all objects

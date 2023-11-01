@@ -20,8 +20,8 @@ import { Subscriber, Dealer } from 'zeromq';
 import { Channel, EventCallback, Defer, JSONRPCMessage, JSONRPCResponse } from './types';
 import { convertRPCError, defer, promiseWithTimeout } from './utils';
 
-const CONNECTION_TIME_OUT = 2000;
-const RESPONSE_TIMEOUT = 3000;
+const CONNECTION_TIMEOUT = 5000;
+const RESPONSE_TIMEOUT = 10000;
 
 const getSocketsPath = (dataPath: string) => {
 	const socketDir = path.join(path.resolve(dataPath.replace('~', homedir())), 'tmp', 'sockets');
@@ -67,7 +67,7 @@ export class IPCChannel implements Channel {
 							'IPC Socket client connection timeout. Please check if IPC server is running.',
 						),
 					);
-				}, CONNECTION_TIME_OUT);
+				}, CONNECTION_TIMEOUT);
 				this._subSocket.events.on('connect', () => {
 					clearTimeout(timeout);
 					resolve();
@@ -83,7 +83,7 @@ export class IPCChannel implements Channel {
 							'IPC Socket client connection timeout. Please check if IPC server is running.',
 						),
 					);
-				}, CONNECTION_TIME_OUT);
+				}, CONNECTION_TIMEOUT);
 				this._rpcClient.events.on('connect', () => {
 					clearTimeout(timeout);
 					resolve(undefined);

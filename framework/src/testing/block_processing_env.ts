@@ -60,7 +60,7 @@ import { systemDirs } from '../system_dirs';
 import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 import { createLogger } from '../logger';
 import { MainchainInteroperabilityModule } from '../modules/interoperability';
-import { DynamicRewardModule } from '../modules/dynamic_rewards';
+import { DynamicRewardModule } from '../modules/dynamic_reward';
 
 type Options = {
 	genesis?: GenesisConfig;

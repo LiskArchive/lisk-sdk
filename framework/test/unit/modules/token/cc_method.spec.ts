@@ -19,6 +19,8 @@ import {
 	CCM_STATUS_OK,
 	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+	MIN_MODULE_NAME_LENGTH,
+	MAX_MODULE_NAME_LENGTH,
 	TokenEventResult,
 } from '../../../../src/modules/token/constants';
 import { TokenInteroperableMethod } from '../../../../src/modules/token/cc_method';
@@ -144,7 +146,7 @@ describe('TokenInteroperableMethod', () => {
 		escrowStore = tokenModule.stores.get(EscrowStore);
 		await escrowStore.set(
 			methodContext,
-			Buffer.concat([defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH), defaultTokenID]),
+			Buffer.concat([defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH), defaultTokenID]),
 			{ amount: defaultEscrowAmount },
 		);
 		await escrowStore.set(
@@ -697,6 +699,52 @@ describe('TokenInteroperableMethod', () => {
 				methodContext.eventQueue,
 				RecoverEvent,
 				TokenEventResult.RECOVER_FAIL_INVALID_INPUTS,
+			);
+		});
+
+		it('should reject if module name length in lockedBalances is not valid', async () => {
+			await expect(
+				tokenInteropMethod.recover({
+					...createRecoverContext(stateStore),
+					storeKey: Buffer.concat([defaultAddress, defaultTokenID]),
+					substorePrefix: userStore.subStorePrefix,
+					storeValue: codec.encode(userStoreSchema, {
+						availableBalance: defaultAccount.availableBalance,
+						lockedBalances: [
+							{ module: 'token'.repeat(MIN_MODULE_NAME_LENGTH - 1), amount: BigInt(10) },
+						],
+					}),
+					terminatedChainID: sendingChainID,
+				}),
+			).rejects.toThrow('Invalid arguments.');
+
+			checkEventResult(
+				methodContext.eventQueue,
+				RecoverEvent,
+				TokenEventResult.RECOVER_FAIL_INVALID_INPUTS,
+			);
+
+			await expect(
+				tokenInteropMethod.recover({
+					...createRecoverContext(stateStore),
+					storeKey: Buffer.concat([defaultAddress, defaultTokenID]),
+					substorePrefix: userStore.subStorePrefix,
+					storeValue: codec.encode(userStoreSchema, {
+						availableBalance: defaultAccount.availableBalance,
+						lockedBalances: [
+							{ module: '1'.repeat(MAX_MODULE_NAME_LENGTH + 1), amount: BigInt(10) },
+						],
+					}),
+					terminatedChainID: sendingChainID,
+				}),
+			).rejects.toThrow('Invalid arguments.');
+
+			checkEventResult(
+				methodContext.eventQueue,
+				RecoverEvent,
+				TokenEventResult.RECOVER_FAIL_INVALID_INPUTS,
+				2,
+				1,
 			);
 		});
 

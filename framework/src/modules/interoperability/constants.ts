@@ -97,8 +97,10 @@ export const EVENT_NAME_CHAIN_ACCOUNT_UPDATED = 'chainAccountUpdated';
 export const EVENT_NAME_CCM_PROCESSED = 'ccmProcessed';
 export const EVENT_NAME_CCM_SEND_SUCCESS = 'ccmSendSucess';
 export const EVENT_NAME_INVALID_CERTIFICATE_SIGNATURE = 'invalidCertificateSignature';
+export const EVENT_NAME_INVALID_OUTBOX_ROOT_VERIFICATION = 'invalidOutboxRootVerification';
 
 export const CONTEXT_STORE_KEY_CCM_PROCESSING = 'CONTEXT_STORE_KEY_CCM_PROCESSING';
+export const EVENT_TOPIC_CCM_EXECUTION = Buffer.from([5]);
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#empty-cross-chain-message
 export const EmptyCCM = {

@@ -11,7 +11,7 @@ type ModulesMetadata = [
 (async () => {
 	const { address } = cryptography;
 
-	const nodeAlias = 'one';
+	const nodeAlias = 'two';
 	const tokenID = Buffer.from('0400000000000000', 'hex');
 	const mainchainID = Buffer.from('04000000', 'hex');
 	const recipientLSKAddress = 'lskzjzeam6szx4a65sxgavr98m9h4kctcx85nvy7h';

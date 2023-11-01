@@ -95,7 +95,7 @@ export const uninitializedAccount = [
 	},
 ];
 
-export const accountsForMultisignature = {
+export const legacyAccounts = {
 	targetAccount: {
 		passphrase: 'inherit moon normal relief spring bargain hobby join baby flash fog blood',
 		privateKey: Buffer.from(
@@ -157,3 +157,58 @@ export const accountsForMultisignature = {
 		address: Buffer.from('e661c9ff02f65962ac08bc79a2f5c0d44b312fbc', 'hex'),
 	},
 };
+
+export const modernAccounts = [
+	{
+		passphrase:
+			'push credit trouble old lecture again month glance surprise credit friend cereal morning chimney dilemma fury news patrol bullet road flight elegant jelly noodle',
+		privateKey: Buffer.from(
+			'4c463a4b8414bb76551bddc4a380bfd22dcebf6f0285f9db10510c75ede24e68449d714b192d56fc69629b52273679a93298f4cbba0da3a7538e6a8ca1e0c580',
+			'hex',
+		),
+		publicKey: Buffer.from(
+			'449d714b192d56fc69629b52273679a93298f4cbba0da3a7538e6a8ca1e0c580',
+			'hex',
+		),
+		address: Buffer.from('lskwzqaszvkeoqmp9jeb5r7yszqhcq3mron8e6dn8', 'hex'),
+	},
+	{
+		passphrase:
+			'toilet intact appear matrix tail ring dentist future monkey fiber blue atom blanket humble blouse alarm urban aunt pretty coast lock swim defy awake',
+		privateKey: Buffer.from(
+			'c59f015acccc333af3ffebbee5a78931e1184b2879281fc89151381b75ccbb5aa6463b606f6fff6de60fd87809357038314b221f2b39e8c6dc880aac25baeb9d',
+			'hex',
+		),
+		publicKey: Buffer.from(
+			'a6463b606f6fff6de60fd87809357038314b221f2b39e8c6dc880aac25baeb9d',
+			'hex',
+		),
+		address: Buffer.from('lsky7zdwydrc3r6ft87wrjhd63sspwuq57bmh6m2k', 'hex'),
+	},
+	{
+		passphrase:
+			'leave spice spatial planet laptop camp depth figure example split custom april leaf fancy chunk gospel taxi old bulk price clinic draft crumble rhythm',
+		privateKey: Buffer.from(
+			'8d2bde151b8a0654937b36e0bc9b82d8061806ace6df470a68bfca40ee8e3ce64d9a144e0c5fe9c68b906afef3a7e7389ba4d89da3d0f85b6e67fd9543ee0b8d',
+			'hex',
+		),
+		publicKey: Buffer.from(
+			'4d9a144e0c5fe9c68b906afef3a7e7389ba4d89da3d0f85b6e67fd9543ee0b8d',
+			'hex',
+		),
+		address: Buffer.from('lskxjuqqma9dgy5nnzgs4hzqaajuvbegazuuguk6d', 'hex'),
+	},
+	{
+		passphrase:
+			'noise wealth blur garbage custom atom salt royal lonely bring divide seat sell wing army foam mountain forward push cover swift lounge scene endorse',
+		privateKey: Buffer.from(
+			'd4c4b33884edc93166de31ae6261c858ad3d44eed2fa2aae32b2606d498a8963b9cd4bdabcfb25339ebcf97c0dbd5db03d08d2445d817fc892e6c93b070d9841',
+			'hex',
+		),
+		publicKey: Buffer.from(
+			'b9cd4bdabcfb25339ebcf97c0dbd5db03d08d2445d817fc892e6c93b070d9841',
+			'hex',
+		),
+		address: Buffer.from('lskpdvevkxjdb845hmvjbgnkpynsn67bxmsauzyrq', 'hex'),
+	},
+];

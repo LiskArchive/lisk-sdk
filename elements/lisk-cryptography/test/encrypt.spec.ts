@@ -11,6 +11,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { HASH_LENGTH } from '../src/constants';
 import {
 	EncryptedMessageObject,
 	encryptMessageWithPassword,
@@ -107,6 +108,48 @@ describe('encrypt', () => {
 				});
 
 				expect(encryptedMessage.kdfparams.iterations).toBe(customIterations);
+			});
+
+			describe('if options.getKey is provided', () => {
+				it('should call options.getKey', async () => {
+					const mockKey = utils.getRandomBytes(32);
+					const mockGetKey = jest.fn().mockResolvedValue(mockKey);
+					encryptedMessage = await encryptMessageWithPassword(passphrase, password, {
+						kdf: KDF.ARGON2,
+						getKey: mockGetKey,
+					});
+
+					expect(mockGetKey).toHaveBeenCalledOnceWith({
+						password: expect.anything(),
+						salt: expect.anything(),
+						iterations: expect.anything(),
+						parallelism: expect.anything(),
+						memorySize: expect.anything(),
+						hashLength: HASH_LENGTH,
+					});
+				});
+
+				it('should call options.getKey with provided iterations', async () => {
+					const iterations = 10;
+					const mockKey = utils.getRandomBytes(32);
+					const mockGetKey = jest.fn().mockResolvedValue(mockKey);
+					encryptedMessage = await encryptMessageWithPassword(passphrase, password, {
+						kdf: KDF.ARGON2,
+						getKey: mockGetKey,
+						kdfparams: {
+							iterations: 10,
+						},
+					});
+
+					expect(mockGetKey).toHaveBeenCalledOnceWith({
+						password: expect.anything(),
+						salt: expect.anything(),
+						iterations,
+						parallelism: expect.anything(),
+						memorySize: expect.anything(),
+						hashLength: HASH_LENGTH,
+					});
+				});
 			});
 		});
 
@@ -215,6 +258,29 @@ describe('encrypt', () => {
 				await expect(
 					decryptMessageWithPassword(encryptedMessage, defaultPassword, 'utf-8'),
 				).rejects.toThrow('Unsupported state or unable to authenticate data');
+			});
+
+			it('should call options.getKey if provided', async () => {
+				const mockKey = utils.getRandomBytes(32);
+				const mockGetKey = jest.fn().mockResolvedValue(mockKey);
+				encryptedMessage = await encryptMessageWithPassword(passphrase, password, {
+					kdf: KDF.ARGON2,
+					getKey: mockGetKey,
+				});
+
+				await decryptMessageWithPassword(encryptedMessage, passphrase, 'utf-8', {
+					getKey: mockGetKey,
+				});
+
+				expect(mockGetKey).toHaveBeenCalledTimes(2);
+				expect(mockGetKey).toHaveBeenNthCalledWith(2, {
+					password: expect.anything(),
+					salt: expect.anything(),
+					iterations: expect.anything(),
+					parallelism: expect.anything(),
+					memorySize: expect.anything(),
+					hashLength: HASH_LENGTH,
+				});
 			});
 		});
 

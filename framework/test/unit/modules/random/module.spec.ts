@@ -756,7 +756,7 @@ describe('RandomModule', () => {
 		const seedHash = (seed: Buffer, times: number) => {
 			let res = seed;
 			for (let i = 0; i < times; i += 1) {
-				res = utils.hash(res).slice(0, 16);
+				res = utils.hash(res).subarray(0, 16);
 			}
 			return res;
 		};

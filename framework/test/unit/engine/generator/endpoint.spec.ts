@@ -34,6 +34,7 @@ import {
 	previouslyGeneratedInfoSchema,
 } from '../../../../src/engine/generator/schemas';
 import { fakeLogger } from '../../../utils/mocks';
+import { SingleCommitHandler } from '../../../../src/engine/generator/single_commit_handler';
 
 describe('generator endpoint', () => {
 	const logger: Logger = fakeLogger;
@@ -104,6 +105,9 @@ describe('generator endpoint', () => {
 		endpoint.init({
 			generatorDB: db,
 			genesisHeight: 0,
+			singleCommitHandler: {
+				initSingleCommits: jest.fn(),
+			} as unknown as SingleCommitHandler,
 		});
 	});
 
@@ -231,6 +235,27 @@ describe('generator endpoint', () => {
 				enabled: true,
 			});
 			expect(endpoint['_keypairs'].has(defaultEncryptedKeys.address)).toBeTrue();
+		});
+
+		it('should create single commits for the address', async () => {
+			await expect(
+				endpoint.updateStatus({
+					logger,
+					params: {
+						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
+						enable: true,
+						password: defaultPassword,
+						...bftProps,
+					},
+					chainID,
+				}),
+			).resolves.toEqual({
+				address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
+				enabled: true,
+			});
+			expect(endpoint['_singleCommitHandler'].initSingleCommits).toHaveBeenCalledWith(
+				defaultEncryptedKeys.address,
+			);
 		});
 
 		it('should accept if BFT properties specified are zero and there is no previous values', async () => {
@@ -403,6 +428,8 @@ describe('generator endpoint', () => {
 			});
 			expect(resp.status).toHaveLength(2);
 			expect(resp.status[0].address).not.toBeInstanceOf(Buffer);
+			expect(resp.status[0].blsKey).toBeString();
+			expect(resp.status[0].generatorKey).toBeString();
 		});
 	});
 

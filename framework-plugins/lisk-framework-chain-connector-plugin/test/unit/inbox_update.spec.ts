@@ -33,6 +33,7 @@ describe('inboxUpdate', () => {
 					bitmap: Buffer.alloc(1),
 					siblingHashes: [],
 				},
+				outboxSize: 1,
 			},
 			{
 				ccms: sampleCCMs.slice(2, 3),
@@ -41,6 +42,7 @@ describe('inboxUpdate', () => {
 					bitmap: Buffer.alloc(1),
 					siblingHashes: [Buffer.alloc(1)],
 				},
+				outboxSize: 2,
 			},
 		];
 	});
@@ -77,6 +79,7 @@ describe('inboxUpdate', () => {
 						bitmap: Buffer.alloc(1),
 						siblingHashes: [Buffer.from('01')],
 					},
+					outboxSize: 2,
 				},
 			];
 

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -21,12 +20,9 @@ import {
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
 import { transferParamsSchema } from '../schemas';
-import { NFTStore } from '../stores/nft';
-import { NFTMethod } from '../method';
-import { LENGTH_CHAIN_ID, NFT_NOT_LOCKED } from '../constants';
 import { InternalMethod } from '../internal_method';
 
-export interface Params {
+export interface TransferParams {
 	nftID: Buffer;
 	recipientAddress: Buffer;
 	data: string;
@@ -34,44 +30,26 @@ export interface Params {
 
 export class TransferCommand extends BaseCommand {
 	public schema = transferParamsSchema;
-	private _method!: NFTMethod;
 	private _internalMethod!: InternalMethod;
 
-	public init(args: { method: NFTMethod; internalMethod: InternalMethod }) {
-		this._method = args.method;
+	public init(args: { internalMethod: InternalMethod }) {
 		this._internalMethod = args.internalMethod;
 	}
 
-	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
+	public async verify(context: CommandVerifyContext<TransferParams>): Promise<VerificationResult> {
 		const { params } = context;
 
-		validator.validate<Params>(this.schema, params);
-
-		const nftStore = this.stores.get(NFTStore);
-
-		const nftExists = await nftStore.has(context, params.nftID);
-
-		if (!nftExists) {
-			throw new Error('NFT substore entry does not exist');
-		}
-
-		const owner = await this._method.getNFTOwner(context.getMethodContext(), params.nftID);
-
-		if (owner.length === LENGTH_CHAIN_ID) {
-			throw new Error('NFT is escrowed to another chain');
-		}
-
-		if (!owner.equals(context.transaction.senderAddress)) {
-			throw new Error('Transfer not initiated by the NFT owner');
-		}
-
-		const lockingModule = await this._method.getLockingModule(
-			context.getMethodContext(),
-			params.nftID,
-		);
-
-		if (lockingModule !== NFT_NOT_LOCKED) {
-			throw new Error('Locked NFTs cannot be transferred');
+		try {
+			await this._internalMethod.verifyTransfer(
+				context.getMethodContext(),
+				context.transaction.senderAddress,
+				params.nftID,
+			);
+		} catch (error) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: error as Error,
+			};
 		}
 
 		return {
@@ -79,10 +57,10 @@ export class TransferCommand extends BaseCommand {
 		};
 	}
 
-	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
+	public async execute(context: CommandExecuteContext<TransferParams>): Promise<void> {
 		const { params } = context;
 
-		await this._internalMethod.transferInternal(
+		await this._internalMethod.transfer(
 			context.getMethodContext(),
 			params.recipientAddress,
 			params.nftID,

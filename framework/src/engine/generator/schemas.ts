@@ -85,6 +85,8 @@ export interface GetStatusResponse {
 		height: number;
 		maxHeightPrevoted: number;
 		maxHeightGenerated: number;
+		blsKey: string;
+		generatorKey: string;
 		enabled: boolean;
 	}[];
 }

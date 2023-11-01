@@ -40,13 +40,13 @@ const AccountDialog: React.FC<AccountDialogProps> = props => {
 								<Box mb={2} mr={1}>
 									<Text type={'h3'}>Lisk32 address</Text>
 								</Box>
-								<CopiableText text={account.address}>{account.address}</CopiableText>
+								<CopiableText text={account.address} />
 							</Grid>
 							<Grid md={6} xs={12}>
 								<Box mb={2}>
 									<Text type={'h3'}>Public Key</Text>
 								</Box>
-								<CopiableText text={account.publicKey}>{account.publicKey}</CopiableText>
+								<CopiableText text={account.publicKey} />
 							</Grid>
 						</Grid>
 						<Grid row>
@@ -54,7 +54,7 @@ const AccountDialog: React.FC<AccountDialogProps> = props => {
 								<Box mb={2}>
 									<Text type={'h3'}>Passphrase</Text>
 								</Box>
-								<CopiableText text={account.passphrase ?? ''}>{account.passphrase}</CopiableText>
+								<CopiableText text={account.passphrase ?? ''} />
 							</Grid>
 						</Grid>
 					</Grid>

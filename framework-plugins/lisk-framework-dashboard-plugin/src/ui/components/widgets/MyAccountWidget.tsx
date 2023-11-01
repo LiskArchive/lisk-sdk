@@ -44,10 +44,13 @@ const MyAccountWidget: React.FC<MyAccountProps> = props => {
 						<TableHeader sticky>
 							<tr>
 								<th>
-									<Text>Binary addresss</Text>
+									<Text>Lisk32 address</Text>
 								</th>
 								<th>
 									<Text>Public Key</Text>
+								</th>
+								<th>
+									<Text>Passphrase</Text>
 								</th>
 							</tr>
 						</TableHeader>
@@ -55,10 +58,13 @@ const MyAccountWidget: React.FC<MyAccountProps> = props => {
 							{accounts.map((account: Account) => (
 								<tr onClick={() => handleClick(account)} key={account.address}>
 									<td>
-										<CopiableText text={account.address}>{account.address}</CopiableText>
+										<CopiableText text={account.address} />
 									</td>
 									<td>
-										<CopiableText text={account.publicKey}>{account.publicKey}</CopiableText>
+										<CopiableText text={account.publicKey} />
+									</td>
+									<td>
+										<CopiableText text={account.passphrase ?? ''} />
 									</td>
 								</tr>
 							))}

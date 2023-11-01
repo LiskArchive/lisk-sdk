@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseCCMethod } from '../interoperability/base_cc_method';
 import {
@@ -179,7 +180,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 	public async recover(ctx: RecoverContext): Promise<void> {
 		const methodContext = ctx.getMethodContext();
 		const userStore = this.stores.get(UserStore);
-		const address = ctx.storeKey.slice(0, ADDRESS_LENGTH);
+		const address = ctx.storeKey.subarray(0, ADDRESS_LENGTH);
 		let account: UserStoreData;
 
 		if (
@@ -200,6 +201,7 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 
 		try {
 			account = codec.decode<UserStoreData>(userStoreSchema, ctx.storeValue);
+			validator.validate(userStoreSchema, account);
 		} catch (error) {
 			this.events
 				.get(RecoverEvent)
@@ -213,8 +215,8 @@ export class TokenInteroperableMethod extends BaseCCMethod {
 			throw new Error('Invalid arguments.');
 		}
 
-		const chainID = ctx.storeKey.slice(ADDRESS_LENGTH, ADDRESS_LENGTH + CHAIN_ID_LENGTH);
-		const tokenID = ctx.storeKey.slice(ADDRESS_LENGTH, ADDRESS_LENGTH + TOKEN_ID_LENGTH);
+		const chainID = ctx.storeKey.subarray(ADDRESS_LENGTH, ADDRESS_LENGTH + CHAIN_ID_LENGTH);
+		const tokenID = ctx.storeKey.subarray(ADDRESS_LENGTH, ADDRESS_LENGTH + TOKEN_ID_LENGTH);
 		const totalAmount =
 			account.availableBalance +
 			account.lockedBalances.reduce((prev, curr) => prev + curr.amount, BigInt(0));

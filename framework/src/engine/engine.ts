@@ -52,6 +52,7 @@ import { readGenesisBlock } from '../utils/genesis_block';
 import { LegacyChainHandler } from './legacy/legacy_chain_handler';
 import { LegacyEndpoint } from './legacy/endpoint';
 import { defaultMetrics } from './metrics/metrics';
+import { backupDatabase } from '../utils/backup';
 
 const isEmpty = (value: unknown): boolean => {
 	switch (typeof value) {
@@ -80,6 +81,8 @@ const isEmpty = (value: unknown): boolean => {
 };
 
 const emptyOrDefault = <T>(value: T, defaultValue: T): T => (isEmpty(value) ? defaultValue : value);
+
+export const BLOCKCHAIN_DB_NAME = 'blockchain.db';
 
 export class Engine {
 	private readonly _abi: ABI;
@@ -134,6 +137,7 @@ export class Engine {
 		await this._network.stop();
 		await this._generator.stop();
 		await this._consensus.stop();
+		this._legacyChainHandler.stop();
 		this._rpcServer.stop();
 		this._closeDB();
 		this._logger.info('Engine cleanup completed');
@@ -180,7 +184,7 @@ export class Engine {
 		const genesis = readGenesisBlock(this._config, this._logger);
 
 		this._blockchainDB = new Database(
-			path.join(this._config.system.dataPath, 'data', 'blockchain.db'),
+			path.join(this._config.system.dataPath, 'data', BLOCKCHAIN_DB_NAME),
 		);
 		this._generatorDB = new Database(
 			path.join(this._config.system.dataPath, 'data', 'generator.db'),
@@ -225,6 +229,7 @@ export class Engine {
 
 		const legacyEndpoint = new LegacyEndpoint({
 			db: this._legacyDB,
+			legacyConfig: this._config.legacy,
 		});
 
 		const chainEndpoint = new ChainEndpoint({
@@ -298,6 +303,20 @@ export class Engine {
 				this._rpcServer.publish(EVENT_CHAIN_BLOCK_NEW, { blockHeader: block.header.toJSON() }),
 				this._rpcServer.publish(EVENT_NETWORK_BLOCK_NEW, { blockHeader: block.header.toJSON() }),
 			]).catch(err => this._logger.error({ err: err as Error }, 'Fail to publish event'));
+			if (
+				this._config.system.backup.height > 0 &&
+				block.header.height === this._config.system.backup.height
+			) {
+				// store backup
+				backupDatabase(this._config.system.dataPath, BLOCKCHAIN_DB_NAME, this._blockchainDB).catch(
+					err => {
+						this._logger.error(
+							{ err: err as Error, height: this._config.system.backup.height },
+							'Failed to create backup for stateDB',
+						);
+					},
+				);
+			}
 		});
 		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_DELETE, ({ block }: { block: Block }) => {
 			this._generator.onDeleteBlock(block);
