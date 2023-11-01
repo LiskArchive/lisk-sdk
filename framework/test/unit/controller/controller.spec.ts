@@ -235,6 +235,12 @@ describe('Controller Class', () => {
 			jest.spyOn(InMemoryChannel.prototype, 'publish');
 			await controller.start();
 			childProcessMock.connected = true;
+			childProcessMock.on.mockImplementationOnce((_name, cb) => {
+				cb({ action: 'loaded' });
+			});
+			childProcessMock.on.mockImplementationOnce((_name, cb) => {
+				cb({ action: 'unloaded' });
+			});
 		});
 
 		describe('unload in-memory plugins', () => {

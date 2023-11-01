@@ -73,6 +73,7 @@ describe('consensus', () => {
 			dataAccess: {
 				getBlockHeaderByHeight: jest.fn().mockResolvedValue(lastBlock.header),
 			},
+			genesisHeight: 0,
 		} as unknown as Chain;
 		network = {
 			registerEndpoint: jest.fn(),

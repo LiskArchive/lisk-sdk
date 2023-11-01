@@ -11,7 +11,6 @@ type ModulesMetadata = [
 (async () => {
 	const { address } = cryptography;
 
-	const nodeAlias = 'one';
 	const tokenID = Buffer.from('0400000000000000', 'hex');
 	const sidechainID = Buffer.from('04000002', 'hex'); // Update this to send to another sidechain
 	const recipientLSKAddress = 'lskx5uqu2zzybdwrqswd8c6b5v5aj77yytn4k6mv6';
@@ -68,11 +67,7 @@ type ModulesMetadata = [
 	});
 
 	console.log(
-		`Sent cross chain transfer transaction (amount: ${
-			params.amount
-		}, recipientAddress: ${recipientLSKAddress}) to sidechain (receivingChainID: ${params.receivingChainID.toString(
-			'hex',
-		)}) node ${nodeAlias}. Result from transaction pool is: `,
+		`Sent cross chain transfer transaction (amount: ${params.amount}, recipientAddress: ${recipientLSKAddress}) to send of sidechain (receivingChainID: ${params.receivingChainID}). Result from transaction pool is: `,
 		result,
 	);
 

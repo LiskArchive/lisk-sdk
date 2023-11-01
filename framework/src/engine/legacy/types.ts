@@ -73,9 +73,18 @@ export interface LegacyChainBracketInfo {
 	lastBlockHeight: number;
 }
 
+export interface LegacyChainBracketInfoWithSnapshotBlockID extends LegacyChainBracketInfo {
+	snapshotBlockID: string;
+}
+
 export interface Peer {
 	readonly peerId: string;
 	readonly options: {
-		readonly legacy: Buffer[];
+		readonly legacy: string[];
 	};
+}
+
+export interface RPCLegacyBlocksByIdData {
+	readonly blockID: Buffer;
+	readonly snapshotBlockID: Buffer;
 }

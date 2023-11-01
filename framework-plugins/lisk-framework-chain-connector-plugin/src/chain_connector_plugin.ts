@@ -212,6 +212,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		let chainAccountJSON: ChainAccountJSON;
 		// Save blockHeader, aggregateCommit, validatorsData and cross chain messages if any.
 		try {
+			const nodeInfo = await this._sendingChainClient.node.getNodeInfo();
 			// Fetch last certificate from the receiving chain and update the _lastCertificate
 			try {
 				chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
@@ -232,7 +233,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				await this._saveDataOnNewBlock(newBlockHeader);
 				await this._initializeReceivingChainClient();
 				this.logger.error(
-					error,
+					{ err: error as Error },
 					'Error occurred while accessing receivingChainAPIClient but all data is saved on newBlock.',
 				);
 
@@ -243,34 +244,41 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			const { aggregateCommits, blockHeaders, validatorsHashPreimage, crossChainMessages } =
 				await this._saveDataOnNewBlock(newBlockHeader);
 
-			// When all the relevant data is saved successfully then try to create CCU
-			if (this._ccuFrequency <= newBlockHeader.height - this._lastCertificate.height) {
-				const computedCCUParams = await this._computeCCUParams(
-					blockHeaders,
-					aggregateCommits,
-					validatorsHashPreimage,
-					crossChainMessages,
+			const numOfBlocksSinceLastCertificate = newBlockHeader.height - this._lastCertificate.height;
+			if (nodeInfo.syncing || this._ccuFrequency > numOfBlocksSinceLastCertificate) {
+				this.logger.debug(
+					{
+						syncing: nodeInfo.syncing,
+						ccuFrequency: this._ccuFrequency,
+						nextPossibleCCUHeight: this._ccuFrequency - numOfBlocksSinceLastCertificate,
+					},
+					'No attempt to create CCU either due to ccuFrequency or the node is syncing',
 				);
 
-				if (computedCCUParams) {
-					try {
-						await this._submitCCU(codec.encode(ccuParamsSchema, computedCCUParams.ccuParams));
-						// If CCU was sent successfully then save the lastSentCCM if any
-						// TODO: Add function to check on the receiving chain whether last sent CCM was accepted or not
-						if (computedCCUParams.lastCCMToBeSent) {
-							await this._chainConnectorStore.setLastSentCCM(computedCCUParams.lastCCMToBeSent);
-						}
-					} catch (error) {
-						this.logger.info(
-							{ err: error },
-							`Error occured while submitting CCU for the blockHeader at height: ${newBlockHeader.height}`,
-						);
-						return;
+				return;
+			}
+			// When all the relevant data is saved successfully then try to create CCU
+			const computedCCUParams = await this._computeCCUParams(
+				blockHeaders,
+				aggregateCommits,
+				validatorsHashPreimage,
+				crossChainMessages,
+			);
+
+			if (computedCCUParams) {
+				try {
+					await this._submitCCU(codec.encode(ccuParamsSchema, computedCCUParams.ccuParams));
+					// If CCU was sent successfully then save the lastSentCCM if any
+					// TODO: Add function to check on the receiving chain whether last sent CCM was accepted or not
+					if (computedCCUParams.lastCCMToBeSent) {
+						await this._chainConnectorStore.setLastSentCCM(computedCCUParams.lastCCMToBeSent);
 					}
-				} else {
+				} catch (error) {
 					this.logger.info(
-						`No valid CCU can be generated for the height: ${newBlockHeader.height}`,
+						{ err: error },
+						`Error occured while submitting CCU for the blockHeader at height: ${newBlockHeader.height}`,
 					);
+					return;
 				}
 			}
 		} catch (error) {
@@ -453,7 +461,11 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		if (this._lastCertificate.height === 0) {
 			for (const aggregateCommit of aggregateCommits) {
-				if (aggregateCommit.height < this._registrationHeight) {
+				// If blockHeader corresponding to aggregateCommit height does not exist then try with the next aggregCommit.
+				const blockHeaderExist = blockHeaders.find(
+					header => header.height === aggregateCommit.height,
+				);
+				if (!blockHeaderExist || aggregateCommit.height < this._registrationHeight) {
 					continue;
 				}
 

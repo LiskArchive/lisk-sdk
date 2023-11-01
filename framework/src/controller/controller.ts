@@ -30,6 +30,7 @@ import {
 import { Bus } from './bus';
 import { BaseChannel, InMemoryChannel } from './channels';
 import { IPCServer } from './ipc/ipc_server';
+import { IPC_EVENTS } from './constants';
 
 export interface ControllerOptions {
 	readonly appConfig: ApplicationConfigForPlugin;
@@ -332,7 +333,7 @@ export class Controller {
 			new Promise((_, reject) => {
 				setTimeout(() => {
 					reject(new Error('Child process plugin loading timeout'));
-				}, 2000);
+				}, IPC_EVENTS.RPC_REQUEST_TIMEOUT);
 			}),
 		]);
 	}
@@ -366,6 +367,7 @@ export class Controller {
 					'message',
 					({ action, err }: { action: string; err?: Error }) => {
 						if (action !== 'unloaded' && action !== 'unloadedWithError') {
+							resolve();
 							return;
 						}
 						delete this._childProcesses[name];
@@ -385,7 +387,7 @@ export class Controller {
 					this._childProcesses[name].kill('SIGTERM');
 					delete this._childProcesses[name];
 					reject(new Error('Child process plugin unload timeout'));
-				}, 2000);
+				}, IPC_EVENTS.RPC_REQUEST_TIMEOUT);
 			}),
 		]);
 	}

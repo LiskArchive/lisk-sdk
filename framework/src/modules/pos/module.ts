@@ -55,6 +55,7 @@ import {
 	getRegistrationFeeResponseSchema,
 	getExpectedSharedRewardsRequestSchema,
 	getExpectedSharedRewardsResponseSchema,
+	getConstantsResponseSchema,
 } from './schemas';
 import {
 	RandomMethod,
@@ -206,7 +207,7 @@ export class PoSModule extends BaseModule {
 				},
 				{
 					name: this.endpoint.getConstants.name,
-					response: configSchema,
+					response: getConstantsResponseSchema,
 				},
 				{
 					name: this.endpoint.getPoSTokenID.name,

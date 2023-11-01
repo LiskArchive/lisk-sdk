@@ -50,6 +50,8 @@ export interface ModuleConfig {
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 
+export type GetConstantsResponse = JSONObject<ModuleConfig & { defaultCommission: number }>;
+
 export interface PunishmentLockingPeriods {
 	punishmentWindowStaking: number;
 	punishmentWindowSelfStaking: number;

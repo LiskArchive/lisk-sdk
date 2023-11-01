@@ -14,7 +14,6 @@
  */
 import { Command, Flags as flagParser } from '@oclif/core';
 import * as apiClient from '@liskhq/lisk-api-client';
-import * as cryptography from '@liskhq/lisk-cryptography';
 import {
 	Application,
 	blockHeaderSchema,
@@ -37,7 +36,6 @@ import {
 	getParamsSchema,
 } from '../../../utils/transaction';
 import { getDefaultPath } from '../../../utils/path';
-import { isApplicationRunning } from '../../../utils/application';
 import { PromiseResolvedType } from '../../../types';
 import { DEFAULT_KEY_DERIVATION_PATH } from '../../../utils/config';
 import { deriveKeypair } from '../../../utils/commons';
@@ -78,7 +76,7 @@ const signTransaction = async (
 
 	const chainIDBuffer = Buffer.from(chainID as string, 'hex');
 	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase'));
-	const edKeys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+	const edKeys = await deriveKeypair(passphrase, flags['key-derivation-path']);
 
 	let signedTransaction: Record<string, unknown>;
 	if (flags['mandatory-keys'] || flags['optional-keys']) {
@@ -203,7 +201,7 @@ export abstract class SignCommand extends Command {
 		let signedTransaction: Record<string, unknown>;
 
 		if (flags.offline) {
-			const app = this.getApplication({}, {});
+			const app = this.getApplication({ genesis: { chainID: flags['chain-id'] } });
 			this._metadata = app.getMetadata();
 			this._schema = {
 				header: blockHeaderSchema,
@@ -256,9 +254,6 @@ export abstract class SignCommand extends Command {
 
 	async finally(error?: Error | string): Promise<void> {
 		if (error) {
-			if (this._dataPath && !isApplicationRunning(this._dataPath)) {
-				throw new Error(`Application at data path ${this._dataPath} is not running.`);
-			}
 			this.error(error instanceof Error ? error.message : error);
 		}
 		if (this._client) {
@@ -266,8 +261,5 @@ export abstract class SignCommand extends Command {
 		}
 	}
 
-	abstract getApplication(
-		genesisBlock: Record<string, unknown>,
-		config: PartialApplicationConfig,
-	): Application;
+	abstract getApplication(config: PartialApplicationConfig): Application;
 }

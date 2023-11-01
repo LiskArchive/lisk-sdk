@@ -19,13 +19,11 @@ import { codec } from '@liskhq/lisk-codec';
 import { LegacyNetworkEndpoint } from '../../../../src/engine/legacy/network_endpoint';
 import { loggerMock } from '../../../../src/testing/mocks';
 import { Network } from '../../../../src/engine/network';
-import {
-	getBlocksFromIdRequestSchema,
-	getBlocksFromIdResponseSchema,
-} from '../../../../src/engine/consensus/schema';
+import { getBlocksFromIdResponseSchema } from '../../../../src/engine/consensus/schema';
 
-import { getLegacyBlocksRangeV2 } from './fixtures';
-import { decodeBlock, encodeBlock } from '../../../../src/engine/legacy/codec';
+import { getLegacyBlockHeadersRangeV2 } from './fixtures';
+import { decodeBlockHeader } from '../../../../src/engine/legacy/codec';
+import { getLegacyBlocksFromIdRequestSchema } from '../../../../src/engine/legacy/schemas';
 
 describe('Legacy P2P network endpoint', () => {
 	const defaultPeerID = 'peer-id';
@@ -65,40 +63,51 @@ describe('Legacy P2P network endpoint', () => {
 		});
 
 		it("should return empty list if ID doesn't exist", async () => {
-			const blockId = utils.getRandomBytes(32);
-			const blockIds = codec.encode(getBlocksFromIdRequestSchema, {
-				blockId,
+			const blockID = utils.getRandomBytes(32);
+			const snapshotBlockID = utils.getRandomBytes(32);
+			const requestPayload = codec.encode(getLegacyBlocksFromIdRequestSchema, {
+				blockID,
+				snapshotBlockID,
 			});
-			const blocks = await endpoint.handleRPCGetLegacyBlocksFromID(blockIds, defaultPeerID);
+			await endpoint._storage.setBracketInfo(snapshotBlockID, {
+				lastBlockHeight: 100,
+				snapshotBlockHeight: 200,
+				startHeight: 50,
+			});
+			const blocks = await endpoint.handleRPCGetLegacyBlocksFromID(requestPayload, defaultPeerID);
 			expect(blocks).toEqual(codec.encode(getBlocksFromIdResponseSchema, { blocks: [] }));
 		});
 
 		it('should return 100 blocks from the requested ID', async () => {
-			const startHeight = 110;
+			const requestedHeight = 110;
 			// 100 blocks including the requested block ID
-			const blocks = getLegacyBlocksRangeV2(startHeight, 99);
+			const blockHeaders = getLegacyBlockHeadersRangeV2(requestedHeight, 100);
 
-			const requestedBlock = decodeBlock(blocks[0]).block;
+			const requestedBlockHeader = decodeBlockHeader(blockHeaders[0]);
 
-			const {
-				header: { id, ...blockHeader },
-				payload,
-			} = requestedBlock;
-
-			const requestedBlockWithoutID = { header: { ...blockHeader }, payload };
-
-			const encodedBlockWithoutID = encodeBlock(requestedBlockWithoutID);
-			const requestedBlockID = utils.hash(encodedBlockWithoutID);
+			const { id: requestedBlockID } = requestedBlockHeader;
 
 			// Save blocks to the database
-			for (let i = 0; i < blocks.length; i += 1) {
-				const block = blocks[i];
-				await endpoint['_storage'].saveBlock(utils.hash(block), startHeight + i, block, []);
+			for (let i = 0; i < blockHeaders.length; i += 1) {
+				const blockHeader = blockHeaders[i];
+				await endpoint['_storage'].saveBlock(
+					utils.hash(blockHeader),
+					requestedHeight - i,
+					blockHeader,
+					[],
+				);
 			}
 
-			const encodedRequest = codec.encode(getBlocksFromIdRequestSchema, {
-				blockId: requestedBlockID,
+			const snapshotBlockID = utils.getRandomBytes(32);
+			const encodedRequest = codec.encode(getLegacyBlocksFromIdRequestSchema, {
+				blockID: requestedBlockID,
+				snapshotBlockID,
 			} as never);
+			await endpoint._storage.setBracketInfo(snapshotBlockID, {
+				lastBlockHeight: 100,
+				snapshotBlockHeight: 200,
+				startHeight: requestedHeight - 101,
+			});
 			const blocksReceived = await endpoint.handleRPCGetLegacyBlocksFromID(
 				encodedRequest,
 				defaultPeerID,

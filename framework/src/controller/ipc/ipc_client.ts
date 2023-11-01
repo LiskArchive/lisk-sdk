@@ -14,7 +14,7 @@
 
 import { Dealer, Publisher, Subscriber } from 'zeromq';
 import { IPCSocket } from './ipc_socket';
-import { IPC_CONNECTION_TIME_OUT } from '../constants';
+import { IPC_CONNECTION_TIMEOUT } from '../constants';
 
 interface ClientSocketPaths {
 	readonly pub: string;
@@ -58,7 +58,7 @@ export class IPCClient extends IPCSocket {
 							'IPC Pub Socket client connection timeout. Please check if IPC server is running.',
 						),
 					);
-				}, IPC_CONNECTION_TIME_OUT);
+				}, IPC_CONNECTION_TIMEOUT);
 
 				this.pubSocket.events.on('bind:error', err => {
 					reject(err);
@@ -77,7 +77,7 @@ export class IPCClient extends IPCSocket {
 							'IPC Sub Socket client connection timeout. Please check if IPC server is running.',
 						),
 					);
-				}, IPC_CONNECTION_TIME_OUT);
+				}, IPC_CONNECTION_TIMEOUT);
 
 				this.subSocket.events.on('bind:error', err => {
 					reject(err);
@@ -95,7 +95,7 @@ export class IPCClient extends IPCSocket {
 							'IPC Sub Socket client connection timeout. Please check if IPC server is running.',
 						),
 					);
-				}, IPC_CONNECTION_TIME_OUT);
+				}, IPC_CONNECTION_TIMEOUT);
 
 				this.rpcClient.events.on('bind:error', err => {
 					reject(err);

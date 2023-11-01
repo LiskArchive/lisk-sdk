@@ -29,7 +29,7 @@ import { TerminatedStateStore } from './stores/terminated_state';
 import { computeStorePrefix } from '../base_store';
 import { BaseCCMethod } from './base_cc_method';
 import { BaseInteroperabilityInternalMethod } from './base_interoperability_internal_methods';
-import { InvalidSMTVerification } from './events/invalid_smt_verification';
+import { InvalidSMTVerificationEvent } from './events/invalid_smt_verification';
 
 // LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#state-recovery-command
 export class BaseStateRecoveryCommand<
@@ -138,7 +138,7 @@ export class BaseStateRecoveryCommand<
 		);
 
 		if (!smtVerified) {
-			this.events.get(InvalidSMTVerification).error(context);
+			this.events.get(InvalidSMTVerificationEvent).error(context);
 			throw new Error('State recovery proof of inclusion is not valid.');
 		}
 
