@@ -37,6 +37,7 @@ import {
 	VALIDATOR_REGISTRATION_FEE,
 } from '../../../../../src/modules/pos/constants';
 import { ValidatorRegisteredEvent } from '../../../../../src/modules/pos/events/validator_registered';
+import { liskToBeddows } from '../../../../utils/assets';
 
 describe('Validator registration command', () => {
 	const pos = new Modules.PoS.PoSModule();
@@ -53,7 +54,6 @@ describe('Validator registration command', () => {
 		generatorKey: utils.getRandomBytes(32),
 		blsKey: utils.getRandomBytes(48),
 		proofOfPossession: utils.getRandomBytes(96),
-		validatorRegistrationFee: VALIDATOR_REGISTRATION_FEE,
 	};
 	const defaultValidatorInfo = {
 		name: transactionParams.name,
@@ -77,7 +77,7 @@ describe('Validator registration command', () => {
 		command: 'registerValidator',
 		senderPublicKey: publicKey,
 		nonce: BigInt(0),
-		fee: BigInt(1000000000),
+		fee: liskToBeddows(20),
 		params: encodedTransactionParams,
 		signatures: [publicKey],
 	});
@@ -206,7 +206,7 @@ describe('Validator registration command', () => {
 				command: 'registerValidator',
 				senderPublicKey: publicKey,
 				nonce: BigInt(0),
-				fee: BigInt(100000000),
+				fee: liskToBeddows(1),
 				params: invalidParams,
 				signatures: [publicKey],
 			});
