@@ -483,6 +483,28 @@ describe('initGenesisState', () => {
 			expect(interopMod['_verifyTerminatedStateAccounts']).toHaveBeenCalledTimes(1);
 		});
 
+		it('_verifyChainID the same number of times as size of terminatedStateAccounts', async () => {
+			jest.spyOn(interopMod, '_verifyChainID' as any);
+
+			// const chainIDDefault = getMainchainID(chainID);
+			const context = createInitGenesisStateContext(
+				{
+					...defaultData,
+					chainInfos: chainInfosDefault,
+					terminatedStateAccounts: [
+						{
+							chainID: Buffer.from([1, 1, 2, 3]),
+							terminatedStateAccount,
+						},
+					],
+				},
+				params,
+			);
+
+			await interopMod.initGenesisState(context);
+			expect(interopMod['_verifyChainID']).toHaveBeenCalledTimes(1);
+		});
+
 		it(`should throw error if stateAccount.chainID is equal to OWN_CHAIN_ID`, async () => {
 			const context = createInitGenesisStateContext(
 				{

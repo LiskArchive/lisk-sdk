@@ -450,6 +450,43 @@ describe('initGenesisState', () => {
 			expect(interopMod['_verifyTerminatedStateAccountsIDs']).toHaveBeenCalledTimes(1);
 		});
 
+		it('_verifyChainID the same number of times as size of terminatedStateAccounts + size of chainInfo', async () => {
+			jest.spyOn(interopMod, '_verifyChainID' as any);
+
+			const context = createInitGenesisStateContext(
+				{
+					...genesisInteroperability,
+					chainInfos: [
+						{
+							...chainInfo,
+							chainData: {
+								...chainData,
+								status: ChainStatus.TERMINATED,
+								lastCertificate: {
+									...lastCertificate,
+									validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+								},
+							},
+							chainValidators: {
+								activeValidators,
+								certificateThreshold,
+							},
+						},
+					],
+					terminatedStateAccounts: [
+						{
+							chainID: chainInfo.chainID,
+							terminatedStateAccount,
+						},
+					],
+				},
+				params,
+			);
+
+			await expect(interopMod.initGenesisState(context)).resolves.toBeUndefined();
+			expect(interopMod['_verifyChainID']).toHaveBeenCalledTimes(2);
+		});
+
 		it('should throw error if chainInfo.chainID exists in terminatedStateAccounts & chainInfo.chainData.status is ACTIVE', async () => {
 			const context = createInitGenesisStateContext(
 				{
@@ -731,43 +768,6 @@ describe('initGenesisState', () => {
 			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
 				'For each terminatedStateAccount there should be a corresponding chainInfo at TERMINATED state',
 			);
-		});
-
-		it('should call _verifyTerminatedStateAccounts', async () => {
-			jest.spyOn(interopMod, '_verifyTerminatedStateAccounts' as any);
-
-			const context = createInitGenesisStateContext(
-				{
-					...genesisInteroperability,
-					chainInfos: [
-						{
-							...chainInfo,
-							chainData: {
-								...chainData,
-								status: ChainStatus.TERMINATED,
-								lastCertificate: {
-									...lastCertificate,
-									validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
-								},
-							},
-							chainValidators: {
-								activeValidators,
-								certificateThreshold,
-							},
-						},
-					],
-					terminatedStateAccounts: [
-						{
-							chainID: chainInfo.chainID,
-							terminatedStateAccount,
-						},
-					],
-				},
-				params,
-			);
-
-			await expect(interopMod.initGenesisState(context)).resolves.toBeUndefined();
-			expect(interopMod['_verifyTerminatedStateAccounts']).toHaveBeenCalledTimes(1);
 		});
 	});
 
