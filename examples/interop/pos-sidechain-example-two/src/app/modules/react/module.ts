@@ -42,8 +42,6 @@ export class ReactModule extends BaseInteroperableModule {
 	public async init(_args: ModuleInitArgs) {
 		this.commands[0].init({
 			interoperabilityMethod: this._interoperabilityMethod,
-			method: this.method,
-			moduleName: this.name,
 		});
 	}
 

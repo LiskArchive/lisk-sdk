@@ -25,7 +25,7 @@ import {
 	getHelloCounterResponseSchema,
 	getHelloRequestSchema,
 	getHelloResponseSchema,
-} from './schema';
+} from './schemas';
 import { CounterStore } from './stores/counter';
 import { MessageStore } from './stores/message';
 import { ReactionStore, reactionStoreSchema } from './stores/reaction';
@@ -39,6 +39,13 @@ export const defaultConfig = {
 };
 
 export class HelloModule extends BaseInteroperableModule {
+	public endpoint = new HelloEndpoint(this.stores, this.offchainStores);
+	public method = new HelloMethod(this.stores, this.events);
+	public commands = [new CreateHelloCommand(this.stores, this.events)];
+	public reactCCCommand = new ReactCCCommand(this.stores, this.events);
+	public crossChainMethod = new HelloInteroperableMethod(this.stores, this.events);
+	public crossChainCommand = [this.reactCCCommand];
+
 	public constructor() {
 		super();
 		// registration of stores and events
@@ -105,9 +112,8 @@ export class HelloModule extends BaseInteroperableModule {
 
 	// Lifecycle hooks
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
+	public async verifyTransaction(_context: TransactionVerifyContext): Promise<VerificationResult> {
 		// verify transaction will be called multiple times in the transaction pool
-		context.logger.info('TX VERIFICATION');
 		const result = {
 			status: 1,
 		};
@@ -131,11 +137,4 @@ export class HelloModule extends BaseInteroperableModule {
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async afterTransactionsExecute(_context: BlockAfterExecuteContext): Promise<void> {}
-
-	public endpoint = new HelloEndpoint(this.stores, this.offchainStores);
-	public method = new HelloMethod(this.stores, this.events);
-	public commands = [new CreateHelloCommand(this.stores, this.events)];
-	public reactCCCommand = new ReactCCCommand(this.stores, this.events);
-	public crossChainMethod = new HelloInteroperableMethod(this.stores, this.events);
-	public crossChainCommand = [this.reactCCCommand];
 }
