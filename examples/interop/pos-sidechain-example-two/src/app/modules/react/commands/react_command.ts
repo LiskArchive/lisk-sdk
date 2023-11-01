@@ -8,51 +8,31 @@ import {
 	VerifyStatus,
 	codec,
 } from 'lisk-sdk';
-import { ReactMethod } from '../method';
 import { CROSS_CHAIN_COMMAND_NAME_REACT } from '../constants';
 import {
-	crossChainReactParamsSchema,
+	CCReactCommandParamsSchema,
 	CCReactMessageParams,
-	crossChainReactMessageSchema,
+	CCReactMessageParamsSchema,
+	CCReactCommandParams,
 } from '../schemas';
 import { InteroperabilityMethod } from '../types';
 
-interface Params {
-	reactionType: number;
-	helloMessageID: string;
-	amount: bigint;
-	receivingChainID: Buffer;
-	data: string;
-	messageFee: bigint;
-	messageFeeTokenID: Buffer;
-}
-
 export class ReactCrossChainCommand extends BaseCommand {
 	private _interoperabilityMethod!: InteroperabilityMethod;
-	// private _moduleName!: string;
-	// private _method!: ReactMethod;
-	public schema = crossChainReactParamsSchema;
+	public schema = CCReactCommandParamsSchema;
 
 	public get name(): string {
 		return CROSS_CHAIN_COMMAND_NAME_REACT;
 	}
 
-	public init(args: {
-		moduleName: string;
-		method: ReactMethod;
-		interoperabilityMethod: InteroperabilityMethod;
-	}) {
-		// this._moduleName = args.moduleName;
-		// this._method = args.method;
+	public init(args: { interoperabilityMethod: InteroperabilityMethod }) {
 		this._interoperabilityMethod = args.interoperabilityMethod;
 	}
 
-	public addDependencies(interoperabilityMethod: InteroperabilityMethod) {
-		this._interoperabilityMethod = interoperabilityMethod;
-	}
-
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
+	public async verify(
+		context: CommandVerifyContext<CCReactCommandParams>,
+	): Promise<VerificationResult> {
 		const { params, logger } = context;
 
 		logger.info('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
@@ -62,14 +42,6 @@ export class ReactCrossChainCommand extends BaseCommand {
 		try {
 			if (params.receivingChainID.equals(context.chainID)) {
 				throw new Error('Receiving chain cannot be the sending chain.');
-			}
-
-			const messageFeeTokenID = await this._interoperabilityMethod.getMessageFeeTokenID(
-				context.getMethodContext(),
-				params.receivingChainID,
-			);
-			if (!messageFeeTokenID.equals(params.messageFeeTokenID)) {
-				throw new Error('Invalid message fee Token ID.');
 			}
 		} catch (err) {
 			return {
@@ -82,7 +54,7 @@ export class ReactCrossChainCommand extends BaseCommand {
 		};
 	}
 
-	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
+	public async execute(context: CommandExecuteContext<CCReactCommandParams>): Promise<void> {
 		const {
 			params,
 			transaction: { senderAddress },
@@ -101,7 +73,7 @@ export class ReactCrossChainCommand extends BaseCommand {
 			CROSS_CHAIN_COMMAND_NAME_REACT,
 			params.receivingChainID,
 			params.messageFee,
-			codec.encode(crossChainReactMessageSchema, reactCCM),
+			codec.encode(CCReactMessageParamsSchema, reactCCM),
 			context.header.timestamp,
 		);
 	}
