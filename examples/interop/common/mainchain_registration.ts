@@ -159,5 +159,14 @@ export const registerMainchain = async (mc: string, sc: string, sidechainDevVali
 	});
 
 	console.log('Sent mainchain registration transaction. Result from transaction pool is: ', result);
+
+	const authorizeMainchainResult = await mainchainClient.invoke<{
+		transactionId: string;
+	}>('chainConnector_authorize', {
+		enable: true,
+		password: 'lisk',
+	});
+	console.log('Authorize Mainchain completed, result:', authorizeMainchainResult);
+
 	process.exit(0);
 };
