@@ -78,7 +78,7 @@ export class BaseStateRecoveryCommand<
 		if (!moduleMethod.recover) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Module is not recoverable.'),
+				error: new Error("Module is not recoverable, as it doesn't have a recover method."),
 			};
 		}
 
@@ -93,7 +93,7 @@ export class BaseStateRecoveryCommand<
 		if (!objectUtils.bufferArrayUniqueItems(queryKeys)) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Recovered store keys are not pairwise distinct.'),
+				error: new Error('Recoverable store keys are not pairwise distinct.'),
 			};
 		}
 
@@ -160,7 +160,7 @@ export class BaseStateRecoveryCommand<
 				});
 				storeQueriesUpdate.push({
 					key: Buffer.concat([storePrefix, entry.substorePrefix, utils.hash(entry.storeKey)]),
-					value: RECOVERED_STORE_VALUE,
+					value: RECOVERED_STORE_VALUE, // The value is set to a constant without known pre-image.
 					bitmap: entry.bitmap,
 				});
 			} catch (err) {
