@@ -32,7 +32,7 @@
 	},
 	"dependencies": {
 		"debug": "4.3.4",
-		"lisk-sdk": "^6.0.0-alpha.0"
+		"lisk-sdk": "^6.1.0-rc.0"
 	},
 	"devDependencies": {
 		"@types/jest": "29.2.3",
