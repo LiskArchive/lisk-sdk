@@ -11,32 +11,34 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { createApplication, closeApplication, waitNBlocks } from '../utils/application';
-import { Application } from '../../../src';
+// TODO: Fix the test when functional test is fixed https://github.com/LiskHQ/lisk-sdk/issues/7209
 
-describe('Delegate related actions', () => {
-	let app: Application;
+// import { createApplication, closeApplication, waitNBlocks } from '../utils/application';
+// import { Application } from '../../../src';
 
-	beforeAll(async () => {
-		app = await createApplication('actions-delegate');
-		await waitNBlocks(app, 1);
-	});
+// describe('Validator related actions', () => {
+// 	let app: Application;
 
-	afterAll(async () => {
-		await closeApplication(app);
-	});
+// 	beforeAll(async () => {
+// 		app = await createApplication('actions-validator');
+// 		await waitNBlocks(app, 1);
+// 	});
 
-	describe('getAllDelegates', () => {
-		it('should return list of delegates', async () => {
-			const delegates = await app['_channel'].invoke<{ [key: string]: string }[]>(
-				'dpos:getAllDelegates',
-			);
-			expect(delegates).toBeArray();
-			expect(delegates).toHaveLength(103);
-			delegates.map(delegate => {
-				expect(delegate.username).toBeString();
-				return expect(delegate.address).toBeString();
-			});
-		});
-	});
-});
+// 	afterAll(async () => {
+// 		await closeApplication(app);
+// 	});
+
+// 	describe('getAllValidators', () => {
+// 		it('should return list of validators', async () => {
+// 			const validators = await app['_channel'].invoke<{ [key: string]: string }[]>(
+// 				'pos:getAllValidators',
+// 			);
+// 			expect(validators).toBeArray();
+// 			expect(validators).toHaveLength(103);
+// 			validators.map(validator => {
+// 				expect(validator.username).toBeString();
+// 				return expect(validator.address).toBeString();
+// 			});
+// 		});
+// 	});
+// });

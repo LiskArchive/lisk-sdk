@@ -13,30 +13,32 @@
  */
 
 import * as createDebug from 'debug';
-import { Database } from '@liskhq/lisk-db';
-import { codec } from '@liskhq/lisk-codec';
+import { codec, db as liskDB } from 'lisk-sdk';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
 import { DB_KEY_FORGER_INFO, DB_KEY_FORGER_SYNC_INFO } from './constants';
-import { forgerInfoSchema, forgerSyncSchema } from './schema';
+import { forgerInfoSchema, forgerSyncSchema } from './schemas';
 import { ForgerInfo, ForgetSyncInfo } from './types';
 
 const debug = createDebug('plugin:forger:db');
 
+const { Database } = liskDB;
+type KVStore = liskDB.Database;
+
 export const getDBInstance = async (
 	dataPath: string,
 	dbName = 'lisk-framework-forger-plugin.db',
-): Promise<Database> => {
+): Promise<KVStore> => {
 	const dirPath = join(dataPath.replace('~', os.homedir()), 'plugins/data', dbName);
 	await ensureDir(dirPath);
 
 	return new Database(dirPath);
 };
 
-export const getForgerSyncInfo = async (db: Database): Promise<ForgetSyncInfo> => {
+export const getForgerSyncInfo = async (db: KVStore): Promise<ForgetSyncInfo> => {
 	try {
-		const encodedSyncInfo = await db.get(Buffer.from(DB_KEY_FORGER_SYNC_INFO));
+		const encodedSyncInfo = await db.get(DB_KEY_FORGER_SYNC_INFO);
 		return codec.decode<ForgetSyncInfo>(forgerSyncSchema, encodedSyncInfo);
 	} catch (error) {
 		debug('Forger sync info does not exists');
@@ -46,31 +48,36 @@ export const getForgerSyncInfo = async (db: Database): Promise<ForgetSyncInfo> =
 	}
 };
 
-export const setForgerSyncInfo = async (db: Database, blockHeight: number): Promise<void> => {
+export const setForgerSyncInfo = async (db: KVStore, blockHeight: number): Promise<void> => {
 	const encodedSyncInfo = codec.encode(forgerSyncSchema, { syncUptoHeight: blockHeight });
-	await db.set(Buffer.from(DB_KEY_FORGER_SYNC_INFO), encodedSyncInfo);
+	await db.set(DB_KEY_FORGER_SYNC_INFO, encodedSyncInfo);
 };
 
 export const setForgerInfo = async (
-	db: Database,
+	db: KVStore,
 	forgerAddress: string,
 	forgerInfo: ForgerInfo,
 ): Promise<void> => {
 	const encodedForgerInfo = codec.encode(forgerInfoSchema, forgerInfo);
-	await db.set(Buffer.from(`${DB_KEY_FORGER_INFO}:${forgerAddress}`), encodedForgerInfo);
+	await db.set(
+		Buffer.concat([DB_KEY_FORGER_INFO, Buffer.from(`:${forgerAddress}`, 'utf8')]),
+		encodedForgerInfo,
+	);
 };
 
-export const getForgerInfo = async (db: Database, forgerAddress: string): Promise<ForgerInfo> => {
+export const getForgerInfo = async (db: KVStore, forgerAddress: string): Promise<ForgerInfo> => {
 	let forgerInfo;
 	try {
-		forgerInfo = await db.get(Buffer.from(`${DB_KEY_FORGER_INFO}:${forgerAddress}`));
+		forgerInfo = await db.get(
+			Buffer.concat([DB_KEY_FORGER_INFO, Buffer.from(`:${forgerAddress}`, 'utf8')]),
+		);
 	} catch (error) {
-		debug(`Forger info does not exists for delegate: ${forgerAddress}`);
+		debug(`Forger info does not exists for validator: ${forgerAddress}`);
 		return {
 			totalProducedBlocks: 0,
 			totalReceivedFees: BigInt(0),
 			totalReceivedRewards: BigInt(0),
-			votesReceived: [],
+			stakeReceived: [],
 		};
 	}
 

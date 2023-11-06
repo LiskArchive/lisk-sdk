@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { validator, liskSchemaIdentifier } from './lisk_validator';
+import { validator, liskSchemaIdentifier, LiskValidator } from './lisk_validator';
 // To keep backward compatibility
 import { LiskErrorObject as ErrorObject } from './types';
 
 export * from './validation';
 export * from './errors';
 export * from './constants';
-export { validator, liskSchemaIdentifier, ErrorObject };
+export { validator, liskSchemaIdentifier, ErrorObject, LiskValidator };

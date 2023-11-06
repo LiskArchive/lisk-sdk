@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for arrays types supported by lisk-codec",
+	"title": "Encoding for arrays types supported by lisk-codec",
 	"summary": "Examples of encoding arrays with lisk-codec",
 	"config": {
 		"network": "devnet"
@@ -15,7 +15,7 @@
 				},
 				"schema": {
 					"type": "object",
-					"$id": "arrayUint32",
+					"$id": "/arraySchemaUint32",
 					"properties": {
 						"list": {
 							"type": "array",
@@ -39,7 +39,7 @@
 				},
 				"schema": {
 					"type": "object",
-					"$id": "arrayBoolean",
+					"$id": "/arraySchemaBoolean",
 					"properties": {
 						"list": {
 							"type": "array",
@@ -56,14 +56,14 @@
 			}
 		},
 		{
-			"description": "Encoding of strings array",
+			"description": "arrayStrings of strings array",
 			"input": {
 				"object": {
 					"list": ["lisk", "", "gogogog"]
 				},
 				"schema": {
 					"type": "object",
-					"$id": "arrayStrings",
+					"$id": "/arraySchemaString",
 					"properties": {
 						"list": {
 							"type": "array",
@@ -83,24 +83,23 @@
 			"description": "Encoding of objects array",
 			"input": {
 				"object": {
-					"myArray": [
+					"list": [
 						{
 							"address": "e11a11364738225813f86ea85214400e5db08d6e",
-							"amount": 100000
+							"amount": "100000"
 						},
 						{
 							"address": "aa2a11364738225813f86ea85214400e5db08fff",
-							"amount": 300000
+							"amount": "300000"
 						}
 					]
 				},
 				"schema": {
-					"$id": "arrayObject",
 					"type": "object",
+					"$id": "/arraySchemaObject",
 					"properties": {
-						"myArray": {
+						"list": {
 							"type": "array",
-							"fieldNumber": 1,
 							"items": {
 								"type": "object",
 								"properties": {
@@ -113,7 +112,8 @@
 										"fieldNumber": 2
 									}
 								}
-							}
+							},
+							"fieldNumber": 1
 						}
 					}
 				}
@@ -130,7 +130,7 @@
 				},
 				"schema": {
 					"type": "object",
-					"$id": "emptyArray",
+					"$id": "/arraySchemaUint32",
 					"properties": {
 						"list": {
 							"type": "array",

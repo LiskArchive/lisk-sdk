@@ -1,0 +1,319 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`block_header blockHeaderSchema should be valid schema with signature but without id 1`] = `
+{
+  "$id": "/block/header/3/without-id",
+  "properties": {
+    "aggregateCommit": {
+      "fieldNumber": 14,
+      "properties": {
+        "aggregationBits": {
+          "dataType": "bytes",
+          "fieldNumber": 2,
+        },
+        "certificateSignature": {
+          "dataType": "bytes",
+          "fieldNumber": 3,
+        },
+        "height": {
+          "dataType": "uint32",
+          "fieldNumber": 1,
+        },
+      },
+      "required": [
+        "height",
+        "aggregationBits",
+        "certificateSignature",
+      ],
+      "type": "object",
+    },
+    "assetRoot": {
+      "dataType": "bytes",
+      "fieldNumber": 7,
+    },
+    "eventRoot": {
+      "dataType": "bytes",
+      "fieldNumber": 8,
+    },
+    "generatorAddress": {
+      "dataType": "bytes",
+      "fieldNumber": 5,
+      "format": "lisk32",
+    },
+    "height": {
+      "dataType": "uint32",
+      "fieldNumber": 3,
+    },
+    "impliesMaxPrevotes": {
+      "dataType": "boolean",
+      "fieldNumber": 12,
+    },
+    "maxHeightGenerated": {
+      "dataType": "uint32",
+      "fieldNumber": 11,
+    },
+    "maxHeightPrevoted": {
+      "dataType": "uint32",
+      "fieldNumber": 10,
+    },
+    "previousBlockID": {
+      "dataType": "bytes",
+      "fieldNumber": 4,
+    },
+    "signature": {
+      "dataType": "bytes",
+      "fieldNumber": 15,
+    },
+    "stateRoot": {
+      "dataType": "bytes",
+      "fieldNumber": 9,
+    },
+    "timestamp": {
+      "dataType": "uint32",
+      "fieldNumber": 2,
+    },
+    "transactionRoot": {
+      "dataType": "bytes",
+      "fieldNumber": 6,
+    },
+    "validatorsHash": {
+      "dataType": "bytes",
+      "fieldNumber": 13,
+    },
+    "version": {
+      "dataType": "uint32",
+      "fieldNumber": 1,
+    },
+  },
+  "required": [
+    "version",
+    "timestamp",
+    "height",
+    "previousBlockID",
+    "generatorAddress",
+    "transactionRoot",
+    "assetRoot",
+    "eventRoot",
+    "stateRoot",
+    "maxHeightPrevoted",
+    "maxHeightGenerated",
+    "impliesMaxPrevotes",
+    "validatorsHash",
+    "aggregateCommit",
+    "signature",
+  ],
+  "type": "object",
+}
+`;
+
+exports[`block_header blockHeaderSchemaWithId should be valid schema with signature and id 1`] = `
+{
+  "$id": "/block/header/3",
+  "properties": {
+    "aggregateCommit": {
+      "fieldNumber": 14,
+      "properties": {
+        "aggregationBits": {
+          "dataType": "bytes",
+          "fieldNumber": 2,
+        },
+        "certificateSignature": {
+          "dataType": "bytes",
+          "fieldNumber": 3,
+        },
+        "height": {
+          "dataType": "uint32",
+          "fieldNumber": 1,
+        },
+      },
+      "required": [
+        "height",
+        "aggregationBits",
+        "certificateSignature",
+      ],
+      "type": "object",
+    },
+    "assetRoot": {
+      "dataType": "bytes",
+      "fieldNumber": 7,
+    },
+    "eventRoot": {
+      "dataType": "bytes",
+      "fieldNumber": 8,
+    },
+    "generatorAddress": {
+      "dataType": "bytes",
+      "fieldNumber": 5,
+      "format": "lisk32",
+    },
+    "height": {
+      "dataType": "uint32",
+      "fieldNumber": 3,
+    },
+    "id": {
+      "dataType": "bytes",
+      "fieldNumber": 16,
+    },
+    "impliesMaxPrevotes": {
+      "dataType": "boolean",
+      "fieldNumber": 12,
+    },
+    "maxHeightGenerated": {
+      "dataType": "uint32",
+      "fieldNumber": 11,
+    },
+    "maxHeightPrevoted": {
+      "dataType": "uint32",
+      "fieldNumber": 10,
+    },
+    "previousBlockID": {
+      "dataType": "bytes",
+      "fieldNumber": 4,
+    },
+    "signature": {
+      "dataType": "bytes",
+      "fieldNumber": 15,
+    },
+    "stateRoot": {
+      "dataType": "bytes",
+      "fieldNumber": 9,
+    },
+    "timestamp": {
+      "dataType": "uint32",
+      "fieldNumber": 2,
+    },
+    "transactionRoot": {
+      "dataType": "bytes",
+      "fieldNumber": 6,
+    },
+    "validatorsHash": {
+      "dataType": "bytes",
+      "fieldNumber": 13,
+    },
+    "version": {
+      "dataType": "uint32",
+      "fieldNumber": 1,
+    },
+  },
+  "required": [
+    "version",
+    "timestamp",
+    "height",
+    "previousBlockID",
+    "generatorAddress",
+    "transactionRoot",
+    "assetRoot",
+    "eventRoot",
+    "stateRoot",
+    "maxHeightPrevoted",
+    "maxHeightGenerated",
+    "impliesMaxPrevotes",
+    "validatorsHash",
+    "aggregateCommit",
+    "signature",
+    "id",
+  ],
+  "type": "object",
+}
+`;
+
+exports[`block_header signingBlockHeaderSchema should be valid schema without signature and id 1`] = `
+{
+  "$id": "/block/header/signing/3",
+  "properties": {
+    "aggregateCommit": {
+      "fieldNumber": 14,
+      "properties": {
+        "aggregationBits": {
+          "dataType": "bytes",
+          "fieldNumber": 2,
+        },
+        "certificateSignature": {
+          "dataType": "bytes",
+          "fieldNumber": 3,
+        },
+        "height": {
+          "dataType": "uint32",
+          "fieldNumber": 1,
+        },
+      },
+      "required": [
+        "height",
+        "aggregationBits",
+        "certificateSignature",
+      ],
+      "type": "object",
+    },
+    "assetRoot": {
+      "dataType": "bytes",
+      "fieldNumber": 7,
+    },
+    "eventRoot": {
+      "dataType": "bytes",
+      "fieldNumber": 8,
+    },
+    "generatorAddress": {
+      "dataType": "bytes",
+      "fieldNumber": 5,
+      "format": "lisk32",
+    },
+    "height": {
+      "dataType": "uint32",
+      "fieldNumber": 3,
+    },
+    "impliesMaxPrevotes": {
+      "dataType": "boolean",
+      "fieldNumber": 12,
+    },
+    "maxHeightGenerated": {
+      "dataType": "uint32",
+      "fieldNumber": 11,
+    },
+    "maxHeightPrevoted": {
+      "dataType": "uint32",
+      "fieldNumber": 10,
+    },
+    "previousBlockID": {
+      "dataType": "bytes",
+      "fieldNumber": 4,
+    },
+    "stateRoot": {
+      "dataType": "bytes",
+      "fieldNumber": 9,
+    },
+    "timestamp": {
+      "dataType": "uint32",
+      "fieldNumber": 2,
+    },
+    "transactionRoot": {
+      "dataType": "bytes",
+      "fieldNumber": 6,
+    },
+    "validatorsHash": {
+      "dataType": "bytes",
+      "fieldNumber": 13,
+    },
+    "version": {
+      "dataType": "uint32",
+      "fieldNumber": 1,
+    },
+  },
+  "required": [
+    "version",
+    "timestamp",
+    "height",
+    "previousBlockID",
+    "generatorAddress",
+    "transactionRoot",
+    "assetRoot",
+    "eventRoot",
+    "stateRoot",
+    "maxHeightPrevoted",
+    "maxHeightGenerated",
+    "impliesMaxPrevotes",
+    "validatorsHash",
+    "aggregateCommit",
+  ],
+  "type": "object",
+}
+`;

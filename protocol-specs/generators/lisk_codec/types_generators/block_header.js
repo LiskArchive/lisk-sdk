@@ -20,7 +20,7 @@ const prepareProtobuffersBlock = () =>
 const { BlockHeader } = prepareProtobuffersBlock();
 
 const blockHeaderSchema = {
-	$id: 'blockHeaderSchema',
+	$id: '/blockHeaderSchema',
 	type: 'object',
 	properties: {
 		version: { dataType: 'uint32', fieldNumber: 1 },
@@ -45,83 +45,81 @@ const blockHeaderSchema = {
 	],
 };
 
-const generateValidBlockHeaderEncodings = () => {
-	const input = {
-		validBlockHeader1: {
-			object: {
-				version: 1,
-				timestamp: 1590557445,
-				height: 12385603,
-				previousBlockID: Buffer.from(
-					'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
-					'hex',
-				),
-				transactionRoot: Buffer.from(
-					'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3',
-					'hex',
-				),
-				generatorPublicKey: Buffer.from(
-					'68a751863fe73b8ede8d832be628ff680d617fa15c74d00142f9025d5f37dd50',
-					'hex',
-				),
-				reward: 400000000,
-				asset: Buffer.from(
-					'd59386e0ae435e292fbe0ebcdb954b75ed5fb3922091277cb19f798fc5d50718',
-					'hex',
-				),
-				signature: Buffer.from(
-					'8331b5123cac056e2ec8361c56e642db0ca0e13abe33696d23d4d00ad6de844919296e87abe8e172f67fd882b4c0b1c1804b7d9075ecf975cf2631d8d7efef0c',
-					'hex',
-				),
-			},
-			schema: blockHeaderSchema,
-		},
-		validBlockHeader2: {
-			object: {
-				version: 3,
-				timestamp: 1590557804,
-				height: 901049,
-				previousBlockID: Buffer.from(
-					'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-					'hex',
-				),
-				transactionRoot: Buffer.from(
-					'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-					'hex',
-				),
-				generatorPublicKey: Buffer.from(
-					'acc56344dea609e80cf5d4165e46917104fe701927847fc2a5d40e37574b2b38',
-					'hex',
-				),
-				reward: 400000000,
-				asset: Buffer.from(
-					'eaaf9d4c65cb501c811ef812847a55513181474d734ead1b95b7e1e5b574d223',
-					'hex',
-				),
-				signature: Buffer.from(
-					'1e65032943af975c3cdef94b1fce639645bddb29265321e0277a0f48143ef7f6f6daa1046234a09cc593969ff04d8d082edd15a4a9b90a7b8865fcd9dac44300',
-					'hex',
-				),
-			},
-			schema: blockHeaderSchema,
-		},
-	};
+const validBlockHeader1 = {
+	version: 1,
+	timestamp: 1590557445,
+	height: 12385603,
+	previousBlockID: Buffer.from(
+		'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
+		'hex',
+	),
+	transactionRoot: Buffer.from(
+		'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3',
+		'hex',
+	),
+	generatorPublicKey: Buffer.from(
+		'68a751863fe73b8ede8d832be628ff680d617fa15c74d00142f9025d5f37dd50',
+		'hex',
+	),
+	reward: '400000000',
+	asset: Buffer.from('d59386e0ae435e292fbe0ebcdb954b75ed5fb3922091277cb19f798fc5d50718', 'hex'),
+	signature: Buffer.from(
+		'8331b5123cac056e2ec8361c56e642db0ca0e13abe33696d23d4d00ad6de844919296e87abe8e172f67fd882b4c0b1c1804b7d9075ecf975cf2631d8d7efef0c',
+		'hex',
+	),
+};
 
-	const validBlockHeader1Encoded = BlockHeader.encode(input.validBlockHeader1.object).finish();
-	const validBlockHeader2Encoded = BlockHeader.encode(input.validBlockHeader2.object).finish();
+const validBlockHeader2 = {
+	version: 3,
+	timestamp: 1590557804,
+	height: 901049,
+	previousBlockID: Buffer.from(
+		'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+		'hex',
+	),
+	transactionRoot: Buffer.from(
+		'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+		'hex',
+	),
+	generatorPublicKey: Buffer.from(
+		'acc56344dea609e80cf5d4165e46917104fe701927847fc2a5d40e37574b2b38',
+		'hex',
+	),
+	reward: '400000000',
+	asset: Buffer.from('eaaf9d4c65cb501c811ef812847a55513181474d734ead1b95b7e1e5b574d223', 'hex'),
+	signature: Buffer.from(
+		'1e65032943af975c3cdef94b1fce639645bddb29265321e0277a0f48143ef7f6f6daa1046234a09cc593969ff04d8d082edd15a4a9b90a7b8865fcd9dac44300',
+		'hex',
+	),
+};
 
-	return [
+const validBlockHeader1Encoded = BlockHeader.encode(validBlockHeader1).finish();
+const validBlockHeader2Encoded = BlockHeader.encode(validBlockHeader2).finish();
+
+module.exports = {
+	validBlockHeaderEncodingsTestCases: [
 		{
 			description: 'Encoding of valid block header 1',
-			input: input.validBlockHeader1,
-			output: { value: validBlockHeader1Encoded.toString('hex') },
+			input: { object: validBlockHeader1, schema: blockHeaderSchema },
+			output: { value: validBlockHeader1Encoded },
 		},
 		{
 			description: 'Encoding of valid block header 2',
-			input: input.validBlockHeader2,
-			output: { value: validBlockHeader2Encoded.toString('hex') },
+			input: { object: validBlockHeader2, schema: blockHeaderSchema },
+			output: { value: validBlockHeader2Encoded },
 		},
-	];
-};
+	],
 
-module.exports = generateValidBlockHeaderEncodings;
+	validBlockHeaderDecodingsTestCases: [
+		{
+			description: 'Decoding of valid block header 1',
+			input: { value: validBlockHeader1Encoded, schema: blockHeaderSchema },
+			output: { object: validBlockHeader1 },
+		},
+		{
+			description: 'Decoding of valid block header 2',
+			input: { value: validBlockHeader2Encoded, schema: blockHeaderSchema },
+			output: { object: validBlockHeader2 },
+		},
+	],
+};

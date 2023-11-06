@@ -14,60 +14,42 @@
 import * as React from 'react';
 import { Widget, WidgetHeader, WidgetBody } from '../widget';
 import Text from '../Text';
-import { RegisteredModule, SendTransactionOptions } from '../../types';
+import { SendTransactionOptions } from '../../types';
 import SelectInput, { SelectInputOptionType } from '../input/SelectInput';
 import { TextAreaInput } from '../input';
 import Box from '../Box';
 import Button from '../Button';
 
 interface WidgetProps {
-	modules: RegisteredModule[];
+	modules: { name: string; commands: { name: string }[] }[];
 	onSubmit: (data: SendTransactionOptions) => void;
 }
 
 const SendTransactionWidget: React.FC<WidgetProps> = props => {
 	const [passphrase, setPassphrase] = React.useState('');
-	const [asset, setAsset] = React.useState('{}');
-	const [validAsset, setValidAsset] = React.useState(true);
-	const assets = props.modules
+	const [params, setParams] = React.useState('{}');
+	const [validParams, setValidParams] = React.useState(true);
+	const parameters = props.modules
 		.map(m =>
-			m.transactionAssets.map(t => ({
-				label: `${m.name}:${t.name}`,
-				value: `${m.name}:${t.name}`,
+			m.commands.map(t => ({
+				label: `${m.name}_${t.name}`,
+				value: `${m.name}_${t.name}`,
 			})),
 		)
 		.flat();
-	const [selectedAsset, setSelectedAsset] = React.useState<SelectInputOptionType>(assets[0]);
+	const [selectedParams, setSelectedParams] = React.useState<SelectInputOptionType>(parameters[0]);
 
 	const handleSubmit = () => {
-		const assetSelectedValue = selectedAsset ? selectedAsset.value : '';
-		const moduleName = assetSelectedValue.split(':').shift();
-		const assetName = assetSelectedValue.split(':').slice(1).join(':');
-		let moduleID: number | undefined;
-		let assetID: number | undefined;
+		const paramsSelectedValue = selectedParams ? selectedParams.value : '';
+		const moduleName = paramsSelectedValue.split('_').shift();
+		const commandName = paramsSelectedValue.split('_').slice(1).join('_');
 
-		for (const m of props.modules) {
-			if (m.name === moduleName) {
-				moduleID = m.id;
-
-				for (const t of m.transactionAssets) {
-					if (t.name === assetName) {
-						assetID = t.id;
-
-						break;
-					}
-				}
-
-				break;
-			}
-		}
-
-		if (moduleID !== undefined && assetID !== undefined) {
+		if (moduleName !== undefined && commandName !== undefined) {
 			props.onSubmit({
-				moduleID,
-				assetID,
+				module: moduleName,
+				command: commandName,
 				passphrase,
-				asset: JSON.parse(asset) as Record<string, unknown>,
+				params: JSON.parse(params) as Record<string, unknown>,
 			});
 		}
 	};
@@ -75,15 +57,15 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 	return (
 		<Widget>
 			<WidgetHeader>
-				<Text type={'h2'}>{'Send transaction'}</Text>
+				<Text type={'h2'}>{'Invoke command'}</Text>
 			</WidgetHeader>
 			<WidgetBody>
 				<Box mb={4}>
 					<SelectInput
 						multi={false}
-						options={assets}
-						selected={selectedAsset}
-						onChange={val => setSelectedAsset(val)}
+						options={parameters}
+						selected={selectedParams}
+						onChange={val => setSelectedParams(val)}
 					></SelectInput>
 				</Box>
 
@@ -99,23 +81,23 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 				<Box mb={4}>
 					<TextAreaInput
 						json
-						placeholder={'Asset'}
+						placeholder={'Params'}
 						size={'m'}
-						value={asset}
+						value={params}
 						onChange={val => {
 							try {
 								JSON.parse(val ?? '');
-								setValidAsset(true);
+								setValidParams(true);
 							} catch (error) {
-								setValidAsset(false);
+								setValidParams(false);
 							}
-							setAsset(val);
+							setParams(val);
 						}}
 					></TextAreaInput>
 				</Box>
 
 				<Box textAlign={'center'}>
-					<Button size={'m'} onClick={handleSubmit} disabled={!validAsset}>
+					<Button size={'m'} onClick={handleSubmit} disabled={!validParams}>
 						Submit
 					</Button>
 				</Box>

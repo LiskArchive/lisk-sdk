@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TokenTransferAsset, KeysRegisterAsset, DPoSVoteAsset } from 'lisk-framework';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 import { codec, Schema } from '@liskhq/lisk-codec';
@@ -24,167 +23,156 @@ const account = {
 	publicKey: '508a965871253595b36e2f8dc27bff6e67b39bdd466531be9c6f8c401253979c',
 	address: '9cabee3d27426676b852ce6b804cb2fdff7cd0b5',
 };
-
-const tokenTransferAsset = new TokenTransferAsset(BigInt(500000));
-
-export const tokenTransferAssetSchema = tokenTransferAsset.schema;
-export const keysRegisterAssetSchema = new KeysRegisterAsset().schema;
-export const dposVoteAssetSchema = new DPoSVoteAsset().schema;
-export const accountSchema = {
-	$id: '/account/base',
+export const multisigRegMsgSchema = {
+	$id: '/test/auth/command/regMultisigMsg',
+	type: 'object',
+	required: ['address', 'nonce', 'numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
 	properties: {
 		address: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: 20,
+			maxLength: 20,
 		},
-		dpos: {
-			fieldNumber: 5,
-			properties: {
-				delegate: {
-					fieldNumber: 1,
-					properties: {
-						consecutiveMissedBlocks: {
-							dataType: 'uint32',
-							fieldNumber: 3,
-						},
-						isBanned: {
-							dataType: 'boolean',
-							fieldNumber: 5,
-						},
-						lastForgedHeight: {
-							dataType: 'uint32',
-							fieldNumber: 4,
-						},
-						pomHeights: {
-							fieldNumber: 2,
-							items: {
-								dataType: 'uint32',
-							},
-							type: 'array',
-						},
-						totalVotesReceived: {
-							dataType: 'uint64',
-							fieldNumber: 6,
-						},
-						username: {
-							dataType: 'string',
-							fieldNumber: 1,
-						},
-					},
-					required: [
-						'username',
-						'pomHeights',
-						'consecutiveMissedBlocks',
-						'lastForgedHeight',
-						'isBanned',
-						'totalVotesReceived',
-					],
-					type: 'object',
-				},
-				sentVotes: {
-					fieldNumber: 2,
-					items: {
-						properties: {
-							amount: {
-								dataType: 'uint64',
-								fieldNumber: 2,
-							},
-							delegateAddress: {
-								dataType: 'bytes',
-								fieldNumber: 1,
-							},
-						},
-						required: ['delegateAddress', 'amount'],
-						type: 'object',
-					},
-					type: 'array',
-				},
-				unlocking: {
-					fieldNumber: 3,
-					items: {
-						properties: {
-							amount: {
-								dataType: 'uint64',
-								fieldNumber: 2,
-							},
-							delegateAddress: {
-								dataType: 'bytes',
-								fieldNumber: 1,
-							},
-							unvoteHeight: {
-								dataType: 'uint32',
-								fieldNumber: 3,
-							},
-						},
-						required: ['delegateAddress', 'amount', 'unvoteHeight'],
-						type: 'object',
-					},
-					type: 'array',
-				},
-			},
-			type: 'object',
-		},
-		keys: {
-			fieldNumber: 4,
-			properties: {
-				mandatoryKeys: {
-					fieldNumber: 2,
-					items: {
-						dataType: 'bytes',
-					},
-					type: 'array',
-				},
-				numberOfSignatures: {
-					dataType: 'uint32',
-					fieldNumber: 1,
-				},
-				optionalKeys: {
-					fieldNumber: 3,
-					items: {
-						dataType: 'bytes',
-					},
-					type: 'array',
-				},
-			},
-			type: 'object',
-		},
-		sequence: {
-			fieldNumber: 3,
-			properties: {
-				nonce: {
-					dataType: 'uint64',
-					fieldNumber: 1,
-				},
-			},
-			type: 'object',
-		},
-		token: {
+		nonce: {
+			dataType: 'uint64',
 			fieldNumber: 2,
-			properties: {
-				balance: {
-					dataType: 'uint64',
-					fieldNumber: 1,
-				},
+		},
+		numberOfSignatures: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+		mandatoryKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: 32,
+				maxLength: 32,
 			},
-			type: 'object',
+			fieldNumber: 4,
+		},
+		optionalKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: 32,
+				maxLength: 32,
+			},
+			fieldNumber: 5,
 		},
 	},
-	required: ['address', 'token', 'sequence', 'keys', 'dpos'],
+};
+
+export const registerMultisignatureParamsSchema = {
+	$id: '/test/auth/command/regMultisig',
 	type: 'object',
+	properties: {
+		numberOfSignatures: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+			minimum: 1,
+			maximum: 64,
+		},
+		mandatoryKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: 32,
+				maxLength: 32,
+			},
+			fieldNumber: 2,
+			minItems: 0,
+			maxItems: 64,
+		},
+		optionalKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: 32,
+				maxLength: 32,
+			},
+			fieldNumber: 3,
+			minItems: 0,
+			maxItems: 64,
+		},
+		signatures: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: 64,
+				maxLength: 64,
+			},
+			fieldNumber: 4,
+		},
+	},
+	required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys', 'signatures'],
+};
+
+export const tokenTransferParamsSchema = {
+	$id: '/test/lisk/transferCommand',
+	title: 'Transfer transaction command',
+	type: 'object',
+	required: ['tokenID', 'amount', 'recipientAddress', 'data'],
+	properties: {
+		tokenID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		amount: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		recipientAddress: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+			format: 'lisk32',
+		},
+		data: {
+			dataType: 'string',
+			fieldNumber: 4,
+			minLength: 0,
+			maxLength: 64,
+		},
+	},
+};
+
+export const posVoteParamsSchema = {
+	$id: '/test/pos/command/stakeParams',
+	type: 'object',
+	required: ['stakes'],
+	properties: {
+		stakes: {
+			type: 'array',
+			fieldNumber: 1,
+			minItems: 1,
+			maxItems: 20,
+			items: {
+				type: 'object',
+				required: ['validatorAddress', 'amount'],
+				properties: {
+					validatorAddress: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+						format: 'lisk32',
+					},
+					amount: {
+						dataType: 'sint64',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+	},
 };
 
 export const genesisBlockID = Buffer.from(
 	'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
 	'hex',
 );
-export const communityIdentifier = 'Lisk';
 
-export const networkIdentifier = cryptography.getNetworkIdentifier(
-	genesisBlockID,
-	communityIdentifier,
-);
+export const chainID = Buffer.from('10000000', 'hex');
 
-export const networkIdentifierStr = networkIdentifier.toString('hex');
+export const chainIDStr = chainID.toString('hex');
 
 export const createTransferTransaction = ({
 	amount,
@@ -198,21 +186,22 @@ export const createTransferTransaction = ({
 	nonce: number;
 }): Record<string, unknown> => {
 	const transaction = transactions.signTransaction(
-		tokenTransferAsset.schema,
 		{
-			moduleID: 2,
-			assetID: 0,
+			module: 'token',
+			command: 'transfer',
 			nonce: BigInt(nonce),
 			fee: BigInt(transactions.convertLSKToBeddows(fee)),
 			senderPublicKey: Buffer.from(account.publicKey, 'hex'),
-			asset: {
+			params: {
+				tokenID: Buffer.from([0, 0, 0, 0, 0, 0]),
 				amount: BigInt(transactions.convertLSKToBeddows(amount)),
-				recipientAddress: Buffer.from(recipientAddress, 'hex'),
+				recipientAddress: cryptography.address.getAddressFromLisk32Address(recipientAddress),
 				data: '',
 			},
 		},
-		networkIdentifier,
-		account.passphrase,
+		chainID,
+		Buffer.from(account.privateKey, 'hex'),
+		tokenTransferParamsSchema,
 	) as any;
 
 	return {
@@ -220,10 +209,13 @@ export const createTransferTransaction = ({
 		id: transaction.id.toString('hex'),
 		senderPublicKey: transaction.senderPublicKey.toString('hex'),
 		signatures: transaction.signatures.map((s: Buffer) => s.toString('hex')),
-		asset: {
-			...transaction.asset,
-			amount: transaction.asset.amount.toString(),
-			recipientAddress: transaction.asset.recipientAddress.toString('hex'),
+		params: {
+			...transaction.params,
+			tokenID: transaction.params.tokenID.toString('hex'),
+			amount: transaction.params.amount.toString(),
+			recipientAddress: cryptography.address.getLisk32AddressFromAddress(
+				transaction.params.recipientAddress,
+			),
 		},
 		nonce: transaction.nonce.toString(),
 		fee: transaction.fee.toString(),
@@ -233,10 +225,10 @@ export const createTransferTransaction = ({
 export const encodeTransactionFromJSON = (
 	transaction: Record<string, unknown>,
 	baseSchema: Schema,
-	assetsSchemas: { moduleID: number; assetID: number; schema: Schema }[],
+	commandsSchemas: { module: string; command: string; schema: Schema }[],
 ): string => {
-	const transactionTypeAssetSchema = assetsSchemas.find(
-		as => as.moduleID === transaction.moduleID && as.assetID === transaction.assetID,
+	const transactionTypeAssetSchema = commandsSchemas.find(
+		as => as.module === transaction.module && as.command === transaction.command,
 	);
 
 	if (!transactionTypeAssetSchema) {
@@ -246,14 +238,14 @@ export const encodeTransactionFromJSON = (
 	const transactionAssetBuffer = codec.encode(
 		transactionTypeAssetSchema.schema,
 		// eslint-disable-next-line @typescript-eslint/ban-types
-		codec.fromJSON(transactionTypeAssetSchema.schema, transaction.asset as object),
+		codec.fromJSON(transactionTypeAssetSchema.schema, transaction.params as object),
 	);
 
 	const transactionBuffer = codec.encode(
 		baseSchema,
 		codec.fromJSON(baseSchema, {
 			...transaction,
-			asset: transactionAssetBuffer,
+			params: transactionAssetBuffer,
 		}),
 	);
 

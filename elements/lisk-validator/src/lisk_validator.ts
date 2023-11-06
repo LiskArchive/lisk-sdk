@@ -13,7 +13,7 @@
  *
  */
 
-import Ajv, { AnySchema, ValidateFunction } from 'ajv';
+import Ajv, { Format, SchemaObject, ValidateFunction } from 'ajv';
 import addDefaultFormats from 'ajv-formats';
 import * as formats from './formats';
 import { convertErrorsToLegacyFormat, LiskValidationError } from './errors';
@@ -24,7 +24,7 @@ import { LiskErrorObject } from './types';
 
 export const liskSchemaIdentifier: string = liskMetaSchema.$id;
 
-class LiskValidator {
+export class LiskValidator {
 	private readonly _validator: Ajv;
 
 	public constructor() {
@@ -32,7 +32,6 @@ class LiskValidator {
 			strict: true,
 			strictSchema: true,
 			allErrors: true,
-			useDefaults: false,
 			// FIXME: Combination with lisk-codec schema, making true would throw error because
 			// Trace: Error: schema with key or id "/block/header"
 			addUsedSchema: false,
@@ -43,12 +42,8 @@ class LiskValidator {
 
 		addDefaultFormats(this._validator);
 
-		for (const formatName of Object.keys(formats)) {
-			this._validator.addFormat(
-				formatName,
-				// eslint-disable-next-line import/namespace
-				formats[formatName as keyof typeof formats],
-			);
+		for (const [formatName, format] of Object.entries(formats)) {
+			this._validator.addFormat(formatName, format as Format);
 		}
 
 		this._validator.addKeyword({
@@ -69,20 +64,20 @@ class LiskValidator {
 		this._validator.addKeyword(dataTypeKeyword);
 	}
 
-	public validate(schema: object, data: object): LiskErrorObject[] {
+	public validate<T = Record<string, unknown>>(schema: object, data: unknown): asserts data is T {
 		if (!this._validator.validate(schema, data)) {
-			return convertErrorsToLegacyFormat(this._validator.errors as LiskErrorObject[]);
+			throw new LiskValidationError(
+				convertErrorsToLegacyFormat(this._validator.errors as LiskErrorObject[]),
+			);
 		}
-
-		return [];
 	}
 
-	public validateSchema(schema: AnySchema | boolean): ReadonlyArray<LiskErrorObject> {
+	public validateSchema(schema: object): asserts schema is SchemaObject {
 		if (!this._validator.validateSchema(schema)) {
-			return convertErrorsToLegacyFormat(this._validator.errors as LiskErrorObject[]);
+			throw new LiskValidationError(
+				convertErrorsToLegacyFormat(this._validator.errors as LiskErrorObject[]),
+			);
 		}
-
-		return [];
 	}
 
 	public compile(schema: object | boolean): ValidateFunction {

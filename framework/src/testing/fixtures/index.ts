@@ -12,6 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as keysList from './keys_fixture.json';
 
-export * from './accounts';
 export * from './config';
+export * from './accounts';
+export * from './genesis-asset';
+export { keysList };

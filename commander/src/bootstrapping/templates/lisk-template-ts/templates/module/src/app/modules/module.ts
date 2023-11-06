@@ -1,71 +1,79 @@
 /* eslint-disable class-methods-use-this */
+/* eslint-disable @typescript-eslint/member-ordering */
 
 import {
     BaseModule,
-    AfterBlockApplyContext,
-    TransactionApplyContext,
-    BeforeBlockApplyContext,
-    AfterGenesisBlockApplyContext,
-    // GenesisConfig
+	ModuleMetadata,
+	// ModuleInitArgs,
+	// InsertAssetContext,
+	// BlockVerifyContext,
+	// TransactionVerifyContext,
+	// VerificationResult,
+	// TransactionExecuteContext,
+	// GenesisBlockExecuteContext,
+	// BlockExecuteContext,
+	// BlockAfterExecuteContext,
+	// VerifyStatus,
 } from 'lisk-sdk';
+import { <%= moduleClass %>Endpoint } from './endpoint';
+import { <%= moduleClass %>Method } from './method';
 
-export class <%= moduleClass %> extends BaseModule {
-    public actions = {
-        // Example below
-        // getBalance: async (params) => this._dataAccess.account.get(params.address).token.balance,
-        // getBlockByID: async (params) => this._dataAccess.blocks.get(params.id),
-    };
-    public reducers = {
-        // Example below
-        // getBalance: async (
-		// 	params: Record<string, unknown>,
-		// 	stateStore: StateStore,
-		// ): Promise<bigint> => {
-		// 	const { address } = params;
-		// 	if (!Buffer.isBuffer(address)) {
-		// 		throw new Error('Address must be a buffer');
-		// 	}
-		// 	const account = await stateStore.account.getOrDefault<TokenAccount>(address);
-		// 	return account.token.balance;
-		// },
-    };
-    public name = '<%= moduleName %>';
-    public transactionAssets = [];
-    public events = [
-        // Example below
-        // '<%= moduleName %>:newBlock',
-    ];
-    public id = <%= moduleID %>;
+export class <%= moduleClass %>Module extends BaseModule {
+    public endpoint = new <%= moduleClass %>Endpoint(this.stores, this.offchainStores);
+    public method = new <%= moduleClass %>Method(this.stores, this.events);
+    public commands = [];
 
-    // public constructor(genesisConfig: GenesisConfig) {
-    //     super(genesisConfig);
-    // }
+	// public constructor() {
+	// 	super();
+	// 	// registeration of stores and events
+	// }
+
+	public metadata(): ModuleMetadata {
+		return {
+			...this.baseMetadata(),
+			endpoints: [],
+			assets: [],
+		};
+	}
 
     // Lifecycle hooks
-    public async beforeBlockApply(_input: BeforeBlockApplyContext) {
-        // Get any data from stateStore using block info, below is an example getting a generator
-        // const generatorAddress = getAddressFromPublicKey(_input.block.header.generatorPublicKey);
-		// const generator = await _input.stateStore.account.get<TokenAccount>(generatorAddress);
-    }
+    // public async init(_args: ModuleInitArgs): Promise<void> {
+	// 	// initialize this module when starting a node
+	// }
 
-    public async afterBlockApply(_input: AfterBlockApplyContext) {
-        // Get any data from stateStore using block info, below is an example getting a generator
-        // const generatorAddress = getAddressFromPublicKey(_input.block.header.generatorPublicKey);
-		// const generator = await _input.stateStore.account.get<TokenAccount>(generatorAddress);
-    }
+	// public async insertAssets(_context: InsertAssetContext) {
+	// 	// initialize block generation, add asset
+	// }
 
-    public async beforeTransactionApply(_input: TransactionApplyContext) {
-        // Get any data from stateStore using transaction info, below is an example
-        // const sender = await _input.stateStore.account.getOrDefault<TokenAccount>(_input.transaction.senderAddress);
-    }
+	// public async verifyAssets(_context: BlockVerifyContext): Promise<void> {
+	// 	// verify block
+	// }
 
-    public async afterTransactionApply(_input: TransactionApplyContext) {
-        // Get any data from stateStore using transaction info, below is an example
-        // const sender = await _input.stateStore.account.getOrDefault<TokenAccount>(_input.transaction.senderAddress);
-    }
+    // Lifecycle hooks
+	// public async verifyTransaction(_context: TransactionVerifyContext): Promise<VerificationResult> {
+		// verify transaction will be called multiple times in the transaction pool
+		// return { status: VerifyStatus.OK };
+	// }
 
-    public async afterGenesisBlockApply(_input: AfterGenesisBlockApplyContext) {
-        // Get any data from genesis block, for example get all genesis accounts
-        // const genesisAccounts = genesisBlock.header.asset.accounts;
-    }
+	// public async beforeCommandExecute(_context: TransactionExecuteContext): Promise<void> {
+	// }
+
+	// public async afterCommandExecute(_context: TransactionExecuteContext): Promise<void> {
+
+	// }
+	// public async initGenesisState(_context: GenesisBlockExecuteContext): Promise<void> {
+
+	// }
+
+	// public async finalizeGenesisState(_context: GenesisBlockExecuteContext): Promise<void> {
+
+	// }
+
+	// public async beforeTransactionsExecute(_context: BlockExecuteContext): Promise<void> {
+
+	// }
+
+	// public async afterTransactionsExecute(_context: BlockAfterExecuteContext): Promise<void> {
+
+	// }
 }

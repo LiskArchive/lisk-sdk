@@ -12,22 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Block } from '@liskhq/lisk-chain';
-
+import { address } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../utils';
-import { genesis, DefaultAccountProps } from '../../../fixtures';
 import {
 	createTransferTransaction,
-	createDelegateRegisterTransaction,
+	createValidatorRegisterTransaction,
 	createMultiSignRegisterTransaction,
 	createMultisignatureTransferTransaction,
-	createDelegateVoteTransaction,
-} from '../../../utils/node/transaction';
+	createValidatorStakeTransaction,
+} from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
+import { defaultConfig } from '../../../../src/modules/token/constants';
 
 describe('Transaction order', () => {
 	let processEnv: testing.BlockProcessingEnv;
-	let networkIdentifier: Buffer;
+	let chainID: Buffer;
 	const databasePath = '/tmp/lisk/transaction_order/test';
+	const genesis = testing.fixtures.defaultFaucetAccount;
 
 	beforeAll(async () => {
 		processEnv = await testing.getBlockProcessingEnv({
@@ -35,11 +36,11 @@ describe('Transaction order', () => {
 				databasePath,
 			},
 		});
-		networkIdentifier = processEnv.getNetworkId();
+		chainID = processEnv.getChainID();
 	});
 
-	afterAll(async () => {
-		await processEnv.cleanup({ databasePath });
+	afterAll(() => {
+		processEnv.cleanup({ databasePath });
 	});
 
 	describe('given transactions in specific order', () => {
@@ -47,24 +48,25 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await processEnv
-					.getDataAccess()
-					.getAccountByAddress<DefaultAccountProps>(genesis.address);
+				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+					address: genesis.address,
+				});
 				const accountWithoutBalance = nodeUtils.createAccount();
 				const fundingTx = createTransferTransaction({
-					nonce: genesisAccount.sequence.nonce,
+					nonce: BigInt(authData.nonce),
 					recipientAddress: accountWithoutBalance.address,
 					amount: BigInt('10000000000'),
-					networkIdentifier,
-					passphrase: genesis.passphrase,
+					chainID,
+					fee: BigInt(defaultConfig.userAccountInitializationFee) + BigInt('50000000'),
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				const returningTx = createTransferTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('200000'),
-					recipientAddress: genesis.address,
+					recipientAddress: Buffer.from(genesis.address, 'hex'),
 					amount: BigInt('9900000000'),
-					networkIdentifier,
-					passphrase: accountWithoutBalance.passphrase,
+					chainID,
+					privateKey: accountWithoutBalance.privateKey,
 				});
 				newBlock = await processEnv.createBlock([fundingTx, returningTx]);
 				await processEnv.process(newBlock);
@@ -76,42 +78,45 @@ describe('Transaction order', () => {
 			});
 		});
 
-		describe('when account register as delegate and make self vote', () => {
+		describe('when account register as validator and make self stake', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await processEnv
-					.getDataAccess()
-					.getAccountByAddress<DefaultAccountProps>(genesis.address);
+				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+					address: genesis.address,
+				});
 				const newAccount = nodeUtils.createAccount();
 				const fundingTx = createTransferTransaction({
-					nonce: genesisAccount.sequence.nonce,
+					nonce: BigInt(authData.nonce),
 					fee: BigInt('200000'),
 					recipientAddress: newAccount.address,
 					amount: BigInt('10000000000'),
-					networkIdentifier,
-					passphrase: genesis.passphrase,
+					chainID,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
-				const registerDelegateTx = createDelegateRegisterTransaction({
+				const registerValidatorTx = createValidatorRegisterTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('1100000000'),
-					username: 'new_delegate',
-					networkIdentifier,
-					passphrase: newAccount.passphrase,
+					username: 'new_validator',
+					chainID,
+					blsKey: newAccount.blsPublicKey,
+					blsProofOfPossession: newAccount.blsPoP,
+					generatorKey: newAccount.publicKey,
+					privateKey: newAccount.privateKey,
 				});
-				const selfVoteTx = createDelegateVoteTransaction({
+				const selfVoteTx = createValidatorStakeTransaction({
 					nonce: BigInt('1'),
 					fee: BigInt('100000000'),
-					votes: [
+					stakes: [
 						{
-							delegateAddress: newAccount.address,
+							validatorAddress: newAccount.address,
 							amount: BigInt('1000000000'),
 						},
 					],
-					networkIdentifier,
-					passphrase: newAccount.passphrase,
+					chainID,
+					privateKey: newAccount.privateKey,
 				});
-				newBlock = await processEnv.createBlock([fundingTx, registerDelegateTx, selfVoteTx]);
+				newBlock = await processEnv.createBlock([fundingTx, registerValidatorTx, selfVoteTx]);
 				await processEnv.process(newBlock);
 			});
 
@@ -125,42 +130,42 @@ describe('Transaction order', () => {
 			let newBlock: Block;
 
 			beforeAll(async () => {
-				const genesisAccount = await processEnv
-					.getDataAccess()
-					.getAccountByAddress<DefaultAccountProps>(genesis.address);
+				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+					address: genesis.address,
+				});
 				const newAccount = nodeUtils.createAccount();
-				const multiSignatureMembers = nodeUtils.createAccounts(2);
+				const multiSignatureMembers = [nodeUtils.createAccount(), nodeUtils.createAccount()];
 				const fundingTx = createTransferTransaction({
-					nonce: genesisAccount.sequence.nonce,
+					nonce: BigInt(authData.nonce),
 					fee: BigInt('200000'),
 					recipientAddress: newAccount.address,
-					amount: BigInt('10000000000'),
-					networkIdentifier,
-					passphrase: genesis.passphrase,
+					amount: BigInt('100000000000'),
+					chainID,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				const optionalKeys = [...multiSignatureMembers.map(acc => acc.publicKey)];
 				optionalKeys.sort((a, b) => a.compare(b));
 				const registerMultisigTx = createMultiSignRegisterTransaction({
 					nonce: BigInt(0),
-					fee: BigInt('1100000000'),
+					fee: BigInt('1000416000'),
 					mandatoryKeys: [newAccount.publicKey],
 					optionalKeys,
 					numberOfSignatures: 2,
-					networkIdentifier,
-					senderPassphrase: newAccount.passphrase,
-					passphrases: [newAccount.passphrase, ...multiSignatureMembers.map(acc => acc.passphrase)],
+					chainID,
+					senderPublicKey: newAccount.publicKey,
+					privateKeys: [newAccount.privateKey, ...multiSignatureMembers.map(acc => acc.privateKey)],
 				});
 
 				const transferTx = createMultisignatureTransferTransaction({
 					nonce: BigInt('1'),
 					senderPublicKey: newAccount.publicKey,
 					fee: BigInt('300000'),
-					amount: BigInt('8000000000'),
+					amount: BigInt('80000000'),
 					recipientAddress: newAccount.address,
 					mandatoryKeys: [newAccount.publicKey],
 					optionalKeys,
-					networkIdentifier,
-					passphrases: [newAccount.passphrase, multiSignatureMembers[0].passphrase],
+					chainID,
+					privateKeys: [newAccount.privateKey, multiSignatureMembers[0].privateKey],
 				});
 				newBlock = await processEnv.createBlock([fundingTx, registerMultisigTx, transferTx]);
 				await processEnv.process(newBlock);
@@ -173,21 +178,19 @@ describe('Transaction order', () => {
 		});
 
 		describe('when account register as multisignature and send transfer with old signature', () => {
-			let newBlock: Block;
-
-			beforeAll(async () => {
-				const genesisAccount = await processEnv
-					.getDataAccess()
-					.getAccountByAddress<DefaultAccountProps>(genesis.address);
+			it('should not accept the block', async () => {
+				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+					address: genesis.address,
+				});
 				const newAccount = nodeUtils.createAccount();
-				const multiSignatureMembers = nodeUtils.createAccounts(2);
+				const multiSignatureMembers = [nodeUtils.createAccount(), nodeUtils.createAccount()];
 				const fundingTx = createTransferTransaction({
-					nonce: genesisAccount.sequence.nonce,
-					fee: BigInt('200000'),
+					nonce: BigInt(authData.nonce),
+					fee: BigInt('200000') + BigInt(defaultConfig.userAccountInitializationFee),
 					recipientAddress: newAccount.address,
-					amount: BigInt('10000000000'),
-					networkIdentifier,
-					passphrase: genesis.passphrase,
+					amount: BigInt('100000000000'),
+					chainID,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				const optionalKeys = [...multiSignatureMembers.map(acc => acc.publicKey)];
 				optionalKeys.sort((a, b) => a.compare(b));
@@ -197,67 +200,69 @@ describe('Transaction order', () => {
 					mandatoryKeys: [newAccount.publicKey],
 					optionalKeys,
 					numberOfSignatures: 2,
-					networkIdentifier,
-					senderPassphrase: newAccount.passphrase,
-					passphrases: [newAccount.passphrase, ...multiSignatureMembers.map(acc => acc.passphrase)],
+					chainID,
+					senderPublicKey: newAccount.publicKey,
+					privateKeys: [
+						newAccount.privateKey,
+						...multiSignatureMembers
+							.sort((a, b) => a.publicKey.compare(b.publicKey))
+							.map(acc => acc.privateKey),
+					],
 				});
 				const transferTx = createTransferTransaction({
 					nonce: BigInt('1'),
 					fee: BigInt('300000'),
 					amount: BigInt('8000000000'),
 					recipientAddress: newAccount.address,
-					networkIdentifier,
-					passphrase: newAccount.passphrase,
+					chainID,
+					privateKey: newAccount.privateKey,
 				});
-				newBlock = await processEnv.createBlock([fundingTx, registerMultisigTx, transferTx]);
-			});
 
-			it('should not accept the block', async () => {
-				await expect(processEnv.process(newBlock)).rejects.toThrow(
-					'Transaction signatures does not match required number of signature',
-				);
+				// Execution of transaction will fail in block generation now with the same logic
+				const created = await processEnv.createBlock([fundingTx, registerMultisigTx, transferTx]);
+				expect(created.transactions).toHaveLength(2);
+				expect(created.transactions[0]).toEqual(fundingTx);
+				expect(created.transactions[1]).toEqual(registerMultisigTx);
 			});
 		});
 
 		describe('when account does not have sufficient balance in the middle of process', () => {
-			let newBlock: Block;
-
-			beforeAll(async () => {
-				const genesisAccount = await processEnv
-					.getDataAccess()
-					.getAccountByAddress<DefaultAccountProps>(genesis.address);
+			it('should not accept the block', async () => {
+				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+					address: genesis.address,
+				});
 				const accountWithoutBalance = nodeUtils.createAccount();
 				const fundingTx = createTransferTransaction({
-					nonce: genesisAccount.sequence.nonce,
-					fee: BigInt('200000'),
+					nonce: BigInt(authData.nonce),
+					fee: BigInt('200000') + BigInt(defaultConfig.userAccountInitializationFee),
 					recipientAddress: accountWithoutBalance.address,
-					amount: BigInt('10000000000'),
-					networkIdentifier,
-					passphrase: genesis.passphrase,
+					amount: BigInt('14000000000'),
+					chainID,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				const spendingTx = createTransferTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('200000'),
-					recipientAddress: genesis.address,
+					recipientAddress: address.getAddressFromLisk32Address(genesis.address),
 					amount: BigInt('14000000000'),
-					networkIdentifier,
-					passphrase: accountWithoutBalance.passphrase,
+					chainID,
+					privateKey: accountWithoutBalance.privateKey,
 				});
 				const refundingTx = createTransferTransaction({
-					nonce: genesisAccount.sequence.nonce + BigInt(1),
+					nonce: BigInt(authData.nonce) + BigInt(1),
 					fee: BigInt('200000'),
 					recipientAddress: accountWithoutBalance.address,
 					amount: BigInt('5000000000'),
-					networkIdentifier,
-					passphrase: genesis.passphrase,
+					chainID,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
-				newBlock = await processEnv.createBlock([fundingTx, spendingTx, refundingTx]);
-			});
 
-			it('should not accept the block', async () => {
-				await expect(processEnv.process(newBlock)).rejects.toThrow(
-					'does not meet the minimum remaining balance requirement',
-				);
+				// Execution of transaction will fail in block generation now with the same logic
+				const created = await processEnv.createBlock([fundingTx, spendingTx, refundingTx]);
+				expect(created.transactions).toHaveLength(3);
+				expect(created.transactions[0]).toEqual(fundingTx);
+				expect(created.transactions[1]).toEqual(spendingTx);
+				expect(created.transactions[2]).toEqual(refundingTx);
 			});
 		});
 	});

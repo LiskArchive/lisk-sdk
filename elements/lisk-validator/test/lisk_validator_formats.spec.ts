@@ -13,63 +13,198 @@
  *
  */
 import { validator } from '../src';
+import { MAX_SINT32, MAX_SINT64, MAX_UINT32, MAX_UINT64 } from '../src/constants';
 
 describe('validator formats', () => {
-	const baseSchemaId = 'test/schema';
-	let baseSchema: object;
+	const baseSchema = {
+		$id: '/test/schema',
+		type: 'object',
+	};
 
-	beforeAll(() => {
-		baseSchema = {
-			$id: baseSchemaId,
-			type: 'object',
+	describe('uint32', () => {
+		const uint32Schema = {
+			...baseSchema,
+			properties: {
+				height: {
+					type: 'integer',
+					format: 'uint32',
+				},
+			},
 		};
+
+		it('should validate a correct uint32', () => {
+			expect(() => validator.validate(uint32Schema, { height: 8 })).not.toThrow();
+		});
+
+		it('should throw for a negative number', () => {
+			expect(() => validator.validate(uint32Schema, { height: -1 })).toThrow();
+		});
+
+		it('should throw when a number is a correct uint32, but is provided as string type', () => {
+			expect(() => validator.validate(uint32Schema, { height: '8' })).toThrow();
+		});
+
+		it('should throw when the number is too big', () => {
+			expect(() => validator.validate(uint32Schema, { height: MAX_UINT32 + 1 })).toThrow();
+		});
+	});
+
+	describe('int32', () => {
+		const int32Schema = {
+			...baseSchema,
+			properties: {
+				height: {
+					type: 'integer',
+					format: 'int32',
+				},
+			},
+		};
+
+		it('should validate a correct int32', () => {
+			expect(() => validator.validate(int32Schema, { height: 8 })).not.toThrow();
+		});
+
+		it('should NOT throw for a negative number', () => {
+			expect(() => validator.validate(int32Schema, { height: -1 })).not.toThrow();
+		});
+
+		it('should throw when a number is a correct int32, but is provided as string type', () => {
+			expect(() => validator.validate(int32Schema, { height: '8' })).toThrow();
+		});
+
+		it('should throw when the number is too big', () => {
+			expect(() => validator.validate(int32Schema, { height: MAX_SINT32 + 1 })).toThrow();
+		});
+	});
+
+	describe('uint64', () => {
+		const uint64Schema = {
+			...baseSchema,
+			properties: {
+				height: {
+					type: 'string',
+					format: 'uint64',
+				},
+			},
+		};
+
+		it('should validate a correct uint64', () => {
+			expect(() => validator.validate(uint64Schema, { height: '8' })).not.toThrow();
+		});
+
+		it('should throw for a negative number', () => {
+			expect(() => validator.validate(uint64Schema, { height: '-1' })).toThrow();
+		});
+
+		it('should throw when a number is a correct uint64, but is provided as number type', () => {
+			expect(() => validator.validate(uint64Schema, { height: 8 })).toThrow();
+		});
+
+		it('should throw when the number is too big', () => {
+			expect(() =>
+				validator.validate(uint64Schema, { height: (MAX_UINT64 + BigInt(1)).toString() }),
+			).toThrow();
+		});
+	});
+
+	describe('int64', () => {
+		const int64Schema = {
+			...baseSchema,
+			properties: {
+				height: {
+					type: 'string',
+					format: 'int64',
+				},
+			},
+		};
+
+		it('should validate a correct int64', () => {
+			expect(() => validator.validate(int64Schema, { height: '8' })).not.toThrow();
+		});
+
+		it('should NOT throw for a negative number', () => {
+			expect(() => validator.validate(int64Schema, { height: '-1' })).not.toThrow();
+		});
+
+		it('should throw when a number is a correct int64, but is provided as number type', () => {
+			expect(() => validator.validate(int64Schema, { height: 8 })).toThrow();
+		});
+
+		it('should throw when the number is too big', () => {
+			expect(() => validator.validate(int64Schema, { height: MAX_SINT64 + BigInt(1) })).toThrow();
+		});
 	});
 
 	describe('hex', () => {
-		let schema: object;
-		beforeEach(() => {
-			schema = {
-				allOf: [
-					baseSchema,
-					{
-						properties: {
-							target: {
-								type: 'string',
-								format: 'hex',
-							},
-						},
-					},
-				],
-			};
-		});
+		const schema = {
+			...baseSchema,
+			properties: {
+				target: {
+					type: 'string',
+					format: 'hex',
+				},
+			},
+		};
 
 		it('should validate to true when valid hex string is provided', () => {
-			expect(
+			expect(() =>
 				validator.validate(schema, { target: '23b9ed818526a928bce91b96fb4508babb121ee2' }),
-			).toEqual([]);
+			).not.toThrow();
 		});
 
 		it('should validate to false when not hex is provided', () => {
-			const expectedError = [
-				{
-					keyword: 'format',
-					dataPath: '.target',
-					schemaPath: '#/allOf/1/properties/target/format',
-					params: { format: 'hex' },
-					message: 'must match format "hex"',
-				},
-			];
+			const expectedError =
+				'Lisk validator found 1 error[s]:\nProperty \'.target\' must match format "hex"';
 
-			expect(
+			expect(() => validator.validate(schema, { target: 'notValid?!hex-!!@' })).toThrow(
+				expectedError,
+			);
+		});
+	});
+
+	describe('lisk32', () => {
+		const schema = {
+			...baseSchema,
+			properties: {
+				target: {
+					type: 'string',
+					format: 'lisk32',
+				},
+			},
+		};
+
+		it('should validate to true when valid hex string is provided', () => {
+			expect(() =>
+				validator.validate(schema, { target: 'lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz' }),
+			).not.toThrow();
+		});
+
+		it('should validate to false when address is in hex', () => {
+			const expectedError =
+				'Lisk validator found 1 error[s]:\nProperty \'.target\' must match format "lisk32"';
+
+			expect(() =>
 				validator.validate(schema, {
-					target: 'notValid?!hex-!!@',
+					target: '88c0ee8a4f8fa0e498770c70749584f179938ffa',
 				}),
-			).toEqual(expectedError);
+			).toThrow(expectedError);
+		});
+
+		it('should validate to false when address is invalid', () => {
+			const expectedError =
+				'Lisk validator found 1 error[s]:\nProperty \'.target\' must match format "lisk32"';
+
+			expect(() =>
+				validator.validate(schema, {
+					target: 'lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxqzzz',
+				}),
+			).toThrow(expectedError);
 		});
 	});
 
 	describe('path', () => {
 		const pathSchema = {
+			...baseSchema,
 			properties: {
 				rootPath: {
 					type: 'string',
@@ -79,30 +214,23 @@ describe('validator formats', () => {
 		};
 
 		it('should validate to false for invalid path', () => {
-			const expectedError = [
-				{
-					keyword: 'format',
-					dataPath: '.rootPath',
-					schemaPath: '#/properties/rootPath/format',
-					params: { format: 'path' },
-					message: 'must match format "path"',
-				},
-			];
-
-			expect(validator.validate(pathSchema, { rootPath: 'lisk' })).toEqual(expectedError);
+			expect(() => validator.validate(pathSchema, { rootPath: 'lisk' })).toThrow(
+				'Property \'.rootPath\' must match format "path"',
+			);
 		});
 
 		it('should validate to true for valid path with tilde', () => {
-			expect(validator.validate(pathSchema, { rootPath: '~/.lisk' })).toBeEmpty();
+			expect(() => validator.validate(pathSchema, { rootPath: '~/.lisk' })).not.toThrow();
 		});
 
 		it('should validate to true for valid path', () => {
-			expect(validator.validate(pathSchema, { rootPath: '/tmp/lisk/test/' })).toBeEmpty();
+			expect(() => validator.validate(pathSchema, { rootPath: '/tmp/lisk/test/' })).not.toThrow();
 		});
 	});
 
 	describe('encryptedPassphrase', () => {
 		const encryptedPassphraseSchema = {
+			...baseSchema,
 			properties: {
 				encryptedPassphrase: {
 					type: 'string',
@@ -112,42 +240,36 @@ describe('validator formats', () => {
 		};
 
 		it('should validate to false for invalid path', () => {
-			const expectedError = [
-				{
-					keyword: 'format',
-					dataPath: '.encryptedPassphrase',
-					schemaPath: '#/properties/encryptedPassphrase/format',
-					params: { format: 'encryptedPassphrase' },
-					message: 'must match format "encryptedPassphrase"',
-				},
-			];
+			const expectedError =
+				'Lisk validator found 1 error[s]:\nProperty \'.encryptedPassphrase\' must match format "encryptedPassphrase"';
 
 			[
 				'cipherText',
 				'cipherText=',
 				'cipherText=abcd1234&iterations=10000&iv=ef012345cipherText=abcd1234&iterations=10000&iv=ef012345',
 			].forEach(text => {
-				expect(
+				expect(() =>
 					validator.validate(encryptedPassphraseSchema, {
 						encryptedPassphrase: text,
 					}),
-				).toEqual(expectedError);
+				).toThrow(expectedError);
 			});
 		});
 
 		it('should validate to true for valid encrypted passphrase', () => {
 			['cipherText=abcd1234', 'cipherText=abcd1234&iterations=10000&iv=ef012345'].forEach(text => {
-				expect(
+				expect(() =>
 					validator.validate(encryptedPassphraseSchema, {
 						encryptedPassphrase: text,
 					}),
-				).toBeEmpty();
+				).not.toThrow();
 			});
 		});
 	});
 
 	describe('camelCaseRegex', () => {
 		const camelCaseRegexSchema = {
+			...baseSchema,
 			properties: {
 				camelCaseRegex: {
 					type: 'string',
@@ -157,18 +279,11 @@ describe('validator formats', () => {
 		};
 
 		it('should validate to false for invalid camel case text', () => {
-			const expectedError = [
-				{
-					keyword: 'format',
-					dataPath: '.camelCaseRegex',
-					schemaPath: '#/properties/camelCaseRegex/format',
-					params: { format: 'camelCase' },
-					message: 'must match format "camelCase"',
-				},
-			];
+			const expectedError =
+				'Lisk validator found 1 error[s]:\nProperty \'.camelCaseRegex\' must match format "camelCase"';
 
 			['NotCamelCase', '123Case', '_camelCase'].forEach(text => {
-				expect(validator.validate(camelCaseRegexSchema, { camelCaseRegex: text })).toEqual(
+				expect(() => validator.validate(camelCaseRegexSchema, { camelCaseRegex: text })).toThrow(
 					expectedError,
 				);
 			});
@@ -176,13 +291,16 @@ describe('validator formats', () => {
 
 		it('should validate to true for valid camel case text', () => {
 			['camelCase'].forEach(text => {
-				expect(validator.validate(camelCaseRegexSchema, { camelCaseRegex: text })).toBeEmpty();
+				expect(() =>
+					validator.validate(camelCaseRegexSchema, { camelCaseRegex: text }),
+				).not.toThrow();
 			});
 		});
 	});
 
 	describe('version', () => {
 		const versionSchema = {
+			...baseSchema,
 			properties: {
 				version: {
 					type: 'string',
@@ -192,24 +310,17 @@ describe('validator formats', () => {
 		};
 
 		it('should validate to false for invalid semantic versions', () => {
-			const expectedError = [
-				{
-					keyword: 'format',
-					dataPath: '.version',
-					schemaPath: '#/properties/version/format',
-					params: { format: 'version' },
-					message: 'must match format "version"',
-				},
-			];
+			const expectedError =
+				'Lisk validator found 1 error[s]:\nProperty \'.version\' must match format "version"';
 
 			['9999999999999999.4.7.4', 'alpha one', '1.2.12.102', '4.6.3.9.2-alpha2'].forEach(text => {
-				expect(validator.validate(versionSchema, { version: text })).toEqual(expectedError);
+				expect(() => validator.validate(versionSchema, { version: text })).toThrow(expectedError);
 			});
 		});
 
 		it('should validate to true for valid semantic versions', () => {
 			['1.2.0', '1.0.0-alpha.0', 'v1.2.3', '1.0.0-beta+exp.sha.5114f85'].forEach(text => {
-				expect(validator.validate(versionSchema, { version: text })).toBeEmpty();
+				expect(() => validator.validate(versionSchema, { version: text })).not.toThrow();
 			});
 		});
 	});

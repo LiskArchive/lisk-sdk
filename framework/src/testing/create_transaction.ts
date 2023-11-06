@@ -13,67 +13,67 @@
  *
  */
 
-import { Transaction, TransactionInput } from '@liskhq/lisk-chain';
+import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
-import { signTransaction, validateTransaction } from '@liskhq/lisk-transactions';
-import { AssetClass } from './types';
+import { legacy } from '@liskhq/lisk-cryptography';
+import { validateTransaction } from '@liskhq/lisk-transactions';
+import { CommandClass } from './types';
 
 interface CreateTransactionInput {
-	moduleID: number;
-	assetClass: AssetClass;
-	asset: Record<string, unknown>;
+	module: string;
+	commandClass: CommandClass;
+	params: Record<string, unknown> | undefined;
 	nonce?: bigint;
 	fee?: bigint;
 	passphrase?: string;
-	networkIdentifier?: Buffer;
+	chainID?: Buffer;
 }
 
 export const createTransaction = ({
-	moduleID,
-	assetClass,
-	asset,
+	module,
+	commandClass,
+	params,
 	nonce,
 	fee,
 	passphrase,
-	networkIdentifier,
+	chainID,
 }: CreateTransactionInput): Transaction => {
-	const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase ?? '');
+	const { publicKey, privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase ?? '');
 	// eslint-disable-next-line new-cap
-	const assetInstance = new assetClass();
-	const assetID = assetInstance.id;
-	const assetBytes = codec.encode(assetInstance.schema, asset);
+	const commandInstance = new commandClass();
+	const command = commandInstance.name;
+	const paramsBytes =
+		commandInstance.schema && params
+			? codec.encode(commandInstance.schema, params)
+			: Buffer.alloc(0);
 
 	const transaction = {
-		moduleID,
-		assetID,
+		module,
+		command,
 		nonce: nonce ?? BigInt(0),
 		fee: fee ?? BigInt(0),
 		senderPublicKey: publicKey,
-		asset,
+		params,
 		signatures: [],
 	};
 
-	const validationErrors = validateTransaction(assetInstance.schema, transaction);
-	if (validationErrors) {
-		throw validationErrors;
+	if (commandInstance.schema) {
+		const validationErrors = validateTransaction(transaction, commandInstance.schema);
+		if (validationErrors) {
+			throw validationErrors;
+		}
 	}
+	const result = new Transaction({ ...transaction, params: paramsBytes });
 
 	if (!passphrase) {
-		return new Transaction({ ...transaction, asset: assetBytes });
+		return result;
 	}
 
-	if (!networkIdentifier) {
+	if (!chainID) {
 		throw new Error('Network identifier is required to sign a transaction');
 	}
 
-	const signedTransaction = signTransaction(
-		assetInstance.schema,
-		transaction,
-		networkIdentifier,
-		passphrase,
-	);
+	result.sign(chainID, privateKey);
 
-	// signTransaction returns type Record<string, unknown> so it must be cast to TransactionInput
-	return new Transaction({ ...signedTransaction, asset: assetBytes } as TransactionInput);
+	return result;
 };

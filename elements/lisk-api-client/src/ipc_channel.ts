@@ -13,126 +13,102 @@
  *
  */
 
-// eslint-disable-next-line
-/// <reference path="../external_types/pm2-axon/index.d.ts" />
-// eslint-disable-next-line
-/// <reference path="../external_types/pm2-axon-rpc/index.d.ts" />
 import * as path from 'path';
-import * as axon from 'pm2-axon';
 import { homedir } from 'os';
-import { PubSocket, PullSocket, PushSocket, SubSocket, ReqSocket } from 'pm2-axon';
-import { Client as RPCClient } from 'pm2-axon-rpc';
 import { EventEmitter } from 'events';
-import {
-	Channel,
-	EventCallback,
-	JSONRPCNotification,
-	JSONRPCResponse,
-	JSONRPCError,
-} from './types';
-import { convertRPCError } from './utils';
+import { Subscriber, Dealer } from 'zeromq';
+import { Channel, EventCallback, Defer, JSONRPCMessage, JSONRPCResponse } from './types';
+import { convertRPCError, defer, promiseWithTimeout } from './utils';
 
-const CONNECTION_TIME_OUT = 2000;
+const CONNECTION_TIMEOUT = 5000;
+const RESPONSE_TIMEOUT = 10000;
 
 const getSocketsPath = (dataPath: string) => {
 	const socketDir = path.join(path.resolve(dataPath.replace('~', homedir())), 'tmp', 'sockets');
 	return {
-		root: `unix://${socketDir}`,
-		pub: `unix://${socketDir}/pub_socket.sock`,
-		sub: `unix://${socketDir}/sub_socket.sock`,
-		rpc: `unix://${socketDir}/bus_rpc_socket.sock`,
+		pub: `ipc://${socketDir}/external.pub.ipc`,
+		sub: `ipc://${socketDir}/external.sub.ipc`,
+		rpc: `ipc://${socketDir}/engine.external.rpc.ipc`,
 	};
 };
 
 export class IPCChannel implements Channel {
+	public isAlive = false;
+
 	private readonly _events: EventEmitter;
-	private readonly _rpcClient!: RPCClient;
-	private readonly _pubSocket!: PushSocket | PubSocket;
-	private readonly _subSocket!: PullSocket | SubSocket;
+	private readonly _subSocket: Subscriber;
+	private readonly _rpcClient: Dealer;
 
 	private readonly _eventPubSocketPath: string;
-	private readonly _eventSubSocketPath: string;
 	private readonly _rpcServerSocketPath: string;
 	private _id: number;
+	private _pendingRequests: {
+		[key: number]: Defer<unknown>;
+	} = {};
 
 	public constructor(dataPath: string) {
 		const socketsDir = getSocketsPath(dataPath);
 
 		this._eventPubSocketPath = socketsDir.pub;
-		this._eventSubSocketPath = socketsDir.sub;
 		this._rpcServerSocketPath = socketsDir.rpc;
 
-		this._pubSocket = axon.socket('push', {}) as PushSocket;
-		this._subSocket = axon.socket('sub', {}) as SubSocket;
-		this._rpcClient = new RPCClient(axon.socket('req') as ReqSocket);
+		this._subSocket = new Subscriber();
+		this._rpcClient = new Dealer();
 		this._events = new EventEmitter();
 		this._id = 0;
 	}
 
 	public async connect(): Promise<void> {
-		await new Promise((resolve, reject) => {
-			const timeout = setTimeout(() => {
-				reject(
-					new Error('IPC Socket client connection timeout. Please check if IPC server is running.'),
-				);
-			}, CONNECTION_TIME_OUT);
-			this._pubSocket.on('connect', () => {
-				clearTimeout(timeout);
-				resolve(undefined);
+		try {
+			await new Promise<void>((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					reject(
+						new Error(
+							'IPC Socket client connection timeout. Please check if IPC server is running.',
+						),
+					);
+				}, CONNECTION_TIMEOUT);
+				this._subSocket.events.on('connect', () => {
+					clearTimeout(timeout);
+					resolve();
+				});
+				this._subSocket.events.on('bind:error', reject);
+				this._subSocket.connect(this._eventPubSocketPath);
 			});
-			this._pubSocket.on('error', reject);
-			this._pubSocket.connect(this._eventSubSocketPath);
-		}).finally(() => {
-			this._pubSocket.removeAllListeners('connect');
-			this._pubSocket.removeAllListeners('error');
-		});
 
-		await new Promise<void>((resolve, reject) => {
-			const timeout = setTimeout(() => {
-				reject(
-					new Error('IPC Socket client connection timeout. Please check if IPC server is running.'),
-				);
-			}, CONNECTION_TIME_OUT);
-			this._subSocket.on('connect', () => {
-				clearTimeout(timeout);
-				resolve();
+			await new Promise((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					reject(
+						new Error(
+							'IPC Socket client connection timeout. Please check if IPC server is running.',
+						),
+					);
+				}, CONNECTION_TIMEOUT);
+				this._rpcClient.events.on('connect', () => {
+					clearTimeout(timeout);
+					resolve(undefined);
+				});
+				this._rpcClient.events.on('bind:error', reject);
+
+				this._rpcClient.connect(this._rpcServerSocketPath);
 			});
-			this._subSocket.on('error', reject);
-			this._subSocket.connect(this._eventPubSocketPath);
-		}).finally(() => {
-			this._subSocket.removeAllListeners('connect');
-			this._subSocket.removeAllListeners('error');
-		});
-
-		await new Promise((resolve, reject) => {
-			const timeout = setTimeout(() => {
-				reject(
-					new Error('IPC Socket client connection timeout. Please check if IPC server is running.'),
-				);
-			}, CONNECTION_TIME_OUT);
-			this._rpcClient.sock.on('connect', () => {
-				clearTimeout(timeout);
-				resolve(undefined);
-			});
-			this._rpcClient.sock.on('error', reject);
-
-			this._rpcClient.sock.connect(this._rpcServerSocketPath);
-		}).finally(() => {
-			this._rpcClient.sock.removeAllListeners('connect');
-			this._rpcClient.sock.removeAllListeners('error');
-		});
-
-		this._subSocket.on('message', (eventData: JSONRPCNotification<unknown>) => {
-			this._events.emit(eventData.method, eventData.params);
-		});
+			this.isAlive = true;
+		} catch (error) {
+			this._subSocket.close();
+			this._rpcClient.close();
+			throw error;
+		}
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		this._listenToRPCResponse().catch(() => {});
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		this._listenToEvents().catch(() => {});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async disconnect(): Promise<void> {
-		this._subSocket.removeAllListeners();
-		this._pubSocket.close();
 		this._subSocket.close();
-		this._rpcClient.sock.close();
+		this._rpcClient.close();
+		this.isAlive = false;
 	}
 
 	public async invoke<T = Record<string, unknown>>(
@@ -146,26 +122,47 @@ export class IPCChannel implements Channel {
 			method: actionName,
 			params: params ?? {},
 		};
-		return new Promise<T>((resolve, reject) => {
-			this._rpcClient.call(
-				'invoke',
-				action,
-				(err: JSONRPCError | undefined, data: JSONRPCResponse<T>) => {
-					if (err) {
-						reject(convertRPCError(err));
-						return;
-					}
-					if (data.error) {
-						reject(convertRPCError(data.error));
-						return;
-					}
-					resolve(data.result as T);
-				},
-			);
-		});
+		await this._rpcClient.send([JSON.stringify(action)]);
+		const response = defer<T>();
+		this._pendingRequests[action.id] = response as Defer<unknown>;
+
+		return promiseWithTimeout(
+			[response.promise],
+			RESPONSE_TIMEOUT,
+			`Response not received in ${RESPONSE_TIMEOUT}ms`,
+		);
 	}
 
 	public subscribe<T = Record<string, unknown>>(eventName: string, cb: EventCallback<T>): void {
+		this._subSocket.subscribe(eventName);
 		this._events.on(eventName, cb as never);
+	}
+
+	public unsubscribe<T = Record<string, unknown>>(eventName: string, cb: EventCallback<T>): void {
+		this._subSocket.unsubscribe(eventName);
+		this._events.off(eventName, cb as never);
+	}
+
+	private async _listenToRPCResponse() {
+		for await (const [eventData] of this._rpcClient) {
+			const res = JSON.parse(eventData.toString()) as JSONRPCResponse<unknown>;
+			const id = typeof res.id === 'number' ? res.id : parseInt(res.id, 10);
+			if (this._pendingRequests[id]) {
+				if (res.error) {
+					this._pendingRequests[id].reject(convertRPCError(res.error));
+				} else {
+					this._pendingRequests[id].resolve(res.result);
+				}
+				delete this._pendingRequests[id];
+			}
+		}
+	}
+
+	private async _listenToEvents() {
+		this._subSocket.subscribe('invoke');
+		for await (const [_event, eventData] of this._subSocket) {
+			const res = JSON.parse(eventData.toString()) as JSONRPCMessage<unknown>;
+			this._events.emit(res.method, res.params);
+		}
 	}
 }

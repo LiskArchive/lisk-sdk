@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { createWSClient } from '@liskhq/lisk-api-client';
+import { DB_KEY_ACCOUNTS_ADDRESS, concatDBKeys } from '@liskhq/lisk-chain';
+import { createWSClient } from '@liskhq/lisk-method-client';
 import {
 	closeApplication,
 	waitNBlocks,
@@ -21,12 +22,12 @@ import {
 import { Application } from '../../../../src';
 import { APP_EVENT_BLOCK_NEW } from '../../../../src/constants';
 
-describe('api client ws mode', () => {
-	let app: Application;
+describe('method client ws mode', () => {
 	const url = 'ws://localhost:8080/ws';
+
+	let app: Application;
 	let client: any;
 	let newBlockEvent: any[];
-	let helloMessage: any;
 
 	beforeAll(async () => {
 		newBlockEvent = [];
@@ -35,10 +36,6 @@ describe('api client ws mode', () => {
 
 		client.subscribe(APP_EVENT_BLOCK_NEW, (blockEvent: any) => {
 			newBlockEvent.push(blockEvent);
-		});
-
-		client.subscribe('hello:greet', (message: any) => {
-			helloMessage = message;
 		});
 	});
 
@@ -68,7 +65,7 @@ describe('api client ws mode', () => {
 
 		it('should invoke getNodeInfo action', async () => {
 			// Act
-			const nodeInfo = await client.invoke('app:getNodeInfo');
+			const nodeInfo = await client.invoke('app_getNodeInfo');
 
 			// Assert
 			expect(nodeInfo.version).toEqual(app.config.version);
@@ -86,7 +83,7 @@ describe('api client ws mode', () => {
 
 		it('should throw an error when action fails due to missing argument', async () => {
 			// Assert
-			await expect(client.invoke('app:getAccount')).rejects.toThrow(
+			await expect(client.invoke('app_getAccount')).rejects.toThrow(
 				'The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined',
 			);
 		});
@@ -94,8 +91,12 @@ describe('api client ws mode', () => {
 		it('should throw an error on invalid action fails due to invalid argument', async () => {
 			// Assert
 			await expect(
-				client.invoke('app:getAccount', { address: 'randomString*&&^%^' }),
-			).rejects.toThrow('Specified key accounts:address: does not exist');
+				client.invoke('app_getAccount', { address: 'randomString*&&^%^' }),
+			).rejects.toThrow(
+				`Specified key ${concatDBKeys(DB_KEY_ACCOUNTS_ADDRESS, Buffer.alloc(0)).toString(
+					'hex',
+				)} does not exist`,
+			);
 		});
 	});
 
@@ -108,17 +109,17 @@ describe('api client ws mode', () => {
 	});
 
 	describe('module actions', () => {
-		it('should return all the delegates', async () => {
+		it('should return all the validators', async () => {
 			// Act
-			const delegates = await client.invoke('dpos:getAllDelegates');
+			const validators = await client.invoke('pos:getAllValidators');
 			// Assert
-			expect(delegates).toHaveLength(103);
+			expect(validators).toHaveLength(103);
 		});
 
 		it('should throw an error on invalid action', async () => {
 			// Assert
-			await expect(client.invoke('token:getAllDelegates')).rejects.toThrow(
-				"Action 'token:getAllDelegates' is not registered to bus",
+			await expect(client.invoke('token:getAllValidators')).rejects.toThrow(
+				"Action 'token:getAllValidators' is not registered to bus",
 			);
 		});
 	});
@@ -135,10 +136,22 @@ describe('api client ws mode', () => {
 
 		it('should be able to get data from plugin `hello:greet` event by calling action that returns undefined', async () => {
 			// Act
+			let resolveFn: (val: unknown) => void;
+			let rejectFn: () => void;
+			const p = new Promise((resolve, reject) => {
+				resolveFn = resolve;
+				rejectFn = reject;
+			});
+			setTimeout(() => rejectFn(), 1000);
+			client.subscribe('hello:greet', (msg: unknown) => {
+				resolveFn(msg);
+			});
 			const data = await client.invoke('hello:publishGreetEvent');
+
+			const message = await p;
 			// Assert
 			expect(data).toBeUndefined();
-			expect(helloMessage).toEqual({ message: 'hello event' });
+			expect(message).toEqual({ message: 'hello event' });
 		});
 
 		it('should return undefined when void action `hello:blankAction` is called', async () => {

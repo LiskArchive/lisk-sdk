@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for boolean types supported by lisk-codec",
+	"title": "Encoding for boolean types supported by lisk-codec",
 	"summary": "Examples of encoding booleans with lisk-codec",
 	"config": {
 		"network": "devnet"
@@ -14,7 +14,7 @@
 					"state": true
 				},
 				"schema": {
-					"$id": "object5",
+					"$id": "/object5",
 					"type": "object",
 					"properties": {
 						"state": {
@@ -35,7 +35,7 @@
 					"state": false
 				},
 				"schema": {
-					"$id": "object6",
+					"$id": "/object5",
 					"type": "object",
 					"properties": {
 						"state": {

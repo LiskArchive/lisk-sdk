@@ -18,12 +18,12 @@ import InitGenerator from './generators/init_generator';
 import InitPluginGenerator from './generators/init_plugin_generator';
 import PluginGenerator from './generators/plugin_generator';
 import ModuleGenerator from './generators/module_generator';
-import AssetGenerator from './generators/asset_generator';
+import CommandGenerator from './generators/command_generator';
 
 export const generators = {
 	init: InitGenerator,
 	initPlugin: InitPluginGenerator,
 	plugin: PluginGenerator,
 	module: ModuleGenerator,
-	asset: AssetGenerator,
+	command: CommandGenerator,
 };

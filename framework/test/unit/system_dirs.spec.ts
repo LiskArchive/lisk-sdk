@@ -20,22 +20,23 @@ beforeEach(() => {
 });
 
 describe('systemDirs', () => {
-	it('Should return directories configuration with given app label.', () => {
+	it('Should return directories configuration with dataPath.', () => {
 		// Arrange
 		const appLabel = 'LABEL';
-		const rootPath = '~/.lisk';
 
 		// Act
-		const dirsObj = systemDirs(appLabel, rootPath);
+		const dirsObj = systemDirs(`~/.lisk/${appLabel}`);
 
 		// Assert
 		expect(dirsObj).toEqual({
+			config: `/user/.lisk/${appLabel}/config`,
 			dataPath: `/user/.lisk/${appLabel}`,
 			data: `/user/.lisk/${appLabel}/data`,
 			tmp: `/user/.lisk/${appLabel}/tmp`,
 			logs: `/user/.lisk/${appLabel}/logs`,
 			sockets: `/user/.lisk/${appLabel}/tmp/sockets`,
 			pids: `/user/.lisk/${appLabel}/tmp/pids`,
+			plugins: `/user/.lisk/LABEL/plugins`,
 		});
 	});
 
@@ -45,16 +46,18 @@ describe('systemDirs', () => {
 		const rootPath = '/user/../.lisk';
 
 		// Act
-		const dirsObj = systemDirs(appLabel, rootPath);
+		const dirsObj = systemDirs(`${rootPath}/${appLabel}`);
 
 		// Assert
 		expect(dirsObj).toEqual({
+			config: `/.lisk/${appLabel}/config`,
 			dataPath: `/.lisk/${appLabel}`,
 			data: `/.lisk/${appLabel}/data`,
 			tmp: `/.lisk/${appLabel}/tmp`,
 			logs: `/.lisk/${appLabel}/logs`,
 			sockets: `/.lisk/${appLabel}/tmp/sockets`,
 			pids: `/.lisk/${appLabel}/tmp/pids`,
+			plugins: `/.lisk/${appLabel}/plugins`,
 		});
 	});
 
@@ -64,16 +67,18 @@ describe('systemDirs', () => {
 		const rootPath = '/customPath/.lisk';
 
 		// Act
-		const dirsObj = systemDirs(appLabel, rootPath);
+		const dirsObj = systemDirs(`${rootPath}/${appLabel}`);
 
 		// Assert
 		expect(dirsObj).toEqual({
+			config: `/customPath/.lisk/${appLabel}/config`,
 			dataPath: `/customPath/.lisk/${appLabel}`,
 			data: `/customPath/.lisk/${appLabel}/data`,
 			tmp: `/customPath/.lisk/${appLabel}/tmp`,
 			logs: `/customPath/.lisk/${appLabel}/logs`,
 			sockets: `/customPath/.lisk/${appLabel}/tmp/sockets`,
 			pids: `/customPath/.lisk/${appLabel}/tmp/pids`,
+			plugins: `/customPath/.lisk/${appLabel}/plugins`,
 		});
 	});
 
@@ -83,16 +88,18 @@ describe('systemDirs', () => {
 		const rootPath = '~/.lisk';
 
 		// Act
-		const dirsObj = systemDirs(appLabel, rootPath);
+		const dirsObj = systemDirs(`${rootPath}/${appLabel}`);
 
 		// Assert
 		expect(dirsObj).toEqual({
+			config: `/user/.lisk/${appLabel}/config`,
 			dataPath: `/user/.lisk/${appLabel}`,
 			data: `/user/.lisk/${appLabel}/data`,
 			tmp: `/user/.lisk/${appLabel}/tmp`,
 			logs: `/user/.lisk/${appLabel}/logs`,
 			sockets: `/user/.lisk/${appLabel}/tmp/sockets`,
 			pids: `/user/.lisk/${appLabel}/tmp/pids`,
+			plugins: `/user/.lisk/${appLabel}/plugins`,
 		});
 	});
 });

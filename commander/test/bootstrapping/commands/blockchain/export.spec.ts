@@ -14,17 +14,18 @@
  */
 import * as tar from 'tar';
 import { homedir } from 'os';
-import * as Config from '@oclif/config';
 import { join } from 'path';
+import * as fs from 'fs-extra';
 import { ExportCommand } from '../../../../src/bootstrapping/commands/blockchain/export';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('blockchain:export', () => {
 	const defaultDataPath = join(homedir(), '.lisk', 'lisk-core');
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];
@@ -33,6 +34,7 @@ describe('blockchain:export', () => {
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(tar, 'create').mockResolvedValue(true as never);
+		jest.spyOn(fs, 'ensureDirSync').mockReturnValue();
 	});
 
 	describe('when starting without flag', () => {
@@ -42,10 +44,10 @@ describe('blockchain:export', () => {
 			expect(tar.create).toHaveBeenCalledWith(
 				{
 					cwd: join(defaultDataPath, 'data'),
-					file: join(process.cwd(), 'blockchain.db.tar.gz'),
+					file: join(process.cwd(), 'blockchain.tar.gz'),
 					gzip: true,
 				},
-				['blockchain.db'],
+				['state.db', 'blockchain.db'],
 			);
 		});
 	});
@@ -57,10 +59,10 @@ describe('blockchain:export', () => {
 			expect(tar.create).toHaveBeenCalledWith(
 				{
 					cwd: join('/my/app/', 'data'),
-					file: join(process.cwd(), 'blockchain.db.tar.gz'),
+					file: join(process.cwd(), 'blockchain.tar.gz'),
 					gzip: true,
 				},
-				['blockchain.db'],
+				['state.db', 'blockchain.db'],
 			);
 		});
 	});
@@ -72,10 +74,10 @@ describe('blockchain:export', () => {
 			expect(tar.create).toHaveBeenCalledWith(
 				{
 					cwd: join(defaultDataPath, 'data'),
-					file: join('/my/dir/', 'blockchain.db.tar.gz'),
+					file: join('/my/dir/', 'blockchain.tar.gz'),
 					gzip: true,
 				},
-				['blockchain.db'],
+				['state.db', 'blockchain.db'],
 			);
 		});
 	});

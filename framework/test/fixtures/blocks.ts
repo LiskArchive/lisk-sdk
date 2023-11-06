@@ -12,143 +12,110 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	getRandomBytes,
-	hash,
-	signDataWithPrivateKey,
-	getPrivateAndPublicKeyFromPassphrase,
-} from '@liskhq/lisk-cryptography';
+import { utils, address, legacy } from '@liskhq/lisk-cryptography';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { MerkleTree } from '@liskhq/lisk-tree';
-import {
-	GenesisBlock,
-	Block,
-	BlockHeader,
-	Chain,
-	Transaction,
-	readGenesisBlockJSON,
-} from '@liskhq/lisk-chain';
-import * as genesisBlockJSON from './config/devnet/genesis_block.json';
-import { defaultAccountSchema } from './accounts';
+import { Block, BlockAssets, BlockHeader, BlockHeaderAttrs, Transaction } from '@liskhq/lisk-chain';
 
-export const defaultNetworkIdentifier = Buffer.from(
-	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
-	'hex',
-);
+export const defaultChainID = Buffer.from('1000000', 'hex');
 
-export const genesisBlock = (): GenesisBlock =>
-	readGenesisBlockJSON(genesisBlockJSON, defaultAccountSchema);
+export const genesisBlock = (): Block => {
+	const header = new BlockHeader({
+		generatorAddress: Buffer.alloc(0),
+		height: 0,
+		version: 0,
+		previousBlockID: utils.getRandomBytes(32),
+		timestamp: Math.floor(Date.now() / 1000 - 24 * 60 * 60),
+		stateRoot: utils.hash(Buffer.alloc(0)),
+		eventRoot: utils.hash(Buffer.alloc(0)),
+		maxHeightGenerated: 0,
+		maxHeightPrevoted: 0,
+		impliesMaxPrevotes: true,
+		assetRoot: utils.hash(Buffer.alloc(0)),
+		validatorsHash: utils.getRandomBytes(32),
+		aggregateCommit: {
+			height: 0,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+		},
+		transactionRoot: utils.hash(Buffer.alloc(0)),
+		signature: Buffer.alloc(0),
+	});
+
+	return new Block(header, [], new BlockAssets());
+};
 
 const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
 	const passphrase = Mnemonic.generateMnemonic();
-	return getPrivateAndPublicKeyFromPassphrase(passphrase);
+	return legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 };
 
-export const encodeValidBlockHeader = (header: BlockHeader): Buffer => {
-	const chain = new Chain({
-		accountSchemas: defaultAccountSchema,
-		genesisBlock: {
-			header: {
-				timestamp: 0,
-			},
-		},
-	} as any);
-	return chain.dataAccess.encodeBlockHeader(header);
-};
-
-export const createFakeBlockHeader = (header?: Partial<BlockHeader>): BlockHeader => {
-	const blockHeader = {
-		id: hash(getRandomBytes(8)),
+export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): BlockHeader =>
+	new BlockHeader({
 		version: 2,
 		timestamp: header?.timestamp ?? 0,
+		impliesMaxPrevotes: header?.impliesMaxPrevotes ?? true,
 		height: header?.height ?? 0,
-		previousBlockID: header?.previousBlockID ?? hash(getRandomBytes(4)),
-		transactionRoot: header?.transactionRoot ?? hash(getRandomBytes(4)),
-		generatorPublicKey: header?.generatorPublicKey ?? getRandomBytes(32),
-		reward: header?.reward ?? BigInt(500000000),
-		asset: header?.asset ?? {
-			maxHeightPreviouslyForged: 0,
-			maxHeightPrevoted: 0,
-			seedReveal: getRandomBytes(16),
+		previousBlockID: header?.previousBlockID ?? utils.hash(utils.getRandomBytes(4)),
+		transactionRoot: header?.transactionRoot ?? utils.hash(utils.getRandomBytes(4)),
+		maxHeightGenerated: header?.maxHeightGenerated ?? 0,
+		maxHeightPrevoted: header?.maxHeightPrevoted ?? 0,
+		assetRoot: header?.assetRoot ?? utils.hash(utils.getRandomBytes(4)),
+		aggregateCommit: header?.aggregateCommit ?? {
+			height: 0,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
 		},
-		signature: header?.signature ?? getRandomBytes(64),
-	};
-	const id = hash(encodeValidBlockHeader(blockHeader));
-
-	return {
-		...blockHeader,
-		id,
-	};
-};
+		validatorsHash: header?.validatorsHash ?? utils.getRandomBytes(32),
+		stateRoot: header?.stateRoot ?? utils.hash(utils.getRandomBytes(4)),
+		eventRoot: header?.eventRoot ?? utils.hash(utils.getRandomBytes(4)),
+		generatorAddress: header?.generatorAddress ?? utils.getRandomBytes(32),
+		signature: header?.signature ?? utils.getRandomBytes(64),
+	});
 
 /**
  * Utility function to create a block object with valid computed properties while any property can be overridden
  * Calculates the signature, transactionRoot etc. internally. Facilitating the creation of block with valid signature and other properties
  */
-export const createValidDefaultBlock = (
-	block?: { header?: Partial<BlockHeader>; payload?: Transaction[] },
-	networkIdentifier: Buffer = defaultNetworkIdentifier,
-): Block => {
+export const createValidDefaultBlock = async (
+	block?: {
+		header?: Partial<BlockHeaderAttrs>;
+		transactions?: Transaction[];
+		assets?: BlockAssets;
+	},
+	chainID: Buffer = defaultChainID,
+): Promise<Block> => {
 	const keypair = getKeyPair();
-	const payload = block?.payload ?? [];
-	const txTree = new MerkleTree(payload.map(tx => tx.id));
+	const transactions = block?.transactions ?? [];
+	const txTree = new MerkleTree();
+	await txTree.init(transactions.map(tx => tx.id));
 
-	const asset = {
-		maxHeightPreviouslyForged: 0,
-		maxHeightPrevoted: 0,
-		seedReveal: getRandomBytes(16),
-		...block?.header?.asset,
-	};
-
-	const blockHeader = createFakeBlockHeader({
+	const blockHeader = new BlockHeader({
 		version: 2,
 		height: 1,
 		previousBlockID: genesisBlock().header.id,
-		reward: BigInt(0),
+		impliesMaxPrevotes: true,
 		timestamp: 1000,
 		transactionRoot: txTree.root,
-		generatorPublicKey: keypair.publicKey,
+		stateRoot: utils.getRandomBytes(32),
+		eventRoot: utils.getRandomBytes(32),
+		generatorAddress: address.getAddressFromPublicKey(keypair.publicKey),
+		aggregateCommit: {
+			height: 0,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+		},
+		assetRoot: utils.hash(Buffer.alloc(0)),
+		maxHeightPrevoted: 0,
+		maxHeightGenerated: 0,
+		validatorsHash: utils.getRandomBytes(32),
 		...block?.header,
-		asset,
 	});
 
-	const chain = new Chain({
-		accountSchemas: defaultAccountSchema,
-		genesisBlock: {
-			header: {
-				timestamp: 0,
-			},
-		},
-	} as any);
+	blockHeader.sign(chainID, keypair.privateKey);
 
-	const encodedHeaderWithoutSignature = chain.dataAccess.encodeBlockHeader(blockHeader, true);
-
-	const signature = signDataWithPrivateKey(
-		Buffer.concat([networkIdentifier, encodedHeaderWithoutSignature]),
-		keypair.privateKey,
-	);
-	const header = { ...blockHeader, signature };
-	const encodedHeader = chain.dataAccess.encodeBlockHeader(header);
-	const id = hash(encodedHeader);
-
-	return {
-		header: {
-			...header,
-			asset,
-			id,
-		},
-		payload,
-	};
-};
-
-export const encodeValidBlock = (block: Block | GenesisBlock): Buffer => {
-	const chain = new Chain({
-		accountSchemas: defaultAccountSchema,
-		genesisBlock: {
-			header: {
-				timestamp: 0,
-			},
-		},
-	} as any);
-	return chain.dataAccess.encode(block);
+	// Assigning the id ahead
+	// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+	blockHeader.id;
+	return new Block(blockHeader, transactions, block?.assets ?? new BlockAssets());
 };

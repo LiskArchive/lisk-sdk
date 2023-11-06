@@ -50,7 +50,7 @@ describe('WebSocket server', () => {
 	});
 
 	beforeEach(() => {
-		wsClient = new WebSocket(`ws://localhost:${app.config.rpc.port}/ws`);
+		wsClient = new WebSocket(`ws://localhost:${(app as any).config.rpc.ws.port}/ws`);
 	});
 
 	afterEach(() => {
@@ -87,7 +87,7 @@ describe('WebSocket server', () => {
 
 	describe('communication', () => {
 		it('should respond to valid jsonrpc request', async () => {
-			const request = { jsonrpc: '2.0', method: 'app:getNodeInfo', id: 6729833 };
+			const request = { jsonrpc: '2.0', method: 'app_getNodeInfo', id: 6729833 };
 
 			const result = await getResponseFromSocket(request, wsClient);
 
@@ -98,7 +98,7 @@ describe('WebSocket server', () => {
 		});
 
 		it('should respond with invalid jsonrpc request if "id" is missing', async () => {
-			const request = { jsonrpc: '2.0', method: 'app:getNodeInfo' };
+			const request = { jsonrpc: '2.0', method: 'app_getNodeInfo' };
 
 			const result = await getResponseFromSocket(request, wsClient);
 
@@ -124,7 +124,7 @@ describe('WebSocket server', () => {
 		});
 
 		it('should respond with Internal error request if "method" invoked is invalid', async () => {
-			const request = { jsonrpc: '2.0', method: 'app:unknownMethod', id: 67879 };
+			const request = { jsonrpc: '2.0', method: 'app_unknownMethod', id: 67879 };
 
 			const result = await getResponseFromSocket(request, wsClient);
 
@@ -132,7 +132,7 @@ describe('WebSocket server', () => {
 				jsonrpc: '2.0',
 				error: {
 					message: 'Internal error',
-					data: "Action 'app:unknownMethod' is not registered to bus.",
+					data: "Action 'app_unknownMethod' is not registered to bus.",
 					code: -32603,
 				},
 				id: 67879,

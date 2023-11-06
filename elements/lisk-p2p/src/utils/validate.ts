@@ -38,11 +38,11 @@ const validateNetworkCompatibility = (peerInfo: P2PPeerInfo, nodeInfo: P2PNodeIn
 		return false;
 	}
 
-	if (!peerInfo.sharedState.networkIdentifier) {
+	if (!peerInfo.sharedState.chainID) {
 		return false;
 	}
 
-	return peerInfo.sharedState.networkIdentifier === nodeInfo.networkIdentifier;
+	return peerInfo.sharedState.chainID.equals(nodeInfo.chainID);
 };
 
 const validateNetworkVersionCompatibility = (
@@ -146,25 +146,25 @@ export const validatePeerInfoList = (
 };
 
 export const validateRPCRequest = (request: unknown): void => {
-	const errors = validator.validate(rpcRequestSchema, request as Record<string, unknown>);
-
-	if (errors.length) {
+	try {
+		validator.validate(rpcRequestSchema, request as Record<string, unknown>);
+	} catch {
 		throw new Error('RPC request format is invalid.');
 	}
 };
 
 export const validateProtocolMessage = (message: unknown): void => {
-	const errors = validator.validate(protocolMessageSchema, message as Record<string, unknown>);
-
-	if (errors.length) {
+	try {
+		validator.validate(protocolMessageSchema, message as Record<string, unknown>);
+	} catch {
 		throw new Error('Protocol message format is invalid.');
 	}
 };
 
 export const validatePacket = (packet: unknown): void => {
-	const errors = validator.validate(packetSchema, packet as P2PMessagePacket | P2PRequestPacket);
-
-	if (errors.length) {
+	try {
+		validator.validate(packetSchema, packet as P2PMessagePacket | P2PRequestPacket);
+	} catch {
 		throw new Error('Packet format is invalid.');
 	}
 };

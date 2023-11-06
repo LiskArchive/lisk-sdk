@@ -14,6 +14,6 @@
 
 export const MODULE_NAME = 'module';
 export const EVENT_NAME = 'event';
-export const VALID_EVENT_NAME_ARG = `${MODULE_NAME}:${EVENT_NAME}`;
+export const VALID_EVENT_NAME_ARG = `${MODULE_NAME}_${EVENT_NAME}`;
 export const INVALID_EVENT_NAME_ARG = `${MODULE_NAME}`;
 export const DATA = { data: '#data' };

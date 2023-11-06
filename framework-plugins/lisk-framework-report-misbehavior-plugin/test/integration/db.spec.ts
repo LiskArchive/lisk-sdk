@@ -14,16 +14,7 @@
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { KVStore, formatInt } from '@liskhq/lisk-db';
-import { codec } from '@liskhq/lisk-codec';
-import { hash } from '@liskhq/lisk-cryptography';
-import {
-	blockHeaderAssetSchema,
-	blockHeaderSchema,
-	RawBlockHeader,
-	BlockHeader,
-} from '@liskhq/lisk-chain';
-import { RegisteredSchema, testing, PartialApplicationConfig } from 'lisk-framework';
+import { chain, codec, db as liskDB } from 'lisk-sdk';
 
 import { getContradictingBlockHeader, blockHeadersSchema } from '../../src/db';
 import { ReportMisbehaviorPlugin } from '../../src';
@@ -43,32 +34,22 @@ describe('db', () => {
 		'hex',
 	);
 
-	let db: KVStore;
-	let registeredSchemas: RegisteredSchema;
+	let db: liskDB.KVStore;
+	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
+
 	beforeAll(async () => {
 		const dbPath = path.join(os.homedir(), '~/.lisk/report-misbehavior-plugin/data/integration/db');
 		await fs.ensureDir(dbPath);
-		db = new KVStore(dbPath);
-		await db.put(
-			`${generatorPublicKey.toString('binary')}:${formatInt(blockHeader1Height)}`,
+		db = new liskDB.KVStore(dbPath);
+		await db.set(
+			Buffer.concat([
+				generatorPublicKey,
+				Buffer.from(':', 'utf8'),
+				liskDB.formatInt(blockHeader1Height),
+			]),
 			codec.encode(blockHeadersSchema, { blockHeaders: [blockHeader1] }),
 		);
-		const rootPath = '~/.lisk/report-misbehavior-plugin';
-		const config = {
-			rootPath,
-			label: 'report-misbehavior-db-tests',
-			plugins: {
-				reportMisbehavior: {
-					encryptedPassphrase: testing.fixtures.defaultFaucetAccount.encryptedPassphrase,
-				},
-			},
-		} as PartialApplicationConfig;
-
-		const appEnv = testing.createDefaultApplicationEnv({
-			config,
-			plugins: [ReportMisbehaviorPlugin],
-		});
-		registeredSchemas = appEnv.application.getSchema();
+		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
 	});
 
 	afterAll(async () => {
@@ -78,7 +59,7 @@ describe('db', () => {
 
 	describe.skip('getContradictingBlockHeader', () => {
 		it('should resolve undefine when there are no blocks by the same generator', async () => {
-			const header = {
+			const header = chain.BlockHeader.fromJSON({
 				version: 2,
 				timestamp: 1603379137,
 				height: 169000,
@@ -94,48 +75,30 @@ describe('db', () => {
 					'a703102d8587a3a48d347e911ae7cfb1f10a549758e57bd89f3eb3b744a8419d',
 					'hex',
 				),
-				reward: BigInt('500000000'),
-				asset: {
-					maxHeightPreviouslyForged: 168854,
-					maxHeightPrevoted: 168932,
-					seedReveal: Buffer.from('34c06297108257b6aac21f1a0a1e5646', 'hex'),
-				},
+				maxHeightPreviouslyForged: 168854,
+				maxHeightPrevoted: 168932,
 				signature: Buffer.from(
 					'84b17114713c09cce4b524b858c479b9c722d0efe3e6920ef0bceea7fc42f1904348f31f1a79ff4b6b4dc135cda4a8792053b61e24b407b5ee38a367b5dc1c02',
 					'hex',
 				),
 				id: Buffer.from('e734e77355e887660b5a8382eba26fa0b536b7deb1ddfdda394bdb6614b4cd55', 'hex'),
-			};
-			const result = await getContradictingBlockHeader(db, header, registeredSchemas);
+			});
+			const result = await getContradictingBlockHeader(db, header);
 			expect(result).toBeUndefined();
 		});
 
 		it('should resolve undefine when there are no conflicting block header by the same generator', async () => {
-			const decodedBlockHeader1 = codec.decode<RawBlockHeader>(blockHeaderSchema, blockHeader1);
-			const asset = codec.decode<any>(blockHeaderAssetSchema, decodedBlockHeader1.asset);
-			const result = await getContradictingBlockHeader(
-				db,
-				{ ...decodedBlockHeader1, asset, id: hash(blockHeader1) },
-				registeredSchemas,
-			);
+			const decodedBlockHeader1 = chain.BlockHeader.fromBytes(blockHeader1);
+			const result = await getContradictingBlockHeader(db, decodedBlockHeader1);
 			expect(result).toBeUndefined();
 		});
 
 		it('should resolve a contradicting blockheader when there is a conflicting block in the database', async () => {
-			const decodedBlockHeader1 = codec.decode<RawBlockHeader>(
-				blockHeaderSchema,
-				blockHeader1Contradicting,
-			);
-			const asset = codec.decode<any>(blockHeaderAssetSchema, decodedBlockHeader1.asset);
-			const result = await getContradictingBlockHeader(
-				db,
-				{ ...decodedBlockHeader1, asset, id: hash(blockHeader1Contradicting) },
-				registeredSchemas,
-			);
-			expect(result).not.toBeUndefined();
-			const encodedAsset = codec.encode(blockHeaderAssetSchema, (result as BlockHeader).asset);
-			const encodedHeader = codec.encode(blockHeaderSchema, { ...result, asset: encodedAsset });
-			expect(encodedHeader.toString('hex')).toEqual(blockHeader1.toString('hex'));
+			const decodedBlockHeader1 = chain.BlockHeader.fromBytes(blockHeader1Contradicting);
+			const result = await getContradictingBlockHeader(db, decodedBlockHeader1);
+			expect(result).toBeDefined();
+
+			expect(result?.getBytes().toString('hex')).toEqual(blockHeader1.toString('hex'));
 		});
 	});
 });

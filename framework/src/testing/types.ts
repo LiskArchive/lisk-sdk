@@ -13,15 +13,11 @@
  *
  */
 import { APIClient } from '@liskhq/lisk-api-client';
-import { Account, AccountDefaultProps } from '@liskhq/lisk-chain';
-import { BaseAsset, BaseModule } from '../modules';
+import { BaseCommand } from '../modules';
 import { BasePlugin } from '../plugins/base_plugin';
-import { GenesisConfig } from '../types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AssetClass<T = any> = new (args?: T) => BaseAsset;
-export type ModuleClass<T = BaseModule> = new (genesisConfig: GenesisConfig) => T;
-export type PartialAccount<T = AccountDefaultProps> = Partial<Account<T>> & { address: Buffer };
+export type CommandClass<T = any> = new (args?: T) => BaseCommand;
 export interface Data {
 	readonly block: string;
 }

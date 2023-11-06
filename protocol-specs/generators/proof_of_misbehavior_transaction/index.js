@@ -14,26 +14,19 @@
 
 'use strict';
 
-const {
-	hash,
-	getPrivateAndPublicKeyBytesFromPassphrase,
-	signData,
-	signDataWithPrivateKey,
-} = require('@liskhq/lisk-cryptography');
+const { utils, ed, legacy } = require('@liskhq/lisk-cryptography');
 const { Codec } = require('@liskhq/lisk-codec');
 const { baseTransactionSchema } = require('../../utils/schema');
 
 const BaseGenerator = require('../base_generator');
 
 const codec = new Codec();
-
-const networkIdentifier = Buffer.from(
-	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-	'hex',
-);
+const TAG_TRANSACTION = Buffer.from('LSK_TX_', 'utf8');
+const TAG_BLOCK_HEADER = Buffer.from('LSK_BH_', 'utf8');
+const chainID = Buffer.from('10000000', 'hex');
 
 const pomAsset = {
-	$id: 'asset/pom',
+	$id: '/asset/pom',
 	type: 'object',
 	properties: {
 		header1: { dataType: 'bytes', fieldNumber: 1 },
@@ -43,7 +36,7 @@ const pomAsset = {
 };
 
 const blockHeaderWithoutSignature = {
-	$id: 'asset/header/no-signature',
+	$id: '/asset/header/no-signature',
 	type: 'object',
 	properties: {
 		version: { dataType: 'uint32', fieldNumber: 1 },
@@ -70,7 +63,7 @@ const blockHeaderWithoutSignature = {
 
 const blockHeader = {
 	...blockHeaderWithoutSignature,
-	$id: 'asset/header',
+	$id: '/asset/header',
 	properties: {
 		...blockHeaderWithoutSignature.properties,
 		signature: { dataType: 'bytes', fieldNumber: 9 },
@@ -79,7 +72,7 @@ const blockHeader = {
 
 const blockAsset = {
 	type: 'object',
-	$id: 'block/asset',
+	$id: '/block/asset',
 	properties: {
 		maxHeightPreviouslyForged: { dataType: 'uint32', fieldNumber: 1 },
 		maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 2 },
@@ -94,10 +87,8 @@ const sign = (header, privateKey) => {
 		...header,
 		asset: assetBytes,
 	});
-	return Buffer.from(
-		signDataWithPrivateKey(Buffer.concat([networkIdentifier, blockBytes]), privateKey),
-		'hex',
-	);
+	// console.log(privateKey);
+	return ed.signDataWithPrivateKey(TAG_BLOCK_HEADER, chainID, blockBytes, privateKey);
 };
 
 const getAssetBytes = asset => {
@@ -140,9 +131,11 @@ const encode = tx => {
 };
 
 const createSignatureObject = (txBuffer, account) => ({
-	signature: Buffer.from(
-		signData(Buffer.concat([networkIdentifier, txBuffer]), account.passphrase),
-		'hex',
+	signature: ed.signData(
+		TAG_TRANSACTION,
+		chainID,
+		txBuffer,
+		legacy.getPrivateAndPublicKeyFromPassphrase(account.passphrase).privateKey,
 	),
 });
 
@@ -168,18 +161,18 @@ const accounts = {
 		passphrase:
 			'actress route auction pudding shiver crater forum liquid blouse imitate seven front',
 		balance: BigInt('10000000000000000'),
-		delegateName: 'genesis_100',
+		validatorName: 'genesis_100',
 	},
 };
 
 const getHexAccount = account => ({
 	...account,
-	address: account.address.toString('hex'),
-	publicKey: account.publicKey.toString('hex'),
-	balance: account.balance.toString(),
+	address: account.address,
+	publicKey: account.publicKey,
+	balance: account.balance,
 });
 
-const forgerKeyPair = getPrivateAndPublicKeyBytesFromPassphrase(accounts.forger.passphrase);
+const forgerKeyPair = legacy.getPrivateAndPublicKeyFromPassphrase(accounts.forger.passphrase);
 
 /*
 	Scenario 1:
@@ -196,7 +189,7 @@ const scenario1Header1 = {
 	),
 	height: 900000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -208,7 +201,7 @@ const scenario1Header1 = {
 	},
 };
 
-scenario1Header1.signature = sign(scenario1Header1, forgerKeyPair.privateKeyBytes);
+scenario1Header1.signature = sign(scenario1Header1, forgerKeyPair.privateKey);
 
 const scenario1Header2 = {
 	version: 2,
@@ -219,7 +212,7 @@ const scenario1Header2 = {
 	),
 	height: 800000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -231,7 +224,7 @@ const scenario1Header2 = {
 	},
 };
 
-scenario1Header2.signature = sign(scenario1Header2, forgerKeyPair.privateKeyBytes);
+scenario1Header2.signature = sign(scenario1Header2, forgerKeyPair.privateKey);
 
 const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
 	const unsignedTransaction = {
@@ -264,10 +257,10 @@ const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
 		input: {
 			reportingAccount: getHexAccount(accounts.reporter),
 			targetAccount: getHexAccount(accounts.forger),
-			networkIdentifier: networkIdentifier.toString('hex'),
+			chainID,
 		},
 		output: {
-			transaction: encodedTx.toString('hex'),
+			transaction: encodedTx,
 		},
 	};
 };
@@ -287,7 +280,7 @@ const scenario2Header1 = {
 	),
 	height: 800000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -299,7 +292,7 @@ const scenario2Header1 = {
 	},
 };
 
-scenario2Header1.signature = sign(scenario2Header1, forgerKeyPair.privateKeyBytes);
+scenario2Header1.signature = sign(scenario2Header1, forgerKeyPair.privateKey);
 
 const scenario2Header2 = {
 	version: 2,
@@ -310,7 +303,7 @@ const scenario2Header2 = {
 	),
 	height: 800000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -322,7 +315,7 @@ const scenario2Header2 = {
 	},
 };
 
-scenario2Header2.signature = sign(scenario2Header2, forgerKeyPair.privateKeyBytes);
+scenario2Header2.signature = sign(scenario2Header2, forgerKeyPair.privateKey);
 
 const generateValidProofOfMisbehaviorTransactionForScenario2 = () => {
 	const unsignedTransaction = {
@@ -354,10 +347,10 @@ const generateValidProofOfMisbehaviorTransactionForScenario2 = () => {
 		input: {
 			reportingAccount: getHexAccount(accounts.reporter),
 			targetAccount: getHexAccount(accounts.forger),
-			networkIdentifier: networkIdentifier.toString('hex'),
+			chainID,
 		},
 		output: {
-			transaction: encodedTx.toString('hex'),
+			transaction: encodedTx,
 		},
 	};
 };
@@ -377,7 +370,7 @@ const scenario3Header1 = {
 	),
 	height: 900000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -389,7 +382,7 @@ const scenario3Header1 = {
 	},
 };
 
-scenario3Header1.signature = sign(scenario3Header1, forgerKeyPair.privateKeyBytes);
+scenario3Header1.signature = sign(scenario3Header1, forgerKeyPair.privateKey);
 
 const scenario3Header2 = {
 	version: 2,
@@ -400,7 +393,7 @@ const scenario3Header2 = {
 	),
 	height: 900000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -412,7 +405,7 @@ const scenario3Header2 = {
 	},
 };
 
-scenario3Header2.signature = sign(scenario3Header2, forgerKeyPair.privateKeyBytes);
+scenario3Header2.signature = sign(scenario3Header2, forgerKeyPair.privateKey);
 
 const generateValidProofOfMisbehaviorTransactionForScenario3 = () => {
 	const unsignedTransaction = {
@@ -444,10 +437,10 @@ const generateValidProofOfMisbehaviorTransactionForScenario3 = () => {
 		input: {
 			reportingAccount: getHexAccount(accounts.reporter),
 			targetAccount: getHexAccount(accounts.forger),
-			networkIdentifier: networkIdentifier.toString('hex'),
+			chainID,
 		},
 		output: {
-			transaction: encodedTx.toString('hex'),
+			transaction: encodedTx,
 		},
 	};
 };

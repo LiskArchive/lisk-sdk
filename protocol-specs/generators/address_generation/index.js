@@ -15,7 +15,7 @@
 
 'use strict';
 
-const { hash } = require('@liskhq/lisk-cryptography');
+const { utils } = require('@liskhq/lisk-cryptography');
 const BaseGenerator = require('../base_generator');
 
 const publicKeys = [
@@ -35,7 +35,7 @@ const GENERATOR = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3];
 
 const getBinaryAddress = publicKey => {
 	const publicKeyBuffer = Buffer.from(publicKey, 'hex');
-	return hash(publicKeyBuffer).slice(0, 20);
+	return utils.hash(publicKeyBuffer).slice(0, 20);
 };
 
 const polymod = uint5Array => {
@@ -91,7 +91,7 @@ const generateTestCasesForAddressFromPubKey = publicKey => ({
 	description: 'Generate valid address from a valid public key',
 	input: { publicKey },
 	output: {
-		binaryAddress: getBinaryAddress(publicKey).toString('hex'),
+		binaryAddress: getBinaryAddress(publicKey),
 		base32Address: getBase32Address(publicKey),
 	},
 });

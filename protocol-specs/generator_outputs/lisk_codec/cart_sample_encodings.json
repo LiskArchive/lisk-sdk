@@ -1,0 +1,110 @@
+{
+	"title": "Encoding for a complex object",
+	"summary": "Example of encoding a complex object that might exist in custom apps",
+	"config": {
+		"network": "devnet"
+	},
+	"runner": "lisk_codec",
+	"handler": "cart_sample_encodings",
+	"testCases": [
+		{
+			"description": "Encoding of object with multiple arrays",
+			"input": {
+				"object": {
+					"orderId": 1234,
+					"createdAt": 1590564352,
+					"customerId": 100,
+					"lineItems": [
+						{
+							"productId": 5008798,
+							"price": 599,
+							"quantity": 1,
+							"taxLines": [
+								{
+									"price": 599,
+									"rate": 6,
+									"title": "State Tax"
+								}
+							]
+						},
+						{
+							"productId": 9008798,
+							"price": 1599,
+							"quantity": 1,
+							"taxLines": [
+								{
+									"price": 1599,
+									"rate": 7,
+									"title": "State Tax"
+								}
+							]
+						}
+					]
+				},
+				"schema": {
+					"$id": "/cartSample",
+					"type": "object",
+					"properties": {
+						"orderId": {
+							"dataType": "uint32",
+							"fieldNumber": 1
+						},
+						"createdAt": {
+							"dataType": "uint32",
+							"fieldNumber": 2
+						},
+						"customerId": {
+							"dataType": "uint32",
+							"fieldNumber": 3
+						},
+						"lineItems": {
+							"type": "array",
+							"fieldNumber": 4,
+							"items": {
+								"type": "object",
+								"properties": {
+									"productId": {
+										"dataType": "uint32",
+										"fieldNumber": 1
+									},
+									"price": {
+										"dataType": "uint32",
+										"fieldNumber": 2
+									},
+									"quantity": {
+										"dataType": "uint32",
+										"fieldNumber": 3
+									},
+									"taxLines": {
+										"type": "array",
+										"fieldNumber": 4,
+										"items": {
+											"type": "object",
+											"properties": {
+												"price": {
+													"dataType": "uint32",
+													"fieldNumber": 1
+												},
+												"rate": {
+													"dataType": "uint32",
+													"fieldNumber": 2
+												},
+												"title": {
+													"dataType": "string",
+													"fieldNumber": 3
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"output": {
+				"value": "08d2091080acb8f6051864221c089edbb10210d7041801221008d70410061a09537461746520546178221c089eeda50410bf0c1801221008bf0c10071a09537461746520546178"
+			}
+		}
+	]
+}

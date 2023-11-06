@@ -1,6 +1,4 @@
 /*
- * Copyright © 2021 Lisk Foundation
- *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
  *
@@ -16,151 +14,153 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable no-param-reassign */
 import * as apiClient from '@liskhq/lisk-api-client';
-import { codec, Schema } from '@liskhq/lisk-codec';
+import { blockAssetSchema, eventSchema } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
-import * as validator from '@liskhq/lisk-validator';
-import Command, { flags as flagParser } from '@oclif/command';
-import { Application, PartialApplicationConfig, RegisteredSchema } from 'lisk-framework';
+import { validator } from '@liskhq/lisk-validator';
+import { Command, Flags as flagParser } from '@oclif/core';
+import {
+	Application,
+	PartialApplicationConfig,
+	RegisteredSchema,
+	blockHeaderSchema,
+	blockSchema,
+	transactionSchema,
+	ModuleMetadataJSON,
+} from 'lisk-framework';
 import { PromiseResolvedType } from '../../../types';
-import { flags as defaultFlags, flagsWithParser } from '../../../utils/flags';
+import { deriveKeypair } from '../../../utils/commons';
+import { DEFAULT_KEY_DERIVATION_PATH } from '../../../utils/config';
+import { flagsWithParser } from '../../../utils/flags';
 import { getDefaultPath } from '../../../utils/path';
-import { getAssetFromPrompt, getPassphraseFromPrompt } from '../../../utils/reader';
+import { getParamsFromPrompt, getPassphraseFromPrompt, getFileParams } from '../../../utils/reader';
 import {
 	encodeTransaction,
 	getApiClient,
-	getAssetSchema,
+	getParamsSchema,
 	transactionToJSON,
 } from '../../../utils/transaction';
+import { SendCommand } from './send';
 
 interface Args {
-	readonly moduleID: number;
-	readonly assetID: number;
+	readonly module: string;
+	readonly command: string;
 	readonly fee: string;
 }
 
 interface CreateFlags {
-	'network-identifier'?: string;
+	'chain-id'?: string;
 	passphrase?: string;
-	asset?: string;
-	pretty?: boolean;
+	params?: string;
+	pretty: boolean;
 	offline: boolean;
+	send: boolean;
 	'data-path'?: string;
 	'no-signature': boolean;
 	'sender-public-key'?: string;
 	nonce?: string;
-	json?: boolean;
+	file?: string;
+	'key-derivation-path': string;
 }
 
 interface Transaction {
-	moduleID: number;
-	assetID: number;
-	nonce: bigint;
-	fee: bigint;
-	senderPublicKey: Buffer;
-	asset: object;
+	module: string;
+	command: string;
+	nonce: string;
+	fee: string;
+	senderPublicKey: string;
+	params: object;
 	signatures: never[];
 }
 
-const isSequenceObject = (
-	input: Record<string, unknown>,
-	key: string,
-): input is { sequence: { nonce: bigint } } => {
-	const value = input[key];
-	if (typeof value !== 'object' || Array.isArray(value) || value === null) {
-		return false;
+const getParamsObject = async (metadata: ModuleMetadataJSON[], flags: CreateFlags, args: Args) => {
+	let params: Record<string, unknown>;
+
+	const paramsSchema = getParamsSchema(metadata, args.module, args.command);
+	if (!paramsSchema) {
+		return {};
 	}
-	const sequence = value as Record<string, unknown>;
-	if (typeof sequence.nonce !== 'bigint') {
-		return false;
+
+	if (flags.file) {
+		params = JSON.parse(getFileParams(flags.file));
+	} else {
+		params = flags.params ? JSON.parse(flags.params) : await getParamsFromPrompt(paramsSchema);
 	}
-	return true;
+
+	return params;
 };
 
-const getAssetObject = async (
-	registeredSchema: RegisteredSchema,
-	flags: CreateFlags,
-	args: Args,
-) => {
-	const assetSchema = getAssetSchema(registeredSchema, args.moduleID, args.assetID) as Schema;
-	const rawAsset = flags.asset ? JSON.parse(flags.asset) : await getAssetFromPrompt(assetSchema);
-	const assetObject = codec.fromJSON(assetSchema, rawAsset);
-
-	const assetErrors = validator.validator.validate(assetSchema, assetObject);
-	if (assetErrors.length) {
-		throw new validator.LiskValidationError([...assetErrors]);
-	}
-
-	return assetObject;
-};
-
-const getPassphraseAddressAndPublicKey = async (flags: CreateFlags) => {
-	let passphrase!: string;
+const getKeysFromFlags = async (flags: CreateFlags) => {
 	let publicKey!: Buffer;
+	let privateKey!: Buffer;
 	let address!: Buffer;
 
 	if (flags['no-signature']) {
 		publicKey = Buffer.from(flags['sender-public-key'] as string, 'hex');
-		address = cryptography.getAddressFromPublicKey(publicKey);
-		passphrase = '';
+		address = cryptography.address.getAddressFromPublicKey(publicKey);
 	} else {
-		passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
-		const result = cryptography.getAddressAndPublicKeyFromPassphrase(passphrase);
-		publicKey = result.publicKey;
-		address = result.address;
+		const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase'));
+		const keys = await deriveKeypair(passphrase, flags['key-derivation-path']);
+		publicKey = keys.publicKey;
+		privateKey = keys.privateKey;
+		address = cryptography.address.getAddressFromPublicKey(publicKey);
 	}
 
-	return { address, passphrase, publicKey };
+	return { address, publicKey, privateKey };
 };
 
 const validateAndSignTransaction = (
 	transaction: Transaction,
 	schema: RegisteredSchema,
-	networkIdentifier: string,
-	passphrase: string,
+	metadata: ModuleMetadataJSON[],
+	chainID: string,
+	privateKey: Buffer,
 	noSignature: boolean,
 ) => {
-	const { asset, ...transactionWithoutAsset } = transaction;
-	const assetSchema = getAssetSchema(schema, transaction.moduleID, transaction.assetID) as Schema;
+	const { params, ...transactionWithoutParams } = transaction;
+	const paramsSchema = getParamsSchema(metadata, transaction.module, transaction.command);
 
-	const transactionErrors = validator.validator.validate(schema.transaction, {
-		...transactionWithoutAsset,
-		asset: Buffer.alloc(0),
-	});
-	if (transactionErrors.length) {
-		throw new validator.LiskValidationError([...transactionErrors]);
-	}
+	const txObject = codec.fromJSON(schema.transaction, { ...transactionWithoutParams, params: '' });
+	validator.validate(schema.transaction, txObject);
+
+	const paramsObject = paramsSchema ? codec.fromJSON(paramsSchema, params) : {};
+
+	const decodedTx = {
+		...txObject,
+		params: paramsObject,
+	};
 
 	if (!noSignature) {
 		return transactions.signTransaction(
-			assetSchema,
-			(transaction as unknown) as Record<string, unknown>,
-			Buffer.from(networkIdentifier, 'hex'),
-			passphrase,
+			decodedTx,
+			Buffer.from(chainID, 'hex'),
+			privateKey,
+			paramsSchema,
 		);
 	}
-
-	return (transaction as unknown) as Record<string, unknown>;
+	return decodedTx;
 };
 
 const createTransactionOffline = async (
 	args: Args,
 	flags: CreateFlags,
 	registeredSchema: RegisteredSchema,
+	metadata: ModuleMetadataJSON[],
 	transaction: Transaction,
 ) => {
-	const asset = await getAssetObject(registeredSchema, flags, args);
-	const { passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
-	transaction.nonce = BigInt(flags.nonce ?? 0);
-	transaction.asset = asset;
-	transaction.senderPublicKey =
-		publicKey || Buffer.from(flags['sender-public-key'] as string, 'hex');
+	const params = await getParamsObject(metadata, flags, args);
+	const { publicKey, privateKey } = await getKeysFromFlags(flags);
+	transaction.nonce = flags.nonce ?? '0';
+	transaction.params = params;
+	transaction.senderPublicKey = publicKey.toString('hex');
 
 	return validateAndSignTransaction(
 		transaction,
 		registeredSchema,
-		flags['network-identifier'] as string,
-		passphrase,
+		metadata,
+		flags['chain-id'] as string,
+		privateKey,
 		flags['no-signature'],
 	);
 };
@@ -170,41 +170,38 @@ const createTransactionOnline = async (
 	flags: CreateFlags,
 	client: apiClient.APIClient,
 	registeredSchema: RegisteredSchema,
+	metadata: ModuleMetadataJSON[],
 	transaction: Transaction,
 ) => {
 	const nodeInfo = await client.node.getNodeInfo();
-	const { address, passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
-	const account = await client.account.get(address);
-	const asset = await getAssetObject(registeredSchema, flags, args);
+	const { address, privateKey, publicKey } = await getKeysFromFlags(flags);
+	const account = await client.invoke<{ nonce: string }>('auth_getAuthAccount', {
+		address: cryptography.address.getLisk32AddressFromAddress(address),
+	});
+	const params = await getParamsObject(metadata, flags, args);
 
-	if (flags['network-identifier'] && flags['network-identifier'] !== nodeInfo.networkIdentifier) {
+	if (flags['chain-id'] && flags['chain-id'] !== nodeInfo.chainID) {
 		throw new Error(
-			`Invalid networkIdentifier specified, actual: ${flags['network-identifier']}, expected: ${nodeInfo.networkIdentifier}.`,
+			`Invalid chainID specified, actual: ${flags['chain-id']}, expected: ${nodeInfo.chainID}.`,
 		);
 	}
 
-	if (!isSequenceObject(account, 'sequence')) {
-		throw new Error('Account does not have sequence property.');
-	}
-
-	if (flags.nonce && BigInt(account.sequence.nonce) > BigInt(flags.nonce)) {
+	if (flags.nonce && BigInt(account.nonce) > BigInt(flags.nonce)) {
 		throw new Error(
-			`Invalid nonce specified, actual: ${
-				flags.nonce
-			}, expected: ${account.sequence.nonce.toString()}`,
+			`Invalid nonce specified, actual: ${flags.nonce}, expected: ${account.nonce.toString()}`,
 		);
 	}
 
-	transaction.nonce = flags.nonce ? BigInt(flags.nonce) : account.sequence.nonce;
-	transaction.asset = asset;
-	transaction.senderPublicKey =
-		publicKey || Buffer.from(flags['sender-public-key'] as string, 'hex');
+	transaction.nonce = flags.nonce ? flags.nonce : account.nonce;
+	transaction.params = params;
+	transaction.senderPublicKey = publicKey.toString('hex');
 
 	return validateAndSignTransaction(
 		transaction,
 		registeredSchema,
-		nodeInfo.networkIdentifier,
-		passphrase,
+		metadata,
+		nodeInfo.chainID,
+		privateKey,
 		flags['no-signature'],
 	);
 };
@@ -216,14 +213,14 @@ export abstract class CreateCommand extends Command {
 
 	static args = [
 		{
-			name: 'moduleID',
+			name: 'module',
 			required: true,
-			description: 'Registered transaction module id.',
+			description: 'Registered transaction module.',
 		},
 		{
-			name: 'assetID',
+			name: 'command',
 			required: true,
-			description: 'Registered transaction asset id.',
+			description: 'Registered transaction command.',
 		},
 		{
 			name: 'fee',
@@ -233,56 +230,65 @@ export abstract class CreateCommand extends Command {
 	];
 
 	static examples = [
-		'transaction:create 2 0 100000000 --asset=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\'',
-		'transaction:create 2 0 100000000 --asset=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\' --json',
-		'transaction:create 2 0 100000000 --offline --network mainnet --network-identifier 873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3 --nonce 1 --asset=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\'',
+		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"tokenID":"0400000000000000","recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"send token"}\'',
+		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"tokenID":"0400000000000000","recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"send token"}\' --json',
+		'transaction:create token transfer 100000000 --offline --network mainnet --chain-id 10000000 --nonce 1 --params=\'{"amount":100000000,"tokenID":"0400000000000000","recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"send token"}\'',
+		'transaction:create token transfer 100000000 --file=/txn_params.json',
+		'transaction:create token transfer 100000000 --file=/txn_params.json --json',
 	];
 
-	static flags: flagParser.Input<CreateFlags> = {
+	static flags = {
 		passphrase: flagsWithParser.passphrase,
-		asset: flagParser.string({
+		params: flagParser.string({
 			char: 'a',
-			description: 'Creates transaction with specific asset information',
+			description: 'Creates transaction with specific params information',
 		}),
 		json: flagsWithParser.json,
 		// We can't specify default value with `dependsOn` https://github.com/oclif/oclif/issues/211
 		offline: flagParser.boolean({
-			description: defaultFlags.offline.description,
-			dependsOn: ['network-identifier', 'nonce'],
+			...flagsWithParser.offline,
+			dependsOn: ['chain-id', 'nonce'],
 			exclusive: ['data-path'],
+		}),
+		send: flagParser.boolean({
+			description: 'Create and immediately send transaction to a node',
+			exclusive: ['offline'],
 		}),
 		'no-signature': flagParser.boolean({
 			description:
 				'Creates the transaction without a signature. Your passphrase will therefore not be required',
 			dependsOn: ['sender-public-key'],
 		}),
-		'network-identifier': flagsWithParser.networkIdentifier,
+		'chain-id': flagsWithParser.chainID,
 		nonce: flagParser.string({
 			description: 'Nonce of the transaction.',
 		}),
-		'sender-public-key': flagParser.string({
-			char: 's',
-			description:
-				'Creates the transaction with provided sender publickey, when passphrase is not provided',
-		}),
+		'sender-public-key': flagsWithParser.senderPublicKey,
 		'data-path': flagsWithParser.dataPath,
+		'key-derivation-path': flagParser.string({
+			default: DEFAULT_KEY_DERIVATION_PATH,
+			description: 'Key derivation path to use to derive keypair from passphrase',
+			char: 'k',
+		}),
 		pretty: flagsWithParser.pretty,
+		file: flagsWithParser.file,
 	};
 
 	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 	protected _schema!: RegisteredSchema;
+	protected _metadata!: ModuleMetadataJSON[];
 	protected _dataPath!: string;
 
 	async run(): Promise<void> {
-		const { args, flags } = this.parse(CreateCommand);
+		const { args, flags } = await this.parse(CreateCommand);
 
 		const incompleteTransaction = {
-			moduleID: Number(args.moduleID),
-			assetID: Number(args.assetID),
-			fee: BigInt(args.fee),
-			nonce: BigInt(0),
-			senderPublicKey: Buffer.alloc(0),
-			asset: {},
+			module: args.module,
+			command: args.command,
+			fee: args.fee,
+			nonce: '0',
+			senderPublicKey: '',
+			params: {},
 			signatures: [],
 		};
 
@@ -290,47 +296,70 @@ export abstract class CreateCommand extends Command {
 		this._dataPath = flags['data-path'] ?? getDefaultPath(this.config.pjson.name);
 
 		if (flags.offline) {
-			const app = this.getApplication({}, {});
-			this._schema = app.getSchema();
+			const app = this.getApplication({
+				genesis: {
+					chainID: flags['chain-id'],
+				},
+			});
+
+			this._metadata = app.getMetadata();
+			this._schema = {
+				header: blockHeaderSchema,
+				transaction: transactionSchema,
+				block: blockSchema,
+				asset: blockAssetSchema,
+				event: eventSchema,
+			};
 
 			transactionObject = await createTransactionOffline(
 				args as Args,
 				flags,
 				this._schema,
+				this._metadata,
 				incompleteTransaction,
 			);
 		} else {
 			this._client = await getApiClient(this._dataPath, this.config.pjson.name);
-			this._schema = this._client.schemas;
+			this._schema = this._client.schema;
 
 			transactionObject = await createTransactionOnline(
 				args as Args,
 				flags,
 				this._client,
 				this._schema,
+				this._client.metadata,
 				incompleteTransaction,
 			);
 		}
 
+		const encodedTransaction = encodeTransaction(
+			this._schema,
+			this._metadata,
+			transactionObject,
+			this._client,
+		).toString('hex');
+
+		this.printJSON(flags.pretty, {
+			transaction: encodedTransaction,
+		});
+
 		if (flags.json) {
 			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(this._schema, transactionObject, this._client).toString(
-					'hex',
-				),
-			});
-			this.printJSON(flags.pretty, {
-				transaction: transactionToJSON(this._schema, transactionObject, this._client),
-			});
-		} else {
-			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(this._schema, transactionObject, this._client).toString(
-					'hex',
+				transaction: transactionToJSON(
+					this._schema,
+					this._metadata,
+					transactionObject,
+					this._client,
 				),
 			});
 		}
+
+		if (flags.send) {
+			await SendCommand.run([encodedTransaction, `--data-path=${this._dataPath}`], this.config);
+		}
 	}
 
-	printJSON(pretty?: boolean, message?: Record<string, unknown>): void {
+	printJSON(pretty: boolean, message?: Record<string, unknown>): void {
 		if (pretty) {
 			this.log(JSON.stringify(message, undefined, '  '));
 		} else {
@@ -344,8 +373,5 @@ export abstract class CreateCommand extends Command {
 		}
 	}
 
-	abstract getApplication(
-		genesisBlock: Record<string, unknown>,
-		config: PartialApplicationConfig,
-	): Application;
+	abstract getApplication(config: PartialApplicationConfig): Application;
 }

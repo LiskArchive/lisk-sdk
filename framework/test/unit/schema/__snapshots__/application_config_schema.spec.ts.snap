@@ -1,0 +1,416 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`schema/application_config_schema.js application config schema must match to the snapshot. 1`] = `
+{
+  "$id": "#/config",
+  "additionalProperties": false,
+  "default": {
+    "generator": {
+      "keys": {},
+    },
+    "genesis": {
+      "bftBatchSize": 103,
+      "block": {
+        "fromFile": "./config/genesis_block.blob",
+      },
+      "blockTime": 10,
+      "maxTransactionsSize": 15360,
+      "minimumCertifyHeight": 1,
+    },
+    "legacy": {
+      "brackets": [],
+      "sync": false,
+    },
+    "modules": {},
+    "network": {
+      "port": 7667,
+      "seedPeers": [],
+      "version": "1.0",
+    },
+    "plugins": {},
+    "rpc": {
+      "accessControlAllowOrigin": "*",
+      "allowedMethods": [],
+      "host": "127.0.0.1",
+      "modes": [
+        "ipc",
+      ],
+      "port": 7887,
+    },
+    "system": {
+      "backup": {
+        "height": 0,
+      },
+      "dataPath": "~/.lisk/beta-sdk-app",
+      "enableMetrics": false,
+      "keepEventsForHeights": 300,
+      "logLevel": "info",
+      "version": "0.1.0",
+    },
+    "transactionPool": {
+      "maxTransactions": 4096,
+      "maxTransactionsPerAccount": 64,
+      "minEntranceFeePriority": "0",
+      "minReplacementFeeDifference": "10",
+      "transactionExpiryTime": 10800000,
+    },
+  },
+  "properties": {
+    "generator": {
+      "properties": {
+        "keys": {
+          "properties": {
+            "fromFile": {
+              "description": "Path to a file which stores keys",
+              "type": "string",
+            },
+          },
+          "type": "object",
+        },
+      },
+      "required": [
+        "keys",
+      ],
+      "type": "object",
+    },
+    "genesis": {
+      "additionalProperties": false,
+      "properties": {
+        "bftBatchSize": {
+          "description": "The length of a round",
+          "maximum": 201,
+          "type": "number",
+        },
+        "block": {
+          "oneOf": [
+            {
+              "properties": {
+                "blob": {
+                  "format": "hex",
+                  "type": "string",
+                },
+                "fromFile": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "fromFile",
+              ],
+            },
+            {
+              "properties": {
+                "blob": {
+                  "format": "hex",
+                  "type": "string",
+                },
+                "fromFile": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "blob",
+              ],
+            },
+          ],
+          "type": "object",
+        },
+        "blockTime": {
+          "description": "Slot time interval in seconds",
+          "maximum": 2592000,
+          "minimum": 3,
+          "type": "number",
+        },
+        "chainID": {
+          "description": "The unique name of the chain as a string encoded in Hex format",
+          "format": "hex",
+          "type": "string",
+        },
+        "maxTransactionsSize": {
+          "description": "Maximum number of transactions allowed per block",
+          "maximum": 30720,
+          "minimum": 11264,
+          "type": "integer",
+        },
+        "minimumCertifyHeight": {
+          "description": "Minimum block height which can be certified",
+          "minimum": 1,
+          "type": "integer",
+        },
+      },
+      "required": [
+        "block",
+        "blockTime",
+        "bftBatchSize",
+        "chainID",
+        "maxTransactionsSize",
+      ],
+      "type": "object",
+    },
+    "legacy": {
+      "properties": {
+        "brackets": {
+          "items": {
+            "properties": {
+              "snapshotBlockID": {
+                "format": "hex",
+                "type": "string",
+              },
+              "snapshotHeight": {
+                "minimum": 0,
+                "type": "number",
+              },
+              "startHeight": {
+                "minimum": 0,
+                "type": "number",
+              },
+            },
+            "required": [
+              "startHeight",
+              "snapshotHeight",
+              "snapshotBlockID",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "sync": {
+          "type": "boolean",
+        },
+      },
+      "required": [
+        "brackets",
+      ],
+      "type": "object",
+    },
+    "modules": {
+      "additionalProperties": {
+        "type": "object",
+      },
+      "propertyNames": {
+        "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
+      },
+      "type": "object",
+    },
+    "network": {
+      "properties": {
+        "advertiseAddress": {
+          "type": "boolean",
+        },
+        "blacklistedIPs": {
+          "items": {
+            "format": "ip",
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "fixedPeers": {
+          "items": {
+            "properties": {
+              "ip": {
+                "format": "ip",
+                "type": "string",
+              },
+              "port": {
+                "maximum": 65535,
+                "minimum": 1,
+                "type": "integer",
+              },
+            },
+            "type": "object",
+          },
+          "maximum": 4,
+          "type": "array",
+        },
+        "host": {
+          "format": "ip",
+          "type": "string",
+        },
+        "maxInboundConnections": {
+          "type": "integer",
+        },
+        "maxOutboundConnections": {
+          "type": "integer",
+        },
+        "port": {
+          "maximum": 65535,
+          "minimum": 1,
+          "type": "integer",
+        },
+        "seedPeers": {
+          "items": {
+            "properties": {
+              "ip": {
+                "format": "ipOrFQDN",
+                "type": "string",
+              },
+              "port": {
+                "maximum": 65535,
+                "minimum": 1,
+                "type": "integer",
+              },
+            },
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "version": {
+          "format": "networkVersion",
+          "type": "string",
+        },
+        "whitelistedPeers": {
+          "items": {
+            "properties": {
+              "ip": {
+                "format": "ip",
+                "type": "string",
+              },
+              "port": {
+                "maximum": 65535,
+                "minimum": 1,
+                "type": "integer",
+              },
+            },
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "wsMaxPayload": {
+          "maximum": 3048576,
+          "type": "integer",
+        },
+      },
+      "required": [
+        "seedPeers",
+      ],
+      "type": "object",
+    },
+    "plugins": {
+      "type": "object",
+    },
+    "rpc": {
+      "properties": {
+        "accessControlAllowOrigin": {
+          "type": "string",
+        },
+        "allowedMethods": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+          "uniqueItems": true,
+        },
+        "host": {
+          "type": "string",
+        },
+        "modes": {
+          "items": {
+            "enum": [
+              "ipc",
+              "ws",
+              "http",
+            ],
+            "type": "string",
+          },
+          "type": "array",
+          "uniqueItems": true,
+        },
+        "port": {
+          "maximum": 65535,
+          "minimum": 1024,
+          "type": "number",
+        },
+      },
+      "required": [
+        "modes",
+        "host",
+        "port",
+      ],
+      "type": "object",
+    },
+    "system": {
+      "properties": {
+        "backup": {
+          "properties": {
+            "height": {
+              "description": "Height at which the DB backup should be taken.",
+              "minimum": 0,
+              "type": "integer",
+            },
+          },
+          "required": [
+            "height",
+          ],
+          "type": "object",
+        },
+        "dataPath": {
+          "type": "string",
+        },
+        "enableMetrics": {
+          "type": "boolean",
+        },
+        "keepEventsForHeights": {
+          "type": "integer",
+        },
+        "logLevel": {
+          "enum": [
+            "trace",
+            "debug",
+            "info",
+            "warn",
+            "error",
+            "fatal",
+            "none",
+          ],
+          "type": "string",
+        },
+        "version": {
+          "format": "version",
+          "type": "string",
+        },
+      },
+      "required": [
+        "version",
+        "dataPath",
+        "logLevel",
+        "keepEventsForHeights",
+        "backup",
+      ],
+      "type": "object",
+    },
+    "transactionPool": {
+      "properties": {
+        "maxTransactions": {
+          "minimum": 1,
+          "type": "integer",
+        },
+        "maxTransactionsPerAccount": {
+          "minimum": 1,
+          "type": "integer",
+        },
+        "minEntranceFeePriority": {
+          "format": "uint64",
+          "type": "string",
+        },
+        "minReplacementFeeDifference": {
+          "format": "uint64",
+          "type": "string",
+        },
+        "transactionExpiryTime": {
+          "minimum": 60000,
+          "type": "integer",
+        },
+      },
+      "type": "object",
+    },
+  },
+  "required": [
+    "system",
+    "rpc",
+    "network",
+    "modules",
+    "plugins",
+    "genesis",
+  ],
+  "type": "object",
+}
+`;

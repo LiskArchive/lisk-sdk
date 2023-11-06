@@ -12,32 +12,35 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import {
 	isHexString,
 	isBytes,
-	isNumberString,
-	isSInt64,
-	isUInt64,
-	isUInt32,
-	isSInt32,
 	isIP,
 	isIPV4,
 	isEncryptedPassphrase,
 	isSemVer,
+	isNumberString,
+	isUInt64,
+	isSInt64,
 } from './validation';
+import { MAX_UINT32 } from './constants';
 
 export const hex = isHexString;
 export const bytes = isBytes;
 
+// uint64 and int64 are always type string, while uint32 and int32 are type integer
 export const int64 = (data: string): boolean => isNumberString(data) && isSInt64(BigInt(data));
 
 export const uint64 = (data: string): boolean => isNumberString(data) && isUInt64(BigInt(data));
 
-export const uint32 = (data: string): boolean => isNumberString(data) && isUInt32(Number(data));
+// int32 is appropriately defined in ajv-format plugin, no need to create a custom format
+export const uint32 = {
+	type: 'number',
+	validate: (value: number) => Number.isInteger(value) && value >= 0 && value <= MAX_UINT32,
+};
 
-export const int32 = (data: string): boolean => isNumberString(data) && isSInt32(Number(data));
-
-const camelCaseRegex = /^[a-z]+((\d)|([A-Z0-9][a-zA-Z0-9]+))*([a-z0-9A-Z])?$/;
+const camelCaseRegex = /^[a-z][0-9]*([A-Z][a-z]*[a-zA-Z0-9]*|[a-z][a-z]*[a-zA-Z0-9]*)?$/;
 
 export const camelCase = (data: string): boolean => camelCaseRegex.exec(data) !== null;
 
@@ -53,7 +56,8 @@ export const encryptedPassphrase = isEncryptedPassphrase;
 export const ip = isIP;
 
 export const ipOrFQDN = (data: string): boolean => {
-	const hostnameRegex = /^[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?(\.[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?)*$/;
+	const hostnameRegex =
+		/^[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?(\.[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?)*$/;
 	return isIPV4(data) || hostnameRegex.test(data);
 };
 
@@ -62,4 +66,13 @@ export const oddInteger = (data: string | number): boolean => {
 		return Number.isInteger(data) && data % 2 === 1;
 	}
 	return /^\d*[13579]$/.test(data);
+};
+
+export const lisk32 = (data: string): boolean => {
+	try {
+		cryptoAddress.validateLisk32Address(data);
+		return true;
+	} catch (error) {
+		return false;
+	}
 };

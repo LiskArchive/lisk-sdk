@@ -24,8 +24,8 @@ const cloneDeep = require('lodash.clonedeep');
 describe('validator keywords', () => {
 	// Arrange
 	const validSchema = {
-		$id: '/my-schema',
-		$schema: 'http://lisk.io/lisk-schema/schema#',
+		$id: '/mySchema',
+		$schema: 'http://lisk.com/lisk-schema/schema#',
 		type: 'object',
 		properties: {
 			myProp: {
@@ -84,326 +84,388 @@ describe('validator keywords', () => {
 
 		describe('dataType value validation', () => {
 			describe('string', () => {
-				it('should return empty error if valid', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'string', fieldNumber: 1 } },
-						},
-						{ myProp: 'string' },
-					);
-					expect(result).toBeEmpty();
+				it('should not throw error if valid', () => {
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'string', fieldNumber: 1 } },
+							},
+							{ myProp: 'string' },
+						),
+					).not.toThrow();
 				});
 
 				it('should be invalid if minLength is not satisfied', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: {
-								myProp: { dataType: 'string', fieldNumber: 1, minLength: 3 },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: {
+									myProp: { dataType: 'string', fieldNumber: 1, minLength: 3 },
+								},
 							},
-						},
-						{ myProp: 'ch' },
+							{ myProp: 'ch' },
+						),
+					).toThrow(
+						"Lisk validator found 1 error[s]:\nProperty '.myProp' must NOT have fewer than 3 characters",
 					);
-					expect(result).toHaveLength(1);
 				});
 
 				it('should be invalid if maxLength is not satisfied', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: {
-								myProp: { dataType: 'string', fieldNumber: 1, maxLength: 3 },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: {
+									myProp: { dataType: 'string', fieldNumber: 1, maxLength: 3 },
+								},
 							},
-						},
-						{ myProp: 'change' },
+							{ myProp: 'change' },
+						),
+					).toThrow(
+						"Lisk validator found 1 error[s]:\nProperty '.myProp' must NOT have more than 3 characters",
 					);
-					expect(result).toHaveLength(1);
 				});
 
 				it('should be invalid if not string', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: {
-								myProp: { dataType: 'string', fieldNumber: 1, maxLength: 3 },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: {
+									myProp: { dataType: 'string', fieldNumber: 1, maxLength: 3 },
+								},
 							},
-						},
-						{ myProp: 32 },
+							{ myProp: 32 },
+						),
+					).toThrow(
+						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
-					expect(result).toHaveLength(1);
 				});
 			});
 
 			describe('bytes', () => {
-				it('should  return empty error if valid', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'bytes', fieldNumber: 1 } },
-						},
-						{ myProp: Buffer.from('value') },
-					);
-					expect(result).toBeEmpty();
+				it('should not throw error if valid', () => {
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'bytes', fieldNumber: 1 } },
+							},
+							{ myProp: Buffer.from('value') },
+						),
+					).not.toThrow();
 				});
 
 				it('should be invalid if minLength is not satisfied', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: {
-								myProp: { dataType: 'bytes', fieldNumber: 1, minLength: 10 },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: {
+									myProp: { dataType: 'bytes', fieldNumber: 1, minLength: 10 },
+								},
 							},
-						},
-						{ myProp: Buffer.alloc(9) },
-					);
-					expect(result).toHaveLength(1);
-					expect(result[0].message).toEqual('minLength not satisfied');
-					expect(result[0].params).toEqual({
-						dataType: 'bytes',
-						minLength: 10,
-						length: 9,
-					});
+							{ myProp: Buffer.alloc(9) },
+						),
+					).toThrow("Lisk validator found 1 error[s]:\nProperty '.myProp' minLength not satisfied");
 				});
 
 				it('should be invalid if maxLength is not satisfied', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: {
-								myProp: { dataType: 'bytes', fieldNumber: 1, maxLength: 10 },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: {
+									myProp: { dataType: 'bytes', fieldNumber: 1, maxLength: 10 },
+								},
 							},
-						},
-						{ myProp: Buffer.alloc(11) },
-					);
-					expect(result).toHaveLength(1);
-					expect(result[0].message).toEqual('maxLength exceeded');
-					expect(result[0].params).toEqual({
-						dataType: 'bytes',
-						maxLength: 10,
-						length: 11,
-					});
+							{ myProp: Buffer.alloc(11) },
+						),
+					).toThrow("Lisk validator found 1 error[s]:\nProperty '.myProp' maxLength exceeded");
 				});
 
 				it('should be invalid if not Buffer', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: {
-								myProp: { dataType: 'bytes', fieldNumber: 1, maxLength: 10 },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: {
+									myProp: { dataType: 'bytes', fieldNumber: 1, maxLength: 10 },
+								},
 							},
-						},
-						{ myProp: 'string' },
+							{ myProp: 'string' },
+						),
+					).toThrow(
+						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
-					expect(result).toHaveLength(1);
+				});
+
+				it('should be invalid if format is address and length is not 20', () => {
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: {
+									myProp: { dataType: 'bytes', fieldNumber: 1, format: 'lisk32' },
+								},
+							},
+							{ myProp: Buffer.alloc(11, 255) },
+						),
+					).toThrow("Lisk validator found 1 error[s]:\nProperty '.myProp' address length invalid");
 				});
 			});
 
 			describe('boolean', () => {
-				it('should return empty error if valid', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'boolean', fieldNumber: 1 } },
-						},
-						{ myProp: true },
-					);
-					expect(result).toBeEmpty();
+				it('should not throw error if valid', () => {
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'boolean', fieldNumber: 1 } },
+							},
+							{ myProp: true },
+						),
+					).not.toThrow();
 				});
 
 				it('should be invalid if not boolean', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'boolean', fieldNumber: 1 } },
-						},
-						{ myProp: 1 },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'boolean', fieldNumber: 1 } },
+							},
+							{ myProp: 1 },
+						),
+					).toThrow(
+						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
-					expect(result).toHaveLength(1);
 				});
 			});
 
 			describe('uint32', () => {
-				it('should return empty error if valid', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'uint32', fieldNumber: 1 } },
-						},
-						{ myProp: 0 },
-					);
-					expect(result).toBeEmpty();
+				it('should not throw error if valid', () => {
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'uint32', fieldNumber: 1 } },
+							},
+							{ myProp: 0 },
+						),
+					).not.toThrow();
 				});
 
 				it('should be invalid if not number', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'uint32', fieldNumber: 1 } },
-						},
-						{ myProp: 'value' },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'uint32', fieldNumber: 1 } },
+							},
+							{ myProp: 'value' },
+						),
+					).toThrow(
+						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
-					expect(result).toHaveLength(1);
 				});
 
 				it('should be invalid if number has decimal', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'uint32', fieldNumber: 1 } },
-						},
-						{ myProp: 1.23 },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'uint32', fieldNumber: 1 } },
+							},
+							{ myProp: 1.23 },
+						),
+					).toThrow(
+						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
-					expect(result).toHaveLength(1);
 				});
 
 				it('should be invalid if negative', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'uint32', fieldNumber: 1 } },
-						},
-						{ myProp: -1 },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'uint32', fieldNumber: 1 } },
+							},
+							{ myProp: -1 },
+						),
+					).toThrow(
+						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
-					expect(result).toHaveLength(1);
 				});
 
 				it('should be invalid if above uint32 range', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'uint32', fieldNumber: 1 } },
-						},
-						{ myProp: 4294967296 },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'uint32', fieldNumber: 1 } },
+							},
+							{ myProp: 4294967296 },
+						),
+					).toThrow(
+						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
-					expect(result).toHaveLength(1);
 				});
 			});
 
 			describe('uint64', () => {
-				it('should return empty error if valid', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'uint64', fieldNumber: 1 } },
-						},
-						{ myProp: BigInt(32) },
-					);
-					expect(result).toBeEmpty();
+				it('should not throw error if valid', () => {
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'uint64', fieldNumber: 1 } },
+							},
+							{ myProp: BigInt(32) },
+						),
+					).not.toThrow();
 				});
 
 				it('should be invalid if not bigint', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'uint64', fieldNumber: 1 } },
-						},
-						{ myProp: 32 },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'uint64', fieldNumber: 1 } },
+							},
+							{ myProp: 32 },
+						),
+					).toThrow(
+						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
-					expect(result).toHaveLength(1);
 				});
 
 				it('should be invalid if negative', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'uint64', fieldNumber: 1 } },
-						},
-						{ myProp: BigInt(-32) },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'uint64', fieldNumber: 1 } },
+							},
+							{ myProp: BigInt(-32) },
+						),
+					).toThrow(
+						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
-					expect(result).toHaveLength(1);
 				});
 
 				it('should be invalid if above uint64 range', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'uint64', fieldNumber: 1 } },
-						},
-						{ myProp: BigInt('18446744073709551616') },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'uint64', fieldNumber: 1 } },
+							},
+							{ myProp: BigInt('18446744073709551616') },
+						),
+					).toThrow(
+						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
-					expect(result).toHaveLength(1);
 				});
 			});
 
 			describe('sint32', () => {
-				it('should return empty error if valid', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'sint32', fieldNumber: 1 } },
-						},
-						{ myProp: -32 },
-					);
-					expect(result).toBeEmpty();
+				it('should not throw error if valid', () => {
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'sint32', fieldNumber: 1 } },
+							},
+							{ myProp: -32 },
+						),
+					).not.toThrow();
 				});
 
 				it('should be invalid if not number', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'sint32', fieldNumber: 1 } },
-						},
-						{ myProp: 'value' },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'sint32', fieldNumber: 1 } },
+							},
+							{ myProp: 'value' },
+						),
+					).toThrow(
+						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
-					expect(result).toHaveLength(1);
 				});
 
 				it('should be invalid if number has decimal', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'sint32', fieldNumber: 1 } },
-						},
-						{ myProp: -1.23 },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'sint32', fieldNumber: 1 } },
+							},
+							{ myProp: -1.23 },
+						),
+					).toThrow(
+						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
-					expect(result).toHaveLength(1);
 				});
 
 				it('should be invalid if not sint32 range', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'sint32', fieldNumber: 1 } },
-						},
-						{ myProp: -2147483649 },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'sint32', fieldNumber: 1 } },
+							},
+							{ myProp: -2147483649 },
+						),
+					).toThrow(
+						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
-					expect(result).toHaveLength(1);
 				});
 			});
 
 			describe('sint64', () => {
-				it('should return empty error if valid', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'sint64', fieldNumber: 1 } },
-						},
-						{ myProp: BigInt(-32) },
-					);
-					expect(result).toBeEmpty();
+				it('should not throw error if valid', () => {
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'sint64', fieldNumber: 1 } },
+							},
+							{ myProp: BigInt(-32) },
+						),
+					).not.toThrow();
 				});
 
 				it('should be invalid if not bigint', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'sint64', fieldNumber: 1 } },
-						},
-						{ myProp: 32 },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'sint64', fieldNumber: 1 } },
+							},
+							{ myProp: 32 },
+						),
+					).toThrow(
+						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
-					expect(result).toHaveLength(1);
 				});
 
 				it('should be invalid if above sint64 range', () => {
-					const result = validator.validate(
-						{
-							...validSchema,
-							properties: { myProp: { dataType: 'sint64', fieldNumber: 1 } },
-						},
-						{ myProp: BigInt('-9223372036854775809') },
+					expect(() =>
+						validator.validate(
+							{
+								...validSchema,
+								properties: { myProp: { dataType: 'sint64', fieldNumber: 1 } },
+							},
+							{ myProp: BigInt('-9223372036854775809') },
+						),
+					).toThrow(
+						'Lisk validator found 1 error[s]:\nProperty \'.myProp\' should pass "dataType" keyword validation',
 					);
-					expect(result).toHaveLength(1);
 				});
 			});
 		});

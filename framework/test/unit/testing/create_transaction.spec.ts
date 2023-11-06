@@ -12,29 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TransferAsset } from '../../../src/modules/token';
-import { createTransaction } from '../../../src/testing';
-
 describe('Create Transaction', () => {
-	const asset = {
-		amount: BigInt('1000000000000'),
-		recipientAddress: Buffer.from('ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815', 'hex'),
-		data: 'moon',
-	};
-
-	it('should return a valid transaction', () => {
-		expect(createTransaction({ moduleID: 2, assetClass: TransferAsset, asset })).toMatchSnapshot();
-	});
-
-	it('should return valid signed transaction with passphrase', () => {
-		const transaction = createTransaction({
-			moduleID: 2,
-			assetClass: TransferAsset,
-			asset,
-			passphrase: 'pass',
-			networkIdentifier: Buffer.alloc(1),
-		});
-
-		expect(transaction.signatures).toHaveLength(1);
-	});
+	it.todo('should return a valid transaction');
 });

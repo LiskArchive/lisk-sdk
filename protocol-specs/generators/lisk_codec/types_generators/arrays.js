@@ -19,152 +19,122 @@ const prepareProtobuffersArrays = () =>
 
 const { ArrayOfIntegers, ArrayBools, ArrayString, ArrayObjects } = prepareProtobuffersArrays();
 
-const generateValidArrayEncodings = () => {
-	const input = {
-		ArrayOfIntegers: {
-			object: {
-				list: [3, 1, 4, 1, 5, 9, 2, 6, 5],
-			},
-			schema: {
-				type: 'object',
-				$id: 'arrayUint32',
-				properties: {
-					list: {
-						type: 'array',
-						items: {
-							dataType: 'uint32',
-						},
-						fieldNumber: 1,
-					},
-				},
-			},
+const getArraySchemaFor = type => ({
+	type: 'object',
+	$id: `/arraySchema${(typeof type === 'string' ? type : typeof type).replace(/^./, str =>
+		str.toUpperCase(),
+	)}`,
+	properties: {
+		list: {
+			type: 'array',
+			items:
+				typeof type === 'object'
+					? type
+					: {
+							dataType: type,
+							// eslint-disable-next-line no-mixed-spaces-and-tabs
+					  },
+			fieldNumber: 1,
 		},
-		arrayBools: {
-			object: {
-				list: [true, true, false, true, false, false],
-			},
-			schema: {
-				type: 'object',
-				$id: 'arrayBoolean',
-				properties: {
-					list: {
-						type: 'array',
-						items: {
-							dataType: 'boolean',
-						},
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-		arrayStrings: {
-			object: {
-				list: ['lisk', '', 'gogogog'],
-			},
-			schema: {
-				type: 'object',
-				$id: 'arrayStrings',
-				properties: {
-					list: {
-						type: 'array',
-						items: {
-							dataType: 'string',
-						},
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-		arrayObjects: {
-			object: {
-				myArray: [
-					{
-						address: 'e11a11364738225813f86ea85214400e5db08d6e',
-						amount: 100000,
-					},
-					{
-						address: 'aa2a11364738225813f86ea85214400e5db08fff',
-						amount: 300000,
-					},
-				],
-			},
-			schema: {
-				$id: 'arrayObject',
-				type: 'object',
-				properties: {
-					myArray: {
-						type: 'array',
-						fieldNumber: 1,
-						items: {
-							type: 'object',
-							properties: {
-								address: {
-									dataType: 'string',
-									fieldNumber: 1,
-								},
-								amount: {
-									dataType: 'uint64',
-									fieldNumber: 2,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		emptyArray: {
-			object: {
-				list: [],
-			},
-			schema: {
-				type: 'object',
-				$id: 'emptyArray',
-				properties: {
-					list: {
-						type: 'array',
-						items: {
-							dataType: 'uint32',
-						},
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-	};
+	},
+});
 
-	const arrayOfIntegersEncoded = ArrayOfIntegers.encode(input.ArrayOfIntegers.object).finish();
-	const arrayBoolsEncoded = ArrayBools.encode(input.arrayBools.object).finish();
-	const arrayStringsEncoded = ArrayString.encode(input.arrayStrings.object).finish();
-	const arrayOfObjectsEncoded = ArrayObjects.encode(input.arrayObjects.object).finish();
-	const emptyArrayEncoded = ArrayBools.encode(input.emptyArray.object).finish();
+const integerSchema = getArraySchemaFor('uint32');
+const arrayOfIntegers = { list: [3, 1, 4, 1, 5, 9, 2, 6, 5] };
+const emptyArray = {
+	list: [],
+};
+const arrayOfIntegersEncoded = ArrayOfIntegers.encode(arrayOfIntegers).finish();
+const emptyArrayEncoded = ArrayOfIntegers.encode(emptyArray).finish();
 
-	return [
+const booleanSchema = getArraySchemaFor('boolean');
+const arrayOfBooleans = { list: [true, true, false, true, false, false] };
+const arrayBoolsEncoded = ArrayBools.encode(arrayOfBooleans).finish();
+
+const stringSchema = getArraySchemaFor('string');
+const arrayOfStrings = { list: ['lisk', '', 'gogogog'] };
+const arrayStringsEncoded = ArrayString.encode(arrayOfStrings).finish();
+
+const objectSchema = getArraySchemaFor({
+	type: 'object',
+	properties: {
+		address: {
+			dataType: 'string',
+			fieldNumber: 1,
+		},
+		amount: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+	},
+});
+const arrayOfObjects = {
+	list: [
+		{
+			address: 'e11a11364738225813f86ea85214400e5db08d6e',
+			amount: '100000',
+		},
+		{
+			address: 'aa2a11364738225813f86ea85214400e5db08fff',
+			amount: '300000',
+		},
+	],
+};
+const arrayOfObjectsEncoded = ArrayObjects.encode(arrayOfObjects).finish();
+
+module.exports = {
+	validArrayEncodingsTestCases: [
 		{
 			description: 'Encoding of integers array',
-			input: input.ArrayOfIntegers,
-			output: { value: arrayOfIntegersEncoded.toString('hex') },
+			input: { object: arrayOfIntegers, schema: integerSchema },
+			output: { value: arrayOfIntegersEncoded },
 		},
 		{
 			description: 'Encoding of booleans array',
-			input: input.arrayBools,
-			output: { value: arrayBoolsEncoded.toString('hex') },
+			input: { object: arrayOfBooleans, schema: booleanSchema },
+			output: { value: arrayBoolsEncoded },
 		},
 		{
-			description: 'Encoding of strings array',
-			input: input.arrayStrings,
-			output: { value: arrayStringsEncoded.toString('hex') },
+			description: 'arrayStrings of strings array',
+			input: { object: arrayOfStrings, schema: stringSchema },
+			output: { value: arrayStringsEncoded },
 		},
 		{
 			description: 'Encoding of objects array',
-			input: input.arrayObjects,
-			output: { value: arrayOfObjectsEncoded.toString('hex') },
+			input: { object: arrayOfObjects, schema: objectSchema },
+			output: { value: arrayOfObjectsEncoded },
 		},
 		{
 			description: 'Encoding of empty array',
-			input: input.emptyArray,
-			output: { value: emptyArrayEncoded.toString('hex') },
+			input: { object: emptyArray, schema: integerSchema },
+			output: { value: emptyArrayEncoded },
 		},
-	];
+	],
+	validArrayDecodingsTestCases: [
+		{
+			description: 'Decoding of integers array',
+			input: { value: arrayOfIntegersEncoded, schema: integerSchema },
+			output: { object: arrayOfIntegers },
+		},
+		{
+			description: 'Decoding of booleans array',
+			input: { value: arrayBoolsEncoded, schema: booleanSchema },
+			output: { object: arrayOfBooleans },
+		},
+		{
+			description: 'Decoding of strings array',
+			input: { value: arrayStringsEncoded, schema: stringSchema },
+			output: { object: arrayOfStrings },
+		},
+		{
+			description: 'Decoding of objects array',
+			input: { value: arrayOfObjectsEncoded, schema: objectSchema },
+			output: { object: arrayOfObjects },
+		},
+		{
+			description: 'Decoding of empty array',
+			input: { value: emptyArrayEncoded, schema: integerSchema },
+			output: { object: emptyArray },
+		},
+	],
 };
-
-module.exports = generateValidArrayEncodings;

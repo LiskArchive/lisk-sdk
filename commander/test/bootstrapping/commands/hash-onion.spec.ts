@@ -15,14 +15,15 @@
 
 import * as fs from 'fs-extra';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import * as Config from '@oclif/config';
 import { HashOnionCommand } from '../../../src/bootstrapping/commands/hash-onion';
 import { getConfig } from '../../helpers/config';
+import { Awaited } from '../../types';
+import { OWNER_READ_WRITE } from '../../../src/constants';
 
 describe('hash-onion command', () => {
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];
@@ -43,7 +44,7 @@ describe('hash-onion command', () => {
 			for (let i = 0; i < result.hashes.length - 1; i += 1) {
 				let nextHash = Buffer.from(result.hashes[i + 1], 'hex');
 				for (let j = 0; j < result.distance; j += 1) {
-					nextHash = cryptography.hash(nextHash).slice(0, 16);
+					nextHash = cryptography.utils.hash(nextHash).slice(0, 16);
 				}
 				expect(result.hashes[i]).toBe(nextHash.toString('hex'));
 			}
@@ -57,7 +58,9 @@ describe('hash-onion command', () => {
 				config,
 			);
 			expect(fs.ensureDirSync).toHaveBeenCalledWith('./test');
-			expect(fs.writeJSONSync).toHaveBeenCalledWith('./test/sample.json', expect.anything());
+			expect(fs.writeJSONSync).toHaveBeenCalledWith('./test/sample.json', expect.anything(), {
+				mode: OWNER_READ_WRITE,
+			});
 		});
 
 		it('should write to file in pretty format', async () => {
@@ -68,6 +71,7 @@ describe('hash-onion command', () => {
 			expect(fs.ensureDirSync).toHaveBeenCalledWith('./test');
 			expect(fs.writeJSONSync).toHaveBeenCalledWith('./test/sample.json', expect.anything(), {
 				spaces: ' ',
+				mode: OWNER_READ_WRITE,
 			});
 		});
 	});

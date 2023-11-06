@@ -12,25 +12,54 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 
-export const CHAIN_STATE_BURNT_FEE = 'burntFee';
-export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'finalizedHeight';
-export const CONSENSUS_STATE_VALIDATORS_KEY = 'validators';
-export const CONSENSUS_STATE_GENESIS_INFO = 'genesisInfo';
-
+export const DEFAULT_KEEP_EVENTS_FOR_HEIGHTS = 300;
 export const DEFAULT_MIN_BLOCK_HEADER_CACHE = 309;
 export const DEFAULT_MAX_BLOCK_HEADER_CACHE = 515;
 
-export const EVENT_NEW_BLOCK = 'EVENT_NEW_BLOCK';
-export const EVENT_DELETE_BLOCK = 'EVENT_DELETE_BLOCK';
-export const EVENT_VALIDATORS_CHANGED = 'EVENT_VALIDATORS_CHANGED';
-
 export const EMPTY_BUFFER = Buffer.alloc(0);
-export const EMPTY_HASH = hash(EMPTY_BUFFER);
+export const EMPTY_HASH = utils.hash(EMPTY_BUFFER);
+export const LENGTH_ADDRESS = 20;
+export const MAX_UINT32 = 4294967295;
 
 export const GENESIS_BLOCK_VERSION = 0;
-export const GENESIS_BLOCK_GENERATOR_PUBLIC_KEY = EMPTY_BUFFER;
+export const GENESIS_BLOCK_GENERATOR_ADDRESS = EMPTY_BUFFER;
 export const GENESIS_BLOCK_REWARD = BigInt(0);
 export const GENESIS_BLOCK_SIGNATURE = EMPTY_BUFFER;
 export const GENESIS_BLOCK_TRANSACTION_ROOT = EMPTY_HASH;
+
+export const TAG_BLOCK_HEADER = utils.createMessageTag('BH');
+export const TAG_TRANSACTION = utils.createMessageTag('TX');
+
+// TODO: Actual size TBD
+export const MAX_ASSET_DATA_SIZE_BYTES = 18;
+export const SIGNATURE_LENGTH_BYTES = 64;
+
+export const MIN_MODULE_NAME_LENGTH = 1;
+export const MAX_MODULE_NAME_LENGTH = 32;
+export const MIN_EVENT_NAME_LENGTH = 1;
+export const MAX_EVENT_NAME_LENGTH = 32;
+export const MIN_CROSS_CHAIN_COMMAND_NAME_LENGTH = 1;
+export const MAX_CROSS_CHAIN_COMMAND_NAME_LENGTH = 32;
+
+export const SMT_PREFIX_SIZE = 6;
+
+// LIP https://github.com/LiskHQ/lips/blob/main/proposals/lip-0065.md#constants
+export const EVENT_TOPIC_HASH_LENGTH_BYTES = 8;
+export const EVENT_INDEX_LENGTH_BITS = 30;
+export const EVENT_TOPIC_INDEX_LENGTH_BITS = 2;
+export const EVENT_MAX_EVENT_SIZE_BYTES = 10 * 1024;
+
+export const MAX_PARAMS_SIZE = 14 * 1024;
+
+export const EVENT_TOTAL_INDEX_LENGTH_BYTES =
+	(EVENT_INDEX_LENGTH_BITS + EVENT_TOPIC_INDEX_LENGTH_BITS) / 8;
+
+export const EVENT_MAX_TOPICS_PER_EVENT = 2 ** EVENT_TOPIC_INDEX_LENGTH_BITS;
+export const EVENT_KEY_LENGTH = EVENT_TOPIC_HASH_LENGTH_BYTES + EVENT_TOTAL_INDEX_LENGTH_BYTES;
+
+export const MAX_EVENTS_PER_BLOCK = 2 ** EVENT_INDEX_LENGTH_BITS;
+export const EVENT_ID_LENGTH_BYTES = 4 + EVENT_TOTAL_INDEX_LENGTH_BYTES;
+
+export const NAME_REGEX = /^[a-zA-Z0-9]*$/;

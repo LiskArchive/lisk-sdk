@@ -13,23 +13,21 @@
  */
 
 import { objects } from '@liskhq/lisk-utils';
-import { testCases as objectTestCases } from '../fixtures/objects_encodings.json';
+import { testCases as objectsTestCases } from '../fixtures/objects_encodings.json';
 import { codec } from '../src/codec';
 
 describe('addSchema', () => {
 	// Arrange
-	const objectFixtureInput = objectTestCases[0].input;
+	const objectFixtureInput = objectsTestCases[0].input;
 
 	it('should add schema and keep it in cache', () => {
-		const message = objectFixtureInput.object;
-		// Replace the JSON representation of buffer with an actual buffer
-		(message as any).address = Buffer.from((message as any).address.data);
-		// Fix number not being bigint
-		(message as any).balance = BigInt(message.balance);
+		const object = {
+			...objectFixtureInput.object,
+			balance: BigInt(objectFixtureInput.object.balance as unknown as string),
+			address: Buffer.from(objectFixtureInput.object.address as unknown as string, 'hex'),
+		};
 
-		const { schema } = objectFixtureInput;
-
-		codec.encode(schema as any, message as any);
+		codec.encode(objectFixtureInput.schema, object);
 
 		expect((codec as any)._compileSchemas.object11).toMatchSnapshot();
 	});

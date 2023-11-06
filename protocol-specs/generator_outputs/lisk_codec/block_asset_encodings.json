@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for block asset types supported by lisk-codec",
+	"title": "Encoding for block asset types supported by lisk-codec",
 	"summary": "Examples of encoding block asset with lisk-codec",
 	"config": {
 		"network": "devnet"
@@ -13,13 +13,10 @@
 				"object": {
 					"maxHeightPreviouslyForged": 1049,
 					"maxHeightPrevoted": 901049,
-					"seedReveal": {
-						"type": "Buffer",
-						"data": [213, 147, 134, 224, 174, 67, 94, 41, 47, 190, 14, 188, 219, 149, 75, 117]
-					}
+					"seedReveal": "d59386e0ae435e292fbe0ebcdb954b75"
 				},
 				"schema": {
-					"$id": "blockAssetSchema",
+					"$id": "/blockAssetSchema",
 					"type": "object",
 					"properties": {
 						"maxHeightPreviouslyForged": {
@@ -48,13 +45,10 @@
 				"object": {
 					"maxHeightPreviouslyForged": 0,
 					"maxHeightPrevoted": 1049,
-					"seedReveal": {
-						"type": "Buffer",
-						"data": [234, 175, 157, 76, 101, 203, 80, 28, 129, 30, 248, 18, 132, 122, 85, 81]
-					}
+					"seedReveal": "eaaf9d4c65cb501c811ef812847a5551"
 				},
 				"schema": {
-					"$id": "blockAssetSchema",
+					"$id": "/blockAssetSchema",
 					"type": "object",
 					"properties": {
 						"maxHeightPreviouslyForged": {

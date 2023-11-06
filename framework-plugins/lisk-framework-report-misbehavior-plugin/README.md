@@ -1,6 +1,6 @@
 # @liskhq/lisk-framework-report-misbehavior-plugin
 
-@liskhq/lisk-framework-report-misbehavior-plugin is a plugin for lisk-framework that provides automatic detection of delegate misbehavior and sends a reportDelegateMisbehaviorTransaction to the running node.
+@liskhq/lisk-framework-report-misbehavior-plugin is a plugin for lisk-framework that provides automatic detection of validator misbehavior and sends a reportValidatorMisbehaviorTransaction to the running node.
 
 ## Installation
 
@@ -12,10 +12,10 @@ $ npm install --save @liskhq/lisk-framework-report-misbehavior-plugin
 
 ```
 {
-	encryptedPassphrase?: string,
+	encryptedPrivateKey?: string,
 	defaultPassword?: string,
-	dataPath: string,
-	cleanupFrequency?: number,
+	fee?: number,
+	clearBlockHeadersInterval?: number,
 }
 ```
 
@@ -36,4 +36,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 [lisk core github]: https://github.com/LiskHQ/lisk
-[lisk documentation site]: https://lisk.io/documentation/lisk-elements
+[lisk documentation site]: https://lisk.com/documentation/lisk-sdk/references/lisk-framework/report-misbehavior-plugin.html

@@ -12,36 +12,39 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
+import { apiClient, transactions as txLib } from '@liskhq/lisk-client';
 import { TableBody, TableHeader, Table } from '../Table';
 import { Widget, WidgetHeader, WidgetBody } from '../widget';
 import Text from '../Text';
 import CopiableText from '../CopiableText';
-import { NodeInfo, Transaction } from '../../types';
+import { Transaction } from '../../types';
 import styles from './TransactionWidget.module.scss';
+
+type Metadata = apiClient.APIClient['metadata'];
 
 interface WidgetProps {
 	transactions: Transaction[];
-	nodeInfo?: NodeInfo;
+	metadata?: Metadata;
 	title: string;
 }
 
 const getModuleAsset = (
-	nodeInfo: NodeInfo | undefined,
-	moduleID: number,
-	assetID: number,
+	metadata: Metadata | undefined,
+	module: string,
+	command: string,
 ): string => {
-	if (!nodeInfo) {
+	if (!metadata) {
 		return 'unknown';
 	}
-	const registeredModule = nodeInfo.registeredModules.find(rm => rm.id === moduleID);
+	const registeredModule = metadata.find(rm => rm.name === module);
 	if (!registeredModule) {
 		return 'unknown';
 	}
-	const registeredAsset = registeredModule.transactionAssets?.find(ta => ta.id === assetID);
-	if (!registeredAsset) {
-		return `${registeredModule.name}:unknown`;
+	const registeredCommand = registeredModule.commands.find(ta => ta.name === command);
+	if (!registeredCommand) {
+		return `${registeredModule.name}_unknown`;
 	}
-	return `${registeredModule.name}:${registeredAsset.name}`;
+	return `${registeredModule.name}_${registeredCommand.name}`;
 };
 
 const TransactionWidget: React.FC<WidgetProps> = props => {
@@ -57,13 +60,13 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 					<TableHeader sticky>
 						<tr>
 							<th className={styles.headerID}>
-								<Text>Id</Text>
+								<Text>ID</Text>
 							</th>
 							<th className={styles.headerSender}>
 								<Text>Sender</Text>
 							</th>
 							<th className={styles.headerModule}>
-								<Text>Module:Asset</Text>
+								<Text>Module_Command</Text>
 							</th>
 							<th className={styles.headerFee}>
 								<Text>Fee</Text>
@@ -83,11 +86,11 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 								</td>
 								<td>
 									<Text>
-										{getModuleAsset(props.nodeInfo, transaction.moduleID, transaction.assetID)}
+										{getModuleAsset(props.metadata, transaction.module, transaction.command)}
 									</Text>
 								</td>
 								<td>
-									<Text>{transaction.fee}</Text>
+									<Text>{txLib.convertBeddowsToLSK(String(transaction.fee))}</Text>
 								</td>
 							</tr>
 						))}

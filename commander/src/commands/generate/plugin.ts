@@ -13,20 +13,20 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { flags as flagParser } from '@oclif/command';
+import { Flags as flagParser } from '@oclif/core';
 import BaseBootstrapCommand from '../../base_bootstrap_command';
 
 export default class PluginCommand extends BaseBootstrapCommand {
 	static description = 'Creates custom plugin.';
 	static examples = [
-		'generate:plugin my-plugin',
-		'generate:plugin my-plugin --standalone --output ./myplugin',
+		'generate:plugin myPlugin',
+		'generate:plugin myPlugin --standalone --output ./my_plugin',
 	];
 
 	static args = [
 		{
-			name: 'alias',
-			description: 'Alias of the plugin.',
+			name: 'name',
+			description: 'Name of the plugin.',
 			required: true,
 		},
 	];
@@ -35,44 +35,50 @@ export default class PluginCommand extends BaseBootstrapCommand {
 		...BaseBootstrapCommand.flags,
 		standalone: flagParser.boolean({
 			description: 'Create a standalone plugin package.',
-		}) as flagParser.IFlag<boolean | undefined>,
+		}),
 		output: flagParser.string({
 			description: 'Path to create the plugin.',
 			char: 'o',
 			dependsOn: ['standalone'],
-		}) as flagParser.IFlag<string | undefined>,
+		}),
 		registry: flagParser.string({
 			description: 'URL of a registry to download dependencies from.',
 			dependsOn: ['standalone'],
-		}) as flagParser.IFlag<string | undefined>,
+		}),
 	};
 
 	async run(): Promise<void> {
 		const {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			args: { alias },
+			args: { name },
 			flags: { standalone, output, registry },
-		} = this.parse(PluginCommand);
+		} = await this.parse(PluginCommand);
 
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;
 		const regexCamelCase = /[a-z]+((\d)|([A-Z0-9][a-z0-9]+))*([A-Z])?/;
 		const regexAlphabets = /[^A-Za-z]/;
-		if (!regexCamelCase.test(alias) || regexWhitespace.test(alias) || regexAlphabets.test(alias)) {
-			this.error('Invalid plugin alias');
+		if (!regexCamelCase.test(name) || regexWhitespace.test(name) || regexAlphabets.test(name)) {
+			this.error('Invalid plugin name');
 		}
 		if (standalone) {
 			return this._runBootstrapCommand('lisk:init:plugin', {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				alias,
+				name,
 				projectPath: output ?? process.env.INIT_CWD ?? process.cwd(),
 				registry,
 			});
 		}
 
+		if (!this._isLiskAppDir(process.cwd())) {
+			this.error(
+				'You can run this command only in lisk app directory. Run "lisk init --help" command for more details.',
+			);
+		}
+
 		return this._runBootstrapCommand('lisk:generate:plugin', {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			alias,
+			name,
 		});
 	}
 }

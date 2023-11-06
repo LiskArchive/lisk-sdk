@@ -19,16 +19,17 @@ import {
 	transformNestedAsset,
 } from '../../../../src/utils/reader';
 import {
-	tokenTransferAssetSchema,
-	keysRegisterAssetSchema,
-	dposVoteAssetSchema,
+	tokenTransferParamsSchema,
+	registerMultisignatureParamsSchema,
+	posVoteParamsSchema,
 } from '../../../helpers/transactions';
 
 describe('prompt', () => {
 	describe('prepareQuestions', () => {
 		it('should return array of questions for given asset schema', () => {
-			const questions = prepareQuestions(tokenTransferAssetSchema);
+			const questions = prepareQuestions(tokenTransferParamsSchema);
 			expect(questions).toEqual([
+				{ type: 'input', name: 'tokenID', message: 'Please enter: tokenID: ' },
 				{ type: 'input', name: 'amount', message: 'Please enter: amount: ' },
 				{
 					type: 'input',
@@ -42,11 +43,12 @@ describe('prompt', () => {
 
 	describe('transformAsset', () => {
 		it('should transform result according to asset schema', () => {
-			const questions = prepareQuestions(keysRegisterAssetSchema);
-			const transformedAsset = transformAsset(keysRegisterAssetSchema, {
+			const questions = prepareQuestions(registerMultisignatureParamsSchema);
+			const transformedAsset = transformAsset(registerMultisignatureParamsSchema, {
 				numberOfSignatures: '4',
 				mandatoryKeys: 'a,b',
-				optionalKeys: 'c,d',
+				optionalKeys: '',
+				signatures: 'c,d',
 			});
 			expect(questions).toEqual([
 				{
@@ -64,39 +66,45 @@ describe('prompt', () => {
 					name: 'optionalKeys',
 					message: 'Please enter: optionalKeys(comma separated values (a,b)): ',
 				},
+				{
+					type: 'input',
+					name: 'signatures',
+					message: 'Please enter: signatures(comma separated values (a,b)): ',
+				},
 			]);
 			expect(transformedAsset).toEqual({
 				numberOfSignatures: 4,
 				mandatoryKeys: ['a', 'b'],
-				optionalKeys: ['c', 'd'],
+				optionalKeys: [],
+				signatures: ['c', 'd'],
 			});
 		});
 	});
 
 	describe('transformNestedAsset', () => {
 		it('should transform result according to nested asset schema', () => {
-			const questions = prepareQuestions(dposVoteAssetSchema);
-			const transformedAsset = transformNestedAsset(dposVoteAssetSchema, [
-				{ votes: 'a,100' },
-				{ votes: 'b,300' },
+			const questions = prepareQuestions(posVoteParamsSchema);
+			const transformedAsset = transformNestedAsset(posVoteParamsSchema, [
+				{ stakes: 'a,100' },
+				{ stakes: 'b,300' },
 			]);
 
 			expect(questions).toEqual([
 				{
 					type: 'input',
-					name: 'votes',
-					message: 'Please enter: votes(delegateAddress, amount): ',
+					name: 'stakes',
+					message: 'Please enter: stakes(validatorAddress, amount): ',
 				},
 				{
 					type: 'confirm',
 					name: 'askAgain',
-					message: 'Want to enter another votes(delegateAddress, amount)',
+					message: 'Want to enter another stakes(validatorAddress, amount)',
 				},
 			]);
 			expect(transformedAsset).toEqual({
-				votes: [
-					{ delegateAddress: 'a', amount: 100 },
-					{ delegateAddress: 'b', amount: 300 },
+				stakes: [
+					{ validatorAddress: 'a', amount: 100 },
+					{ validatorAddress: 'b', amount: 300 },
 				],
 			});
 		});

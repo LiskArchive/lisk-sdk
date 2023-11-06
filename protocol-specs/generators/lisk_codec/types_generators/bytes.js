@@ -19,55 +19,51 @@ const prepareProtobuffersBytes = () =>
 
 const { Bytes } = prepareProtobuffersBytes();
 
-const generateValidBytesEncodings = () => {
-	const input = {
-		bytes: {
-			object: {
-				address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
-			},
-			schema: {
-				$id: 'object9',
-				type: 'object',
-				properties: {
-					address: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-				},
-			},
+const schema = {
+	$id: '/object9',
+	type: 'object',
+	properties: {
+		address: {
+			dataType: 'bytes',
+			fieldNumber: 1,
 		},
-		emptyBytes: {
-			object: {
-				address: Buffer.from(''),
-			},
-			schema: {
-				$id: 'object10',
-				type: 'object',
-				properties: {
-					address: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-	};
+	},
+};
 
-	const bytesEncoded = Bytes.encode(input.bytes.object).finish();
-	const emptyBytesEncoded = Bytes.encode(input.emptyBytes.object).finish();
+const bytes = {
+	address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
+};
 
-	return [
+const emptyBytes = {
+	address: Buffer.from(''),
+};
+
+const bytesEncoded = Bytes.encode(bytes).finish();
+const emptyBytesEncoded = Bytes.encode(emptyBytes).finish();
+
+module.exports = {
+	validBytesEncodingsTestCases: [
 		{
 			description: 'Encoding of chunk of bytes',
-			input: input.bytes,
-			output: { value: bytesEncoded.toString('hex') },
+			input: { object: bytes, schema },
+			output: { value: bytesEncoded },
 		},
 		{
 			description: 'Encoding of empty bytes',
-			input: input.emptyBytes,
-			output: { value: emptyBytesEncoded.toString('hex') },
+			input: { object: emptyBytes, schema },
+			output: { value: emptyBytesEncoded },
 		},
-	];
+	],
+	validBytesDecodingsTestCases: [
+		{
+			description: 'Decoding of chunk of bytes',
+			input: { value: bytesEncoded, schema },
+			output: { object: bytes },
+		},
+		{
+			description: 'Decoding of empty bytes',
+			input: { value: emptyBytesEncoded, schema },
+			output: { object: emptyBytes },
+		},
+	],
 };
-
-module.exports = generateValidBytesEncodings;

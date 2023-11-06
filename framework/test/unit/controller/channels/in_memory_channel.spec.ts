@@ -19,37 +19,43 @@ jest.mock('../../../../src/controller/bus');
 import { InMemoryChannel, BaseChannel } from '../../../../src/controller/channels';
 import { Bus } from '../../../../src/controller/bus';
 import { Event } from '../../../../src/controller/event';
+import { fakeLogger } from '../../../utils/mocks';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 
 describe('InMemoryChannel Channel', () => {
 	// Arrange
 	const params = {
-		moduleAlias: 'moduleAlias',
+		namespace: 'sample',
+		logger: fakeLogger,
+		db: {
+			newReadWriter: jest.fn().mockReturnValue({ close: jest.fn() }),
+		} as never,
+		moduleDB: {
+			write: jest.fn(),
+		} as never,
 		events: ['event1', 'event2'],
-		actions: {
-			action1: {
-				handler: jest.fn(),
-			},
-			action2: {
-				handler: jest.fn(),
-			},
-			action3: {
-				handler: jest.fn(),
-			},
-		},
+		endpoints: new Map([
+			['action1', jest.fn()],
+			['action2', jest.fn()],
+			['action3', jest.fn()],
+		]),
 		options: {},
 	};
-	const logger: any = {};
 	const config: any = {};
 	let inMemoryChannel: InMemoryChannel;
-	const bus: Bus = new Bus(logger, config);
+	const bus: Bus = new Bus(config);
+	const chainID = Buffer.from('10000000', 'hex');
 
 	beforeEach(() => {
 		// Act
 		inMemoryChannel = new InMemoryChannel(
-			params.moduleAlias,
+			params.logger,
+			params.db,
+			params.moduleDB,
+			params.namespace,
 			params.events,
-			params.actions,
-			params.options,
+			params.endpoints,
+			chainID,
 		);
 	});
 
@@ -63,8 +69,10 @@ describe('InMemoryChannel Channel', () => {
 	describe('#constructor', () => {
 		it('should create the instance with given arguments.', () => {
 			// Assert
-			expect(inMemoryChannel).toHaveProperty('moduleAlias');
-			expect(inMemoryChannel).toHaveProperty('options');
+			expect(inMemoryChannel).toHaveProperty('_db');
+			expect(inMemoryChannel).toHaveProperty('namespace');
+			expect(inMemoryChannel).toHaveProperty('eventsList');
+			expect(inMemoryChannel).toHaveProperty('endpointsList');
 		});
 	});
 
@@ -76,9 +84,18 @@ describe('InMemoryChannel Channel', () => {
 			// Assert
 			expect(inMemoryChannel['bus']).toBe(bus);
 			expect(inMemoryChannel['bus'].registerChannel).toHaveBeenCalledWith(
-				inMemoryChannel['moduleAlias'],
+				inMemoryChannel.namespace,
 				inMemoryChannel.eventsList,
-				inMemoryChannel['actions'],
+				[...params.endpoints.keys()].reduce(
+					(prev, key) => ({
+						...prev,
+						[key]: {
+							namespace: params.namespace,
+							methodName: key,
+						},
+					}),
+					{},
+				),
 				{ type: 'inMemory', channel: inMemoryChannel },
 			);
 		});
@@ -91,7 +108,7 @@ describe('InMemoryChannel Channel', () => {
 
 		it('should call bus.once with the event key', async () => {
 			// Arrange
-			const eventName = 'module:anEventName';
+			const eventName = 'module_anEventName';
 			const event = new Event(eventName);
 			await inMemoryChannel.registerToBus(bus);
 
@@ -112,7 +129,7 @@ describe('InMemoryChannel Channel', () => {
 
 		it('should call bus.once with the event key', async () => {
 			// Arrange
-			const eventName = 'module:anEventName';
+			const eventName = 'module_anEventName';
 			const event = new Event(eventName);
 
 			// Act
@@ -135,18 +152,16 @@ describe('InMemoryChannel Channel', () => {
 			);
 		});
 
-		it('should throw an Error if event module is different than moduleAlias', () => {
-			const eventName = 'differentModule:eventName';
+		it('should throw an Error if event module is different than moduleName', () => {
+			const eventName = 'differentModule_eventName';
 			expect(() => {
 				inMemoryChannel.publish(eventName);
-			}).toThrow(
-				`Event "${eventName}" not registered in "${inMemoryChannel['moduleAlias']}" module.`,
-			);
+			}).toThrow(`Event "${eventName}" not registered in "${inMemoryChannel.namespace}" module.`);
 		});
 
-		it('should call bus.publish if the event module is equal to moduleAlias', async () => {
+		it('should call bus.publish if the event module is equal to moduleName', async () => {
 			// Arrange
-			const eventFullName = `${inMemoryChannel['moduleAlias']}:eventName`;
+			const eventFullName = `${inMemoryChannel.namespace}_eventName`;
 			const event = new Event(eventFullName);
 
 			// Act
@@ -163,29 +178,74 @@ describe('InMemoryChannel Channel', () => {
 	describe('#invoke', () => {
 		const actionName = 'action1';
 
-		it('should execute the action straight away if the action module is equal to moduleAlias', async () => {
+		it('should execute the action straight away if the action module is equal to moduleName', async () => {
 			// Arrange
-			const actionFullName = `${inMemoryChannel['moduleAlias']}:${actionName}`;
+			const actionFullName = `${inMemoryChannel.namespace}_${actionName}`;
 
 			// Act
-			await inMemoryChannel.invoke(actionFullName);
+			await inMemoryChannel.invoke({ methodName: actionFullName, context: {} });
 
 			// Assert
-			expect(params.actions.action1.handler).toHaveBeenCalled();
+			expect(params.endpoints.get('action1')).toHaveBeenCalled();
 		});
 
-		it('should call bus.invoke if the action module is different to moduleAlias', async () => {
+		it('should execute the endpoint with PrefixedStateReadWriter', async () => {
 			// Arrange
-			const actionFullName = `aDifferentModule:${actionName}`;
+			const actionFullName = `${inMemoryChannel.namespace}_${actionName}`;
+
+			// Act
+			await inMemoryChannel.invoke({ methodName: actionFullName, context: {} });
+
+			// Assert
+			expect(
+				(params.endpoints.get('action1') as jest.Mock).mock.calls[0][0].getStore(
+					Buffer.from([0, 0, 0, 0]),
+					Buffer.from([0, 0, 0, 0]),
+				),
+			).toBeInstanceOf(PrefixedStateReadWriter);
+			expect(
+				(params.endpoints.get('action1') as jest.Mock).mock.calls[0][0]
+					.getImmutableMethodContext()
+					.getStore(Buffer.from([0, 0, 0, 0]), Buffer.from([0, 0, 0, 0])),
+			).toBeInstanceOf(PrefixedStateReadWriter);
+		});
+
+		it('should store changes to the module DB', async () => {
+			// Arrange
+			const actionFullName = `${inMemoryChannel.namespace}_${actionName}`;
+
+			// Act
+			await inMemoryChannel.invoke({ methodName: actionFullName, context: {} });
+
+			// Assert
+			expect(inMemoryChannel['_moduleDB'].write).toHaveBeenCalledTimes(1);
+		});
+
+		it('should call bus.invoke if the action module is different to moduleName', async () => {
+			// Arrange
+			const actionFullName = `aDifferentModule_${actionName}`;
 
 			// Act
 			await inMemoryChannel.registerToBus(bus);
 			jest.spyOn(bus, 'invoke').mockResolvedValue({ result: {} } as never);
 
-			await inMemoryChannel.invoke(actionFullName);
+			await inMemoryChannel.invoke({ methodName: actionFullName, context: {} });
 
 			// Assert
 			expect(inMemoryChannel['bus'].invoke).toHaveBeenCalled();
+		});
+
+		it('should throw an error if the action does not exist', async () => {
+			// Arrange
+			const actionFullName = `${inMemoryChannel.namespace}_nonExistingAction`;
+
+			// Act
+			await inMemoryChannel.registerToBus(bus);
+
+			// Assert
+			await expect(
+				inMemoryChannel.invoke({ methodName: actionFullName, context: {} }),
+			).rejects.toThrow(`The action 'nonExistingAction' on module 'sample' does not exist.`);
 		});
 	});
 });

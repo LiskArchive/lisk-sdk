@@ -14,8 +14,9 @@
  */
 
 import { REPLServer, start } from 'repl';
-import Command, { flags as flagParser } from '@oclif/command';
-import * as liskClient from '@liskhq/lisk-client';
+import { Command, Flags as flagParser } from '@oclif/core';
+import * as apiClient from '@liskhq/lisk-api-client';
+import * as lisk from '@liskhq/lisk-client';
 
 interface ConsoleFlags {
 	readonly 'api-ipc'?: string;
@@ -43,7 +44,7 @@ export class ConsoleCommand extends Command {
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(ConsoleCommand);
+		const { flags } = await this.parse(ConsoleCommand);
 
 		this.log('Entering Lisk REPL: type `Ctrl+C` or `.exit` to exit');
 
@@ -63,19 +64,12 @@ export class ConsoleCommand extends Command {
 	}
 
 	async initREPLContext(replServer: REPLServer, flags: ConsoleFlags): Promise<void> {
-		const clientLibraries = liskClient as Record<string, unknown>;
-		Object.keys(clientLibraries).forEach(key => {
-			// Skip client buffer library to avoid nodejs native buffer namespace collision
-			if (key.toLowerCase() !== 'buffer') {
-				Object.defineProperty(replServer.context, key, {
-					enumerable: true,
-					value: clientLibraries[key],
-				});
-			}
+		Object.defineProperty(replServer.context, 'lisk', {
+			enumerable: true,
+			value: lisk,
 		});
-
 		if (flags['api-ipc']) {
-			const ipcClient = await liskClient.apiClient.createIPCClient(flags['api-ipc']);
+			const ipcClient = await apiClient.createIPCClient(flags['api-ipc']);
 			Object.defineProperty(replServer.context, 'client', {
 				enumerable: true,
 				value: ipcClient,
@@ -83,7 +77,7 @@ export class ConsoleCommand extends Command {
 		}
 
 		if (flags['api-ws']) {
-			const wsClient = await liskClient.apiClient.createWSClient(flags['api-ws']);
+			const wsClient = await apiClient.createWSClient(flags['api-ws']);
 			Object.defineProperty(replServer.context, 'client', {
 				enumerable: true,
 				value: wsClient,

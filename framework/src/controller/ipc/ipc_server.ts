@@ -12,46 +12,43 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-// eslint-disable-next-line
-/// <reference path="../../../external_types/pm2-axon/index.d.ts" />
-// eslint-disable-next-line
-/// <reference path="../../../external_types/pm2-axon-rpc/index.d.ts" />
-
-import * as axon from 'pm2-axon';
-import { PubSocket, PullSocket } from 'pm2-axon';
+import { Publisher, Subscriber } from 'zeromq';
 import { IPCSocket } from './ipc_socket';
 
-export class IPCServer extends IPCSocket {
-	public constructor(options: { socketsDir: string; name: string }) {
-		super(options);
+interface ServerSocketPaths {
+	readonly pub: string;
+	readonly sub: string;
+	readonly rpcServer: string;
+}
 
-		this.pubSocket = axon.socket('pub', {}) as PubSocket;
-		this.subSocket = axon.socket('pull', {}) as PullSocket;
+export class IPCServer extends IPCSocket {
+	public readonly socketPaths: ServerSocketPaths;
+
+	public constructor(options: { socketsDir: string; name: string; externalSocket?: boolean }) {
+		super(options);
+		this.socketPaths = {
+			pub: this._eventPubSocketPath,
+			sub: this._eventSubSocketPath,
+			rpcServer: this._rpcSeverSocketPath,
+		};
 	}
 
 	public async start(): Promise<void> {
 		await super.start();
-
-		await new Promise((resolve, reject) => {
-			this.pubSocket.on('bind', resolve);
-			this.pubSocket.on('error', reject);
-
-			this.pubSocket.bind(this._eventPubSocketPath);
-		}).finally(() => {
-			this.pubSocket.removeAllListeners('bind');
-			this.pubSocket.removeAllListeners('error');
-		});
-
-		await new Promise((resolve, reject) => {
-			this.subSocket.on('bind', resolve);
-			this.subSocket.on('error', reject);
-
-			// We switched the path here to establish communication
-			// The socket on which server is publishing clients will observer
-			this.subSocket.bind(this._eventSubSocketPath);
-		}).finally(() => {
-			this.subSocket.removeAllListeners('bind');
-			this.subSocket.removeAllListeners('error');
-		});
+		this.pubSocket = new Publisher();
+		this.subSocket = new Subscriber();
+		try {
+			await this.pubSocket.bind(this._eventPubSocketPath);
+			await this.subSocket.bind(this._eventSubSocketPath);
+			// Subscribe to all the events
+			this.subSocket.subscribe();
+		} catch (error) {
+			this.pubSocket.close();
+			this.subSocket.close();
+			throw error;
+		}
+	}
+	public stop(): void {
+		super.stop();
 	}
 }

@@ -26,41 +26,45 @@ import Logo from '../components/Logo';
 import Text from '../components/Text';
 import Ticker from '../components/Ticker';
 import { BlockWidget, RecentEventWidget, TransactionWidget } from '../components/widgets';
-import CallActionWidget from '../components/widgets/CallActionWidget';
+import CallEndpointWidget from '../components/widgets/CallEndpointWidget';
 import MyAccountWidget from '../components/widgets/MyAccountWidget';
 import SendTransactionWidget from '../components/widgets/SendTransactionWidget';
 import useMessageDialog from '../providers/useMessageDialog';
 import {
 	Account,
-	Block,
 	NodeInfo,
 	Transaction,
 	EventData,
 	SendTransactionOptions,
-	CallActionOptions,
+	CallEndpointOptions,
+	BlockHeader,
+	ParsedEvent,
+	Block,
 } from '../types';
-import { getConfig, updateStatesOnNewBlock, updateStatesOnNewTransaction } from '../utils';
+import {
+	getConfig,
+	getKeyPath,
+	updateStatesOnNewBlock,
+	updateStatesOnNewTransaction,
+} from '../utils';
 import useRefState from '../utils/useRefState';
 import styles from './MainPage.module.scss';
 
 const nodeInfoDefaultValue: NodeInfo = {
 	version: '',
 	networkVersion: '',
-	networkIdentifier: '',
+	chainID: '',
 	syncing: false,
 	unconfirmedTransactions: 0,
 	height: 0,
 	finalizedHeight: 0,
 	lastBlockID: '',
-	registeredModules: [],
-	genesisConfig: {
-		communityIdentifier: '',
+	genesis: {
 		blockTime: 0,
-		maxPayloadLength: 0,
-		bftThreshold: 0,
+		maxTransactionsSize: 0,
+		bftBatchSize: 0,
 		rewards: { milestones: [], offset: 0, distance: 0 },
-		minFeePerByte: 0,
-		baseFees: [],
+		chainID: '',
 	},
 };
 const MAX_RECENT_EVENT = 100;
@@ -85,32 +89,22 @@ const callAndProcessActions = async (
 	let result = (await client.invoke(action, params)) as unknown;
 
 	switch (action) {
-		case 'app:getAccount':
-			result = client.account.toJSON(client.account.decode(result as string));
-			break;
-
-		case 'app:getAccounts':
-			result = (result as string[]).map(account =>
-				client.account.toJSON(client.account.decode(account)),
-			);
-			break;
-
-		case 'app:getLastBlock':
-		case 'app:getBlockByID':
-		case 'app:getBlockByHeight':
+		case 'chain_getLastBlock':
+		case 'chain_getBlockByID':
+		case 'chain_getBlockByHeight':
 			result = client.block.toJSON(client.block.decode(result as string));
 			break;
 
-		case 'app:getBlocksByHeightBetween':
-		case 'app:getBlocksByIDs':
+		case 'chain_getBlocksByHeightBetween':
+		case 'chain_getBlocksByIDs':
 			result = (result as string[]).map(block => client.block.toJSON(client.block.decode(block)));
 			break;
 
-		case 'app:getTransactionByID':
+		case 'chain_getTransactionByID':
 			result = client.transaction.toJSON(client.transaction.decode(result as string));
 			break;
 
-		case 'app:getTransactionsByIDs':
+		case 'chain_getTransactionsByIDs':
 			result = (result as string[]).map(transaction =>
 				client.transaction.toJSON(client.transaction.decode(transaction)),
 			);
@@ -142,13 +136,10 @@ const MainPage: React.FC = () => {
 	const [confirmedTransactions, setConfirmedTransactions, confirmedTransactionsRef] = useRefState<
 		Transaction[]
 	>([]);
-	const [
-		unconfirmedTransactions,
-		setUnconfirmedTransactions,
-		unconfirmedTransactionsRef,
-	] = useRefState<Transaction[]>([]);
+	const [unconfirmedTransactions, setUnconfirmedTransactions, unconfirmedTransactionsRef] =
+		useRefState<Transaction[]>([]);
 	const [events, setEvents] = React.useState<string[]>([]);
-	const [eventsData, setEventsData, eventsDataRef] = useRefState<EventData[]>([]);
+	const [eventsData, setEventsData, eventsDataRef] = useRefState<ParsedEvent[]>([]);
 	const [eventSubscriptionList, setEventSubscriptionList, eventSubscriptionListRef] = useRefState<
 		string[]
 	>([]);
@@ -161,13 +152,18 @@ const MainPage: React.FC = () => {
 
 	const newBlockListener = React.useCallback(
 		async event => {
-			const result = updateStatesOnNewBlock(
+			const { blockHeader } = event as { blockHeader: BlockHeader };
+			const result = await updateStatesOnNewBlock(
 				getClient(),
-				(event as { block: string }).block,
+				blockHeader,
 				blocksRef.current,
 				confirmedTransactionsRef.current,
 				unconfirmedTransactionsRef.current,
 			);
+			const blockEvents = await getClient().invoke<EventData[]>('chain_getEvents', {
+				height: blockHeader.height,
+			});
+			newEventListener(blockEvents);
 			setBlocks(result.blocks);
 			setConfirmedTransactions(result.confirmedTransactions);
 			setUnconfirmedTransactions(result.unconfirmedTransactions);
@@ -180,8 +176,7 @@ const MainPage: React.FC = () => {
 		event => {
 			setUnconfirmedTransactions(
 				updateStatesOnNewTransaction(
-					getClient(),
-					(event as { transaction: string }).transaction,
+					(event as { transaction: Transaction }).transaction,
 					unconfirmedTransactionsRef.current,
 				),
 			);
@@ -190,12 +185,34 @@ const MainPage: React.FC = () => {
 	);
 
 	const newEventListener = React.useCallback(
-		(name: string, event?: Record<string, unknown>) => {
-			if (eventSubscriptionListRef.current.includes(name)) {
-				eventsDataRef.current.unshift({ name, data: event ?? {} });
-				const recentEventsData = eventsDataRef.current.slice(-1 * MAX_RECENT_EVENT);
-				setEventsData(recentEventsData);
+		(blockEvents: EventData[]) => {
+			const convertedEvents: ParsedEvent[] = [];
+			for (const blockEvent of blockEvents) {
+				if (
+					eventSubscriptionListRef.current.length > 0 &&
+					!eventSubscriptionListRef.current.includes(`${blockEvent.module}_${blockEvent.name}`)
+				) {
+					continue;
+				}
+				const metadata = getClient()
+					.metadata.find(m => m.name === blockEvent.module)
+					?.events.find(m => m.name === blockEvent.name);
+				if (metadata?.data) {
+					convertedEvents.push({
+						...blockEvent,
+						data: codec.codec.decodeJSON(metadata.data, Buffer.from(blockEvent.data, 'hex')),
+					});
+					continue;
+				}
+				convertedEvents.push({
+					...blockEvent,
+					data: { data: blockEvent.data },
+				});
 			}
+
+			eventsDataRef.current.unshift(...convertedEvents);
+			const recentEventsData = eventsDataRef.current.slice(-1 * MAX_RECENT_EVENT);
+			setEventsData(recentEventsData);
 		},
 		[dashboard.connected],
 	);
@@ -209,18 +226,18 @@ const MainPage: React.FC = () => {
 		}
 	};
 
-	const subscribeEvents = async () => {
-		getClient().subscribe('app:block:new', newBlockListener);
-		getClient().subscribe('app:transaction:new', newTransactionListener);
-		setActions(await getClient().invoke<string[]>('app:getRegisteredActions'));
-
-		const listOfEvents = await getClient().invoke<string[]>('app:getRegisteredEvents');
-		listOfEvents.map(eventName =>
-			getClient().subscribe(eventName, event => {
-				newEventListener(eventName, event);
-			}),
-		);
+	const subscribeEvents = () => {
+		getClient().subscribe('chain_newBlock', newBlockListener);
+		getClient().subscribe('txpool_newTransaction', newTransactionListener);
+		const listOfEvents = getClient().metadata.reduce<string[]>((prev, curr) => {
+			prev.push(...curr.events.map(e => `${curr.name}_${e.name}`));
+			return prev;
+		}, []);
 		setEvents(listOfEvents);
+	};
+
+	const loadActions = async () => {
+		setActions(await getClient().invoke<string[]>('app_getRegisteredEndpoints'));
 	};
 
 	const loadNodeInfo = async () => {
@@ -237,16 +254,14 @@ const MainPage: React.FC = () => {
 	};
 
 	const generateNewAccount = () => {
-		const accountPassphrase = (passphrase.Mnemonic.generateMnemonic() as unknown) as string;
-		const { address, publicKey } = cryptography.getAddressAndPublicKeyFromPassphrase(
-			accountPassphrase,
-		);
-		const lisk32Address = cryptography.getBase32AddressFromAddress(address);
+		const accountPassphrase = passphrase.Mnemonic.generateMnemonic(256) as unknown as string;
+		const keys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(accountPassphrase);
+		const address = cryptography.address.getAddressFromPublicKey(keys.publicKey);
+		const lisk32Address = cryptography.address.getLisk32AddressFromAddress(address);
 		const newAccount: Account = {
 			passphrase: accountPassphrase,
-			publicKey: publicKey.toString('hex'),
-			binaryAddress: address.toString('hex'),
-			base32Address: lisk32Address,
+			publicKey: keys.publicKey.toString('hex'),
+			address: lisk32Address,
 		};
 
 		setMyAccounts([newAccount, ...myAccounts]);
@@ -272,7 +287,8 @@ const MainPage: React.FC = () => {
 	// Load data
 	React.useEffect(() => {
 		if (dashboard.connected) {
-			subscribeEvents().catch(console.error);
+			subscribeEvents();
+			loadActions().catch(console.error);
 			loadNodeInfo().catch(console.error);
 			loadPeersInfo().catch(console.error);
 		}
@@ -286,36 +302,41 @@ const MainPage: React.FC = () => {
 	// Send Transaction
 	const handleSendTransaction = async (data: SendTransactionOptions) => {
 		try {
-			const { publicKey, address } = cryptography.getAddressAndPublicKeyFromPassphrase(
+			const privateKey = await cryptography.ed.getPrivateKeyFromPhraseAndPath(
 				data.passphrase,
+				getKeyPath(0),
 			);
-			const assetSchema = getClient().schemas.transactionsAssets.find(
-				a => a.moduleID === data.moduleID && a.assetID === data.assetID,
-			);
-			if (!assetSchema) {
-				throw new Error(`ModuleID: ${data.moduleID} AssetID: ${data.assetID} is not registered`);
+			const publicKey = cryptography.ed.getPublicKeyFromPrivateKey(privateKey);
+			const address = cryptography.address.getAddressFromPublicKey(publicKey);
+			const moduleMeta = getClient().metadata.find(a => a.name === data.module);
+			if (!moduleMeta) {
+				throw new Error(`Module: ${data.module} Command: ${data.command} is not registered`);
 			}
-			const assetObject = codec.codec.fromJSON<Record<string, unknown>>(
-				assetSchema.schema,
-				data.asset,
-			);
-			const sender = await getClient().account.get(address);
-			const fee = getClient().transaction.computeMinFee({
-				moduleID: data.moduleID,
-				assetID: data.assetID,
-				asset: assetObject,
-				senderPublicKey: publicKey,
-				nonce: BigInt((sender.sequence as { nonce: bigint }).nonce),
+			const commandMeta = moduleMeta.commands.find(cmd => cmd.name === data.command);
+			if (!commandMeta) {
+				throw new Error(`Module: ${data.module} Command: ${data.command} is not registered`);
+			}
+			const sender = await getClient().invoke<{ nonce: string }>('auth_getAuthAccount', {
+				address: cryptography.address.getLisk32AddressFromAddress(address),
 			});
+			const fee =
+				getClient().transaction.computeMinFee({
+					module: data.module,
+					command: data.command,
+					params: data.params,
+					senderPublicKey: publicKey.toString('hex'),
+					nonce: sender.nonce,
+					fee: '0',
+					signatures: [],
+				}) + BigInt(100000000);
 			const transaction = await getClient().transaction.create(
 				{
-					moduleID: data.moduleID,
-					assetID: data.assetID,
-					asset: assetObject,
-					senderPublicKey: publicKey,
+					module: data.module,
+					command: data.command,
+					params: data.params,
 					fee,
 				},
-				data.passphrase,
+				privateKey.toString('hex'),
 			);
 
 			const resp = await getClient().transaction.send(transaction);
@@ -340,9 +361,12 @@ const MainPage: React.FC = () => {
 		}
 	};
 
-	const handleCallAction = async (data: CallActionOptions) => {
+	const handleCallEndpoint = async (data: CallEndpointOptions) => {
 		try {
 			const result = await callAndProcessActions(getClient(), data.name, data.params);
+			if (result.error) {
+				throw new Error((result.error as { message: string }).message);
+			}
 			showMessageDialog(
 				'Success!',
 				<TextAreaInput
@@ -383,12 +407,7 @@ const MainPage: React.FC = () => {
 
 	const NextBlockPanel = () => (
 		<InfoPanel title={'Next block'}>
-			<Ticker
-				color="yellow"
-				type="h1"
-				style="light"
-				seconds={nodeInfo.genesisConfig.blockTime}
-			></Ticker>
+			<Ticker color="yellow" type="h1" style="light" seconds={nodeInfo.genesis.blockTime}></Ticker>
 		</InfoPanel>
 	);
 
@@ -489,14 +508,14 @@ const MainPage: React.FC = () => {
 					<Grid md={6} xs={12}>
 						<TransactionWidget
 							title="Recent Transactions"
-							nodeInfo={nodeInfo}
+							metadata={getClient()?.metadata}
 							transactions={confirmedTransactions}
 						></TransactionWidget>
 					</Grid>
 					<Grid md={6} xs={12}>
 						<TransactionWidget
 							title="Unconfirmed Transactions"
-							nodeInfo={nodeInfo}
+							metadata={getClient()?.metadata}
 							transactions={unconfirmedTransactions}
 						></TransactionWidget>
 					</Grid>
@@ -505,17 +524,17 @@ const MainPage: React.FC = () => {
 				<Grid row>
 					<Grid md={6} xs={12}>
 						<SendTransactionWidget
-							modules={nodeInfo.registeredModules}
+							modules={getClient()?.metadata ?? []}
 							onSubmit={data => {
 								handleSendTransaction(data).catch(console.error);
 							}}
 						/>
 					</Grid>
 					<Grid md={6} xs={12}>
-						<CallActionWidget
+						<CallEndpointWidget
 							actions={actions}
 							onSubmit={data => {
-								handleCallAction(data).catch(console.error);
+								handleCallEndpoint(data).catch(console.error);
 							}}
 						/>
 					</Grid>

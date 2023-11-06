@@ -1,0 +1,150 @@
+{
+	"title": "Decoding for arrays types supported by lisk-codec",
+	"summary": "Examples of encoding arrays with lisk-codec",
+	"config": {
+		"network": "devnet"
+	},
+	"runner": "lisk_codec",
+	"handler": "arrays_decodings",
+	"testCases": [
+		{
+			"description": "Decoding of integers array",
+			"input": {
+				"value": "0a09030104010509020605",
+				"schema": {
+					"type": "object",
+					"$id": "/arraySchemaUint32",
+					"properties": {
+						"list": {
+							"type": "array",
+							"items": {
+								"dataType": "uint32"
+							},
+							"fieldNumber": 1
+						}
+					}
+				}
+			},
+			"output": {
+				"object": {
+					"list": [3, 1, 4, 1, 5, 9, 2, 6, 5]
+				}
+			}
+		},
+		{
+			"description": "Decoding of booleans array",
+			"input": {
+				"value": "0a06010100010000",
+				"schema": {
+					"type": "object",
+					"$id": "/arraySchemaBoolean",
+					"properties": {
+						"list": {
+							"type": "array",
+							"items": {
+								"dataType": "boolean"
+							},
+							"fieldNumber": 1
+						}
+					}
+				}
+			},
+			"output": {
+				"object": {
+					"list": [true, true, false, true, false, false]
+				}
+			}
+		},
+		{
+			"description": "Decoding of strings array",
+			"input": {
+				"value": "0a046c69736b0a000a07676f676f676f67",
+				"schema": {
+					"type": "object",
+					"$id": "/arraySchemaString",
+					"properties": {
+						"list": {
+							"type": "array",
+							"items": {
+								"dataType": "string"
+							},
+							"fieldNumber": 1
+						}
+					}
+				}
+			},
+			"output": {
+				"object": {
+					"list": ["lisk", "", "gogogog"]
+				}
+			}
+		},
+		{
+			"description": "Decoding of objects array",
+			"input": {
+				"value": "0a2e0a286531316131313336343733383232353831336638366561383532313434303065356462303864366510a08d060a2e0a286161326131313336343733383232353831336638366561383532313434303065356462303866666610e0a712",
+				"schema": {
+					"type": "object",
+					"$id": "/arraySchemaObject",
+					"properties": {
+						"list": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"address": {
+										"dataType": "string",
+										"fieldNumber": 1
+									},
+									"amount": {
+										"dataType": "uint64",
+										"fieldNumber": 2
+									}
+								}
+							},
+							"fieldNumber": 1
+						}
+					}
+				}
+			},
+			"output": {
+				"object": {
+					"list": [
+						{
+							"address": "e11a11364738225813f86ea85214400e5db08d6e",
+							"amount": "100000"
+						},
+						{
+							"address": "aa2a11364738225813f86ea85214400e5db08fff",
+							"amount": "300000"
+						}
+					]
+				}
+			}
+		},
+		{
+			"description": "Decoding of empty array",
+			"input": {
+				"value": "",
+				"schema": {
+					"type": "object",
+					"$id": "/arraySchemaUint32",
+					"properties": {
+						"list": {
+							"type": "array",
+							"items": {
+								"dataType": "uint32"
+							},
+							"fieldNumber": 1
+						}
+					}
+				}
+			},
+			"output": {
+				"object": {
+					"list": []
+				}
+			}
+		}
+	]
+}

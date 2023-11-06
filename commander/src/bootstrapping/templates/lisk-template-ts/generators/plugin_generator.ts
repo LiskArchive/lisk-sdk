@@ -26,7 +26,7 @@ interface PluginPrompts {
 }
 
 interface PluginGeneratorOptions {
-	alias: string;
+	name: string;
 }
 
 export default class PluginGenerator extends Generator {
@@ -35,14 +35,14 @@ export default class PluginGenerator extends Generator {
 	protected _packageJSON: Record<string, unknown> | undefined;
 	protected _className: string;
 	protected _pluginFileName: string;
-	protected _alias: string;
+	protected _name: string;
 
 	public constructor(args: string | string[], opts: PluginGeneratorOptions) {
 		super(args, opts);
 		this._templatePath = join(__dirname, '..', 'templates', 'plugin');
-		this._alias = (this.options as PluginGeneratorOptions).alias;
-		this._pluginFileName = camelToSnake(this._alias);
-		this._className = `${this._alias.charAt(0).toUpperCase() + this._alias.slice(1)}Plugin`;
+		this._name = (this.options as PluginGeneratorOptions).name;
+		this._pluginFileName = camelToSnake(this._name);
+		this._className = `${this._name.charAt(0).toUpperCase() + this._name.slice(1)}Plugin`;
 	}
 
 	async prompting() {
@@ -59,17 +59,6 @@ export default class PluginGenerator extends Generator {
 			: ((await this.prompt([
 					{
 						type: 'input',
-						name: 'author',
-						message: 'Author of plugin',
-					},
-					{
-						type: 'input',
-						name: 'version',
-						message: 'Version of plugin',
-						default: '0.1.0',
-					},
-					{
-						type: 'input',
 						name: 'name',
 						message: 'Name of plugin',
 					},
@@ -84,11 +73,8 @@ export default class PluginGenerator extends Generator {
 				`src/app/plugins/${this._pluginFileName}/${this._pluginFileName}_plugin.ts`,
 			),
 			{
-				alias: this._alias,
 				className: this._className,
-				author: this._packageJSON?.author ?? this._answers?.author,
-				version: this._packageJSON?.version ?? this._answers?.version,
-				name: this._alias,
+				name: this._name,
 			},
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
@@ -101,7 +87,7 @@ export default class PluginGenerator extends Generator {
 				`test/unit/plugins/${this._pluginFileName}/${this._pluginFileName}_plugin.spec.ts`,
 			),
 			{
-				alias: this._alias,
+				name: this._name,
 				className: this._className,
 			},
 			{},
@@ -127,7 +113,7 @@ export default class PluginGenerator extends Generator {
 			.getInitializerIfKindOrThrow(SyntaxKind.ArrowFunction);
 
 		registerFunction.setBodyText(
-			`${registerFunction.getBodyText()}\napp.registerPlugin(${this._className});`,
+			`${registerFunction.getBodyText()}\napp.registerPlugin(new ${this._className}());`,
 		);
 
 		pluginsFile.organizeImports();

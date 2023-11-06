@@ -8,7 +8,10 @@ stacktrace*
 tmp
 dist-node
 jest.config*
-test/test_app/
 __mocks__
 .eslintrc.js
 test/**/setup.js
+
+# Temporally disable integration and functional
+test/integration
+test/functional

@@ -13,7 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Command, flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
+import { existsSync } from 'fs';
+import { join } from 'path';
 import { env } from './bootstrapping/env';
 
 interface BootstrapFlags {
@@ -21,7 +23,7 @@ interface BootstrapFlags {
 }
 
 export default abstract class BaseBootstrapCommand extends Command {
-	static flags: flagParser.Input<any> = {
+	static flags = {
 		template: flagParser.string({
 			char: 't',
 			description:
@@ -38,11 +40,7 @@ export default abstract class BaseBootstrapCommand extends Command {
 	}
 
 	async init(): Promise<void> {
-		// Typing problem where constructor is not allow as Input<any> but it requires to be the type
-		const { flags } = this.parse(
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			(this.constructor as unknown) as flagParser.Input<any>,
-		);
+		const { flags } = await this.parse(this.constructor as never);
 		this.bootstrapFlags = flags as BootstrapFlags;
 
 		process.stdout.on('error', (err: { errno: string }): void => {
@@ -52,23 +50,18 @@ export default abstract class BaseBootstrapCommand extends Command {
 		});
 	}
 
+	protected _isLiskAppDir(path: string): boolean {
+		return existsSync(join(path, '.liskrc.json'));
+	}
+
 	protected async _runBootstrapCommand(
 		command: string,
 		opts?: Record<string, unknown>,
 	): Promise<void> {
-		return new Promise(resolve => {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-			env.run(
-				command,
-				{ ...opts, template: this.bootstrapFlags.template, version: this.config.version },
-				(err): void => {
-					if (err) {
-						this.error(err);
-					}
-
-					return resolve();
-				},
-			);
+		await env.run(command, {
+			...opts,
+			template: this.bootstrapFlags.template,
+			version: this.config.version,
 		});
 	}
 }

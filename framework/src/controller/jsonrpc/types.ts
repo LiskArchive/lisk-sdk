@@ -25,7 +25,7 @@ export interface RequestObject {
 	readonly id: ID;
 	readonly jsonrpc: string;
 	readonly method: string;
-	readonly params?: object & { source?: string };
+	readonly params?: Record<string, unknown>;
 }
 
 export type NotificationRequest = Omit<RequestObject, 'id'>;

@@ -20,7 +20,7 @@ const { createWSClient } = apiClient;
 describe('createWSClient', () => {
 	it('should connect to ws server', async () => {
 		const client = await createWSClient('ws://localhost:8989/ws');
-		expect(client).not.toBeUndefined();
+		expect(client).toBeDefined();
 
 		await client.disconnect();
 	});

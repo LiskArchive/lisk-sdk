@@ -12,32 +12,24 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-// eslint-disable-next-line
-/// <reference path="../external_types/pm2-axon/index.d.ts" />
-// eslint-disable-next-line
-/// <reference path="../external_types/pm2-axon-rpc/index.d.ts" />
-
 import { mkdirSync } from 'fs';
 import * as path from 'path';
-import * as axon from 'pm2-axon';
-import { PushSocket, PubSocket, PullSocket, SubSocket, RepSocket } from 'pm2-axon';
-import { Server as RPCServer, Client as RPCClient } from 'pm2-axon-rpc';
+import { Publisher, Subscriber, Router, Dealer } from 'zeromq';
 
 const getSocketsPath = (dataPath: string) => {
 	const socketDir = path.join(dataPath, 'tmp', 'sockets');
 	return {
-		root: `unix://${socketDir}`,
-		pub: `unix://${socketDir}/pub_socket.sock`,
-		sub: `unix://${socketDir}/sub_socket.sock`,
-		rpc: `unix://${socketDir}/bus_rpc_socket.sock`,
+		pub: `ipc://${socketDir}/external.pub.ipc`,
+		sub: `ipc://${socketDir}/external.sub.ipc`,
+		rpc: `ipc://${socketDir}/bus.external.rpc.ipc`,
 	};
 };
 
 export class IPCServer {
-	public rpcServer: RPCServer;
-	public rpcClient!: RPCClient;
-	public pubSocket!: PushSocket | PubSocket;
-	public subSocket!: PullSocket | SubSocket;
+	public rpcServer: Router;
+	public rpcClient!: Dealer;
+	public pubSocket!: Publisher;
+	public subSocket!: Subscriber;
 	public eventPubSocketPath: string;
 	public eventSubSocketPath: string;
 	public rpcServerSocketPath: string;
@@ -46,59 +38,33 @@ export class IPCServer {
 		const socketsDir = getSocketsPath(dataPath);
 
 		mkdirSync(path.join(dataPath, 'tmp', 'sockets'), { recursive: true });
-		this.eventPubSocketPath = path.join(socketsDir.root, 'pub_socket.sock');
-		this.eventSubSocketPath = path.join(socketsDir.root, 'sub_socket.sock');
-		this.rpcServerSocketPath = path.join(socketsDir.root, 'bus_rpc_socket.sock');
+		this.eventPubSocketPath = socketsDir.pub;
+		this.eventSubSocketPath = socketsDir.sub;
+		this.rpcServerSocketPath = socketsDir.rpc;
 
-		this.pubSocket = axon.socket('pub', {}) as PubSocket;
-		this.subSocket = axon.socket('pull', {}) as PullSocket;
-		this.rpcServer = new RPCServer(axon.socket('rep') as RepSocket);
+		this.pubSocket = new Publisher();
+		this.subSocket = new Subscriber();
+		this.rpcServer = new Router();
 	}
 
 	public async start(): Promise<void> {
-		await new Promise((resolve, reject) => {
-			this.pubSocket.on('bind', resolve);
-			this.pubSocket.on('error', reject);
-
-			this.pubSocket.bind(this.eventPubSocketPath);
-		}).finally(() => {
-			this.pubSocket.removeAllListeners('bind');
-			this.pubSocket.removeAllListeners('error');
-		});
-
-		await new Promise((resolve, reject) => {
-			this.subSocket.on('bind', resolve);
-			this.subSocket.on('error', reject);
-			this.subSocket.bind(this.eventSubSocketPath);
-		}).finally(() => {
-			this.subSocket.removeAllListeners('bind');
-			this.subSocket.removeAllListeners('error');
-		});
-
-		await new Promise((resolve, reject) => {
-			this.rpcServer.sock.on('bind', resolve);
-			this.rpcServer.sock.on('error', reject);
-			this.rpcServer.sock.bind(this.rpcServerSocketPath);
-		}).finally(() => {
-			this.rpcServer.sock.removeAllListeners('bind');
-			this.rpcServer.sock.removeAllListeners('error');
-		});
+		try {
+			await this.rpcServer.bind(this.rpcServerSocketPath);
+			await this.pubSocket.bind(this.eventPubSocketPath);
+			await this.subSocket.bind(this.eventSubSocketPath);
+			// Subscribe to all the events
+			this.subSocket.subscribe();
+		} catch (error) {
+			this.rpcServer.close();
+			this.pubSocket.close();
+			this.subSocket.close();
+			throw error;
+		}
 	}
 
 	public stop(): void {
-		this.subSocket.removeAllListeners();
 		this.pubSocket.close();
 		this.subSocket.close();
-		this.rpcServer.sock.close();
-	}
-
-	public publish(eventName: string, data?: Record<string, unknown>): void {
-		const [moduleName, funcName] = eventName.split(':');
-		const event = {
-			module: moduleName,
-			name: funcName,
-			data: data ?? {},
-		};
-		this.pubSocket.send(eventName, event);
+		this.rpcServer.close();
 	}
 }

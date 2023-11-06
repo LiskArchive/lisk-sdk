@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for string types supported by lisk-codec",
+	"title": "Encoding for string types supported by lisk-codec",
 	"summary": "Examples of encoding strings with lisk-codec",
 	"config": {
 		"network": "devnet"
@@ -14,7 +14,7 @@
 					"data": "Checkout Lisk SDK!"
 				},
 				"schema": {
-					"$id": "object7",
+					"$id": "/stringSchema",
 					"type": "object",
 					"properties": {
 						"data": {
@@ -35,7 +35,7 @@
 					"data": ""
 				},
 				"schema": {
-					"$id": "object8",
+					"$id": "/stringSchema",
 					"type": "object",
 					"properties": {
 						"data": {
@@ -56,7 +56,7 @@
 					"data": "€.ƒ.‰.Œ.£.©.®.µ.Æ.ü.ý.ø.Ç.¥.ß"
 				},
 				"schema": {
-					"$id": "object8",
+					"$id": "/stringSchema",
 					"type": "object",
 					"properties": {
 						"data": {

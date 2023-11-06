@@ -12,12 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	ErrorObject,
-	LiskValidationError,
-	validator,
-	liskSchemaIdentifier,
-} from '@liskhq/lisk-validator';
+import { validator, liskSchemaIdentifier } from '@liskhq/lisk-validator';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { generateKey } from './utils';
 import { readObject, writeObject } from './collection';
@@ -34,6 +29,12 @@ import {
 } from './types';
 
 import { iterator, recursiveTypeCast } from './json_wrapper';
+
+export const emptySchema = {
+	$id: '/lisk/empty',
+	type: 'object',
+	properties: {},
+};
 
 export const validateSchema = (schema: {
 	// eslint-disable-next-line
@@ -60,12 +61,7 @@ export const validateSchema = (schema: {
 		$schema: schema.$schema ?? liskSchemaIdentifier,
 	};
 
-	const errors: ReadonlyArray<ErrorObject> = validator.validateSchema(schemaToValidate);
-
-	if (errors.length) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-		throw new LiskValidationError([...errors]);
-	}
+	validator.validateSchema(schemaToValidate);
 
 	try {
 		// To validate keyword schema we have to compile it
@@ -108,7 +104,7 @@ export class Codec {
 		const compiledSchema = this._compileSchemas[schema.$id];
 		const [res] = readObject(message, 0, compiledSchema, message.length);
 
-		return (res as unknown) as T;
+		return res as unknown as T;
 	}
 
 	// For performance applications use decode() instead!
@@ -116,7 +112,7 @@ export class Codec {
 		const decodedMessage: IteratableGenericObject = this.decode(schema, message);
 
 		const jsonMessageAsObject = this.toJSON(schema, decodedMessage);
-		return (jsonMessageAsObject as unknown) as T;
+		return jsonMessageAsObject as unknown as T;
 	}
 
 	// For performance applications use encode() instead!
@@ -132,10 +128,10 @@ export class Codec {
 		recursiveTypeCast(
 			'toJSON',
 			messageCopy as IteratableGenericObject,
-			(schema as unknown) as SchemaProps,
+			schema as unknown as SchemaProps,
 			[],
 		);
-		return (messageCopy as unknown) as T;
+		return messageCopy as unknown as T;
 	}
 
 	public fromJSON<T = object>(schema: Schema, message: object): T {
@@ -145,10 +141,10 @@ export class Codec {
 		recursiveTypeCast(
 			'fromJSON',
 			messageCopy as IteratableGenericObject,
-			(schema as unknown) as SchemaProps,
+			schema as unknown as SchemaProps,
 			[],
 		);
-		return (messageCopy as unknown) as T;
+		return messageCopy as unknown as T;
 	}
 
 	public clearCache(): void {
@@ -228,7 +224,7 @@ export class Codec {
 								dataPath: [...dataPath],
 								binaryKey: generateKey(schemaPropertyValue),
 							},
-							(res as unknown) as CompiledSchema,
+							res as unknown as CompiledSchema,
 						]);
 						dataPath.pop();
 					} else {

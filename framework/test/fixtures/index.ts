@@ -12,6 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './accounts';
 export * from './blocks';
 export * from './node';

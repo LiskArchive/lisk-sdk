@@ -13,49 +13,51 @@
  */
 
 import { EventCallback } from '../event';
-import { Action, ActionsDefinition } from '../action';
-import { eventWithModuleNameReg, INTERNAL_EVENTS } from '../../constants';
+import { eventWithModuleNameReg } from '../../constants';
+import { EndpointHandlers } from '../../types';
+import { Logger } from '../../logger';
 
-export interface BaseChannelOptions {
-	[key: string]: unknown;
-	readonly skipInternalEvents?: boolean;
+export interface InvokeRequest {
+	methodName: string;
+	context: {
+		header?: { height: number; timestamp: number; aggregateCommit: { height: number } };
+	};
+	params?: Record<string, unknown>;
 }
 
 export abstract class BaseChannel {
 	public readonly eventsList: ReadonlyArray<string>;
-	public readonly actionsList: ReadonlyArray<string>;
-	public readonly moduleAlias: string;
+	public readonly endpointsList: ReadonlyArray<string>;
+	public readonly namespace: string;
 
-	protected readonly actions: { [key: string]: Action };
-	protected readonly options: Record<string, unknown>;
+	protected readonly endpointHandlers: EndpointHandlers;
+	protected readonly _logger: Logger;
+	private _requestId: number;
 
 	public constructor(
-		moduleAlias: string,
+		logger: Logger,
+		namespace: string,
 		events: ReadonlyArray<string>,
-		actions: ActionsDefinition,
-		options: BaseChannelOptions = {},
+		endpoints: EndpointHandlers,
 	) {
-		this.moduleAlias = moduleAlias;
-		this.options = options;
+		this._logger = logger;
+		this.namespace = namespace;
 
-		this.eventsList = options.skipInternalEvents ? events : [...events, ...INTERNAL_EVENTS];
+		this.eventsList = events;
 
-		this.actions = {};
-		for (const actionName of Object.keys(actions)) {
-			const actionData = actions[actionName];
-
-			const handler = typeof actionData === 'object' ? actionData.handler : actionData;
-			const method = `${this.moduleAlias}:${actionName}`;
-			this.actions[actionName] = new Action(null, method, undefined, handler);
+		this.endpointHandlers = new Map();
+		this._requestId = 0;
+		for (const [methodName, handler] of endpoints) {
+			this.endpointHandlers.set(methodName, handler);
 		}
-		this.actionsList = Object.keys(this.actions);
+		this.endpointsList = [...this.endpointHandlers.keys()];
 	}
 
 	public isValidEventName(name: string, throwError = true): boolean | never {
 		const result = eventWithModuleNameReg.test(name);
 
 		if (throwError && !result) {
-			throw new Error(`[${this.moduleAlias}] Invalid event name ${name}.`);
+			throw new Error(`[${this.namespace}] Invalid event name ${name}.`);
 		}
 		return result;
 	}
@@ -64,26 +66,32 @@ export abstract class BaseChannel {
 		const result = eventWithModuleNameReg.test(name);
 
 		if (throwError && !result) {
-			throw new Error(`[${this.moduleAlias}] Invalid action name ${name}.`);
+			throw new Error(`[${this.namespace}] Invalid action name ${name}.`);
 		}
 
 		return result;
 	}
 
+	protected _getNextRequestId(): string {
+		this._requestId += 1;
+		return this._requestId.toString();
+	}
+
 	// Listen to any event happening in the application
-	// Specified as moduleName:eventName
-	// If its related to your own moduleAlias specify as :eventName
-	abstract subscribe(eventName: string, cb: EventCallback): void;
+	// Specified as moduleName_eventName
+	// If its related to your own moduleName specify as :eventName
+	public abstract subscribe(eventName: string, cb: EventCallback): void;
+	public abstract unsubscribe(eventName: string, cb: EventCallback): void;
 
 	// Publish the event on the channel
-	// Specified as moduleName:eventName
-	// If its related to your own moduleAlias specify as :eventName
-	abstract publish(eventName: string, data?: object): void;
+	// Specified as moduleName_eventName
+	// If its related to your own moduleName specify as :eventName
+	public abstract publish(eventName: string, data?: Record<string, unknown>): void;
 
-	// Call action of any moduleAlias through controller
-	// Specified as moduleName:actionName
-	abstract invoke<T>(actionName: string, params?: object): Promise<T>;
+	// Call action of any moduleName through controller
+	// Specified as moduleName_actionName
+	public abstract invoke<T>(req: InvokeRequest): Promise<T>;
 
-	abstract registerToBus(arg: unknown): Promise<void>;
-	abstract once(eventName: string, cb: EventCallback): void;
+	public abstract registerToBus(arg: unknown): Promise<void>;
+	public abstract once(eventName: string, cb: EventCallback): void;
 }

@@ -16,8 +16,7 @@
 import { SchemaProps } from '../types';
 import { writeUInt32 } from '../varint';
 
-export const generateKey = (schemaProp: SchemaProps): Buffer => {
-	let wireType;
+export const getWireType = (schemaProp: SchemaProps) => {
 	const dataType = schemaProp.dataType ?? schemaProp.type;
 
 	switch (dataType) {
@@ -25,13 +24,14 @@ export const generateKey = (schemaProp: SchemaProps): Buffer => {
 		case 'string':
 		case 'object':
 		case 'array':
-			wireType = 2;
-			break;
+			return 2;
 		default:
-			wireType = 0;
-			break;
+			return 0;
 	}
+};
 
+export const generateKey = (schemaProp: SchemaProps): Buffer => {
+	const wireType = getWireType(schemaProp);
 	const keyAsVarInt = writeUInt32((schemaProp.fieldNumber << 3) | wireType);
 
 	return keyAsVarInt;

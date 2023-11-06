@@ -32,23 +32,19 @@ const checkIpInList = (list: ReadonlyArray<string>, addr: string): boolean => {
 			}
 		} catch (err) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-			console.error('CheckIpInList:', err.toString());
+			console.error('CheckIpInList:', (err as Error).toString());
 		}
 	}
 	return false;
 };
 
-export const whiteListMiddleware = ({
-	whiteList,
-}: { whiteList: ReadonlyArray<string> } = defualtOption) => (
-	req: Request,
-	_res: Response,
-	next: NextFunction,
-): void => {
-	if (whiteList.length === 0 || checkIpInList(whiteList, req.ip)) {
-		next();
-		return;
-	}
+export const whiteListMiddleware =
+	({ whiteList }: { whiteList: ReadonlyArray<string> } = defualtOption) =>
+	(req: Request, _res: Response, next: NextFunction): void => {
+		if (whiteList.length === 0 || checkIpInList(whiteList, req.ip)) {
+			next();
+			return;
+		}
 
-	next(new ErrorWithStatus('Access Denied', 401));
-};
+		next(new ErrorWithStatus('Access Denied', 401));
+	};

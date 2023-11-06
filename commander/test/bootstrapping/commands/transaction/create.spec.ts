@@ -12,96 +12,97 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as fs from 'fs-extra';
 import * as inquirer from 'inquirer';
 import { Application, transactionSchema } from 'lisk-framework';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as apiClient from '@liskhq/lisk-api-client';
 import * as transactions from '@liskhq/lisk-transactions';
-import * as Config from '@oclif/config';
 
+import { emptySchema } from '@liskhq/lisk-codec';
+import { join } from 'path';
 import * as appUtils from '../../../../src/utils/application';
 import * as readerUtils from '../../../../src/utils/reader';
-import {
-	dposVoteAssetSchema,
-	tokenTransferAssetSchema,
-	accountSchema,
-} from '../../../helpers/transactions';
+import { tokenTransferParamsSchema, posVoteParamsSchema } from '../../../helpers/transactions';
 import { CreateCommand } from '../../../../src/bootstrapping/commands/transaction/create';
 import { getConfig } from '../../../helpers/config';
 import { PromiseResolvedType } from '../../../../src/types';
+import { Awaited } from '../../../types';
 
 describe('transaction:create command', () => {
-	const transactionsAssets = [
-		{
-			moduleID: 2,
-			assetID: 0,
-			schema: tokenTransferAssetSchema,
-		},
-		{
-			moduleID: 5,
-			assetID: 1,
-			schema: dposVoteAssetSchema,
-		},
-	];
 	const passphrase = 'peanut hundred pen hawk invite exclude brain chunk gadget wait wrong ready';
-	const transferAsset =
-		'{"amount":100,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}';
-	const voteAsset =
-		'{"votes":[{"delegateAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","amount":100},{"delegateAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","amount":-50}]}';
-	const unVoteAsset =
-		'{"votes":[{"delegateAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","amount":-50}]}';
-	const { publicKey } = cryptography.getAddressAndPublicKeyFromPassphrase(passphrase);
+	const transferParams =
+		'{"tokenID": "0000000000000000","amount":100,"recipientAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","data":"send token"}';
+	const voteParams =
+		'{"stakes":[{"validatorAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","amount":100},{"validatorAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","amount":-50}]}';
+	const unVoteParams =
+		'{"stakes":[{"validatorAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9","amount":-50}]}';
+	const { publicKey } = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 	const senderPublicKey = publicKey.toString('hex');
 	const mockEncodedTransaction = Buffer.from('encoded transaction');
 	const mockJSONTransaction = {
-		asset: {
+		params: {
+			tokenID: '0000000000000000',
 			amount: '100',
 			data: 'send token',
-			recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+			recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 		},
-		assetID: 0,
+		command: 'transfer',
 		fee: '100000000',
-		moduleID: 2,
-		nonce: '0',
-		senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+		module: 'token',
+		nonce: 'transfer',
+		senderPublicKey: '31048f87ca35a00a553633dd03c788d4b82ea9caf6ccc36315cf8e595f3e7a83',
 		signatures: [
 			'3cc8c8c81097fe59d9df356b3c3f1dd10f619bfabb54f5d187866092c67e0102c64dbe24f357df493cc7ebacdd2e55995db8912245b718d88ebf7f4f4ac01f04',
 		],
 	};
 
-	let stdout: string[];
-	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let clientMock: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>>;
 
 	// In order to test the command we need to extended the base crete command and provide application implementation
 	class CreateCommandExtended extends CreateCommand {
 		getApplication = () => {
-			const app = Application.defaultApplication({}, {});
+			const { app } = Application.defaultApplication({ genesis: { chainID: '00000000' } });
 			return app;
 		};
 	}
 
 	beforeEach(async () => {
-		stdout = [];
-		stderr = [];
 		config = await getConfig();
-		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
-		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(appUtils, 'isApplicationRunning').mockReturnValue(true);
-		jest.spyOn(fs, 'existsSync').mockReturnValue(true);
 		jest.spyOn(CreateCommandExtended.prototype, 'printJSON').mockReturnValue();
 		clientMock = {
 			disconnect: jest.fn(),
-			schemas: {
+			schema: {
 				transaction: transactionSchema,
-				transactionsAssets,
-				account: accountSchema,
 			},
+			metadata: [
+				{
+					name: 'token',
+					commands: [
+						{
+							name: 'transfer',
+							params: tokenTransferParamsSchema,
+						},
+					],
+				},
+				{
+					name: 'pos',
+					commands: [
+						{
+							name: 'stake',
+							params: posVoteParamsSchema,
+						},
+						{
+							name: 'unlock',
+							params: emptySchema,
+						},
+					],
+				},
+			],
 			node: {
 				getNodeInfo: jest.fn().mockResolvedValue({
-					networkIdentifier: '873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3',
+					chainID: '10000000',
 				}),
 			},
 			transaction: {
@@ -109,27 +110,18 @@ describe('transaction:create command', () => {
 				toJSON: jest.fn().mockReturnValue(mockJSONTransaction),
 				sign: jest.fn().mockReturnValue(mockJSONTransaction),
 			},
-			account: {
-				get: jest.fn().mockResolvedValue({
-					address: Buffer.from('ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815', 'hex'),
-					token: {
-						balance: BigInt('100000000'),
-					},
-					sequence: {
-						nonce: BigInt(0),
-					},
-					keys: {
-						numberOfSignatures: 0,
-						mandatoryKeys: [],
-						optionalKeys: [],
-					},
-				}),
-			},
+			invoke: jest.fn().mockResolvedValue({
+				nonce: BigInt(0),
+				numberOfSignatures: 0,
+				mandatoryKeys: [],
+				optionalKeys: [],
+			}),
 		} as any;
 		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(clientMock);
 		jest.spyOn(inquirer, 'prompt').mockResolvedValue({
+			tokenID: '0000000000000000',
 			amount: 100,
-			recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+			recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 			data: 'send token',
 		});
 		jest.spyOn(readerUtils, 'getPassphraseFromPrompt').mockResolvedValue(passphrase);
@@ -145,122 +137,126 @@ describe('transaction:create command', () => {
 
 	describe('transaction:create 2', () => {
 		it('should throw an error when fee, nonce and transaction type are provided.', async () => {
-			await expect(CreateCommandExtended.run(['2'], config)).rejects.toThrow(
+			await expect(CreateCommandExtended.run(['token'], config)).rejects.toThrow(
 				'Missing 2 required args:',
 			);
 		});
 	});
 
-	describe('transaction:create 2 0', () => {
+	describe('transaction:create token transfer', () => {
 		it('should throw an error when nonce and transaction type are provided.', async () => {
-			await expect(CreateCommandExtended.run(['2', '0'], config)).rejects.toThrow(
+			await expect(CreateCommandExtended.run(['token', 'transfer'], config)).rejects.toThrow(
 				'Missing 1 required arg:',
 			);
 		});
 	});
 
-	describe('transaction:create 99999 0 100000000', () => {
-		it('should throw an error when moduleID is not registered.', async () => {
-			await expect(CreateCommandExtended.run(['99999', '0', '100000000'], config)).rejects.toThrow(
-				'Transaction moduleID:99999 with assetID:0 is not registered in the application',
-			);
+	describe('transaction:create 9999 0000 100000000', () => {
+		it('should throw an error when module is not registered.', async () => {
+			await expect(
+				CreateCommandExtended.run(['newMod', 'transfer', '100000000'], config),
+			).rejects.toThrow('Module: newMod is not registered');
 		});
 	});
 
 	describe('offline', () => {
 		describe('with flags', () => {
-			describe(`transaction:create 2 0 100000000 --asset='{"amount": "abc"}' --passphrase=${passphrase} --offline`, () => {
+			describe(`transaction:create token transfer 100000000 --params='{"amount": "abc"}' --passphrase=${passphrase} --offline`, () => {
 				it('should throw error for data path flag.', async () => {
 					await expect(
 						CreateCommandExtended.run(
 							[
-								'2',
-								'0',
+								'token',
+								'transfer',
 								'100000000',
-								'--asset={"amount": "abc"}',
+								'--params={"amount": "abc"}',
 								`--passphrase=${passphrase}`,
 								'--offline',
-								'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+								'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 								'--nonce=1',
 								'--data-path=/tmp',
 							],
 							config,
 						),
-					).rejects.toThrow('--data-path= cannot also be provided when using --offline=');
+					).rejects.toThrow('--data-path=/tmp cannot also be provided when using --offline');
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --asset='{"amount": "abc"}' --passphrase=${passphrase} --offline`, () => {
+			describe(`transaction:create token transfer 100000000 --params='{"amount": "abc"}' --passphrase=${passphrase} --offline`, () => {
 				it('should throw error for missing network identifier flag.', async () => {
 					await expect(
 						CreateCommandExtended.run(
 							[
-								'2',
-								'0',
+								'token',
+								'transfer',
 								'100000000',
-								'--asset={"amount": "abc"}',
+								'--params={"amount": "abc"}',
 								`--passphrase=${passphrase}`,
 								'--offline',
 							],
 							config,
 						),
-					).rejects.toThrow('--network-identifier= must also be provided when using --offline=');
+					).rejects.toThrow(
+						'All of the following must be provided when using --offline: --chain-id, --nonce',
+					);
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --asset='{"amount": "abc"}' --passphrase=${passphrase} --offline`, () => {
+			describe(`transaction:create token transfer 100000000 --params='{"amount": "abc"}' --passphrase=${passphrase} --offline`, () => {
 				it('should throw error for missing nonce flag.', async () => {
 					await expect(
 						CreateCommandExtended.run(
 							[
-								'2',
-								'0',
+								'token',
+								'transfer',
 								'100000000',
-								'--asset={"amount": "abc"}',
+								'--params={"amount": "abc"}',
 								`--passphrase=${passphrase}`,
 								'--offline',
-								'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+								'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							],
 							config,
 						),
-					).rejects.toThrow('--nonce= must also be provided when using --offline=');
+					).rejects.toThrow(
+						'All of the following must be provided when using --offline: --chain-id, --nonce',
+					);
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --asset=${transferAsset} --no-signature`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --no-signature`, () => {
 				it('should throw error when sender public key not specified when no-signature flag is used.', async () => {
 					await expect(
 						CreateCommandExtended.run(
 							[
-								'2',
-								'0',
+								'token',
+								'transfer',
 								'100000000',
-								`--asset=${transferAsset}`,
+								`--params=${transferParams}`,
 								'--no-signature',
 								'--offline',
-								'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+								'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 								'--nonce=1',
 							],
 							config,
 						),
 					).rejects.toThrow(
-						'--sender-public-key= must also be provided when using --no-signature=',
+						'All of the following must be provided when using --no-signature: --sender-public-key',
 					);
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --asset=${transferAsset} --passphrase=${passphrase}`, () => {
-				it('should throw error when transfer asset data is empty.', async () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --passphrase=${passphrase}`, () => {
+				it('should throw error when transfer params data is empty.', async () => {
 					await expect(
 						CreateCommandExtended.run(
 							[
-								'2',
-								'0',
+								'token',
+								'transfer',
 								'100000000',
-								'--asset={"amount":100,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815"}',
+								'--params={"tokenID":"0000000000000000","amount":100,"recipientAddress":"lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9"}',
 								`--passphrase=${passphrase}`,
 								'--offline',
-								'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+								'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 								'--nonce=1',
 								'--network=devnet',
 							],
@@ -272,117 +268,136 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --asset=${transferAsset} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
 							'--offline',
-							`--asset=${transferAsset}`,
+							`--params=${transferParams}`,
 							`--passphrase=${passphrase}`,
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a40816039d55d0710f6b412e221b4fc0422a29d5314603c43eeafab0017e4c6bfbd575c5d53b2c0429992922737ec0f8add0767b904b80cfc411021bfdb0b04bc0a',
+						transaction: expect.any(String),
 					});
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --asset=${transferAsset} --no-signature --sender-public-key=${senderPublicKey}`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --no-signature --sender-public-key=${senderPublicKey}`, () => {
 				it('should return encoded transaction string in hex format without signature', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
 							'--offline',
-							`--asset=${transferAsset}`,
+							`--params=${transferParams}`,
 							'--no-signature',
 							`--sender-public-key=${senderPublicKey}`,
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e',
+						transaction: expect.any(String),
 					});
 				});
 			});
 
-			describe(`transaction:create 5 1 100000000 --asset=${voteAsset} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create pos stake 100000000 --params=${voteParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
 						[
-							'5',
-							'1',
+							'pos',
+							'stake',
 							'100000000',
 							'--offline',
-							`--asset=${voteAsset}`,
+							`--params=${voteParams}`,
 							`--passphrase=${passphrase}`,
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'0805100118012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a32350a190a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb8581510c8010a180a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb8581510633a40cf630a8bd820a4176bde1c9af65c316d020c3db012729d46d1fa5784e0f9b7eaa730dcc7ad603620c302f0855116398e8c9ba7a2a6ed54061e67fbf1f7c5100c',
+						transaction: expect.any(String),
 					});
 				});
 			});
 
-			describe(`transaction:create 5 1 100000000 --asset=${unVoteAsset} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create pos stake 100000000 --params=${unVoteParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
 						[
-							'5',
-							'1',
+							'pos',
+							'stake',
 							'100000000',
 							'--offline',
-							`--asset=${unVoteAsset}`,
+							`--params=${unVoteParams}`,
 							`--passphrase=${passphrase}`,
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'0805100118012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a321a0a180a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb8581510633a4009da2349735f2bd71d2e013f261c1ff4a75091daed56521de4b55156a5c8802446574328c76a3168c5f912cdf59275f070c1a1904fec6e8ef3a021019a96820b',
+						transaction: expect.any(String),
+					});
+				});
+			});
+
+			describe(`transaction:create token transfer 0 --nonce 600 --chain-id 04000001 --offline`, () => {
+				it('should not throw', async () => {
+					await expect(
+						CreateCommandExtended.run(
+							['token', 'transfer', '0', '--offline', '--chain-id=04000001', '--nonce=600'],
+							config,
+						),
+					).resolves.toBeUndefined();
+				});
+
+				it('should successfully create transaction', async () => {
+					await CreateCommandExtended.run(
+						['token', 'transfer', '0', '--offline', '--chain-id=04000001', '--nonce=600'],
+						config,
+					);
+					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
+					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
+						transaction: expect.any(String),
 					});
 				});
 			});
 		});
 
 		describe('with prompts and flags', () => {
-			describe(`transaction:create 2 0 100000000 --passphrase=${passphrase}`, () => {
-				it('should prompt user for asset.', async () => {
+			describe(`transaction:create token transfer 100000000 --passphrase=${passphrase}`, () => {
+				it('should prompt user for params.', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
 							`--passphrase=${passphrase}`,
 							'--offline',
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
 					);
 					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
 					expect(inquirer.prompt).toHaveBeenCalledWith([
+						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
 						{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
 						{
 							message: 'Please enter: recipientAddress: ',
@@ -393,27 +408,27 @@ describe('transaction:create command', () => {
 					]);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a40816039d55d0710f6b412e221b4fc0422a29d5314603c43eeafab0017e4c6bfbd575c5d53b2c0429992922737ec0f8add0767b904b80cfc411021bfdb0b04bc0a',
+						transaction: expect.any(String),
 					});
 				});
 			});
 
-			describe('transaction:create 2 0 100000000', () => {
-				it('should prompt user for asset and passphrase.', async () => {
+			describe('transaction:create token transfer 100000000', () => {
+				it('should prompt user for params and passphrase.', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
 							'--offline',
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
 					);
 					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
 					expect(inquirer.prompt).toHaveBeenCalledWith([
+						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
 						{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
 						{
 							message: 'Please enter: recipientAddress: ',
@@ -422,48 +437,47 @@ describe('transaction:create command', () => {
 						},
 						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
 					]);
-					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
+					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase');
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a40816039d55d0710f6b412e221b4fc0422a29d5314603c43eeafab0017e4c6bfbd575c5d53b2c0429992922737ec0f8add0767b904b80cfc411021bfdb0b04bc0a',
+						transaction: expect.any(String),
 					});
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --asset=${transferAsset} --no-signature --json`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --no-signature --json`, () => {
 				it('should return unsigned transaction in json format when no passphrase specified', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
-							`--asset=${transferAsset}`,
+							`--params=${transferParams}`,
 							'--no-signature',
 							`--sender-public-key=${senderPublicKey}`,
 							'--json',
 							'--offline',
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(2);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e',
+						transaction: expect.any(String),
 					});
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: {
-							moduleID: 2,
-							assetID: 0,
+							module: 'token',
+							command: 'transfer',
 							nonce: '1',
 							fee: '100000000',
-							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
-							asset: {
+							senderPublicKey,
+							params: {
+								tokenID: '0000000000000000',
 								amount: '100',
 								data: 'send token',
-								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+								recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 							},
 							signatures: [],
 						},
@@ -471,43 +485,41 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --asset=${transferAsset} --passphrase=${passphrase} --json`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --passphrase=${passphrase} --json`, () => {
 				it('should return signed transaction in json format when passphrase specified', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
-							`--asset=${transferAsset}`,
+							`--params=${transferParams}`,
 							`--passphrase=${passphrase}`,
 							'--json',
 							'--offline',
-							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
+							'--chain-id=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
 							'--nonce=1',
 						],
 						config,
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(2);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a40816039d55d0710f6b412e221b4fc0422a29d5314603c43eeafab0017e4c6bfbd575c5d53b2c0429992922737ec0f8add0767b904b80cfc411021bfdb0b04bc0a',
+						transaction: expect.any(String),
 					});
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: {
-							moduleID: 2,
-							assetID: 0,
+							module: 'token',
+							command: 'transfer',
 							nonce: '1',
 							fee: '100000000',
-							id: '89a2a41b0984d715f03ff65dcfe7651e9d2f33e32bcd7c7d7cc34cbfb97a3b2b',
-							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
-							asset: {
+							id: expect.any(String),
+							senderPublicKey: '31048f87ca35a00a553633dd03c788d4b82ea9caf6ccc36315cf8e595f3e7a83',
+							params: {
+								tokenID: '0000000000000000',
 								amount: '100',
 								data: 'send token',
-								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+								recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 							},
-							signatures: [
-								'816039d55d0710f6b412e221b4fc0422a29d5314603c43eeafab0017e4c6bfbd575c5d53b2c0429992922737ec0f8add0767b904b80cfc411021bfdb0b04bc0a',
-							],
+							signatures: [expect.any(String)],
 						},
 					});
 				});
@@ -517,21 +529,33 @@ describe('transaction:create command', () => {
 
 	describe('online', () => {
 		describe('with flags', () => {
-			describe(`transaction:create 2 0 100000000 --asset='{"amount": "abc"}' --passphrase=${passphrase}`, () => {
-				it('should throw error for invalid asset.', async () => {
+			describe(`transaction:create token transfer 100000000 --params='{"amount": "abc"}' --passphrase=${passphrase}`, () => {
+				it('should throw error for invalid params.', async () => {
 					await expect(
 						CreateCommandExtended.run(
-							['2', '0', '100000000', '--asset={"amount": "abc"}', `--passphrase=${passphrase}`],
+							[
+								'token',
+								'transfer',
+								'100000000',
+								'--params={"amount": "abc"}',
+								`--passphrase=${passphrase}`,
+							],
 							config,
 						),
 					).rejects.toThrow('Cannot convert abc to a BigInt');
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --asset=${transferAsset} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
-						['2', '0', '100000000', `--asset=${transferAsset}`, `--passphrase=${passphrase}`],
+						[
+							'token',
+							'transfer',
+							'100000000',
+							`--params=${transferParams}`,
+							`--passphrase=${passphrase}`,
+						],
 						config,
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
@@ -541,14 +565,14 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --asset=${transferAsset} --no-signature --sender-public-key=${senderPublicKey}`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --no-signature --sender-public-key=${senderPublicKey}`, () => {
 				it('should return encoded transaction string in hex format without signature', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
-							`--asset=${transferAsset}`,
+							`--params=${transferParams}`,
 							'--no-signature',
 							`--sender-public-key=${senderPublicKey}`,
 						],
@@ -561,10 +585,10 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 5 1 100000000 --asset=${voteAsset} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create pos stake 100000000 --params=${voteParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
-						['5', '1', '100000000', `--asset=${voteAsset}`, `--passphrase=${passphrase}`],
+						['pos', 'stake', '100000000', `--params=${voteParams}`, `--passphrase=${passphrase}`],
 						config,
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
@@ -574,29 +598,101 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 5 1 100000000 --asset=${unVoteAsset} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create pos stake 100000000 --params=${unVoteParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
-						['5', '1', '100000000', `--asset=${unVoteAsset}`, `--passphrase=${passphrase}`],
+						['pos', 'stake', '100000000', `--params=${unVoteParams}`, `--passphrase=${passphrase}`],
 						config,
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: mockEncodedTransaction.toString('hex'),
 					});
+				});
+			});
+
+			describe(`transaction:create pos unlock 100000000 --passphrase=${passphrase}`, () => {
+				it('should return encoded transaction string in hex format with signature', async () => {
+					await CreateCommandExtended.run(
+						['pos', 'unlock', '100000000', `--passphrase=${passphrase}`],
+						config,
+					);
+					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
+					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
+						transaction: mockEncodedTransaction.toString('hex'),
+					});
+				});
+			});
+
+			describe('create and send using --send flag', () => {
+				const pathToAppPIDFiles = join(__dirname, 'fake_test_app');
+
+				it('should return encoded transaction string in hex format with signature and invoke send command', async () => {
+					const stdout: string[] = [];
+					jest
+						.spyOn(process.stdout, 'write')
+						.mockImplementation(val => stdout.push(val as string) > -1);
+
+					await CreateCommandExtended.run(
+						['pos', 'unlock', '100000000', `--passphrase=${passphrase}`, '--send'],
+						config,
+					);
+
+					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
+					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
+						transaction: mockEncodedTransaction.toString('hex'),
+					});
+					expect(stdout[0]).toContain(`Transaction with id: 'undefined' received by node`);
+				});
+
+				it('should invoke send command when --send flag is provided', async () => {
+					await CreateCommandExtended.run(
+						[
+							'pos',
+							'unlock',
+							'100000000',
+							`--passphrase=${passphrase}`,
+							'--send',
+							`--data-path=${pathToAppPIDFiles}`,
+						],
+						config,
+					);
+
+					expect(clientMock.invoke).toHaveBeenCalledTimes(2);
+					expect(clientMock.invoke).toHaveBeenCalledWith('txpool_postTransaction', {
+						transaction: mockEncodedTransaction.toString('hex'),
+					});
+				});
+
+				it('should throw an error when the application for the provided path is not running.', async () => {
+					jest.spyOn(appUtils, 'isApplicationRunning').mockReturnValue(false);
+					await expect(
+						CreateCommandExtended.run(
+							[
+								'pos',
+								'unlock',
+								'100000000',
+								`--passphrase=${passphrase}`,
+								'--send',
+								`--data-path=${pathToAppPIDFiles}`,
+							],
+							config,
+						),
+					).rejects.toThrow(`Application at data path ${pathToAppPIDFiles} is not running.`);
 				});
 			});
 		});
 
 		describe('with prompts and flags', () => {
-			describe(`transaction:create 2 0 100000000 --passphrase=${passphrase}`, () => {
-				it('should prompt user for asset.', async () => {
+			describe(`transaction:create token transfer 100000000 --passphrase=${passphrase}`, () => {
+				it('should prompt user for params.', async () => {
 					await CreateCommandExtended.run(
-						['2', '0', '100000000', `--passphrase=${passphrase}`],
+						['token', 'transfer', '100000000', `--passphrase=${passphrase}`],
 						config,
 					);
 					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
 					expect(inquirer.prompt).toHaveBeenCalledWith([
+						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
 						{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
 						{
 							message: 'Please enter: recipientAddress: ',
@@ -612,11 +708,15 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe('transaction:create 2 0 100000000 --nonce=999', () => {
-				it('should prompt user for asset and passphrase.', async () => {
-					await CreateCommandExtended.run(['2', '0', '100000000', '--nonce=999'], config);
+			describe('transaction:create token transfer 100000000 --nonce=999', () => {
+				it('should prompt user for params and passphrase.', async () => {
+					await CreateCommandExtended.run(
+						['token', 'transfer', '100000000', '--nonce=999'],
+						config,
+					);
 					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
 					expect(inquirer.prompt).toHaveBeenCalledWith([
+						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
 						{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
 						{
 							message: 'Please enter: recipientAddress: ',
@@ -625,7 +725,7 @@ describe('transaction:create command', () => {
 						},
 						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
 					]);
-					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
+					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase');
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: mockEncodedTransaction.toString('hex'),
@@ -633,11 +733,12 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe('transaction:create 2 0 100000000', () => {
-				it('should prompt user for asset and passphrase.', async () => {
-					await CreateCommandExtended.run(['2', '0', '100000000'], config);
+			describe('transaction:create token transfer 100000000', () => {
+				it('should prompt user for params and passphrase.', async () => {
+					await CreateCommandExtended.run(['token', 'transfer', '100000000'], config);
 					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
 					expect(inquirer.prompt).toHaveBeenCalledWith([
+						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
 						{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
 						{
 							message: 'Please enter: recipientAddress: ',
@@ -646,7 +747,7 @@ describe('transaction:create command', () => {
 						},
 						{ message: 'Please enter: data: ', name: 'data', type: 'input' },
 					]);
-					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
+					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase');
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: mockEncodedTransaction.toString('hex'),
@@ -654,15 +755,15 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --asset=${transferAsset} --no-signature --json`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --no-signature --json`, () => {
 				it('should return unsigned transaction in json format when no passphrase specified', async () => {
 					jest.spyOn(transactions, 'signTransaction');
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
-							`--asset=${transferAsset}`,
+							`--params=${transferParams}`,
 							'--no-signature',
 							`--sender-public-key=${senderPublicKey}`,
 							'--json',
@@ -674,14 +775,14 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --asset=${transferAsset} --passphrase=${passphrase} --json`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --passphrase=${passphrase} --json`, () => {
 				it('should return signed transaction in json format when passphrase specified', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
-							`--asset=${transferAsset}`,
+							`--params=${transferParams}`,
 							`--passphrase=${passphrase}`,
 							'--json',
 						],
@@ -693,15 +794,16 @@ describe('transaction:create command', () => {
 					});
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: {
-							moduleID: 2,
-							assetID: 0,
-							nonce: '0',
+							module: 'token',
+							command: 'transfer',
+							nonce: 'transfer',
 							fee: '100000000',
-							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
-							asset: {
+							senderPublicKey: '31048f87ca35a00a553633dd03c788d4b82ea9caf6ccc36315cf8e595f3e7a83',
+							params: {
+								tokenID: '0000000000000000',
 								amount: '100',
 								data: 'send token',
-								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+								recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 							},
 							signatures: [
 								'3cc8c8c81097fe59d9df356b3c3f1dd10f619bfabb54f5d187866092c67e0102c64dbe24f357df493cc7ebacdd2e55995db8912245b718d88ebf7f4f4ac01f04',

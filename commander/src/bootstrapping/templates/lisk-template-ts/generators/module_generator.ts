@@ -28,7 +28,6 @@ export default class ModuleGenerator extends Generator {
 	protected _moduleName: string;
 	protected _moduleClass: string;
 	protected _moduleFileName: string;
-	protected _moduleID: string;
 	protected _templatePath: string;
 
 	public constructor(args: string | string[], opts: ModuleGeneratorOptions) {
@@ -37,20 +36,16 @@ export default class ModuleGenerator extends Generator {
 		this._templatePath = join(__dirname, '..', 'templates', 'module');
 		this._moduleName = (this.options as ModuleGeneratorOptions).moduleName;
 		this._moduleFileName = camelToSnake(this._moduleName);
-		this._moduleID = (this.options as ModuleGeneratorOptions).moduleID;
-		this._moduleClass = `${camelToPascal(this._moduleName)}Module`;
+		this._moduleClass = camelToPascal(this._moduleName);
 	}
 
 	public writing(): void {
 		// Writing module file
 		this.fs.copyTpl(
-			`${this._templatePath}/src/app/modules/module.ts`,
-			this.destinationPath(
-				`src/app/modules/${this._moduleFileName}/${this._moduleFileName}_module.ts`,
-			),
+			`${this._templatePath}/src/app/modules/**/*`,
+			this.destinationPath(`src/app/modules/${this._moduleFileName}/`),
 			{
 				moduleName: this._moduleName,
-				moduleID: this._moduleID,
 				moduleClass: this._moduleClass,
 			},
 			{},
@@ -60,9 +55,7 @@ export default class ModuleGenerator extends Generator {
 		// Writing test file for the generated module
 		this.fs.copyTpl(
 			`${this._templatePath}/test/unit/modules/module.spec.ts`,
-			this.destinationPath(
-				`test/unit/modules/${this._moduleFileName}/${this._moduleFileName}_module.spec.ts`,
-			),
+			this.destinationPath(`test/unit/modules/${this._moduleFileName}/module.spec.ts`),
 			{
 				moduleClass: this._moduleClass,
 				moduleName: this._moduleName,
@@ -81,8 +74,8 @@ export default class ModuleGenerator extends Generator {
 		const modulesFile = project.getSourceFileOrThrow('src/app/modules.ts');
 
 		modulesFile.addImportDeclaration({
-			namedImports: [this._moduleClass],
-			moduleSpecifier: `./modules/${this._moduleFileName}/${this._moduleFileName}_module`,
+			namedImports: [`${this._moduleClass}Module`],
+			moduleSpecifier: `./modules/${this._moduleFileName}/module`,
 		});
 
 		const registerFunction = modulesFile
@@ -90,7 +83,7 @@ export default class ModuleGenerator extends Generator {
 			.getInitializerIfKindOrThrow(SyntaxKind.ArrowFunction);
 
 		registerFunction.setBodyText(
-			`${registerFunction.getBodyText()}\napp.registerModule(${this._moduleClass});`,
+			`${registerFunction.getBodyText()}\napp.registerModule(new ${this._moduleClass}Module());`,
 		);
 
 		modulesFile.organizeImports();

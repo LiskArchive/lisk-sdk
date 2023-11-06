@@ -12,42 +12,28 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
-import { Account, Block, Chain, DataAccess, Transaction } from '@liskhq/lisk-chain';
-import {
-	signDataWithPrivateKey,
-	getPrivateAndPublicKeyFromPassphrase,
-} from '@liskhq/lisk-cryptography';
-
+import { Block, Chain, DataAccess, Transaction } from '@liskhq/lisk-chain';
+import { regularMerkleTree } from '@liskhq/lisk-tree';
+import { address } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../../utils';
-import { genesis, DefaultAccountProps } from '../../../../fixtures';
 import * as testing from '../../../../../src/testing';
 import {
-	createDelegateRegisterTransaction,
-	createDelegateVoteTransaction,
+	createValidatorRegisterTransaction,
+	createValidatorStakeTransaction,
 	createTransferTransaction,
-} from '../../../../utils/node/transaction';
-import { getPassphraseFromDefaultConfig } from '../../../../../src/testing/fixtures';
-
-const getPrivateKey = (address: Buffer) => {
-	const passphrase = testing.fixtures.getPassphraseFromDefaultConfig(address);
-	const { privateKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
-
-	return privateKey;
-};
-
-const getNextTimeslot = (chain: Chain) => {
-	const currentSlot = chain.slots.getSlotNumber(chain.lastBlock.header.timestamp) + 1;
-	return chain.slots.getSlotTime(currentSlot);
-};
+	defaultTokenID,
+} from '../../../../utils/mocks/transaction';
+import { getGeneratorPrivateKeyFromDefaultConfig } from '../../../../../src/testing/fixtures';
+import { defaultConfig } from '../../../../../src/modules/token/constants';
 
 describe('Process block', () => {
 	let processEnv: testing.BlockProcessingEnv;
-	let networkIdentifier: Buffer;
-	let chain: Chain;
+	let chainID: Buffer;
 	let dataAccess: DataAccess;
+	let chain: Chain;
 	const databasePath = '/tmp/lisk/protocol_violation/test';
 	const account = nodeUtils.createAccount();
+	const genesis = testing.fixtures.defaultFaucetAccount;
 
 	beforeAll(async () => {
 		processEnv = await testing.getBlockProcessingEnv({
@@ -55,40 +41,45 @@ describe('Process block', () => {
 				databasePath,
 			},
 		});
-		networkIdentifier = processEnv.getNetworkId();
-		chain = processEnv.getChain();
+		chainID = processEnv.getChainID();
 		dataAccess = processEnv.getDataAccess();
+		chain = processEnv.getChain();
 	});
 
-	afterAll(async () => {
-		await processEnv.cleanup({ databasePath });
+	afterAll(() => {
+		processEnv.cleanup({ databasePath });
 	});
 
 	describe('given an account has a balance', () => {
 		describe('when processing a block with valid transactions', () => {
+			const originalBalance = BigInt(100000) * BigInt(10 ** 8);
+			const amount = BigInt('100000000000');
 			let newBlock: Block;
 			let transaction: Transaction;
 
 			beforeAll(async () => {
-				const genesisAccount = await dataAccess.getAccountByAddress<DefaultAccountProps>(
-					genesis.address,
-				);
+				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+					address: genesis.address,
+				});
 				transaction = createTransferTransaction({
-					nonce: genesisAccount.sequence.nonce,
+					nonce: BigInt(authData.nonce),
 					recipientAddress: account.address,
-					amount: BigInt('100000000000'),
-					networkIdentifier,
-					passphrase: genesis.passphrase,
+					amount,
+					chainID,
+					fee: BigInt(defaultConfig.userAccountInitializationFee) + BigInt(20000000),
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				newBlock = await processEnv.createBlock([transaction]);
 				await processEnv.process(newBlock);
 			});
 
 			it('should save account state changes from the transaction', async () => {
-				const recipient = await dataAccess.getAccountByAddress<DefaultAccountProps>(
-					account.address,
-				);
-				expect(recipient.token.balance.toString()).toEqual(convertLSKToBeddows('1000'));
+				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
+					address: genesis.address,
+					tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
+				});
+				const expected = originalBalance - transaction.fee - amount;
+				expect(balance.availableBalance).toEqual(expected.toString());
 			});
 
 			it('should save the block to the database', async () => {
@@ -99,6 +90,11 @@ describe('Process block', () => {
 			it('should save the transactions to the database', async () => {
 				const [processedTx] = await dataAccess.getTransactionsByIDs([transaction.id]);
 				expect(processedTx.id).toEqual(transaction.id);
+			});
+
+			it('should save the events to the database', async () => {
+				const events = await dataAccess.getEvents(newBlock.header.height);
+				expect(events.length).toBeGreaterThanOrEqual(1);
 			});
 		});
 	});
@@ -116,6 +112,10 @@ describe('Process block', () => {
 				const processedBlock = await dataAccess.getBlockByID(newBlock.header.id);
 				expect(processedBlock.header.id).toEqual(newBlock.header.id);
 			});
+
+			it('should save the events to the database', async () => {
+				await expect(dataAccess.getEvents(newBlock.header.height)).resolves.not.toBeEmpty();
+			});
 		});
 	});
 
@@ -125,59 +125,50 @@ describe('Process block', () => {
 			let transaction: Transaction;
 
 			beforeAll(async () => {
-				const genesisAccount = await dataAccess.getAccountByAddress<DefaultAccountProps>(
-					genesis.address,
-				);
+				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+					address: genesis.address,
+				});
 				transaction = createTransferTransaction({
-					nonce: genesisAccount.sequence.nonce,
+					nonce: BigInt(authData.nonce),
 					recipientAddress: account.address,
-					amount: BigInt('100000000000'),
-					networkIdentifier,
-					passphrase: genesis.passphrase,
+					amount: BigInt('1000000000'),
+					chainID,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				newBlock = await processEnv.createBlock([transaction]);
 				await processEnv.process(newBlock);
 			});
 
 			it('should fail to process the block', async () => {
-				const invalidBlock = await processEnv.createBlock([transaction]);
+				const invalidBlock = await processEnv.createBlock();
+				(invalidBlock as any).transactions = [transaction];
+				invalidBlock.header.transactionRoot = regularMerkleTree.calculateMerkleRootWithLeaves([
+					transaction.id,
+				]);
+				const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(
+					invalidBlock.header.generatorAddress,
+				);
+				invalidBlock.header.sign(processEnv.getChainID(), generatorPrivateKey);
 				await expect(processEnv.process(invalidBlock)).rejects.toThrow(
-					expect.objectContaining({
-						message: expect.stringContaining('nonce is lower than account nonce'),
-					}),
+					'Failed to verify transaction',
 				);
 			});
 		});
 	});
 
-	describe('given a block forged by invalid delegate', () => {
+	describe('given a block generated by invalid validator', () => {
 		describe('when processing the block', () => {
 			let newBlock: Block;
 
-			beforeAll(() => {
-				const timestamp = getNextTimeslot(chain);
-				newBlock = testing.createBlock({
-					passphrase: account.passphrase,
-					networkIdentifier,
-					timestamp,
-					previousBlockID: chain.lastBlock.header.id,
-					header: {
-						height: chain.lastBlock.header.height + 1,
-						asset: {
-							maxHeightPreviouslyForged: chain.lastBlock.header.height,
-							maxHeightPrevoted: 0,
-							seedReveal: Buffer.alloc(16),
-						},
-					},
-					payload: [],
-				});
-				(newBlock.header as any).generatorPublicKey = account.publicKey;
+			beforeAll(async () => {
+				newBlock = await processEnv.createBlock();
+				(newBlock.header as any).generatorAddress = account.address;
 			});
 
 			it('should discard the block', async () => {
 				await expect(processEnv.process(newBlock)).rejects.toThrow(
 					expect.objectContaining({
-						message: expect.stringContaining('Failed to verify generator'),
+						message: expect.stringContaining(' ineligible to generate block for the current slot'),
 					}),
 				);
 			});
@@ -203,64 +194,65 @@ describe('Process block', () => {
 		describe('when processing the block', () => {
 			let newBlock: Block;
 
-			beforeAll(() => {
-				const timestamp = getNextTimeslot(chain);
-				newBlock = testing.createBlock({
-					passphrase: genesis.passphrase,
-					networkIdentifier,
-					timestamp,
-					previousBlockID: chain.lastBlock.header.id,
-					header: {
-						height: 99,
-						timestamp: Math.floor(new Date().getTime() / 1000),
-						asset: {
-							maxHeightPreviouslyForged: chain.lastBlock.header.height,
-							maxHeightPrevoted: 0,
-							seedReveal: Buffer.alloc(16),
-						},
-					},
-					payload: [],
-				});
+			beforeAll(async () => {
+				newBlock = await processEnv.createBlock();
+				(newBlock.header as any).height = 99;
+				const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(
+					newBlock.header.generatorAddress,
+				);
+				newBlock.header.sign(processEnv.getChainID(), generatorPrivateKey);
 			});
 
 			it('should discard the block', async () => {
-				await expect(processEnv.process(newBlock)).resolves.toBeUndefined();
+				await expect(processEnv.process(newBlock)).toReject();
 				await expect(dataAccess.isBlockPersisted(newBlock.header.id)).resolves.toBeFalse();
 			});
 		});
 	});
 
-	describe('given an account is already a delegate', () => {
+	describe('given an account is already a validator', () => {
 		let newBlock: Block;
 		let transaction: Transaction;
 
 		beforeAll(async () => {
-			const targetAccount = await dataAccess.getAccountByAddress<DefaultAccountProps>(
-				account.address,
-			);
-			transaction = createDelegateRegisterTransaction({
-				nonce: targetAccount.sequence.nonce,
+			const targetAuthData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+				address: address.getLisk32AddressFromAddress(account.address),
+			});
+			transaction = createValidatorRegisterTransaction({
+				nonce: BigInt(targetAuthData.nonce),
 				fee: BigInt('3000000000'),
 				username: 'number1',
-				networkIdentifier,
-				passphrase: account.passphrase,
+				chainID,
+				blsKey: account.blsPublicKey,
+				generatorKey: account.publicKey,
+				blsProofOfPossession: account.blsPoP,
+				privateKey: account.privateKey,
 			});
 			newBlock = await processEnv.createBlock([transaction]);
 			await processEnv.process(newBlock);
 		});
 
-		describe('when processing a block with a transaction which has votes for the delegate', () => {
-			it('should update the sender balance and the vote of the sender', async () => {
+		describe('when processing a block with a transaction which has stakes for the validator', () => {
+			it('should update the sender balance and the stake of the sender', async () => {
 				// Arrange
-				const sender = await dataAccess.getAccountByAddress<DefaultAccountProps>(account.address);
+				const senderAuthData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+					address: address.getLisk32AddressFromAddress(account.address),
+				});
+				const senderBalance = await processEnv.invoke<{ availableBalance: string }>(
+					'token_getBalance',
+					{
+						address: address.getLisk32AddressFromAddress(account.address),
+						tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
+					},
+				);
 				const voteAmount = BigInt('1000000000');
-				const voteTransaction = createDelegateVoteTransaction({
-					nonce: sender.sequence.nonce,
-					networkIdentifier,
-					passphrase: account.passphrase,
-					votes: [
+				const voteTransaction = createValidatorStakeTransaction({
+					nonce: BigInt(senderAuthData.nonce),
+					chainID,
+					privateKey: account.privateKey,
+					stakes: [
 						{
-							delegateAddress: account.address,
+							validatorAddress: account.address,
 							amount: voteAmount,
 						},
 					],
@@ -271,31 +263,48 @@ describe('Process block', () => {
 				await processEnv.process(block);
 
 				// Assess
-				const updatedSender = await dataAccess.getAccountByAddress<DefaultAccountProps>(
-					account.address,
+				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
+					address: address.getLisk32AddressFromAddress(account.address),
+					tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
+				});
+				const stakes = await processEnv.invoke<{ stakes: Record<string, unknown>[] }>(
+					'pos_getStaker',
+					{ address: address.getLisk32AddressFromAddress(account.address) },
 				);
-				expect(updatedSender.dpos.sentVotes).toHaveLength(1);
-				expect(updatedSender.token.balance).toEqual(
-					sender.token.balance - voteAmount - voteTransaction.fee,
+				expect(stakes.stakes).toHaveLength(1);
+				expect(balance.availableBalance).toEqual(
+					(BigInt(senderBalance.availableBalance) - voteAmount - voteTransaction.fee).toString(),
 				);
 			});
 		});
 
-		describe('when processing a block with a transaction which has delegate registration from the same account', () => {
+		describe('when processing a block with a transaction which has validator registration from the same account', () => {
 			let invalidBlock: Block;
 			let invalidTx: Transaction;
-			let originalAccount: Account<DefaultAccountProps>;
 
 			beforeAll(async () => {
-				originalAccount = await dataAccess.getAccountByAddress(account.address);
-				invalidTx = createDelegateRegisterTransaction({
-					nonce: originalAccount.sequence.nonce,
+				const senderAuthData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+					address: address.getLisk32AddressFromAddress(account.address),
+				});
+				invalidTx = createValidatorRegisterTransaction({
+					nonce: BigInt(senderAuthData.nonce),
 					fee: BigInt('5000000000'),
 					username: 'number1',
-					networkIdentifier,
-					passphrase: account.passphrase,
+					chainID,
+					privateKey: account.privateKey,
+					blsKey: account.blsPublicKey,
+					generatorKey: account.publicKey,
+					blsProofOfPossession: account.blsPoP,
 				});
-				invalidBlock = await processEnv.createBlock([invalidTx]);
+				invalidBlock = await processEnv.createBlock();
+				(invalidBlock as any).transactions = [transaction];
+				invalidBlock.header.transactionRoot = regularMerkleTree.calculateMerkleRootWithLeaves([
+					transaction.id,
+				]);
+				const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(
+					newBlock.header.generatorAddress,
+				);
+				invalidBlock.header.sign(processEnv.getChainID(), generatorPrivateKey);
 				try {
 					await processEnv.process(invalidBlock);
 				} catch (err) {
@@ -303,8 +312,11 @@ describe('Process block', () => {
 				}
 			});
 
-			it('should have the same account state as before', () => {
-				expect(originalAccount.dpos.delegate.username).toEqual('number1');
+			it('should have the same account state as before', async () => {
+				const validator = await processEnv.invoke<{ name: string }>('pos_getValidator', {
+					address: address.getLisk32AddressFromAddress(account.address),
+				});
+				expect(validator.name).toBe('number1');
 			});
 
 			it('should not save the block to the database', async () => {
@@ -318,83 +330,16 @@ describe('Process block', () => {
 	});
 
 	describe('given a block with invalid properties', () => {
-		let invalidBlock: Block;
-
-		describe('when block has lower reward than expected', () => {
-			it('should reject the block', async () => {
-				const timestamp = getNextTimeslot(chain);
-				const validator = await chain.getValidator(timestamp);
-				const passphrase = getPassphraseFromDefaultConfig(validator.address);
-
-				invalidBlock = testing.createBlock({
-					passphrase,
-					networkIdentifier,
-					timestamp,
-					previousBlockID: chain.lastBlock.header.id,
-					header: {
-						height: chain.lastBlock.header.height + 1,
-						asset: {
-							maxHeightPreviouslyForged: chain.lastBlock.header.height,
-							maxHeightPrevoted: 0,
-							seedReveal: Buffer.alloc(16),
-						},
-					},
-					payload: [],
-				});
-				chain['_blockRewardArgs'].rewardOffset = 1;
-				(invalidBlock.header as any).reward = BigInt(1000);
-				const signature = signDataWithPrivateKey(
-					Buffer.concat([
-						networkIdentifier,
-						dataAccess.encodeBlockHeader(invalidBlock.header, true),
-					]),
-					getPrivateKey(validator.address),
-				);
-				(invalidBlock.header as any).signature = signature;
-				await expect(processEnv.process(invalidBlock)).rejects.toThrow('Invalid block reward');
-			});
-		});
-
 		describe('when block has tie break BFT properties', () => {
 			it('should replace the last block', async () => {
-				const { lastBlock } = chain;
-				const timestamp = getNextTimeslot(chain);
-				const validator = await chain.getValidator(timestamp);
-				const passphrase = getPassphraseFromDefaultConfig(validator.address);
-
-				const tieBreakBlock = testing.createBlock({
-					passphrase,
-					networkIdentifier,
-					timestamp,
-					previousBlockID: chain.lastBlock.header.id,
-					header: {
-						height: chain.lastBlock.header.height + 1,
-						asset: {
-							maxHeightPreviouslyForged: chain.lastBlock.header.height,
-							maxHeightPrevoted: 0,
-							seedReveal: Buffer.alloc(16),
-						},
-					},
-					payload: [],
-				});
-				(tieBreakBlock.header as any).height = lastBlock.header.height;
-				(tieBreakBlock.header as any).previousBlockID = lastBlock.header.previousBlockID;
-				(tieBreakBlock.header as any).asset = lastBlock.header.asset;
-				(tieBreakBlock.header as any).reward = BigInt(500000000);
-				const signature = signDataWithPrivateKey(
-					Buffer.concat([
-						networkIdentifier,
-						dataAccess.encodeBlockHeader(tieBreakBlock.header, true),
-					]),
-					getPrivateKey(validator.address),
-				);
-				(tieBreakBlock.header as any).signature = signature;
-				(tieBreakBlock.header as any).receivedAt = timestamp;
-				// There is no other way to mutate the time so that the tieBreak block is received at current slot
-				jest.spyOn(chain.slots, 'timeSinceGenesis').mockReturnValue(timestamp);
-				(chain.lastBlock.header as any).receivedAt = timestamp + 2;
+				const originalBlock = await processEnv.createBlock();
+				const tieBreakBlock = await processEnv.createBlock([], originalBlock.header.timestamp + 10);
+				await processEnv.process(originalBlock);
+				(chain.lastBlock.header as any).receivedAt = originalBlock.header.timestamp + 20;
 				// mutate the last block so that the last block was not received in the timeslot
-
+				jest
+					.spyOn(global.Date, 'now')
+					.mockImplementationOnce(() => tieBreakBlock.header.timestamp * 1000);
 				await processEnv.process(tieBreakBlock);
 
 				expect(chain.lastBlock.header.id).toEqual(tieBreakBlock.header.id);

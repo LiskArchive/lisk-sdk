@@ -14,7 +14,7 @@
  */
 import { EventEmitter } from 'events';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { isIPV4 } from '@liskhq/lisk-validator';
 
 import {
@@ -568,7 +568,7 @@ export class P2P extends EventEmitter {
 
 		this._nodeInfo = {
 			...config.nodeInfo,
-			nonce: getRandomBytes(DEFAULT_NONCE_LENGTH_BYTES).toString('hex'),
+			nonce: utils.getRandomBytes(DEFAULT_NONCE_LENGTH_BYTES).toString('hex'),
 		};
 		this.applyNodeInfo(this._nodeInfo);
 

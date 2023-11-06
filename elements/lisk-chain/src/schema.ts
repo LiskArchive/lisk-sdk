@@ -11,9 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { Schema } from '@liskhq/lisk-codec';
-import { objects } from '@liskhq/lisk-utils';
+import {
+	MAX_MODULE_NAME_LENGTH,
+	MAX_EVENT_NAME_LENGTH,
+	MIN_MODULE_NAME_LENGTH,
+	MIN_EVENT_NAME_LENGTH,
+	MAX_EVENTS_PER_BLOCK,
+	EVENT_MAX_TOPICS_PER_EVENT,
+} from './constants';
 
 export const blockSchema = {
 	$id: '/block',
@@ -23,105 +28,113 @@ export const blockSchema = {
 			dataType: 'bytes',
 			fieldNumber: 1,
 		},
-		payload: {
+		transactions: {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
 			},
 			fieldNumber: 2,
 		},
+		assets: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+			},
+			fieldNumber: 3,
+		},
 	},
-	required: ['header', 'payload'],
+	required: ['header', 'transactions', 'assets'],
 };
 
 export const signingBlockHeaderSchema = {
-	$id: '/block/header/signing',
+	$id: '/block/header/signing/3',
 	type: 'object',
 	properties: {
 		version: { dataType: 'uint32', fieldNumber: 1 },
 		timestamp: { dataType: 'uint32', fieldNumber: 2 },
 		height: { dataType: 'uint32', fieldNumber: 3 },
 		previousBlockID: { dataType: 'bytes', fieldNumber: 4 },
-		transactionRoot: { dataType: 'bytes', fieldNumber: 5 },
-		generatorPublicKey: { dataType: 'bytes', fieldNumber: 6 },
-		reward: { dataType: 'uint64', fieldNumber: 7 },
-		asset: { dataType: 'bytes', fieldNumber: 8 },
+		generatorAddress: { dataType: 'bytes', fieldNumber: 5, format: 'lisk32' },
+		transactionRoot: { dataType: 'bytes', fieldNumber: 6 },
+		assetRoot: { dataType: 'bytes', fieldNumber: 7 },
+		eventRoot: { dataType: 'bytes', fieldNumber: 8 },
+		stateRoot: { dataType: 'bytes', fieldNumber: 9 },
+		maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 10 },
+		maxHeightGenerated: { dataType: 'uint32', fieldNumber: 11 },
+		impliesMaxPrevotes: { dataType: 'boolean', fieldNumber: 12 },
+		validatorsHash: { dataType: 'bytes', fieldNumber: 13 },
+		aggregateCommit: {
+			type: 'object',
+			fieldNumber: 14,
+			required: ['height', 'aggregationBits', 'certificateSignature'],
+			properties: {
+				height: {
+					dataType: 'uint32',
+					fieldNumber: 1,
+				},
+				aggregationBits: {
+					dataType: 'bytes',
+					fieldNumber: 2,
+				},
+				certificateSignature: {
+					dataType: 'bytes',
+					fieldNumber: 3,
+				},
+			},
+		},
 	},
 	required: [
 		'version',
 		'timestamp',
 		'height',
 		'previousBlockID',
+		'generatorAddress',
 		'transactionRoot',
-		'generatorPublicKey',
-		'reward',
-		'asset',
+		'assetRoot',
+		'eventRoot',
+		'stateRoot',
+		'maxHeightPrevoted',
+		'maxHeightGenerated',
+		'impliesMaxPrevotes',
+		'validatorsHash',
+		'aggregateCommit',
 	],
 };
 
 export const blockHeaderSchema = {
 	...signingBlockHeaderSchema,
-	$id: '/block/header',
+	$id: '/block/header/3/without-id',
+	required: [...signingBlockHeaderSchema.required, 'signature'],
 	properties: {
 		...signingBlockHeaderSchema.properties,
-		signature: { dataType: 'bytes', fieldNumber: 9 },
+		signature: { dataType: 'bytes', fieldNumber: 15 },
 	},
 };
 
-export const baseGenesisBlockHeaderAssetSchema = {
-	$id: '/genesisBlock/header/asset',
-	type: 'object',
-	required: ['accounts', 'initDelegates', 'initRounds'],
+export const blockHeaderSchemaWithId = {
+	...blockHeaderSchema,
+	$id: '/block/header/3',
+	required: [...blockHeaderSchema.required, 'id'],
 	properties: {
-		accounts: {
-			type: 'array',
+		...blockHeaderSchema.properties,
+		id: { dataType: 'bytes', fieldNumber: 16 },
+	},
+};
+
+export const blockAssetSchema = {
+	$id: '/block/asset/3',
+	type: 'object',
+	required: ['module', 'data'],
+	properties: {
+		module: {
+			dataType: 'string',
 			fieldNumber: 1,
 		},
-		initDelegates: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-			},
-			fieldNumber: 2,
-			minItems: 1,
-		},
-		initRounds: {
-			dataType: 'uint32',
-			fieldNumber: 3,
-			minimum: 3,
-		},
-	},
-};
-
-export const baseAccountSchema = {
-	$id: '/account/base',
-	type: 'object',
-	properties: {
-		address: { dataType: 'bytes', fieldNumber: 1 },
-	},
-	required: ['address'],
-};
-
-export const blockHeaderAssetSchema = {
-	$id: '/blockHeader/asset/v2',
-	type: 'object',
-	properties: {
-		maxHeightPreviouslyForged: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		maxHeightPrevoted: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		seedReveal: {
+		data: {
 			dataType: 'bytes',
-			minLength: 16,
-			maxLength: 16,
-			fieldNumber: 3,
+			fieldNumber: 2,
 		},
 	},
-	required: ['maxHeightPreviouslyForged', 'maxHeightPrevoted', 'seedReveal'],
 };
 
 export const stateDiffSchema = {
@@ -134,9 +147,10 @@ export const stateDiffSchema = {
 			fieldNumber: 1,
 			items: {
 				type: 'object',
+				required: ['key', 'value'],
 				properties: {
 					key: {
-						dataType: 'string',
+						dataType: 'bytes',
 						fieldNumber: 1,
 					},
 					value: {
@@ -150,7 +164,7 @@ export const stateDiffSchema = {
 			type: 'array',
 			fieldNumber: 2,
 			items: {
-				dataType: 'string',
+				dataType: 'bytes',
 			},
 		},
 		deleted: {
@@ -158,9 +172,10 @@ export const stateDiffSchema = {
 			fieldNumber: 3,
 			items: {
 				type: 'object',
+				required: ['key', 'value'],
 				properties: {
 					key: {
-						dataType: 'string',
+						dataType: 'bytes',
 						fieldNumber: 1,
 					},
 					value: {
@@ -173,68 +188,55 @@ export const stateDiffSchema = {
 	},
 };
 
-export const validatorsSchema = {
-	$id: '/state/validators',
+export const eventSchema = {
+	$id: '/block/event',
 	type: 'object',
-	required: ['validators'],
+	required: ['module', 'name', 'data', 'topics', 'height', 'index'],
 	properties: {
-		validators: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				properties: {
-					address: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-					minActiveHeight: {
-						dataType: 'uint32',
-						fieldNumber: 2,
-					},
-					isConsensusParticipant: {
-						dataType: 'boolean',
-						fieldNumber: 3,
-					},
-				},
-				required: ['address', 'minActiveHeight', 'isConsensusParticipant'],
-			},
-		},
-	},
-};
-
-export const genesisInfoSchema = {
-	$id: '/state/genesisInfo',
-	type: 'object',
-	properties: {
-		height: {
-			dataType: 'uint32',
+		module: {
+			dataType: 'string',
+			minLength: MIN_MODULE_NAME_LENGTH,
+			maxLength: MAX_MODULE_NAME_LENGTH,
 			fieldNumber: 1,
 		},
-		initRounds: {
-			dataType: 'uint32',
+		name: {
+			dataType: 'string',
+			minLength: MIN_EVENT_NAME_LENGTH,
+			maxLength: MAX_EVENT_NAME_LENGTH,
 			fieldNumber: 2,
 		},
-	},
-	required: ['height', 'initRounds'],
-};
-
-export const getGenesisBlockHeaderAssetSchema = (accountSchema: Schema): Schema =>
-	objects.mergeDeep({}, baseGenesisBlockHeaderAssetSchema, {
-		properties: {
-			accounts: {
-				items: {
-					...accountSchema,
-				},
+		data: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		topics: {
+			type: 'array',
+			fieldNumber: 4,
+			maxItems: EVENT_MAX_TOPICS_PER_EVENT,
+			items: {
+				dataType: 'bytes',
 			},
 		},
-	}) as Schema;
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 5,
+		},
+		index: {
+			dataType: 'uint32',
+			fieldNumber: 6,
+			maximum: MAX_EVENTS_PER_BLOCK - 1,
+		},
+	},
+};
 
-export const getRegisteredBlockAssetSchema = (
-	accountSchema: Schema,
-): {
-	readonly [key: number]: Schema;
-} => ({
-	0: getGenesisBlockHeaderAssetSchema(accountSchema),
-	2: blockHeaderAssetSchema,
-});
+export const standardEventDataSchema = {
+	$id: '/block/event/standard',
+	type: 'object',
+	required: ['success'],
+	properties: {
+		success: {
+			dataType: 'boolean',
+			fieldNumber: 1,
+		},
+	},
+};

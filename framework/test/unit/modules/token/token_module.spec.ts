@@ -11,377 +11,122 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Block, Transaction } from '@liskhq/lisk-chain';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { when } from 'jest-when';
-import { TokenModule, TransferAsset } from '../../../../src/modules/token';
-import {
-	CHAIN_STATE_BURNT_FEE,
-	GENESIS_BLOCK_MAX_BALANCE,
-} from '../../../../src/modules/token/constants';
-import { createAccount, createFakeDefaultAccount, StateStoreMock } from '../../../utils/node';
-import { GenesisConfig } from '../../../../src';
-import { createTransaction } from '../../../../src/testing';
+import { BlockAssets } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
+import { genesisTokenStoreSchema, TokenModule } from '../../../../src/modules/token';
+import { LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from '../../../../src/modules/token/constants';
+import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
+import { SupplyStore } from '../../../../src/modules/token/stores/supply';
+import { UserStore } from '../../../../src/modules/token/stores/user';
+import { createGenesisBlockContext } from '../../../../src/testing';
+import { invalidGenesisAssets, validGenesisAssets } from './init_genesis_state_fixture';
+import { SupportedTokensStore } from '../../../../src/modules/token/stores/supported_tokens';
+import { EMPTY_BYTES } from '../../../../src';
 
 describe('token module', () => {
 	let tokenModule: TokenModule;
-	let validTransaction: any;
-	let senderAccount: any;
-	let recipientAccount: any;
-	let stateStore: any;
-	let genesisBlock: any;
-	let reducerHandler: any;
-	const minRemainingBalance = '10';
-	const genesisConfig: GenesisConfig = {
-		baseFees: [
-			{
-				assetID: 0,
-				baseFee: '10000000',
-				moduleID: 2,
-			},
-		],
-		bftThreshold: 67,
-		blockTime: 10,
-		communityIdentifier: 'lisk',
-		maxPayloadLength: 15360,
-		minFeePerByte: 1,
-		roundLength: 103,
-		rewards: {
-			distance: 1,
-			milestones: ['milestone'],
-			offset: 2,
-		},
-		minRemainingBalance,
-	};
+
+	const ownChainID = Buffer.from([0, 0, 0, 0]);
 
 	beforeEach(() => {
-		tokenModule = new TokenModule(genesisConfig);
-		validTransaction = createTransaction({
-			moduleID: 2,
-			assetClass: TransferAsset,
-			asset: {
-				amount: BigInt('100000000'),
-				recipientAddress: Buffer.from('8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17', 'hex'),
-				data: 'moon',
-			},
-			nonce: BigInt(0),
-			fee: BigInt('10000000'),
-			passphrase: 'wear protect skill sentence lift enter wild sting lottery power floor neglect',
-			networkIdentifier: Buffer.from(
-				'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-				'hex',
-			),
-		});
-		senderAccount = createFakeDefaultAccount({
-			address: Buffer.from('8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17', 'hex'),
-			token: {
-				balance: BigInt('1000000000000000'),
-			},
-		});
-		recipientAccount = createFakeDefaultAccount({
-			address: Buffer.from('8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17', 'hex'),
-			token: {
-				balance: BigInt('1000000000000000'),
-			},
-		});
-		genesisBlock = {
-			header: {
-				asset: {
-					accounts: [senderAccount],
-				},
-			},
-		};
-		stateStore = new StateStoreMock([senderAccount, recipientAccount]);
-		jest.spyOn(stateStore.account, 'getOrDefault').mockResolvedValue(senderAccount);
-		jest.spyOn(stateStore.account, 'get').mockResolvedValue(senderAccount);
-		jest.spyOn(stateStore.account, 'set');
-		jest.spyOn(stateStore.chain, 'get');
-		jest.spyOn(stateStore.chain, 'set');
-
-		reducerHandler = {};
+		tokenModule = new TokenModule();
 	});
 
-	describe('#reducers.credit', () => {
-		it('should throw error if address is not a buffer', async () => {
-			return expect(
-				tokenModule.reducers.credit({ address: 'address', amount: BigInt('1000') }, stateStore),
-			).rejects.toStrictEqual(new Error('Address must be a buffer'));
-		});
-
-		it('should throw error if amount is not a bigint', async () => {
-			return expect(
-				tokenModule.reducers.credit({ address: senderAccount.address, amount: '1000' }, stateStore),
-			).rejects.toStrictEqual(new Error('Amount must be a bigint'));
-		});
-
-		it('should throw error if amount is zero', async () => {
-			senderAccount.token.balance = BigInt(0);
-
-			return expect(
-				tokenModule.reducers.credit(
-					{ address: senderAccount.address, amount: BigInt('0') },
-					stateStore,
-				),
-			).rejects.toThrow('Amount must be a positive bigint.');
-		});
-
-		it('should throw error if amount is less than zero', async () => {
-			senderAccount.token.balance = BigInt(0);
-
-			return expect(
-				tokenModule.reducers.credit(
-					{ address: senderAccount.address, amount: BigInt(-10) },
-					stateStore,
-				),
-			).rejects.toThrow('Amount must be a positive bigint.');
-		});
-
-		it('should throw error if account does not have sufficient balance', async () => {
-			senderAccount.token.balance = BigInt(0);
-
-			return expect(
-				tokenModule.reducers.credit(
-					{ address: senderAccount.address, amount: BigInt('1') },
-					stateStore,
-				),
-			).rejects.toStrictEqual(
-				new Error(`Remaining balance must be greater than ${minRemainingBalance}`),
-			);
-		});
-
-		it('should credit target account', async () => {
-			await tokenModule.reducers.credit(
-				{ address: senderAccount.address, amount: BigInt('1000') },
-				stateStore,
-			);
-			const expected = {
-				...senderAccount,
-				token: {
-					...senderAccount.token,
-					balance: (senderAccount.token.balance += BigInt('1000')),
-				},
-			};
-			expect(stateStore.account.set).toHaveBeenCalledWith(senderAccount.address, expected);
-		});
-	});
-
-	describe('#reducers.debit', () => {
-		it('should throw error if address is not a buffer', async () => {
-			return expect(
-				tokenModule.reducers.debit({ address: 'address', amount: BigInt('1000') }, stateStore),
-			).rejects.toStrictEqual(new Error('Address must be a buffer'));
-		});
-
-		it('should throw error if amount is not a bigint', async () => {
-			return expect(
-				tokenModule.reducers.debit({ address: senderAccount.address, amount: '1000' }, stateStore),
-			).rejects.toStrictEqual(new Error('Amount must be a bigint'));
-		});
-
-		it('should throw error if account does not have sufficient balance', async () => {
-			senderAccount.token.balance = BigInt(0);
-
-			return expect(
-				tokenModule.reducers.debit(
-					{ address: senderAccount.address, amount: BigInt('1000') },
-					stateStore,
-				),
-			).rejects.toStrictEqual(
-				new Error(`Remaining balance must be greater than ${minRemainingBalance}`),
-			);
-		});
-
-		it('should debit target account', async () => {
-			await tokenModule.reducers.credit(
-				{ address: senderAccount.address, amount: BigInt('1000') },
-				stateStore,
-			);
-			const expected = {
-				...senderAccount,
-				token: {
-					...senderAccount.token,
-					balance: (senderAccount.token.balance -= BigInt('1000')),
-				},
-			};
-			expect(stateStore.account.set).toHaveBeenCalledWith(senderAccount.address, expected);
-		});
-	});
-
-	describe('#reducers.getBalance', () => {
-		it('should throw error if address is not a buffer', async () => {
-			return expect(
-				tokenModule.reducers.getBalance({ address: 'address' }, stateStore),
-			).rejects.toStrictEqual(new Error('Address must be a buffer'));
-		});
-
-		it('should should return account balance', async () => {
-			return expect(
-				tokenModule.reducers.getBalance({ address: senderAccount.address }, stateStore),
-			).resolves.toBe(senderAccount.token.balance);
-		});
-	});
-
-	describe('#beforeTransactionApply', () => {
-		it('should deduct transaction fee from sender account', async () => {
-			const expectedSenderAccount = {
-				...senderAccount,
-				token: {
-					...senderAccount.token,
-					balance: senderAccount.token.balance - validTransaction.fee,
-				},
-			};
-
-			await tokenModule.beforeTransactionApply({
-				stateStore,
-				transaction: validTransaction,
-				reducerHandler,
-			});
-
-			expect(stateStore.account.set).toHaveBeenCalledWith(
-				senderAccount.address,
-				expectedSenderAccount,
-			);
-		});
-	});
-
-	describe('#afterTransactionApply', () => {
-		it('should not throw error if account has sufficient balance', async () => {
-			return expect(
-				tokenModule.afterTransactionApply({
-					stateStore,
-					transaction: validTransaction,
-					reducerHandler,
+	describe('init', () => {
+		it('should initialize config with default value when module config is empty', async () => {
+			await expect(
+				tokenModule.init({
+					genesisConfig: { chainID: ownChainID.toString('hex') } as any,
+					moduleConfig: {},
 				}),
-			).resolves.toBeUndefined();
+			).toResolve();
 		});
 
-		it('should throw error when sender balance is below the minimum required balance', async () => {
-			senderAccount.token.balance = BigInt(0);
-
-			return expect(
-				tokenModule.afterTransactionApply({
-					stateStore,
-					transaction: validTransaction,
-					reducerHandler,
+		it('should initialize config with given value', async () => {
+			await expect(
+				tokenModule.init({
+					genesisConfig: { chainID: ownChainID.toString('hex') } as any,
+					moduleConfig: {
+						supportedTokenID: ['000000020000'],
+					},
 				}),
-			).rejects.toStrictEqual(
-				new Error(
-					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					`Account ${senderAccount.address.toString(
-						'hex',
-					)} does not meet the minimum remaining balance requirement: ${minRemainingBalance}.`,
-				),
-			);
+			).toResolve();
 		});
 	});
 
-	describe('#afterBlockApply', () => {
-		let block: Block;
-		let minFee: bigint;
-		let tx: any;
-		let generatorAccount: any;
-
-		beforeEach(() => {
-			const generator = createAccount();
-			generatorAccount = createFakeDefaultAccount({
-				address: generator.address,
-			});
-			tx = new Transaction({
-				moduleID: 2,
-				assetID: 0,
-				asset: getRandomBytes(200),
-				nonce: BigInt(0),
-				senderPublicKey: getRandomBytes(32),
-				signatures: [getRandomBytes(20)],
-				fee: BigInt(20000000),
-			});
-			block = ({
-				header: {
-					generatorPublicKey: generator.publicKey,
-					reward: BigInt(100000000),
-				},
-				payload: [tx],
-			} as unknown) as Block;
-			minFee =
-				BigInt(genesisConfig.minFeePerByte) * BigInt(tx.getBytes().length) +
-				BigInt(genesisConfig.baseFees[0].baseFee);
-			when(stateStore.account.get)
-				.calledWith(generator.address)
-				.mockResolvedValue(generatorAccount as never);
-		});
-
-		describe('when block contains transactions', () => {
-			it('should update generator balance to give rewards and fees - minFee', async () => {
-				// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-				let expected = generatorAccount.token.balance + block.header.reward;
-				for (const transaction of block.payload) {
-					expected += transaction.fee - minFee;
-				}
-				await tokenModule.afterBlockApply({
-					block,
-					stateStore,
-					reducerHandler,
-					consensus: {} as any,
-				});
-
-				expect(generatorAccount.token.balance).toEqual(expected);
-			});
-
-			it('should update burntFee in the chain state', async () => {
-				const expected = minFee;
-				const expectedBuffer = Buffer.alloc(8);
-				expectedBuffer.writeBigInt64BE(expected);
-				await tokenModule.afterBlockApply({
-					block,
-					stateStore,
-					reducerHandler,
-					consensus: {} as any,
-				});
-
-				expect(stateStore.chain.set).toHaveBeenCalledWith(CHAIN_STATE_BURNT_FEE, expectedBuffer);
+	describe('initGenesisState', () => {
+		beforeEach(async () => {
+			await tokenModule.init({
+				genesisConfig: { chainID: '00000000' } as any,
+				moduleConfig: {},
 			});
 		});
 
-		describe('when block does not contain transactions', () => {
-			it('should update generator balance to give rewards', async () => {
-				block.payload = [];
-				const expected = BigInt(generatorAccount.token.balance) + block.header.reward;
-				await tokenModule.afterBlockApply({
-					block,
-					stateStore,
-					reducerHandler,
-					consensus: {} as any,
-				});
-
-				expect(generatorAccount.token.balance).toEqual(expected);
-			});
-
-			it('should not have updated burnt fee', () => {
-				expect(stateStore.chain.set).not.toHaveBeenCalled();
-			});
-		});
-	});
-
-	describe('#afterGenesisBlockApply', () => {
-		it('should not throw error if total genesis accounts balance does not exceed limit', async () => {
-			return expect(
-				tokenModule.afterGenesisBlockApply({
-					stateStore,
-					genesisBlock,
-					reducerHandler,
-				}),
-			).resolves.toBeUndefined();
+		it('should setup initial state', async () => {
+			const context = createGenesisBlockContext({
+				chainID: ownChainID,
+			}).createInitGenesisStateContext();
+			return expect(tokenModule.initGenesisState(context)).resolves.toBeUndefined();
 		});
 
-		it('should throw error if total genesis accounts balance exceeds limit', async () => {
-			senderAccount.token.balance = BigInt(GENESIS_BLOCK_MAX_BALANCE) + BigInt(1);
-			return expect(
-				tokenModule.afterGenesisBlockApply({
-					stateStore,
-					genesisBlock,
-					reducerHandler,
-				}),
-			).rejects.toStrictEqual(new Error('Total balance exceeds the limit (2^63)-1'));
+		it.each(validGenesisAssets)('%s', async (_desc, input) => {
+			if (typeof input === 'string') {
+				throw new Error('invalid test case');
+			}
+			const encodedAsset = codec.encode(genesisTokenStoreSchema, input);
+			const context = createGenesisBlockContext({
+				chainID: ownChainID,
+				assets: new BlockAssets([{ module: 'token', data: encodedAsset }]),
+			}).createInitGenesisStateContext();
+
+			await expect(tokenModule.initGenesisState(context)).resolves.toBeUndefined();
+			// Expect stored
+			const userStore = tokenModule.stores.get(UserStore);
+			const allUsers = await userStore.iterate(context, {
+				gte: Buffer.alloc(26, 0),
+				lte: Buffer.alloc(26, 255),
+			});
+			expect(allUsers).toHaveLength(input.userSubstore.length);
+
+			const supplyStore = tokenModule.stores.get(SupplyStore);
+			const allSupplies = await supplyStore.iterate(context, {
+				gte: Buffer.alloc(LOCAL_ID_LENGTH, 0),
+				lte: Buffer.alloc(LOCAL_ID_LENGTH, 255),
+			});
+			expect(allSupplies).toHaveLength(input.supplySubstore.length);
+
+			const escrowStore = tokenModule.stores.get(EscrowStore);
+			const allEscrows = await escrowStore.iterate(context, {
+				gte: Buffer.alloc(TOKEN_ID_LENGTH, 0),
+				lte: Buffer.alloc(TOKEN_ID_LENGTH, 255),
+			});
+			expect(allEscrows).toHaveLength(input.escrowSubstore.length);
+
+			const supportedTokenStore = tokenModule.stores.get(SupportedTokensStore);
+			const allSupported = await supportedTokenStore.allSupported(context);
+
+			// When all the tokens are supported
+			if (
+				input.supportedTokensSubstore.length === 1 &&
+				input.supportedTokensSubstore[0].chainID.equals(EMPTY_BYTES)
+			) {
+				expect(allSupported).toBeTrue();
+			} else {
+				expect(allSupported).toBeFalse();
+			}
+		});
+
+		it.each(invalidGenesisAssets)('%s', async (_desc, input, err) => {
+			if (typeof input === 'string') {
+				throw new Error('invalid test case');
+			}
+			const encodedAsset = codec.encode(genesisTokenStoreSchema, input);
+			const context = createGenesisBlockContext({
+				chainID: ownChainID,
+				assets: new BlockAssets([{ module: 'token', data: encodedAsset }]),
+			}).createInitGenesisStateContext();
+
+			await expect(tokenModule.initGenesisState(context)).rejects.toThrow(err as string);
 		});
 	});
 });

@@ -18,6 +18,13 @@ jobs:
         uses: ./.github/actions/prepare-build
         with:
           cache-key: ${{ github.ref }}
+      - run: yarn test:ci
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage-final.json
+          name: codecov-umbrella
       - run: npm config set //npm.lisk.com/:_authToken=$NPM_TOKEN
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

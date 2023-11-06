@@ -11,79 +11,86 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { DPoSVoteAsset, TokenTransferAsset, Transaction, testing } from 'lisk-framework';
-import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
-import { codec } from '@liskhq/lisk-codec';
-import { signData } from '@liskhq/lisk-cryptography';
+import { Transaction, testing, codec, transactions, cryptography } from 'lisk-sdk';
 
 export const createTransferTransaction = ({
 	amount,
 	fee,
 	recipientAddress,
 	nonce,
-	networkIdentifier,
+	chainID,
 }: {
 	amount: string;
 	fee: string;
 	recipientAddress: string;
 	nonce: number;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 }): Transaction => {
 	const genesisAccount = testing.fixtures.defaultFaucetAccount;
 	const encodedAsset = codec.encode(new TokenTransferAsset(BigInt(5000000)).schema, {
 		recipientAddress: Buffer.from(recipientAddress, 'hex'),
-		amount: BigInt(convertLSKToBeddows(amount)),
+		amount: BigInt(transactions.convertLSKToBeddows(amount)),
 		data: '',
 	});
 	const tx = new Transaction({
-		moduleID: 2,
-		assetID: 0,
+		module: 'token',
+		command: 'transfer',
 		nonce: BigInt(nonce),
 		senderPublicKey: genesisAccount.publicKey,
-		fee: BigInt(convertLSKToBeddows(fee)),
-		asset: encodedAsset,
+		fee: BigInt(transactions.convertLSKToBeddows(fee)),
+		params: encodedAsset,
 		signatures: [],
 	});
-	(tx.signatures as Buffer[]).push(
-		signData(Buffer.concat([networkIdentifier, tx.getSigningBytes()]), genesisAccount.passphrase),
+	tx.signatures.push(
+		cryptography.signData(
+			transactions.TAG_TRANSACTION,
+			chainID,
+			tx.getSigningBytes(),
+			genesisAccount.passphrase,
+		),
 	);
 	return tx;
 };
 
-export const createVoteTransaction = ({
+export const createStakeTransaction = ({
 	amount,
 	fee,
 	recipientAddress,
 	nonce,
-	networkIdentifier,
+	chainID,
 }: {
 	amount: string;
 	fee: string;
 	recipientAddress: string;
 	nonce: number;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 }): Transaction => {
 	const genesisAccount = testing.fixtures.defaultFaucetAccount;
-	const encodedAsset = codec.encode(new DPoSVoteAsset().schema, {
-		votes: [
+	const encodedAsset = codec.encode(new PoSStakeAsset().schema, {
+		stakes: [
 			{
-				delegateAddress: Buffer.from(recipientAddress, 'hex'),
-				amount: BigInt(convertLSKToBeddows(amount)),
+				validatorAddress: Buffer.from(recipientAddress, 'hex'),
+				amount: BigInt(transactions.convertLSKToBeddows(amount)),
 			},
 		],
 	});
 
 	const tx = new Transaction({
-		moduleID: 5,
-		assetID: 1,
+		moduleID: utils.intToBuffer(5, 4),
+		commandID: utils.intToBuffer(1, 4),
 		nonce: BigInt(nonce),
 		senderPublicKey: genesisAccount.publicKey,
-		fee: BigInt(convertLSKToBeddows(fee)),
-		asset: encodedAsset,
+		fee: BigInt(transactions.convertLSKToBeddows(fee)),
+		params: encodedAsset,
 		signatures: [],
 	});
-	(tx.signatures as Buffer[]).push(
-		signData(Buffer.concat([networkIdentifier, tx.getSigningBytes()]), genesisAccount.passphrase),
+	tx.signatures.push(
+		cryptography.signData(
+			transactions.TAG_TRANSACTION,
+			chainID,
+			tx.getSigningBytes(),
+			genesisAccount.passphrase,
+		),
 	);
 	return tx;
 };

@@ -73,6 +73,7 @@ export const readUInt32 = (buffer: Buffer, offset: number): [number, number] => 
 		}
 		result = (result | ((bit & rest) << shift)) >>> 0;
 		if ((bit & msg) === 0) {
+			validateVarintSize(BigInt(result), index - offset);
 			return [result, index - offset];
 		}
 	}
@@ -93,6 +94,7 @@ export const readUInt64 = (buffer: Buffer, offset: number): [bigint, number] => 
 		}
 		result |= (bit & BigInt(rest)) << shift;
 		if ((bit & BigInt(msg)) === BigInt(0)) {
+			validateVarintSize(result, index - offset);
 			return [result, index - offset];
 		}
 	}
@@ -113,4 +115,16 @@ export const readSInt64 = (buffer: Buffer, offset: number): [bigint, number] => 
 		return [varInt / BigInt(2), size];
 	}
 	return [-(varInt + BigInt(1)) / BigInt(2), size];
+};
+
+const validateVarintSize = (result: bigint, size: number) => {
+	// when result is 0, size must be 1, but the below condition only supports result greater than 1.
+	if (result === BigInt(0) && size === 1) {
+		return;
+	}
+
+	const min = BigInt(1) << BigInt(7 * (size - 1));
+	if (result < min) {
+		throw new Error('invalid varint bytes. vartint must be in shortest form.');
+	}
 };

@@ -16,7 +16,7 @@ Upon successful completion, NPM will add the `lisk-commander` executable `lisk` 
 
 ## Usage
 
-```sh-session
+```shell
 $ lisk COMMAND
 running command...
 $ lisk (-v|--version|version)
@@ -58,13 +58,13 @@ $ npm test
 
 ## Get Involved
 
-| Reason                          | How                                                                                            |
-| ------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Want to chat with our community | [Reach them on Discord](https://discord.gg/lisk)                                               |
-| Found a bug                     | [Open a new issue](https://github.com/LiskHQ/lisk/issues/new)                                  |
-| Found a security issue          | [See our bounty program](https://blog.lisk.io/announcing-lisk-bug-bounty-program-5895bdd46ed4) |
-| Want to share your research     | [Propose your research](https://research.lisk.io)                                              |
-| Want to develop with us         | [Create a fork](https://github.com/LiskHQ/lisk/fork)                                           |
+| Reason                          | How                                                                                             |
+| ------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Want to chat with our community | [Reach them on Discord](https://discord.gg/lisk)                                                |
+| Found a bug                     | [Open a new issue](https://github.com/LiskHQ/lisk/issues/new)                                   |
+| Found a security issue          | [See our bounty program](https://blog.lisk.com/announcing-lisk-bug-bounty-program-5895bdd46ed4) |
+| Want to share your research     | [Propose your research](https://research.lisk.com)                                              |
+| Want to develop with us         | [Create a fork](https://github.com/LiskHQ/lisk/fork)                                            |
 
 ## License
 

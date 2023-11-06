@@ -15,85 +15,110 @@
 import * as liskApiClient from '@liskhq/lisk-api-client';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { RegisteredSchema, Transaction } from 'lisk-framework';
+import { TransactionJSON } from '@liskhq/lisk-chain';
+import { ModuleMetadataJSON, RegisteredSchema } from 'lisk-framework';
 
 import { Schema } from '../types';
 import { getDefaultPath } from './path';
 import { isApplicationRunning } from './application';
 
-export const getAssetSchema = (
-	registeredSchema: RegisteredSchema,
-	moduleID: number,
-	assetID: number,
-): Schema | undefined => {
-	const transactionsAsset = registeredSchema.transactionsAssets.find(
-		schema => schema.moduleID === Number(moduleID) && schema.assetID === Number(assetID),
-	);
-	if (!transactionsAsset) {
-		throw new Error(
-			`Transaction moduleID:${moduleID} with assetID:${assetID} is not registered in the application.`,
-		);
+export const getParamsSchema = (
+	metadata: ModuleMetadataJSON[],
+	module: string,
+	command: string,
+): Schema => {
+	const moduleMeta = metadata.find(meta => meta.name === module);
+	if (!moduleMeta) {
+		throw new Error(`Module: ${module} is not registered.`);
 	}
-	return transactionsAsset.schema;
+	const commandMeta = moduleMeta.commands.find(meta => meta.name === command);
+	if (!commandMeta) {
+		throw new Error(`Module: ${module} Command: ${command} is not registered.`);
+	}
+	return commandMeta.params;
 };
 
 export const decodeTransaction = (
 	schema: RegisteredSchema,
+	metadata: ModuleMetadataJSON[],
 	transactionHexStr: string,
-	apiClient?: liskApiClient.APIClient,
-): Record<string, unknown> => {
+) => {
 	const transactionBytes = Buffer.from(transactionHexStr, 'hex');
-	if (apiClient) {
-		return apiClient.transaction.decode(transactionBytes);
-	}
-	const id = cryptography.hash(transactionBytes);
-	const transaction = codec.decode<Transaction>(schema.transaction, transactionBytes);
-	const assetSchema = getAssetSchema(schema, transaction.moduleID, transaction.assetID);
-	const asset = codec.decode<Record<string, unknown>>(assetSchema as Schema, transaction.asset);
+	const id = cryptography.utils.hash(transactionBytes);
+	const transaction = codec.decodeJSON<TransactionJSON>(schema.transaction, transactionBytes);
+	const paramsSchema = getParamsSchema(metadata, transaction.module, transaction.command);
+	const params = codec.decodeJSON<Record<string, unknown>>(
+		paramsSchema,
+		Buffer.from(transaction.params, 'hex'),
+	);
 	return {
 		...transaction,
-		asset,
-		id,
+		params,
+		id: id.toString('hex'),
 	};
 };
 
 export const encodeTransaction = (
 	schema: RegisteredSchema,
+	metadata: ModuleMetadataJSON[],
 	transaction: Record<string, unknown>,
 	apiClient?: liskApiClient.APIClient,
 ): Buffer => {
 	if (apiClient) {
 		return apiClient.transaction.encode(transaction);
 	}
-	const assetSchema = getAssetSchema(
-		schema,
-		transaction.moduleID as number,
-		transaction.assetID as number,
+	const paramsSchema = getParamsSchema(
+		metadata,
+		transaction.module as string,
+		transaction.command as string,
 	);
-	const assetBytes = codec.encode(assetSchema as Schema, transaction.asset as object);
-	const txBytes = codec.encode(schema.transaction, { ...transaction, asset: assetBytes });
+	const paramsBytes = codec.encode(paramsSchema, transaction.params as object);
+	const txBytes = codec.encode(schema.transaction, { ...transaction, params: paramsBytes });
+	return txBytes;
+};
+
+export const encodeTransactionJSON = (
+	schema: RegisteredSchema,
+	metadata: ModuleMetadataJSON[],
+	transaction: Record<string, unknown>,
+	apiClient?: liskApiClient.APIClient,
+): Buffer => {
+	if (apiClient) {
+		return apiClient.transaction.encode(apiClient.transaction.fromJSON(transaction as never));
+	}
+	const paramsSchema = getParamsSchema(
+		metadata,
+		transaction.module as string,
+		transaction.command as string,
+	);
+	const paramsBytes = codec.encodeJSON(paramsSchema, transaction.params as object);
+	const txBytes = codec.encodeJSON(schema.transaction, {
+		...transaction,
+		params: paramsBytes.toString('hex'),
+	});
 	return txBytes;
 };
 
 export const transactionToJSON = (
 	schema: RegisteredSchema,
+	metadata: ModuleMetadataJSON[],
 	transaction: Record<string, unknown>,
 	apiClient?: liskApiClient.APIClient,
 ): Record<string, unknown> => {
 	if (apiClient) {
 		return apiClient.transaction.toJSON(transaction);
 	}
-	const assetSchema = getAssetSchema(
-		schema,
-		transaction.moduleID as number,
-		transaction.assetID as number,
+	const paramsSchema = getParamsSchema(
+		metadata,
+		transaction.module as string,
+		transaction.command as string,
 	);
-	const assetJSON = codec.toJSON(assetSchema as Schema, transaction.asset as object);
-	const { id, asset, ...txWithoutAsset } = transaction;
-	const txJSON = codec.toJSON(schema.transaction, txWithoutAsset);
+	const paramsJSON = codec.toJSON(paramsSchema, transaction.params as object);
+	const { id, params, ...txWithoutParams } = transaction;
+	const txJSON = codec.toJSON(schema.transaction, txWithoutParams);
 	return {
 		...txJSON,
-		asset: assetJSON,
+		params: paramsJSON,
 		id: Buffer.isBuffer(id) ? id.toString('hex') : undefined,
 	};
 };

@@ -12,12 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
+import { ApplicationConfigForPlugin, testing } from 'lisk-sdk';
 import { ReportMisbehaviorPlugin } from '../../src';
-import * as config from '../../src/defaults/default_config';
+import { configSchema } from '../../src/schemas';
+
+const appConfigForPlugin: ApplicationConfigForPlugin = {
+	...testing.fixtures.defaultConfig,
+};
 
 const validPluginOptions = {
-	...config.defaultConfig.default,
+	...configSchema.default,
 	encryptedPassphrase:
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
 	dataPath: '/my/app',
@@ -25,15 +29,19 @@ const validPluginOptions = {
 
 describe('subscribe to event', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
-	let subscribeMock: jest.Mock;
-	beforeEach(() => {
-		subscribeMock = jest.fn();
-		const channelMock = {
-			subscribe: subscribeMock,
+	beforeEach(async () => {
+		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
+		reportMisbehaviorPlugin['_apiClient'] = {
+			schema: {},
+			invoke: jest.fn(),
+			subscribe: jest.fn(),
 		};
-		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin(validPluginOptions as never);
-		(reportMisbehaviorPlugin as any)._channel = channelMock;
-		reportMisbehaviorPlugin['_logger'] = {
+		await reportMisbehaviorPlugin.init({
+			config: validPluginOptions,
+			appConfig: appConfigForPlugin,
+			logger: testing.mocks.loggerMock,
+		});
+		reportMisbehaviorPlugin['logger'] = {
 			error: jest.fn(),
 		} as any;
 	});
@@ -42,16 +50,10 @@ describe('subscribe to event', () => {
 		// Act
 		reportMisbehaviorPlugin['_subscribeToChannel']();
 		// Assert
-		expect(subscribeMock).toHaveBeenCalledTimes(1);
-		expect(subscribeMock).toHaveBeenCalledWith('app:network:event', expect.any(Function));
-	});
-
-	it('should not decode block when data is invalid', () => {
-		jest.spyOn(codec, 'decode');
-		// Act
-		reportMisbehaviorPlugin['_subscribeToChannel']();
-		subscribeMock.mock.calls[0][1]({ event: 'postBlock', data: null });
-		// Assert
-		expect(codec.decode).not.toHaveBeenCalled();
+		expect(reportMisbehaviorPlugin.apiClient.subscribe).toHaveBeenCalledTimes(1);
+		expect(reportMisbehaviorPlugin.apiClient.subscribe).toHaveBeenCalledWith(
+			'network_newBlock',
+			expect.any(Function),
+		);
 	});
 });

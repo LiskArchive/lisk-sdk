@@ -17,8 +17,6 @@ export type Transaction = TransactionObject & TransactionFunctions;
 
 export interface TransactionObject {
 	readonly id: Buffer;
-	readonly moduleID: number;
-	readonly assetID: number;
 	readonly nonce: bigint;
 	readonly fee: bigint;
 	readonly senderPublicKey: Buffer;
@@ -35,8 +33,9 @@ export enum Status {
 	OK = 1,
 }
 
+// This enum is matching with framework/src/abi/constants.ts
 export enum TransactionStatus {
-	INVALID = 0,
-	UNPROCESSABLE,
-	PROCESSABLE,
+	INVALID = -1,
+	UNPROCESSABLE = 0,
+	PROCESSABLE = 1,
 }

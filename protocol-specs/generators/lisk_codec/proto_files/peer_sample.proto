@@ -3,7 +3,7 @@ syntax = 'proto2';
 message PeerInfo {
 	required string ipAddress = 1;
 	required uint32 wsPort = 2;
-	optional string networkIdentifier = 3;
+	optional string chainID = 3;
 	optional string networkVersion = 4;
 	optional string nonce = 5;
 	optional string os = 6;

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,54 +13,97 @@
  */
 /* eslint-disable class-methods-use-this */
 
+import { Schema } from '@liskhq/lisk-codec';
+import { GenesisConfig } from '../types';
 import {
-	GenesisConfig,
-	AccountSchema,
-	TransactionApplyContext,
-	AfterBlockApplyContext,
-	BeforeBlockApplyContext,
-	AfterGenesisBlockApplyContext,
-	Reducers,
-	Actions,
-	BaseModuleDataAccess,
-} from '../types';
-import { BaseAsset } from './base_asset';
-import { Logger } from '../logger/logger';
+	BlockAfterExecuteContext,
+	BlockExecuteContext,
+	GenesisBlockExecuteContext,
+	TransactionExecuteContext,
+	TransactionVerifyContext,
+	BlockVerifyContext,
+	VerificationResult,
+} from '../state_machine';
+import { BaseCommand } from './base_command';
+import { BaseEndpoint } from './base_endpoint';
+import { BaseMethod } from './base_method';
+import { InsertAssetContext } from '../state_machine/types';
+import { NamedRegistry } from './named_registry';
 
-export interface BaseModuleChannel {
-	publish(name: string, data?: Record<string, unknown>): void;
+export interface ModuleInitArgs {
+	genesisConfig: Omit<GenesisConfig, 'modules'>;
+	moduleConfig: Record<string, unknown>;
 }
 
+export interface ModuleMetadata {
+	endpoints: {
+		name: string;
+		request?: Schema;
+		response?: Schema;
+	}[];
+	events: {
+		name: string;
+		data: Schema;
+	}[];
+	commands: {
+		name: string;
+		params: Schema;
+	}[];
+	assets: {
+		version: number;
+		data: Schema;
+	}[];
+	stores: {
+		key: string;
+		data?: Schema;
+	}[];
+}
+
+export type ModuleMetadataJSON = ModuleMetadata & { name: string };
+
 export abstract class BaseModule {
-	public readonly config: GenesisConfig;
-	public transactionAssets: BaseAsset[] = [];
-	public reducers: Reducers = {};
-	public actions: Actions = {};
-	public events: string[] = [];
-	public accountSchema?: AccountSchema;
-	protected _logger!: Logger;
-	protected _channel!: BaseModuleChannel;
-	protected _dataAccess!: BaseModuleDataAccess;
-	public abstract name: string;
-	public abstract id: number;
+	public commands: BaseCommand[] = [];
+	public events: NamedRegistry = new NamedRegistry();
+	public stores: NamedRegistry = new NamedRegistry();
+	public offchainStores: NamedRegistry = new NamedRegistry();
 
-	public constructor(genesisConfig: GenesisConfig) {
-		this.config = genesisConfig;
+	public get name(): string {
+		const name = this.constructor.name.replace('Module', '');
+		return name.charAt(0).toLowerCase() + name.substr(1);
 	}
 
-	public init(input: {
-		channel: BaseModuleChannel;
-		dataAccess: BaseModuleDataAccess;
-		logger: Logger;
-	}): void {
-		this._channel = input.channel;
-		this._dataAccess = input.dataAccess;
-		this._logger = input.logger;
-	}
+	public abstract endpoint: BaseEndpoint;
+	public abstract method: BaseMethod;
 
-	public async beforeTransactionApply?(context: TransactionApplyContext): Promise<void>;
-	public async afterTransactionApply?(context: TransactionApplyContext): Promise<void>;
-	public async afterGenesisBlockApply?(context: AfterGenesisBlockApplyContext): Promise<void>;
-	public async beforeBlockApply?(context: BeforeBlockApplyContext): Promise<void>;
-	public async afterBlockApply?(context: AfterBlockApplyContext): Promise<void>;
+	public async init?(args: ModuleInitArgs): Promise<void>;
+	public async insertAssets?(context: InsertAssetContext): Promise<void>;
+	public async verifyAssets?(context: BlockVerifyContext): Promise<void>;
+	public async verifyTransaction?(context: TransactionVerifyContext): Promise<VerificationResult>;
+	public async beforeCommandExecute?(context: TransactionExecuteContext): Promise<void>;
+	public async afterCommandExecute?(context: TransactionExecuteContext): Promise<void>;
+	public async initGenesisState?(context: GenesisBlockExecuteContext): Promise<void>;
+	public async finalizeGenesisState?(context: GenesisBlockExecuteContext): Promise<void>;
+	public async beforeTransactionsExecute?(context: BlockExecuteContext): Promise<void>;
+	public async afterTransactionsExecute?(context: BlockAfterExecuteContext): Promise<void>;
+
+	public abstract metadata(): ModuleMetadata;
+
+	protected baseMetadata() {
+		return {
+			commands: this.commands.map(command => ({
+				name: command.name,
+				params: command.schema,
+			})),
+			events: this.events.values().map(v => ({
+				name: v.name,
+				data: v.schema,
+			})),
+			stores: this.stores.values().map(v => ({
+				key: v.key.toString('hex'),
+				data: v.schema,
+			})),
+			endpoints: [],
+			assets: [],
+		};
+	}
 }

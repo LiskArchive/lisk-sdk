@@ -12,56 +12,47 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-// eslint-disable-next-line
-/// <reference path="../../../external_types/pm2-axon/index.d.ts" />
-// eslint-disable-next-line
-/// <reference path="../../../external_types/pm2-axon-rpc/index.d.ts" />
-
-import * as axon from 'pm2-axon';
-import { PubSocket, PullSocket, PushSocket, RepSocket, SubSocket } from 'pm2-axon';
+import { Publisher, Subscriber, Router } from 'zeromq';
 import { join } from 'path';
-import { Server as RPCServer } from 'pm2-axon-rpc';
+import * as fs from 'fs-extra';
 
 export abstract class IPCSocket {
-	public pubSocket!: PushSocket | PubSocket;
-	public subSocket!: PullSocket | SubSocket;
-	public rpcServer: RPCServer;
+	public pubSocket!: Publisher;
+	public subSocket!: Subscriber;
 
 	protected readonly _eventPubSocketPath: string;
 	protected readonly _eventSubSocketPath: string;
-	protected readonly _actionRpcSeverSocketPath: string;
+	protected readonly _rpcSeverSocketPath: string;
+	private _rpcServer?: Router;
+	private readonly _socketsDir: string;
 
-	protected constructor(options: { socketsDir: string; name: string }) {
-		this._eventPubSocketPath = `unix://${join(options.socketsDir, 'pub_socket.sock')}`;
-		this._eventSubSocketPath = `unix://${join(options.socketsDir, 'sub_socket.sock')}`;
-		this._actionRpcSeverSocketPath = `unix://${join(
+	protected constructor(options: { socketsDir: string; name: string; externalSocket?: boolean }) {
+		this._socketsDir = options.socketsDir;
+		const sockFileName = options.externalSocket ? 'external' : 'internal';
+		this._eventPubSocketPath = `ipc://${join(options.socketsDir, `${sockFileName}.pub.ipc`)}`;
+		this._eventSubSocketPath = `ipc://${join(options.socketsDir, `${sockFileName}.sub.ipc`)}`;
+		this._rpcSeverSocketPath = `ipc://${join(
 			options.socketsDir,
-			`${options.name}_rpc_socket.sock`,
+			`${options.name}.${sockFileName}.rpc.ipc`,
 		)}`;
-
-		this.rpcServer = new RPCServer(axon.socket('rep') as RepSocket);
 	}
 
-	public get rpcServerSocketPath(): string {
-		return this._actionRpcSeverSocketPath;
-	}
-
-	public stop(): void {
-		this.subSocket.removeAllListeners();
-		this.pubSocket.close();
-		this.subSocket.close();
-		this.rpcServer.sock.close();
+	public get rpcServer(): Router {
+		if (!this._rpcServer) {
+			throw new Error('RPC server has not been initialized.');
+		}
+		return this._rpcServer;
 	}
 
 	public async start(): Promise<void> {
-		await new Promise((resolve, reject) => {
-			this.rpcServer.sock.on('bind', resolve);
-			this.rpcServer.sock.on('error', reject);
+		fs.ensureDirSync(this._socketsDir);
+		this._rpcServer = new Router();
+		await this.rpcServer.bind(this._rpcSeverSocketPath);
+	}
 
-			this.rpcServer.sock.bind(this._actionRpcSeverSocketPath);
-		}).finally(() => {
-			this.rpcServer.sock.removeAllListeners('bind');
-			this.rpcServer.sock.removeAllListeners('error');
-		});
+	public stop(): void {
+		this.pubSocket.close();
+		this.subSocket.close();
+		this.rpcServer.close();
 	}
 }

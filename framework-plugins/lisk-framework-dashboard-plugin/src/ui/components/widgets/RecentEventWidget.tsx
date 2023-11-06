@@ -18,7 +18,7 @@ import SelectInput, { SelectInputOptionType } from '../input/SelectInput';
 import { Widget, WidgetHeader, WidgetBody } from '../widget';
 import Text from '../Text';
 import Box from '../Box';
-import { EventData } from '../../types';
+import { ParsedEvent } from '../../types';
 import styles from './Widgets.module.scss';
 import { jsonHighlight } from '../../utils/json_color';
 
@@ -26,7 +26,7 @@ interface Props {
 	events: string[];
 	onSelect: (eventsName: string[]) => void;
 	selected: string[];
-	data: EventData[];
+	data: ParsedEvent[];
 }
 const listToEventObject = (list: string[]) => list.map(e => ({ label: e, value: e })).flat();
 
@@ -42,7 +42,7 @@ const RecentEventWidget: React.FC<Props> = props => {
 
 	const showHighlightJSON = (data: Record<string, unknown>): string =>
 		// eslint-disable-next-line
-		formatHighlight(JSON.stringify(data), jsonHighlight);
+		formatHighlight(data, jsonHighlight);
 
 	return (
 		<Widget>
@@ -62,11 +62,15 @@ const RecentEventWidget: React.FC<Props> = props => {
 				</div>
 			</WidgetHeader>
 			<WidgetBody scrollbar size={'m'}>
-				{props.data.map(({ name, data }, index) => (
-					<Box mb={4} key={index}>
-						<Text type={'h3'}>{name}</Text>
+				{props.data.map(({ module, name, data, height, index: eIndex, topics }) => (
+					<Box mb={4} key={`${height}/${eIndex}`}>
+						<Text type={'h3'} className={styles['recent-events-event-heading']}>
+							{module}_{name} (height: {height} index: {eIndex} topics: {topics.join(', ')})
+						</Text>
 						<br />
-						<span dangerouslySetInnerHTML={{ __html: showHighlightJSON(data) }} />
+						<pre className={styles['recent-events-code-block']}>
+							<code dangerouslySetInnerHTML={{ __html: showHighlightJSON(data) }} />
+						</pre>
 					</Box>
 				))}
 			</WidgetBody>

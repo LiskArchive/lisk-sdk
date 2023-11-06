@@ -13,13 +13,13 @@
  *
  */
 
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
+import { legacy } from '@liskhq/lisk-cryptography';
 import { computeMinFee, getBytes } from '../src';
 
 describe('fee', () => {
-	const validAssetSchema = {
-		$id: 'lisk/transfer-transaction',
-		title: 'Transfer transaction asset',
+	const validParamsSchema = {
+		$id: '/lisk/transfer-transaction',
+		title: 'Transfer transaction params',
 		type: 'object',
 		required: ['amount', 'recipientAddress', 'data'],
 		properties: {
@@ -42,63 +42,46 @@ describe('fee', () => {
 		},
 	};
 	const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
-	const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
+	const { publicKey: publicKey1 } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase1);
 	const validTransaction = {
-		moduleID: 2,
-		assetID: 0,
+		module: 'token',
+		command: 'transfer',
 		nonce: BigInt('1'),
 		senderPublicKey: publicKey1,
-		asset: {
+		params: {
 			recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
 			amount: BigInt('4008489300000000'),
 			data: '',
 		},
 	};
-	const baseFees = [
-		{
-			moduleID: 2,
-			assetID: 0,
-			baseFee: '10000000',
-		},
-		{
-			moduleID: 5,
-			assetID: 0,
-			baseFee: '1',
-		},
-		{
-			moduleID: 3,
-			assetID: 0,
-			baseFee: '1',
-		},
-	];
 
 	describe('computeMinFee', () => {
 		it('should return minimum fee required to send to network', () => {
 			// Arrange
-			const minFee = computeMinFee(validAssetSchema, validTransaction);
+			const minFee = computeMinFee(validTransaction, validParamsSchema);
 
 			// Assert
-			expect(minFee).not.toBeUndefined();
+			expect(minFee).toBeDefined();
 			expect(minFee).toMatchSnapshot();
 		});
 
 		it('should calculate minimum fee for given minFeePerByte', () => {
 			// Arrange
-			const options = { minFeePerByte: 2000, baseFees, numberOfSignatures: 1 };
-			const minFee = computeMinFee(validAssetSchema, validTransaction, options);
+			const options = { minFeePerByte: 2000, numberOfSignatures: 1 };
+			const minFee = computeMinFee(validTransaction, validParamsSchema, options);
 
 			// Assert
-			expect(minFee).not.toBeUndefined();
+			expect(minFee).toBeDefined();
 			expect(minFee).toMatchSnapshot();
 		});
 
 		it('should calculate minimum fee for transaction from multisignature account', () => {
 			// Arrange
-			const options = { minFeePerByte: 2000, baseFees, numberOfSignatures: 64 };
-			const minFee = computeMinFee(validAssetSchema, validTransaction, options);
+			const options = { minFeePerByte: 2000, numberOfSignatures: 64 };
+			const minFee = computeMinFee(validTransaction, validParamsSchema, options);
 
 			// Assert
-			expect(minFee).not.toBeUndefined();
+			expect(minFee).toBeDefined();
 			expect(minFee).toMatchSnapshot();
 		});
 
@@ -106,7 +89,6 @@ describe('fee', () => {
 			// Arrange
 			const options = {
 				minFeePerByte: 1000,
-				baseFees: [],
 				numberOfSignatures: 2,
 				numberOfEmptySignatures: 3,
 			};
@@ -120,24 +102,26 @@ describe('fee', () => {
 					Buffer.alloc(64),
 				],
 			};
-			const minFee = computeMinFee(validAssetSchema, transaction, options);
-			const txBytes = getBytes(validAssetSchema, { ...transaction, fee: minFee });
+			const minFee = computeMinFee(transaction, validParamsSchema, options);
+			const txBytes = getBytes({ ...transaction, fee: minFee }, validParamsSchema);
 
 			// Assert
-			expect(minFee.toString()).toEqual(BigInt(txBytes.length * 1000).toString());
+			expect(minFee).toBe(BigInt(txBytes.length * 1000));
 		});
 
-		it('should calculate minimum fee for delegate registration transaction', () => {
+		it('should calculate minimum fee for validator registration transaction', () => {
 			// Arrange
-			const delegateRegisterTransaction = {
+			const validatorRegisterTransaction = {
 				...validTransaction,
-				moduleID: 5,
-				assetID: 0,
-				asset: { username: 'delegate1' },
+				module: 'pos',
+				command: 'register',
+				params: { username: 'validator11' },
+				signatures: [],
 			};
-			const options = { minFeePerByte: 1000, baseFees, numberOfSignatures: 1 };
-			const delegateRegisterAssetSchema = {
-				$id: 'lisk/dpos/register',
+			const additionalFee = BigInt(1000000000);
+			const options = { minFeePerByte: 1000, numberOfSignatures: 1, additionalFee };
+			const validatorRegisterParamsSchema = {
+				$id: '/lisk/pos/register',
 				type: 'object',
 				required: ['username'],
 				properties: {
@@ -150,14 +134,25 @@ describe('fee', () => {
 				},
 			};
 			const minFee = computeMinFee(
-				delegateRegisterAssetSchema,
-				delegateRegisterTransaction,
+				validatorRegisterTransaction,
+				validatorRegisterParamsSchema,
 				options,
 			);
 
 			// Assert
-			expect(minFee).not.toBeUndefined();
+			expect(minFee).toBeDefined();
 			expect(minFee).toMatchSnapshot();
+			// get bytes with the computed min fee with 1 signature
+			const minFeeForBytes =
+				getBytes(
+					{
+						...validatorRegisterTransaction,
+						fee: minFee,
+						signatures: [Buffer.alloc(64, 255)],
+					},
+					validatorRegisterParamsSchema,
+				).length * 1000;
+			expect(BigInt(minFeeForBytes) + additionalFee).toEqual(minFee);
 		});
 	});
 });

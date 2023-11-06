@@ -13,45 +13,29 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { transactionSchema } from '@liskhq/lisk-chain';
-import { when } from 'jest-when';
-import { BaseChannel, BasePlugin } from '../../../src';
+import * as apiClient from '@liskhq/lisk-api-client';
+import { BasePlugin, GenesisConfig, systemDirs, testing } from '../../../src';
 import * as loggerModule from '../../../src/logger';
-import { TransferAsset } from '../../../src/modules/token/transfer_asset';
-import { getPluginExportPath, PluginInfo } from '../../../src/plugins/base_plugin';
-
-const appConfigForPlugin = {
-	rootPath: '/my/path',
-	label: 'my-app',
-	logger: { consoleLogLevel: 'debug', fileLogLevel: '123' },
-};
+import { getPluginExportPath } from '../../../src/plugins/base_plugin';
+import { fakeLogger } from '../../utils/mocks';
 
 class MyPlugin extends BasePlugin {
-	public constructor(options: object = { appConfig: appConfigForPlugin }) {
-		super(options as never);
+	public configSchema = {
+		$id: '/myPlugin/schema',
+		type: 'object',
+		properties: {
+			obj: {
+				type: 'string',
+			},
+		},
+		default: {},
+	};
+
+	public get nodeModulePath(): string {
+		return '';
 	}
 
-	public static get alias() {
-		return 'my_plugin';
-	}
-
-	public static get info(): PluginInfo {
-		return {
-			author: 'John Do',
-			version: '1.0',
-			name: 'my_plugin',
-		};
-	}
-
-	public get events() {
-		return [];
-	}
-
-	public get actions() {
-		return {};
-	}
-
-	public async load(_channel: BaseChannel) {
+	public async load() {
 		return Promise.resolve();
 	}
 
@@ -60,28 +44,9 @@ class MyPlugin extends BasePlugin {
 	}
 }
 
-const channelMock = {
-	invoke: jest.fn(),
-	once: jest.fn().mockImplementation((_eventName, cb) => cb()),
-};
-
 const loggerMock = {
 	debug: jest.fn(),
 	info: jest.fn(),
-};
-
-const schemas = {
-	accountSchema: {},
-	transactionSchema,
-	transactionsAssetSchemas: [
-		{
-			moduleID: 2,
-			assetID: 0,
-			schema: new TransferAsset(BigInt(5000000)).schema,
-		},
-	],
-	blockHeader: {},
-	blockHeadersAssets: {},
 };
 
 describe('base_plugin', () => {
@@ -90,101 +55,72 @@ describe('base_plugin', () => {
 
 		beforeEach(() => {
 			plugin = new MyPlugin();
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({
+				invoke: jest.fn(),
+			} as never);
 
 			jest.spyOn(loggerModule, 'createLogger').mockReturnValue(loggerMock as never);
-			when(channelMock.invoke).calledWith('app:getSchema').mockResolvedValue(schemas);
-		});
-
-		describe('constructor', () => {
-			it('should assign "codec" namespace', () => {
-				expect(plugin.codec).toEqual(
-					expect.objectContaining({
-						decodeTransaction: expect.any(Function),
-					}),
-				);
-			});
 		});
 
 		describe('init', () => {
-			it('should create logger instance', async () => {
+			it('should assign "apiClient" property', async () => {
 				// Act
-				await plugin.init((channelMock as unknown) as BaseChannel);
+				await plugin.init({
+					appConfig: {
+						...testing.fixtures.defaultConfig,
+						rpc: {
+							...testing.fixtures.defaultConfig.rpc,
+							modes: ['ipc'],
+						},
+					},
+					logger: fakeLogger,
+					config: {
+						obj: 'valid obj prop',
+					},
+				});
 
 				// Assert
-				expect(loggerModule.createLogger).toHaveBeenCalledTimes(1);
-				expect(loggerModule.createLogger).toHaveBeenCalledWith({
-					...appConfigForPlugin.logger,
-					logFilePath: `${appConfigForPlugin.rootPath}/${appConfigForPlugin.label}/logs/plugin-${MyPlugin.alias}.log`,
-					module: `plugin:${MyPlugin.alias}`,
-				});
-				expect(plugin['_logger']).toBe(loggerMock);
+				expect(apiClient.createIPCClient).toHaveBeenCalledWith(
+					systemDirs(testing.fixtures.defaultConfig.system.dataPath).dataPath,
+				);
 			});
 
-			it('should fetch schemas and assign to instance', async () => {
-				// Act
-				await plugin.init((channelMock as unknown) as BaseChannel);
-
-				// Assert
-				expect(channelMock.once).toHaveBeenCalledTimes(1);
-				expect(channelMock.once).toHaveBeenCalledWith('app:ready', expect.any(Function));
-				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
-				expect(channelMock.invoke).toHaveBeenCalledWith('app:getSchema');
-				expect(plugin.schemas).toBe(schemas);
+			it('should reject config given does not satisfy configSchema defined', async () => {
+				await expect(
+					plugin.init({
+						appConfig: {
+							...testing.fixtures.defaultConfig,
+							genesis: {} as unknown as GenesisConfig,
+						},
+						logger: fakeLogger,
+						config: {
+							obj: false,
+						},
+					}),
+				).rejects.toThrow();
 			});
 		});
 	});
 
 	describe('getPluginExportPath', () => {
+		const plugin = new MyPlugin();
 		afterEach(() => {
 			jest.clearAllMocks();
 		});
 
-		it('should return undefined if info.name is not an npm package and info.exportPath is not defined', () => {
-			expect(getPluginExportPath(MyPlugin)).toBeUndefined();
+		it('should return undefined if name is not an npm package and nodeModulePath is not defined', () => {
+			expect(getPluginExportPath(plugin)).toBeUndefined();
 		});
 
-		it('should return info.name if its a valid npm package', () => {
-			jest.mock(
-				MyPlugin.info.name,
-				() => {
-					return {
-						MyPlugin,
-					};
-				},
-				{ virtual: true },
-			);
-
-			expect(getPluginExportPath(MyPlugin)).toEqual(MyPlugin.info.name);
-		});
-
-		it('should return undefined if exported class is not the same from npm package', () => {
-			class MyPlugin2 extends MyPlugin {}
-			jest.mock(
-				MyPlugin.info.name,
-				() => {
-					return {
-						MyPlugin: MyPlugin2,
-					};
-				},
-				{ virtual: true },
-			);
-
-			expect(getPluginExportPath(MyPlugin)).toBeUndefined();
-		});
-
-		it('should return info.exportPath if info.name is not a package but export path is valid', () => {
+		it('should return name if its a valid npm package', () => {
 			class MyPlugin2 extends MyPlugin {
-				public static get info(): PluginInfo {
-					return {
-						...MyPlugin.info,
-						name: 'my-unknown-package',
-						exportPath: 'plugin-with-valid-export',
-					};
+				public get nodeModulePath() {
+					return 'my_plugin';
 				}
 			}
 
 			jest.mock(
-				'plugin-with-valid-export',
+				'my_plugin',
 				() => {
 					return {
 						MyPlugin2,
@@ -193,17 +129,28 @@ describe('base_plugin', () => {
 				{ virtual: true },
 			);
 
-			expect(getPluginExportPath(MyPlugin2)).toEqual('plugin-with-valid-export');
+			expect(getPluginExportPath(new MyPlugin2())).toBe('my_plugin');
+		});
+
+		it('should return undefined if exported class is not the same from npm package', () => {
+			class MyPlugin2 extends MyPlugin {}
+			jest.mock(
+				'my_plugin',
+				() => {
+					return {
+						MyPlugin: MyPlugin2,
+					};
+				},
+				{ virtual: true },
+			);
+
+			expect(getPluginExportPath(new MyPlugin())).toBeUndefined();
 		});
 
 		it('should return undefined if exported class is not the same from export path', () => {
 			class MyPlugin2 extends MyPlugin {
-				public static get info(): PluginInfo {
-					return {
-						...MyPlugin.info,
-						name: 'my-unknown-package',
-						exportPath: 'custom-export-path-2',
-					};
+				public get nodeModulePath(): string {
+					return 'custom-export-path-2';
 				}
 			}
 
@@ -217,7 +164,7 @@ describe('base_plugin', () => {
 				{ virtual: true },
 			);
 
-			expect(getPluginExportPath(MyPlugin2)).toBeUndefined();
+			expect(getPluginExportPath(new MyPlugin2())).toBeUndefined();
 		});
 	});
 });

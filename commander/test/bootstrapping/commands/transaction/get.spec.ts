@@ -12,68 +12,45 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import * as fs from 'fs-extra';
 import { transactionSchema } from 'lisk-framework';
 import * as apiClient from '@liskhq/lisk-api-client';
-import * as Config from '@oclif/config';
 
 import { BaseIPCClientCommand } from '../../../../src/bootstrapping/commands/base_ipc_client';
 import * as appUtils from '../../../../src/utils/application';
 import {
 	createTransferTransaction,
 	encodeTransactionFromJSON,
+	tokenTransferParamsSchema,
 } from '../../../helpers/transactions';
 import { GetCommand } from '../../../../src/bootstrapping/commands/transaction/get';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('transaction:get command', () => {
-	const transferAssetSchema = {
-		$id: 'lisk/transfer-transaction',
-		title: 'Transfer transaction asset',
-		type: 'object',
-		required: ['amount', 'recipientAddress', 'data'],
-		properties: {
-			amount: {
-				dataType: 'uint64',
-				fieldNumber: 1,
-			},
-			recipientAddress: {
-				dataType: 'bytes',
-				fieldNumber: 2,
-				minLength: 20,
-				maxLength: 20,
-			},
-			data: {
-				dataType: 'string',
-				fieldNumber: 3,
-				minLength: 0,
-				maxLength: 64,
-			},
-		},
-	};
-
-	const transactionsAssets = [
+	const commands = [
 		{
-			moduleID: 2,
-			assetID: 0,
-			schema: transferAssetSchema,
+			module: 'token',
+			command: 'transfer',
+			schema: tokenTransferParamsSchema,
 		},
 	];
 	const { id: transactionId, ...transferTransaction } = createTransferTransaction({
 		amount: '1',
 		fee: '0.2',
 		nonce: 1,
-		recipientAddress: '0903f4c5cb599a7928aef27e314e98291d1e3888',
+		recipientAddress: 'lskxpxg4y755b9nr6m7f4gcvtk2mp7yj7p364mzem',
 	});
 	const encodedTransaction = encodeTransactionFromJSON(
 		transferTransaction as any,
 		transactionSchema,
-		transactionsAssets,
+		commands,
 	);
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let getMock: jest.Mock;
 
 	beforeEach(async () => {
@@ -90,7 +67,7 @@ describe('transaction:get command', () => {
 			disconnect: jest.fn(),
 			schemas: {
 				transaction: transactionSchema,
-				transactionsAssets,
+				commands,
 			},
 			transaction: {
 				get: getMock,

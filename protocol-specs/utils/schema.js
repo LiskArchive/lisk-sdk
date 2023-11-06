@@ -13,16 +13,16 @@
  */
 
 const baseTransactionSchema = {
-	$id: 'baseTransactionSchema',
+	$id: '/baseTransactionSchema',
 	type: 'object',
-	required: ['moduleID', 'assetID', 'nonce', 'fee', 'senderPublicKey', 'asset'],
+	required: ['module', 'command', 'nonce', 'fee', 'senderPublicKey', 'params'],
 	properties: {
-		moduleID: {
-			dataType: 'uint32',
+		module: {
+			dataType: 'string',
 			fieldNumber: 1,
 		},
-		assetID: {
-			dataType: 'uint32',
+		command: {
+			dataType: 'string',
 			fieldNumber: 2,
 		},
 		nonce: {
@@ -37,7 +37,7 @@ const baseTransactionSchema = {
 			dataType: 'bytes',
 			fieldNumber: 5,
 		},
-		asset: {
+		params: {
 			dataType: 'bytes',
 			fieldNumber: 6,
 		},

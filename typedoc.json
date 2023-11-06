@@ -1,0 +1,28 @@
+{
+	"entryPointStrategy": "packages",
+	"entryPoints": [
+		"elements/lisk-api-client",
+		"elements/lisk-chain",
+		"elements/lisk-codec",
+		"elements/lisk-cryptography",
+		"elements/lisk-db",
+		"elements/lisk-p2p",
+		"elements/lisk-passphrase",
+		"elements/lisk-transaction-pool",
+		"elements/lisk-transactions",
+		"elements/lisk-tree",
+		"elements/lisk-utils",
+		"elements/lisk-validator",
+		"commander",
+		"framework",
+		"framework-plugins/lisk-framework-dashboard-plugin",
+		"framework-plugins/lisk-framework-chain-connector-plugin",
+		"framework-plugins/lisk-framework-forger-plugin",
+		"framework-plugins/lisk-framework-faucet-plugin",
+		"framework-plugins/lisk-framework-report-misbehavior-plugin",
+		"framework-plugins/lisk-framework-monitor-plugin"
+	],
+	"out": "docs/typedoc",
+	"name": "Lisk SDK",
+	"includeVersion": true
+}

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { LiskValidationError, validator } from '../src';
+import { validator } from '../src';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const cloneDeep = require('lodash.clonedeep');
@@ -20,8 +20,8 @@ const cloneDeep = require('lodash.clonedeep');
 describe('LiskValidationError formatter', () => {
 	// Arrange
 	const validSchema = {
-		$id: '/my-schema',
-		$schema: 'http://lisk.io/lisk-schema/schema#',
+		$id: '/mySchema',
+		$schema: 'http://lisk.com/lisk-schema/schema#',
 		type: 'object',
 		properties: {
 			myProp: {
@@ -44,9 +44,7 @@ describe('LiskValidationError formatter', () => {
 
 		const expectedError =
 			"Lisk validator found 1 error[s]:\nProperty '.myProp' should be of type 'string'";
-		expect(() => {
-			throw new LiskValidationError([...validator.validate(schema, obj)]);
-		}).toThrow(expectedError);
+		expect(() => validator.validate(schema, obj)).toThrow(expectedError);
 	});
 
 	it('should format minLength errors', () => {
@@ -58,9 +56,7 @@ describe('LiskValidationError formatter', () => {
 
 		const expectedError =
 			"Lisk validator found 1 error[s]:\nProperty '.myProp' must NOT have fewer than 2 characters";
-		expect(() => {
-			throw new LiskValidationError([...validator.validate(schema, obj)]);
-		}).toThrow(expectedError);
+		expect(() => validator.validate(schema, obj)).toThrow(expectedError);
 	});
 
 	it('should format maxLength errors', () => {
@@ -72,9 +68,7 @@ describe('LiskValidationError formatter', () => {
 
 		const expectedError =
 			"Lisk validator found 1 error[s]:\nProperty '.myProp' must NOT have more than 5 characters";
-		expect(() => {
-			throw new LiskValidationError([...validator.validate(schema, obj)]);
-		}).toThrow(expectedError);
+		expect(() => validator.validate(schema, obj)).toThrow(expectedError);
 	});
 
 	it('should format custom format errors', () => {
@@ -86,9 +80,7 @@ describe('LiskValidationError formatter', () => {
 
 		const expectedError =
 			'Lisk validator found 1 error[s]:\nProperty \'.myProp\' must match format "hex"';
-		expect(() => {
-			throw new LiskValidationError([...validator.validate(schema, obj)]);
-		}).toThrow(expectedError);
+		expect(() => validator.validate(schema, obj)).toThrow(expectedError);
 	});
 
 	it('should format missing required property errors', () => {
@@ -97,15 +89,13 @@ describe('LiskValidationError formatter', () => {
 
 		const expectedError =
 			"Lisk validator found 1 error[s]:\nMissing property, must have required property 'myProp'";
-		expect(() => {
-			throw new LiskValidationError([...validator.validate(schema, obj)]);
-		}).toThrow(expectedError);
+		expect(() => validator.validate(schema, obj)).toThrow(expectedError);
 	});
 
 	it('should format additional property errors', () => {
 		const schema = {
-			$id: '/my-schema',
-			$schema: 'http://lisk.io/lisk-schema/schema#',
+			$id: '/mySchema',
+			$schema: 'http://lisk.com/lisk-schema/schema#',
 			type: 'object',
 			properties: {
 				myProp: {
@@ -130,8 +120,6 @@ describe('LiskValidationError formatter', () => {
 
 		const expectedError =
 			"Lisk validator found 1 error[s]:\nProperty '.myProp' has extraneous property 'bar'";
-		expect(() => {
-			throw new LiskValidationError([...validator.validate(schema, obj)]);
-		}).toThrow(expectedError);
+		expect(() => validator.validate(schema, obj)).toThrow(expectedError);
 	});
 });

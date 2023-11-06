@@ -12,16 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as constants from './constants';
 
-export * from './buffer';
-export * from './convert';
-export * from './encrypt';
-export * from './hash';
-export * from './keys';
-export * from './legacy_address';
-export * from './sign';
-export * from './hash_onion';
-export { getRandomBytes, getPublicKey } from './nacl';
-
-export { constants };
+export * as constants from './constants';
+export * as encrypt from './encrypt';
+export * as address from './address';
+export * as legacyAddress from './legacy_address';
+export * as legacy from './legacy';
+export * as bls from './bls';
+export * as ed from './ed';
+export * as utils from './utils';

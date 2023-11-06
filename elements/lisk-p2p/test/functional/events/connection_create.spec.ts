@@ -73,41 +73,41 @@ describe('Connection Create', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it(`should handle ${EVENT_NEW_INBOUND_PEER} event and payload`, () => {
+		it(`should handle ${EVENT_NEW_INBOUND_PEER} event and transactions`, () => {
 			const secondNode = p2pNodeList[1];
-			const payload = collectedEvents.get(EVENT_NEW_INBOUND_PEER);
+			const transactions = collectedEvents.get(EVENT_NEW_INBOUND_PEER);
 
-			expect(payload).toMatchObject({
+			expect(transactions).toMatchObject({
 				port: secondNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
 
-		it(`should handle ${EVENT_CONNECT_OUTBOUND} event and payload`, () => {
+		it(`should handle ${EVENT_CONNECT_OUTBOUND} event and transactions`, () => {
 			const firstNode = p2pNodeList[0];
-			const payload = collectedEvents.get(EVENT_CONNECT_OUTBOUND);
+			const transactions = collectedEvents.get(EVENT_CONNECT_OUTBOUND);
 
-			expect(payload).toMatchObject({
+			expect(transactions).toMatchObject({
 				port: firstNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
 
-		it(`should handle ${EVENT_UPDATED_PEER_INFO} event and payload`, () => {
+		it(`should handle ${EVENT_UPDATED_PEER_INFO} event and transactions`, () => {
 			const firstNode = p2pNodeList[0];
-			const payload = collectedEvents.get(EVENT_UPDATED_PEER_INFO);
+			const transactions = collectedEvents.get(EVENT_UPDATED_PEER_INFO);
 
-			expect(payload).toMatchObject({
+			expect(transactions).toMatchObject({
 				port: firstNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
 
-		it(`should handle ${EVENT_DISCOVERED_PEER} event and payload`, () => {
+		it(`should handle ${EVENT_DISCOVERED_PEER} event and transactions`, () => {
 			const secondNode = p2pNodeList[1];
-			const payload = collectedEvents.get(EVENT_DISCOVERED_PEER);
+			const transactions = collectedEvents.get(EVENT_DISCOVERED_PEER);
 
-			expect(payload).toMatchObject({
+			expect(transactions).toMatchObject({
 				port: secondNode.config.port,
 				sharedState: expect.any(Object),
 			});
@@ -127,10 +127,13 @@ describe('Connection Create', () => {
 
 		beforeEach(async () => {
 			const customNodeInfo = (index: number) => ({
-				networkIdentifier:
+				chainID:
 					index === 1
-						? 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba'
-						: 'BAD_d6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+						? Buffer.from('10000000', 'hex')
+						: Buffer.from(
+								'BAD_d6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+								'hex',
+						  ),
 				networkVersion: index === 2 ? '1.1' : 'BAD',
 				nonce: `O2wTkjqplHII500${index}`,
 			});

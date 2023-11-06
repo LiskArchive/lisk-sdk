@@ -12,20 +12,55 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { ListenerFn } from 'eventemitter2';
+import { Batch, Database, StateDB } from '@liskhq/lisk-db';
+import { StateStore } from '@liskhq/lisk-chain';
 import { Event, EventCallback } from '../event';
-import { Action } from '../action';
-import { BaseChannel } from './base_channel';
+import { Request } from '../request';
+import { BaseChannel, InvokeRequest } from './base_channel';
 import { Bus } from '../bus';
 import * as JSONRPC from '../jsonrpc/types';
+import { ChannelType, EndpointHandlers } from '../../types';
+import { Logger } from '../../logger';
+import { createImmutableMethodContext } from '../../state_machine';
+import { PrefixedStateReadWriter } from '../../state_machine/prefixed_state_read_writer';
 
 export class InMemoryChannel extends BaseChannel {
 	private bus!: Bus;
+	private readonly _db: StateDB;
+	private readonly _moduleDB: Database;
+	private readonly _chainID: Buffer;
+
+	public constructor(
+		logger: Logger,
+		db: StateDB,
+		moduleDB: Database,
+		namespace: string,
+		events: ReadonlyArray<string>,
+		endpoints: EndpointHandlers,
+		chainID: Buffer,
+	) {
+		super(logger, namespace, events, endpoints);
+		this._db = db;
+		this._moduleDB = moduleDB;
+		this._chainID = chainID;
+	}
 
 	public async registerToBus(bus: Bus): Promise<void> {
 		this.bus = bus;
+		const endpointInfo = [...this.endpointHandlers.keys()].reduce(
+			(prev, methodName) => ({
+				...prev,
+				[methodName]: {
+					namespace: this.namespace,
+					methodName,
+				},
+			}),
+			{},
+		);
 
-		await this.bus.registerChannel(this.moduleAlias, this.eventsList, this.actions, {
-			type: 'inMemory',
+		await this.bus.registerChannel(this.namespace, this.eventsList, endpointInfo, {
+			type: ChannelType.InMemory,
 			channel: this,
 		});
 	}
@@ -35,6 +70,10 @@ export class InMemoryChannel extends BaseChannel {
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			setImmediate(cb, Event.fromJSONRPCNotification(notificationObject).data),
 		);
+	}
+
+	public unsubscribe(eventName: string, cb: ListenerFn): void {
+		this.bus.unsubscribe(eventName, cb);
 	}
 
 	public once(eventName: string, cb: EventCallback): void {
@@ -47,31 +86,50 @@ export class InMemoryChannel extends BaseChannel {
 	public publish(eventName: string, data?: Record<string, unknown>): void {
 		const event = new Event(eventName, data);
 
-		if (event.module !== this.moduleAlias) {
-			throw new Error(`Event "${eventName}" not registered in "${this.moduleAlias}" module.`);
+		if (event.module !== this.namespace) {
+			throw new Error(`Event "${eventName}" not registered in "${this.namespace}" module.`);
 		}
 
 		this.bus.publish(event.toJSONRPCNotification());
 	}
 
-	public async invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T> {
-		const action = new Action(null, actionName, params);
+	public async invoke<T>(req: InvokeRequest): Promise<T> {
+		const request = new Request(this._getNextRequestId(), req.methodName, req.params);
 
-		if (action.module === this.moduleAlias) {
-			if (this.actions[action.name] === undefined) {
+		if (request.namespace === this.namespace) {
+			const handler = this.endpointHandlers.get(request.name);
+			if (!handler) {
 				throw new Error(
-					`The action '${action.name}' on module '${this.moduleAlias}' does not exist.`,
+					`The action '${request.name}' on module '${this.namespace}' does not exist.`,
 				);
 			}
 
-			const handler = this.actions[action.name]?.handler;
-			if (!handler) {
-				throw new Error('Handler does not exist.');
-			}
+			const offchainStore = new StateStore(this._moduleDB);
+			const stateStore = new PrefixedStateReadWriter(this._db.newReadWriter());
+			try {
+				const result = (await handler({
+					logger: this._logger,
+					params: request.params ?? {},
+					getStore: (moduleID: Buffer, storePrefix: Buffer) =>
+						stateStore.getStore(moduleID, storePrefix),
+					header: req.context.header,
+					getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) =>
+						offchainStore.getStore(moduleID, storePrefix),
+					getImmutableMethodContext: () => createImmutableMethodContext(stateStore),
+					chainID: this._chainID,
+				})) as Promise<T>;
 
-			return handler(action.params) as T;
+				const batch = new Batch();
+				offchainStore.finalize(batch);
+				await this._moduleDB.write(batch);
+
+				return result;
+			} finally {
+				stateStore.inner.close();
+			}
 		}
 
-		return (await this.bus.invoke<T>(action.toJSONRPCRequest())).result;
+		const resp = await this.bus.invoke<T>(request.toJSONRPCRequest(), req.context);
+		return resp.result;
 	}
 }

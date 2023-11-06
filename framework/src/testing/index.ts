@@ -16,11 +16,10 @@ import * as fixtures from './fixtures';
 import * as mocks from './mocks';
 
 export { createTransaction } from './create_transaction';
-export { createGenesisBlock } from './create_genesis_block';
-export { getModuleInstance, getAccountSchemaFromModules } from './utils';
 export * from './create_block';
 export * from './app_env';
 export * from './create_contexts';
 export * from './block_processing_env';
+export * from './in_memory_prefixed_state';
 
 export { fixtures, mocks };

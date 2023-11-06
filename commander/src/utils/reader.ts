@@ -14,18 +14,13 @@
  *
  */
 import { Schema } from '@liskhq/lisk-codec';
-import * as liskPassphrase from '@liskhq/lisk-passphrase';
 
+import * as path from 'path';
 import * as fs from 'fs';
 import * as inquirer from 'inquirer';
 import * as readline from 'readline';
 
 import { FileSystemError, ValidationError } from './error';
-
-interface MnemonicError {
-	readonly code: string;
-	readonly message: string;
-}
 
 interface PropertyValue {
 	readonly dataType: string;
@@ -91,27 +86,6 @@ export const getPassphraseFromPrompt = async (
 		throw new ValidationError(getPromptVerificationFailError(displayName));
 	}
 
-	const passphraseErrors = [passphrase]
-		.filter(Boolean)
-		.map(pass =>
-			liskPassphrase.validation
-				.getPassphraseValidationErrors(pass as string)
-				.filter((error: MnemonicError) => error.message),
-		);
-
-	passphraseErrors.forEach(errors => {
-		if (errors.length > 0) {
-			const passphraseWarning = errors
-				.filter((error: MnemonicError) => error.code !== 'INVALID_MNEMONIC')
-				.reduce(
-					(accumulator: string, error: MnemonicError) =>
-						accumulator.concat(`${error.message.replace(' Please check the passphrase.', '')} `),
-					'Warning: ',
-				);
-			console.warn(passphraseWarning);
-		}
-	});
-
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 	return passphrase;
 };
@@ -145,13 +119,17 @@ export const getPasswordFromPrompt = async (
 	return password;
 };
 
-const getFileDoesNotExistError = (path: string): string => `File at ${path} does not exist.`;
-const getFileUnreadableError = (path: string): string => `File at ${path} could not be read.`;
+const getFileDoesNotExistError = (filePath: string): string =>
+	`File at ${filePath} does not exist.`;
+const getFileUnreadableError = (filePath: string): string =>
+	`File at ${filePath} could not be read.`;
 
-const getDataFromFile = (path: string) => fs.readFileSync(path, 'utf8');
+const getDataFromFile = (filePath: string) => fs.readFileSync(filePath, 'utf8');
 
 const ERROR_DATA_MISSING = 'No data was provided.';
 const ERROR_DATA_SOURCE = 'Unknown data source type.';
+const INVALID_JSON_FILE = 'Not a JSON file.';
+const FILE_NOT_FOUND = 'No such file or directory.';
 
 export const isFileSource = (source?: string): boolean => {
 	if (!source) {
@@ -171,23 +149,23 @@ export const readFileSource = async (source?: string): Promise<string> => {
 		throw new ValidationError(ERROR_DATA_MISSING);
 	}
 
-	const { sourceType, sourceIdentifier: path } = splitSource(source);
+	const { sourceType, sourceIdentifier: filePath } = splitSource(source);
 
 	if (sourceType !== 'file') {
 		throw new ValidationError(ERROR_DATA_SOURCE);
 	}
 	try {
-		return getDataFromFile(path);
+		return getDataFromFile(filePath);
 	} catch (error) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const { message } = error;
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+		const { message } = error as Error;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access, @typescript-eslint/prefer-regexp-exec
 		if (message.match(/ENOENT/)) {
-			throw new FileSystemError(getFileDoesNotExistError(path));
+			throw new FileSystemError(getFileDoesNotExistError(filePath));
 		}
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access, @typescript-eslint/prefer-regexp-exec
 		if (message.match(/EACCES/)) {
-			throw new FileSystemError(getFileUnreadableError(path));
+			throw new FileSystemError(getFileUnreadableError(filePath));
 		}
 		throw error;
 	}
@@ -243,7 +221,7 @@ const castValue = (
 		return JSON.parse(val);
 	}
 	if (schemaType === 'array') {
-		return val.split(',');
+		return val !== '' ? val.split(',') : [];
 	}
 	if (schemaType === 'uint64' || schemaType === 'sint64') {
 		return BigInt(val);
@@ -326,21 +304,25 @@ export const prepareQuestions = (schema: Schema): Question[] => {
 	return questions;
 };
 
-export const getAssetFromPrompt = async (
+export const getParamsFromPrompt = async (
 	assetSchema: Schema,
 	output: Array<{ [key: string]: string }> = [],
 ): Promise<NestedAsset | Record<string, unknown>> => {
 	// prepare array of questions based on asset schema
 	const questions = prepareQuestions(assetSchema);
+	if (questions.length === 0) {
+		return {};
+	}
 	let isTypeConfirm = false;
 	// Prompt user with prepared questions
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const result = await inquirer.prompt(questions).then(async answer => {
 		const inquirerResult = answer as { [key: string]: string };
 		isTypeConfirm = typeof inquirerResult.askAgain === 'boolean';
 		// if its a multiple questions prompt user again
 		if (inquirerResult.askAgain) {
 			output.push(inquirerResult);
-			return getAssetFromPrompt(assetSchema, output);
+			return getParamsFromPrompt(assetSchema, output);
 		}
 		output.push(inquirerResult);
 		return Promise.resolve(answer);
@@ -351,4 +333,26 @@ export const getAssetFromPrompt = async (
 	return isTypeConfirm
 		? transformNestedAsset(assetSchema, filteredResult)
 		: transformAsset(assetSchema, result as Record<string, string>);
+};
+
+export const checkFileExtension = (filePath: string): void => {
+	const ext = path.extname(filePath);
+
+	if (!ext || ext !== '.json') {
+		throw new ValidationError(INVALID_JSON_FILE);
+	}
+};
+
+export const readParamsFile = (filePath: string): string => {
+	try {
+		const params = fs.readFileSync(filePath, 'utf8');
+		return params;
+	} catch (err) {
+		throw new ValidationError(FILE_NOT_FOUND);
+	}
+};
+
+export const getFileParams = (filePath: string): string => {
+	checkFileExtension(filePath);
+	return readParamsFile(filePath);
 };

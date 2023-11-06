@@ -17,7 +17,10 @@
 export const writeBoolean = (value: boolean): Buffer =>
 	value ? Buffer.from('01', 'hex') : Buffer.from('00', 'hex');
 
-export const readBoolean = (buffer: Buffer, offset: number): [boolean, number] => [
-	buffer[offset] !== 0x00,
-	1,
-];
+export const readBoolean = (buffer: Buffer, offset: number): [boolean, number] => {
+	const val = buffer[offset];
+	if (val !== 0x00 && val !== 0x01) {
+		throw new Error('Invalid boolean bytes.');
+	}
+	return [val !== 0x00, 1];
+};

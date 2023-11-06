@@ -25,194 +25,120 @@ export const createDirIfNotExist = (filePath: string): void => {
 	fs.mkdirSync(dir, { recursive: true });
 };
 
-// Levels
-const colors = {
-	reset: '\x1b[0m',
-	red: '\x1b[31m',
-	green: '\x1b[32m',
-	yellow: '\x1b[33m',
-	blue: '\x1b[34m',
-	meganta: '\x1b[35m',
-	cyan: '\x1b[36m',
-	white: '\x1b[37m',
-};
-
-const setColor = (color: keyof typeof colors, str: string): string =>
-	`${colors[color]}${str}${colors.reset}`;
-
 const levelToName = {
-	10: setColor('yellow', 'TRACE'),
-	20: setColor('meganta', 'DEBUG'),
-	30: setColor('cyan', 'INFO'),
-	40: setColor('yellow', 'WARN'),
-	50: setColor('red', 'ERROR'),
-	60: setColor('red', 'FATAL'),
+	10: 'TRACE',
+	20: 'DEBUG',
+	30: 'INFO',
+	40: 'WARN',
+	50: 'ERROR',
+	60: 'FATAL',
 } as { [key: number]: string };
 
 interface LogObject {
 	[key: string]: string | number | Error | undefined | bigint | Buffer;
 }
 
+const parseStructData = (input: Record<string, unknown>, trace: boolean, err?: Error): string => {
+	const keys = Object.keys(input);
+	if (keys.length === 0 && !err) {
+		return '';
+	}
+	const pairs = [];
+	for (const key of keys) {
+		const value = input[key];
+		switch (typeof value) {
+			case 'string':
+			case 'number':
+				pairs.push(`${key}=${value}`);
+				break;
+			case 'bigint':
+				pairs.push(`${key}=${value.toString()}`);
+				break;
+			case 'boolean':
+				pairs.push(`${key}=${value ? 'true' : 'false'}`);
+				break;
+			case 'object':
+				if (Buffer.isBuffer(value)) {
+					pairs.push(`${key}=${value.toString('hex')}`);
+				}
+				if (value instanceof Error) {
+					pairs.push(`error=${value.message}`);
+				}
+				break;
+			default:
+				continue;
+		}
+	}
+	if (err) {
+		pairs.push(`err=${err.message}`);
+		if (err.stack && trace) {
+			pairs.push(`trace=${err.stack}`);
+		}
+	}
+	return pairs.length > 0 ? ` [${pairs.join(' ')}]` : '';
+};
+
 class ConsoleLog {
+	// eslint-disable-next-line no-useless-constructor
+	public constructor(private readonly _trace = false) {}
+
 	// eslint-disable-next-line
 	write(rec: LogObject) {
 		try {
 			const { time, level, name, msg, module, err, hostname, pid, src, v, ...others } = rec;
-			let log = util.format(
-				'%s %s %s: %s (module=%s)\n',
-				new Date(time as string).toLocaleTimeString('en-US', { hour12: false }),
+			const structData = parseStructData(others, this._trace, err as Error | undefined);
+			const log = util.format(
+				'%s %s %s %s %d%s %s\n',
+				new Date(time as string).toISOString(),
 				levelToName[level as number],
+				hostname,
 				name,
+				pid,
+				structData,
 				msg,
-				module ?? 'unknown',
 			);
-			if (err) {
-				log += util.format(
-					'Message: %s \n Trace: %s \n',
-					(err as Error).message,
-					(err as Error).stack,
-				);
+			if ((level as number) >= 40) {
+				process.stderr.write(log);
+			} else {
+				process.stdout.write(log);
 			}
-			if (Object.keys(others).length > 0) {
-				log += util.format(
-					'%s \n',
-					JSON.stringify(
-						others,
-						(_, val) => {
-							if (typeof val === 'object') {
-								for (const k of Object.keys(val)) {
-									// eslint-disable-next-line
-									if (typeof val[k] === 'bigint') {
-										// eslint-disable-next-line
-										val[k] = val[k].toString();
-									}
-									// eslint-disable-next-line
-									if (Buffer.isBuffer(val[k])) {
-										// eslint-disable-next-line
-										val[k] = val[k].toString('hex');
-									}
-								}
-							}
-							// eslint-disable-next-line
-							return val;
-						},
-						' ',
-					),
-				);
-			}
-			process.stdout.write(log);
 		} catch (err) {
 			console.error('Failed on logging', err);
 		}
 	}
 }
 
-class FileLog {
-	private readonly _stream: fs.WriteStream;
-
-	public constructor(filePath: string) {
-		this._stream = fs.createWriteStream(filePath, { flags: 'a', encoding: 'utf8' });
-	}
-
-	public write(rec: LogObject): void {
-		const { time, level, name, msg, module: moduleName, hostname, pid, src, v, ...others } = rec;
-		const log: Record<string, unknown> = {
-			time,
-			level,
-			name,
-			msg,
-			hostname,
-			pid,
-			module: moduleName ?? 'unknown',
-		};
-		const otherKeys = Object.entries(others);
-		if (otherKeys.length > 0) {
-			const meta = otherKeys.reduce<Record<string, unknown>>((prev, [key, value]) => {
-				if (typeof value === 'bigint') {
-					// eslint-disable-next-line
-					prev[key] = value.toString();
-				} else if (Buffer.isBuffer(value)) {
-					// eslint-disable-next-line
-					prev[key] = value.toString('hex');
-				} else if (value instanceof Error) {
-					// eslint-disable-next-line no-param-reassign
-					prev[key] = util.format('Message: %s. Trace: %s.', value.message, value.stack);
-				} else {
-					// eslint-disable-next-line
-					prev[key] = value;
-				}
-				// console.log({ current })
-				return prev;
-			}, {});
-			log.meta = meta;
-		}
-		this._stream.write(`${JSON.stringify(log)}\n`);
-	}
-
-	public end() {
-		this._stream.end();
-	}
-
-	public destroy() {
-		this._stream.destroy();
-	}
-}
-
 interface LoggerInput {
-	readonly fileLogLevel: string;
-	readonly consoleLogLevel: string;
-	readonly logFilePath: string;
-	readonly module: string;
+	readonly logLevel: string;
+	readonly name: string;
 }
 
 export interface Logger {
-	readonly trace: (data?: object | unknown, message?: string) => void;
-	readonly debug: (data?: object | unknown, message?: string) => void;
-	readonly info: (data?: object | unknown, message?: string) => void;
-	readonly warn: (data?: object | unknown, message?: string) => void;
-	readonly error: (data?: object | unknown, message?: string) => void;
-	readonly fatal: (data?: object | unknown, message?: string) => void;
+	readonly trace: (data?: Record<string, unknown> | unknown, message?: string) => void;
+	readonly debug: (data?: Record<string, unknown> | unknown, message?: string) => void;
+	readonly info: (data?: Record<string, unknown> | unknown, message?: string) => void;
+	readonly warn: (data?: Record<string, unknown> | unknown, message?: string) => void;
+	readonly error: (data?: Record<string, unknown> | unknown, message?: string) => void;
+	readonly fatal: (data?: Record<string, unknown> | unknown, message?: string) => void;
 	readonly level: () => number;
 }
 
-export const createLogger = ({
-	fileLogLevel,
-	consoleLogLevel,
-	logFilePath,
-	module,
-}: LoggerInput): Logger => {
-	const consoleSrc = consoleLogLevel === 'debug' || consoleLogLevel === 'trace';
+export const createLogger = ({ logLevel, name }: LoggerInput): Logger => {
 	const consoleStream =
-		consoleLogLevel !== 'none'
+		logLevel !== 'none'
 			? [
 					{
 						type: 'raw',
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-						level: consoleLogLevel as bunyan.LogLevel,
+						level: logLevel as bunyan.LogLevel,
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-						stream: new ConsoleLog() as any,
+						stream: new ConsoleLog(logLevel === 'trace') as any,
 					},
 			  ]
 			: [];
-	const fileSrc = fileLogLevel === 'debug' || fileLogLevel === 'trace';
-	const fileStream =
-		fileLogLevel !== 'none'
-			? [
-					{
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-						type: 'raw',
-						level: fileLogLevel as bunyan.LogLevel,
-						stream: new FileLog(logFilePath),
-					},
-			  ]
-			: [];
-	const streams = [...consoleStream, ...fileStream];
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
 	return bunyan.createLogger({
-		name: 'lisk-framework',
-		streams,
-		src: consoleSrc || fileSrc,
+		name,
+		streams: consoleStream,
 		serializers: { err: bunyan.stdSerializers.err },
-		module,
 	}) as Logger;
 };

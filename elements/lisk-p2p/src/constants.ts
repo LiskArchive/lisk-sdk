@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 
 // General P2P constants
 export const DEFAULT_MESSAGE_ENCODING_FORMAT = 'base64';
@@ -30,7 +30,7 @@ export const DEFAULT_RATE_CALCULATION_INTERVAL = 1000;
 export const DEFAULT_WS_MAX_PAYLOAD = 3048576; // Size in bytes
 export const DEFAULT_NONCE_LENGTH_BYTES = 8;
 const SECRET_BYTE_LENGTH = 4;
-export const DEFAULT_RANDOM_SECRET = getRandomBytes(SECRET_BYTE_LENGTH).readUInt32BE(0);
+export const DEFAULT_RANDOM_SECRET = utils.getRandomBytes(SECRET_BYTE_LENGTH).readUInt32BE(0);
 
 export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;
 export const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
@@ -87,7 +87,7 @@ export const INVALID_CONNECTION_QUERY_REASON =
 export const INVALID_CONNECTION_SELF_CODE = 4101;
 export const INVALID_CONNECTION_SELF_REASON = 'Peer cannot connect to itself';
 export const INCOMPATIBLE_NETWORK_CODE = 4102;
-export const INCOMPATIBLE_NETWORK_REASON = 'Peer networkIdentifier did not match our own';
+export const INCOMPATIBLE_NETWORK_REASON = 'Peer chainID did not match our own';
 export const INCOMPATIBLE_PROTOCOL_VERSION_CODE = 4103;
 export const INCOMPATIBLE_PROTOCOL_VERSION_REASON = 'Peer has incompatible protocol version';
 export const INCOMPATIBLE_PEER_CODE = 4104;

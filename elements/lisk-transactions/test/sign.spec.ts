@@ -14,27 +14,18 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import {
-	getAddressAndPublicKeyFromPassphrase,
-	getPrivateAndPublicKeyFromPassphrase,
-	signDataWithPrivateKey,
-} from '@liskhq/lisk-cryptography';
-import {
-	getSigningBytes,
-	signTransaction,
-	signTransactionWithPrivateKey,
-	signMultiSignatureTransaction,
-	signMultiSignatureTransactionWithPrivateKey,
-} from '../src/sign';
+import { ed, legacy } from '@liskhq/lisk-cryptography';
+import { getSigningBytes, signTransaction, signMultiSignatureTransaction } from '../src/sign';
 import * as multisigScenario from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 import { baseTransactionSchema } from '../src/schema';
+import { TAG_TRANSACTION } from '../src';
 
 interface Transaction {
-	asset: Buffer;
+	params: Buffer;
 	signatures: Buffer[];
 }
 
-interface MultiSignatureAsset {
+interface MultiSignatureParams {
 	mandatoryKeys: Array<Buffer>;
 	optionalKeys: Array<Buffer>;
 	numberOfSignatures: number;
@@ -42,9 +33,9 @@ interface MultiSignatureAsset {
 
 describe('sign', () => {
 	// Arrange
-	const validAssetSchema = {
-		$id: 'lisk/transfer-transaction',
-		title: 'Transfer transaction asset',
+	const validParamsSchema = {
+		$id: '/lisk/transferTransaction',
+		title: 'Transfer transaction params',
 		type: 'object',
 		required: ['amount', 'recipientAddress', 'data'],
 		properties: {
@@ -67,8 +58,8 @@ describe('sign', () => {
 		},
 	};
 
-	const multisigRegAsset = {
-		$id: '/multisignature/registrationAsset',
+	const multisigRegParamsSchema = {
+		$id: '/multisignature/registrationParams',
 		type: 'object',
 		properties: {
 			numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
@@ -82,14 +73,16 @@ describe('sign', () => {
 				items: { dataType: 'bytes' },
 				fieldNumber: 3,
 			},
+			signatures: {
+				type: 'array',
+				items: { dataType: 'bytes' },
+				fieldNumber: 4,
+			},
 		},
-		required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
+		required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys', 'signatures'],
 	};
 
-	const networkIdentifier = Buffer.from(
-		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-		'hex',
-	);
+	const chainID = Buffer.from('00000000', 'hex');
 	const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
 	const passphrase2 =
 		'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic';
@@ -100,22 +93,22 @@ describe('sign', () => {
 		'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 		'hex',
 	);
-	const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
-	const { publicKey: publicKey2 } = getAddressAndPublicKeyFromPassphrase(passphrase2);
-	const { publicKey: publicKey3 } = getAddressAndPublicKeyFromPassphrase(passphrase3);
-	const { publicKey: publicKey4 } = getAddressAndPublicKeyFromPassphrase(passphrase4);
+	const { publicKey: publicKey1 } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase1);
+	const { publicKey: publicKey2 } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase2);
+	const { publicKey: publicKey3 } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase3);
+	const { publicKey: publicKey4 } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase4);
 	const keys = {
 		mandatoryKeys: [publicKey1, publicKey2],
 		optionalKeys: [publicKey3, publicKey4],
 	};
 
 	const validTransaction = {
-		moduleID: 2,
-		assetID: 0,
+		module: 'token',
+		command: 'transfer',
 		nonce: BigInt('1'),
 		fee: BigInt('10000000'),
 		senderPublicKey: publicKey1,
-		asset: {
+		params: {
 			recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
 			amount: BigInt('4008489300000000'),
 			data: '',
@@ -125,44 +118,44 @@ describe('sign', () => {
 	describe('getSigningBytes', () => {
 		it('should throw error for invalid transaction object', () => {
 			const invalidTransactionObjects = [
-				{ ...validTransaction, moduleID: BigInt(8) },
+				{ ...validTransaction, module: BigInt(2) },
 				{ ...validTransaction, nonce: 1 },
 				{ ...validTransaction, fee: 1000000 },
 				{ ...validTransaction, senderPublicKey: 1 },
 			];
 			return invalidTransactionObjects.forEach(transactionObject =>
-				expect(() => getSigningBytes(validAssetSchema, transactionObject)).toThrow(),
+				expect(() => getSigningBytes(transactionObject, validParamsSchema)).toThrow(),
 			);
 		});
 
-		it('should throw error when asset is null', () => {
+		it('should throw error when params is null', () => {
 			return expect(() =>
-				getSigningBytes(validAssetSchema, { ...validTransaction, asset: null }),
-			).toThrow(new Error('Transaction object asset must be of type object and not null'));
+				getSigningBytes({ ...validTransaction, params: null }, validParamsSchema),
+			).toThrow(new Error('Transaction object params must be of type object and not null'));
 		});
 
-		it('should throw error for invalid asset object', () => {
-			const invalidAssets = [
-				{ ...validTransaction, asset: { ...validTransaction.asset, amount: 1000 } },
+		it('should throw error for invalid params object', () => {
+			const invalidParams = [
+				{ ...validTransaction, params: { ...validTransaction.params, amount: 1000 } },
 				{
 					...validTransaction,
-					asset: { ...validTransaction.asset, recipientAddress: 'dummyAddress' },
+					params: { ...validTransaction.params, recipientAddress: 'dummyAddress' },
 				},
 			];
-			return invalidAssets.forEach(transactionObject =>
-				expect(() => getSigningBytes(validAssetSchema, transactionObject)).toThrow(),
+			return invalidParams.forEach(transactionObject =>
+				expect(() => getSigningBytes(transactionObject, validParamsSchema)).toThrow(),
 			);
 		});
 
-		it('should return transaction bytes for given asset', () => {
-			const signingBytes = getSigningBytes(validAssetSchema, { ...validTransaction });
+		it('should return transaction bytes for given params', () => {
+			const signingBytes = getSigningBytes({ ...validTransaction }, validParamsSchema);
 			expect(signingBytes).toMatchSnapshot();
 			const decodedTransaction = codec.decode<object>(baseTransactionSchema, signingBytes);
-			const decodedAsset = codec.decode<object>(
-				validAssetSchema,
-				(decodedTransaction as any).asset,
+			const decodedParams = codec.decode<object>(
+				validParamsSchema,
+				(decodedTransaction as any).params,
 			);
-			return expect({ ...decodedTransaction, asset: { ...decodedAsset } }).toEqual({
+			return expect({ ...decodedTransaction, params: { ...decodedParams } }).toEqual({
 				...validTransaction,
 				signatures: [],
 			});
@@ -172,174 +165,101 @@ describe('sign', () => {
 	describe('signTransaction', () => {
 		it('should throw error for invalid network identifier', () => {
 			expect(() =>
-				signTransaction(validAssetSchema, validTransaction, Buffer.alloc(0), passphrase1),
-			).toThrow('Network identifier is required to sign a transaction');
-		});
-
-		it('should throw error for invalid passphrase', () => {
-			expect(() =>
-				signTransaction(validAssetSchema, validTransaction, networkIdentifier, ''),
-			).toThrow('Passphrase is required to sign a transaction');
-		});
-
-		it('should throw error for invalid transaction object', () => {
-			const invalidTransactionObjects = [
-				{ ...validTransaction, moduleID: BigInt(8) },
-				{ ...validTransaction, nonce: 1 },
-				{ ...validTransaction, fee: 1000000 },
-				{ ...validTransaction, senderPublicKey: 1 },
-			];
-			return invalidTransactionObjects.forEach(transactionObject =>
-				expect(() =>
-					signTransaction(validAssetSchema, transactionObject, networkIdentifier, passphrase1),
-				).toThrow(),
-			);
-		});
-
-		it('should throw error when asset is null', () => {
-			return expect(() =>
-				signTransaction(
-					validAssetSchema,
-					{ ...validTransaction, asset: null },
-					networkIdentifier,
-					passphrase1,
-				),
-			).toThrow(new Error('Transaction object asset must be of type object and not null'));
-		});
-
-		it('should throw error for invalid asset object', () => {
-			const invalidAssets = [
-				{ ...validTransaction, asset: { ...validTransaction.asset, amount: 1000 } },
-				{
-					...validTransaction,
-					asset: { ...validTransaction.asset, recipientAddress: 'dummyAddress' },
-				},
-			];
-			return invalidAssets.forEach(transactionObject =>
-				expect(() =>
-					signTransaction(validAssetSchema, transactionObject, networkIdentifier, passphrase1),
-				).toThrow(),
-			);
-		});
-
-		it('should throw error when transaction senderPublicKey does not match public key from passphrase', () => {
-			return expect(() =>
-				signTransaction(
-					validAssetSchema,
-					validTransaction,
-					networkIdentifier,
-					'this is incorrect passphrase',
-				),
-			).toThrow('Transaction senderPublicKey does not match public key from passphrase');
-		});
-
-		it('should return signed transaction for given asset schema', () => {
-			const signedTransaction = signTransaction(
-				validAssetSchema,
-				{ ...validTransaction },
-				networkIdentifier,
-				passphrase1,
-			);
-			expect((signedTransaction.signatures as Array<Buffer>)[0].length).toBeGreaterThan(0);
-			expect(signedTransaction.signatures).toHaveLength(1);
-			return expect(signedTransaction).toMatchSnapshot();
-		});
-	});
-
-	describe('signTransactionWithPrivateKey', () => {
-		it('should throw error for invalid network identifier', () => {
-			expect(() =>
-				signTransactionWithPrivateKey(
-					validAssetSchema,
-					validTransaction,
-					Buffer.alloc(0),
-					privateKey,
-				),
-			).toThrow('Network identifier is required to sign a transaction');
+				signTransaction(validTransaction, Buffer.alloc(0), privateKey, validParamsSchema),
+			).toThrow('ChainID is required to sign a transaction');
 		});
 
 		it('should throw error for empty private key', () => {
 			expect(() =>
-				signTransactionWithPrivateKey(
-					validAssetSchema,
-					validTransaction,
-					networkIdentifier,
-					Buffer.alloc(0),
-				),
+				signTransaction(validTransaction, chainID, Buffer.alloc(0), validParamsSchema),
 			).toThrow('Private key must be 64 bytes');
 		});
 
 		it('should throw error for private key with invalid length', () => {
 			expect(() =>
-				signTransactionWithPrivateKey(
-					validAssetSchema,
+				signTransaction(
 					validTransaction,
-					networkIdentifier,
+					chainID,
 					Buffer.from('invalid', 'utf8'),
+					validParamsSchema,
 				),
 			).toThrow('Private key must be 64 bytes');
 		});
 
 		it('should throw error for invalid transaction object', () => {
 			const invalidTransactionObjects = [
-				{ ...validTransaction, moduleID: BigInt(8) },
+				{ ...validTransaction, module: BigInt(8) },
 				{ ...validTransaction, nonce: 1 },
 				{ ...validTransaction, fee: 1000000 },
 				{ ...validTransaction, senderPublicKey: 1 },
 			];
 			return invalidTransactionObjects.forEach(transactionObject =>
 				expect(() =>
-					signTransactionWithPrivateKey(
-						validAssetSchema,
-						transactionObject,
-						networkIdentifier,
-						privateKey,
-					),
+					signTransaction(transactionObject, chainID, privateKey, validParamsSchema),
 				).toThrow(),
 			);
 		});
 
-		it('should throw error when asset is null', () => {
+		it('should throw error when params is null', () => {
 			return expect(() =>
-				signTransactionWithPrivateKey(
-					validAssetSchema,
-					{ ...validTransaction, asset: null },
-					networkIdentifier,
+				signTransaction(
+					{ ...validTransaction, params: null },
+					chainID,
 					privateKey,
+					validParamsSchema,
 				),
-			).toThrow(new Error('Transaction object asset must be of type object and not null'));
+			).toThrow(new Error('Transaction object params must be of type object and not null'));
 		});
 
-		it('should throw error for invalid asset object', () => {
-			const invalidAssets = [
-				{ ...validTransaction, asset: { ...validTransaction.asset, amount: 1000 } },
+		it('should throw error for invalid params object', () => {
+			const invalidParams = [
+				{ ...validTransaction, params: { ...validTransaction.params, amount: 1000 } },
 				{
 					...validTransaction,
-					asset: { ...validTransaction.asset, recipientAddress: 'dummyAddress' },
+					params: { ...validTransaction.params, recipientAddress: 'dummyAddress' },
 				},
 			];
-			return invalidAssets.forEach(transactionObject =>
+			return invalidParams.forEach(transactionObject =>
 				expect(() =>
-					signTransactionWithPrivateKey(
-						validAssetSchema,
-						transactionObject,
-						networkIdentifier,
-						privateKey,
-					),
+					signTransaction(transactionObject, chainID, privateKey, validParamsSchema),
 				).toThrow(),
 			);
 		});
 
-		it('should return signed transaction for given asset schema', () => {
-			const signedTransaction = signTransactionWithPrivateKey(
-				validAssetSchema,
+		it('should return signed transaction for given params schema', () => {
+			const signedTransaction = signTransaction(
 				{ ...validTransaction },
-				networkIdentifier,
+				chainID,
 				privateKey,
+				validParamsSchema,
 			);
 			expect((signedTransaction.signatures as Array<Buffer>)[0].length).toBeGreaterThan(0);
 			expect(signedTransaction.signatures).toHaveLength(1);
 			return expect(signedTransaction).toMatchSnapshot();
+		});
+
+		it('should return a signed transaction for an undefined params schema', () => {
+			const signedTransaction = signTransaction(
+				{ ...validTransaction, params: undefined },
+				chainID,
+				privateKey,
+				undefined,
+			);
+
+			expect((signedTransaction.signatures as Array<Buffer>)[0].length).toBeGreaterThan(0);
+			expect(signedTransaction.signatures).toHaveLength(1);
+		});
+
+		it('should return a signed transaction for an empty params object', () => {
+			const signedTransaction = signTransaction(
+				{ ...validTransaction, params: {} },
+				chainID,
+				privateKey,
+				undefined,
+			);
+
+			expect((signedTransaction.signatures as Array<Buffer>)[0].length).toBeGreaterThan(0);
+			expect(signedTransaction.signatures).toHaveLength(1);
 		});
 	});
 
@@ -347,138 +267,47 @@ describe('sign', () => {
 		it('should throw error for invalid network identifier', () => {
 			expect(() =>
 				signMultiSignatureTransaction(
-					validAssetSchema,
-					{ ...validTransaction },
-					Buffer.alloc(0),
-					passphrase1,
-					keys,
-				),
-			).toThrow('Network identifier is required to sign a transaction');
-		});
-
-		it('should throw error for invalid passphrase', () => {
-			expect(() =>
-				signMultiSignatureTransaction(
-					validAssetSchema,
-					{ ...validTransaction },
-					networkIdentifier,
-					'',
-					keys,
-				),
-			).toThrow('Passphrase is required to sign a transaction');
-		});
-
-		it('should throw error when signatures property is not an array', () => {
-			expect(() =>
-				signMultiSignatureTransaction(
-					validAssetSchema,
-					{ ...validTransaction },
-					networkIdentifier,
-					passphrase1,
-					keys,
-				),
-			).toThrow('Signatures must be of type array');
-		});
-
-		it('should throw error for invalid transaction object', () => {
-			const invalidTransactionObjects = [
-				{ ...validTransaction, type: BigInt(8) },
-				{ ...validTransaction, nonce: 1 },
-				{ ...validTransaction, fee: 1000000 },
-				{ ...validTransaction, senderPublicKey: 1 },
-			];
-			return invalidTransactionObjects.forEach(transactionObject =>
-				expect(() =>
-					signMultiSignatureTransaction(
-						validAssetSchema,
-						transactionObject,
-						networkIdentifier,
-						passphrase1,
-						keys,
-					),
-				).toThrow(),
-			);
-		});
-
-		it('should throw error when asset is null', () => {
-			return expect(() =>
-				signMultiSignatureTransaction(
-					validAssetSchema,
-					{ ...validTransaction, signatures: [], asset: null },
-					networkIdentifier,
-					passphrase1,
-					keys,
-				),
-			).toThrow(new Error('Transaction object asset must be of type object and not null'));
-		});
-
-		it('should throw error for invalid asset object', () => {
-			const invalidAssets = [
-				{ ...validTransaction, asset: { ...validTransaction.asset, amount: 1000 } },
-				{
-					...validTransaction,
-					asset: { ...validTransaction.asset, recipientAddress: 'dummyAddress' },
-				},
-			];
-			return invalidAssets.forEach(transactionObject =>
-				expect(() =>
-					signMultiSignatureTransaction(
-						validAssetSchema,
-						transactionObject,
-						networkIdentifier,
-						passphrase1,
-						keys,
-					),
-				).toThrow(),
-			);
-		});
-	});
-
-	describe('signMultiSignatureTransactionWithPrivateKey', () => {
-		it('should throw error for invalid network identifier', () => {
-			expect(() =>
-				signMultiSignatureTransactionWithPrivateKey(
-					validAssetSchema,
-					{ ...validTransaction },
+					{ ...validTransaction, signatures: [] },
 					Buffer.alloc(0),
 					privateKey,
 					keys,
+					validParamsSchema,
 				),
-			).toThrow('Network identifier is required to sign a transaction');
+			).toThrow('ChainID is required to sign a transaction');
 		});
 
 		it('should throw error for empty private key', () => {
 			expect(() =>
-				signMultiSignatureTransactionWithPrivateKey(
-					validAssetSchema,
-					{ ...validTransaction },
-					networkIdentifier,
+				signMultiSignatureTransaction(
+					{ ...validTransaction, signatures: [] },
+					chainID,
 					Buffer.alloc(0),
 					keys,
+					validParamsSchema,
 				),
 			).toThrow('Private key must be 64 bytes');
 		});
 
 		it('should throw error for private key with invalid length', () => {
 			expect(() =>
-				signMultiSignatureTransactionWithPrivateKey(
-					validAssetSchema,
+				signMultiSignatureTransaction(
 					{ ...validTransaction },
-					networkIdentifier,
+					chainID,
 					Buffer.from('invalid', 'utf8'),
 					keys,
+					validParamsSchema,
 				),
 			).toThrow('Private key must be 64 bytes');
 		});
 
 		it('should throw error when signatures property is not an array', () => {
 			expect(() =>
-				signMultiSignatureTransactionWithPrivateKey(
-					validAssetSchema,
+				signMultiSignatureTransaction(
 					{ ...validTransaction },
-					networkIdentifier,
+					chainID,
 					privateKey,
 					keys,
+					validParamsSchema,
 				),
 			).toThrow('Signatures must be of type array');
 		});
@@ -492,166 +321,98 @@ describe('sign', () => {
 			];
 			return invalidTransactionObjects.forEach(transactionObject =>
 				expect(() =>
-					signMultiSignatureTransactionWithPrivateKey(
-						validAssetSchema,
+					signMultiSignatureTransaction(
 						transactionObject,
-						networkIdentifier,
+						chainID,
 						privateKey,
 						keys,
+						validParamsSchema,
 					),
 				).toThrow(),
 			);
 		});
 
-		it('should throw error when asset is null', () => {
+		it('should throw error when params is null', () => {
 			return expect(() =>
-				signMultiSignatureTransactionWithPrivateKey(
-					validAssetSchema,
-					{ ...validTransaction, signatures: [], asset: null },
-					networkIdentifier,
+				signMultiSignatureTransaction(
+					{ ...validTransaction, signatures: [], params: null },
+					chainID,
 					privateKey,
 					keys,
+					validParamsSchema,
 				),
-			).toThrow(new Error('Transaction object asset must be of type object and not null'));
+			).toThrow(new Error('Transaction object params must be of type object and not null'));
 		});
 
-		it('should throw error for invalid asset object', () => {
-			const invalidAssets = [
-				{ ...validTransaction, asset: { ...validTransaction.asset, amount: 1000 } },
+		it('should throw error for invalid params object', () => {
+			const invalidParams = [
+				{ ...validTransaction, params: { ...validTransaction.params, amount: 1000 } },
 				{
 					...validTransaction,
-					asset: { ...validTransaction.asset, recipientAddress: 'dummyAddress' },
+					params: { ...validTransaction.params, recipientAddress: 'dummyAddress' },
 				},
 			];
-			return invalidAssets.forEach(transactionObject =>
+
+			return invalidParams.forEach(transactionObject =>
 				expect(() =>
-					signMultiSignatureTransactionWithPrivateKey(
-						validAssetSchema,
+					signMultiSignatureTransaction(
 						transactionObject,
-						networkIdentifier,
+						chainID,
 						privateKey,
 						keys,
+						validParamsSchema,
 					),
 				).toThrow(),
 			);
-		});
-
-		it('should add sender and mandatory public key signatures in right order for multisignature registration trx', () => {
-			const account1 = getPrivateAndPublicKeyFromPassphrase(passphrase1);
-			const account2 = getPrivateAndPublicKeyFromPassphrase(passphrase2);
-			const account3 = getPrivateAndPublicKeyFromPassphrase(passphrase3);
-			const mandatoryKeys = [account1.publicKey, account2.publicKey];
-			const optionalKeys = [account3.publicKey];
-
-			const multisignatureRegistrationTrx = {
-				moduleID: 4,
-				assetID: 0,
-				nonce: BigInt('1'),
-				fee: BigInt('10000000'),
-				senderPublicKey: account1.publicKey,
-				asset: {
-					mandatoryKeys,
-					optionalKeys,
-					numberOfSignatures: 2,
-				},
-			};
-			const transactionObject = { ...multisignatureRegistrationTrx, signatures: [] };
-
-			// Sign with the senderPublic key sender of the transaction
-			const signedTransaction = signMultiSignatureTransactionWithPrivateKey(
-				multisigRegAsset,
-				transactionObject,
-				networkIdentifier,
-				account1.privateKey,
-				{ mandatoryKeys, optionalKeys },
-				true,
-			);
-			const transactionWithNetworkIdentifierBytes = Buffer.concat([
-				networkIdentifier,
-				getSigningBytes(multisigRegAsset, transactionObject),
-			]);
-
-			// Signing with non sender second mandatory key
-			const signedTransactionNonSender = signMultiSignatureTransactionWithPrivateKey(
-				multisigRegAsset,
-				signedTransaction,
-				networkIdentifier,
-				account2.privateKey,
-				{ mandatoryKeys, optionalKeys },
-				true,
-			);
-			const transactionWithNetworkIdentifierBytesNonSender = Buffer.concat([
-				networkIdentifier,
-				getSigningBytes(multisigRegAsset, signedTransaction),
-			]);
-
-			const signature = signDataWithPrivateKey(
-				transactionWithNetworkIdentifierBytes,
-				account1.privateKey,
-			);
-			const signatureNonSender = signDataWithPrivateKey(
-				transactionWithNetworkIdentifierBytesNonSender,
-				account2.privateKey,
-			);
-
-			expect((signedTransactionNonSender as any).signatures[0]).toEqual(signature);
-			expect((signedTransactionNonSender as any).signatures[1]).toEqual(signatureNonSender);
-			expect((signedTransactionNonSender as any).signatures[2]).toEqual(signature);
 		});
 
 		it('should match the signatures of the mandatory keys in right order for transfer trx', () => {
-			const account1 = getPrivateAndPublicKeyFromPassphrase(passphrase1);
-			const account2 = getPrivateAndPublicKeyFromPassphrase(passphrase2);
+			const account1 = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase1);
+			const account2 = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase2);
 			// Sender public key of account1
 			const transaction = {
-				moduleID: 2,
-				assetID: 0,
+				module: 'token',
+				command: 'transfer',
 				nonce: BigInt('1'),
 				fee: BigInt('10000000'),
 				senderPublicKey: account1.publicKey,
-				asset: {
+				signatures: [],
+				params: {
 					recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
 					amount: BigInt('4008489300000000'),
 					data: '',
 				},
 			};
 
-			const transactionObject = { ...transaction, signatures: [] };
-
 			// Sign with the senderPublic key of the transaction
-			const signedTransaction = signMultiSignatureTransactionWithPrivateKey(
-				validAssetSchema,
-				transactionObject,
-				networkIdentifier,
+			const signedTransaction = signMultiSignatureTransaction(
+				transaction,
+				chainID,
 				account1.privateKey,
 				{ mandatoryKeys: [account2.publicKey, account1.publicKey], optionalKeys: [] },
+				validParamsSchema,
 			);
-			const transactionWithNetworkIdentifierBytes = Buffer.concat([
-				networkIdentifier,
-				getSigningBytes(validAssetSchema, transactionObject),
-			]);
 
-			const signature = signDataWithPrivateKey(
-				transactionWithNetworkIdentifierBytes,
+			const signature = ed.signDataWithPrivateKey(
+				TAG_TRANSACTION,
+				chainID,
+				getSigningBytes(transaction, validParamsSchema),
 				account1.privateKey,
 			);
 
 			// Sign with the mandatory key of the multi-signature account
-			const signedTransactionMandatoryKey = signMultiSignatureTransactionWithPrivateKey(
-				validAssetSchema,
+			const signedTransactionMandatoryKey = signMultiSignatureTransaction(
 				signedTransaction,
-				networkIdentifier,
+				chainID,
 				account2.privateKey,
 				{ mandatoryKeys: [account2.publicKey, account1.publicKey], optionalKeys: [] },
+				validParamsSchema,
 			);
 
-			const transactionMandatoryKeyWithNetworkIdentifierBytes = Buffer.concat([
-				networkIdentifier,
-				getSigningBytes(validAssetSchema, signedTransaction),
-			]);
-
-			const signatureMandatoryAccount = signDataWithPrivateKey(
-				transactionMandatoryKeyWithNetworkIdentifierBytes,
+			const signatureMandatoryAccount = ed.signDataWithPrivateKey(
+				TAG_TRANSACTION,
+				chainID,
+				getSigningBytes(signedTransaction, validParamsSchema),
 				account2.privateKey,
 			);
 
@@ -670,82 +431,28 @@ describe('sign', () => {
 						baseTransactionSchema,
 						Buffer.from(testCase.output.transaction, 'hex'),
 					);
-					const decodedAsset = codec.decode<MultiSignatureAsset>(
-						multisigRegAsset,
-						decodedBaseTransaction.asset,
+					const decodedParams = codec.decode<MultiSignatureParams>(
+						multisigRegParamsSchema,
+						decodedBaseTransaction.params,
 					);
-					const { signatures, ...transactionObject } = decodedBaseTransaction;
-					const _networkIdentifier = Buffer.from(testCase.input.networkIdentifier, 'hex');
-					const signedMultiSigTransaction = {
-						...transactionObject,
-						asset: { ...decodedAsset },
+					const registerMultisigTransaction = {
+						...decodedBaseTransaction,
+						params: decodedParams,
 						signatures: [],
 					};
-					const senderAccount = {
-						passphrase: 'inherit moon normal relief spring bargain hobby join baby flash fog blood',
-						privateKey:
-							'de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-						publicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-						address: 'be046d336cd0c2fbde62bc47e20199395d2eeadc',
-					};
+					const senderAccount = testCase.input.account;
 
-					Object.values({ senderAccount, ...testCase.input.members }).forEach((member: any) =>
-						signMultiSignatureTransaction(
-							multisigRegAsset,
-							signedMultiSigTransaction,
-							_networkIdentifier,
-							member.passphrase,
-							decodedAsset,
-							true,
-						),
-					);
+					const signaturesResult = signTransaction(
+						registerMultisigTransaction,
+						Buffer.from(testCase.input.chainID, 'hex'),
+						Buffer.from(senderAccount.privateKey, 'hex'),
+						multisigRegParamsSchema,
+					).signatures;
 
-					expect(signedMultiSigTransaction.signatures).toStrictEqual(signatures);
-					expect(signMultiSignatureTransaction).toMatchSnapshot();
+					expect(signaturesResult).toStrictEqual(decodedBaseTransaction.signatures);
+					expect(registerMultisigTransaction).toMatchSnapshot();
 				});
 			});
-		});
-	});
-
-	describe('when signing multisignature register transaction where sender is member', () => {
-		it('should have correct signatures', () => {
-			const testCase = multisigScenario.testCases[1];
-			const decodedBaseTransaction = codec.decode<Transaction>(
-				baseTransactionSchema,
-				Buffer.from(testCase.output.transaction, 'hex'),
-			);
-			const decodedAsset = codec.decode<MultiSignatureAsset>(
-				multisigRegAsset,
-				decodedBaseTransaction.asset,
-			);
-			const { signatures, ...transactionObject } = decodedBaseTransaction;
-			const signedMultiSigTransaction = {
-				...transactionObject,
-				asset: { ...decodedAsset },
-				signatures: signatures.slice(0, 1),
-			};
-			const senderAccount = {
-				passphrase: 'inherit moon normal relief spring bargain hobby join baby flash fog blood',
-				privateKey:
-					'de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-				publicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-				address: 'be046d336cd0c2fbde62bc47e20199395d2eeadc',
-			};
-			const _networkIdentifier = Buffer.from(testCase.input.networkIdentifier, 'hex');
-
-			Object.values({ senderAccount, ...testCase.input.members }).forEach((member: any) =>
-				signMultiSignatureTransaction(
-					multisigRegAsset,
-					signedMultiSigTransaction,
-					_networkIdentifier,
-					member.passphrase,
-					decodedAsset,
-					true,
-				),
-			);
-
-			expect(signedMultiSigTransaction.signatures).toStrictEqual(signatures);
-			expect(signedMultiSigTransaction.signatures.every(s => s.length > 0)).toBeTrue();
 		});
 	});
 });

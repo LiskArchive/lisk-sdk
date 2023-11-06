@@ -19,14 +19,14 @@ import BaseGenerator from './base_generator';
 
 export default class InitPluginGenerator extends BaseGenerator {
 	protected _liskInitPluginArgs: {
-		alias: string;
+		name: string;
 	};
 	protected _registry?: string;
 
-	public constructor(args: string | string[], opts: { alias: string } & BaseGeneratorOptions) {
+	public constructor(args: string | string[], opts: { name: string } & BaseGeneratorOptions) {
 		super(args, opts);
 		this._liskInitPluginArgs = {
-			alias: opts.alias,
+			name: opts.name,
 		};
 		// Enable skipInstall for env so that the only generator install will run
 		this.env.options.skipInstall = true;

@@ -12,36 +12,35 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import * as fs from 'fs-extra';
 import { join } from 'path';
 import { transactionSchema } from 'lisk-framework';
 import * as apiClient from '@liskhq/lisk-api-client';
-import * as Config from '@oclif/config';
 import { when } from 'jest-when';
 
 import * as appUtils from '../../../../src/utils/application';
 import {
 	createTransferTransaction,
 	encodeTransactionFromJSON,
-	tokenTransferAssetSchema,
+	tokenTransferParamsSchema,
 } from '../../../helpers/transactions';
 import { SendCommand } from '../../../../src/bootstrapping/commands/transaction/send';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('transaction:send command', () => {
 	const transactionsAssetSchemas = [
 		{
-			moduleID: 2,
-			assetID: 0,
-			schema: tokenTransferAssetSchema,
+			module: 'token',
+			command: 'transfer',
+			schema: tokenTransferParamsSchema,
 		},
 	];
 	const { id: transactionId, ...transferTransaction } = createTransferTransaction({
 		amount: '1',
 		fee: '0.2',
 		nonce: 1,
-		recipientAddress: '0903f4c5cb599a7928aef27e314e98291d1e3888',
+		recipientAddress: 'lskxpxg4y755b9nr6m7f4gcvtk2mp7yj7p364mzem',
 	});
 	const encodedTransaction = encodeTransactionFromJSON(
 		transferTransaction as any,
@@ -52,7 +51,7 @@ describe('transaction:send command', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let invokeMock: jest.Mock;
 
 	beforeEach(async () => {
@@ -69,7 +68,7 @@ describe('transaction:send command', () => {
 			invoke: invokeMock,
 			schemas: {
 				transaction: transactionSchema,
-				transactionsAssets: transactionsAssetSchemas,
+				commands: transactionsAssetSchemas,
 			},
 		} as never);
 	});
@@ -100,10 +99,10 @@ describe('transaction:send command', () => {
 	describe('transaction:send <hex encoded transaction> --data-path=<path to a running app>', () => {
 		it('should return the id of the sent transaction', async () => {
 			when(invokeMock)
-				.calledWith('app:postTransaction', { transaction: encodedTransaction })
+				.calledWith('txpool_postTransaction', { transaction: encodedTransaction })
 				.mockResolvedValue({ transactionId });
 			await SendCommand.run([encodedTransaction, `--data-path=${pathToAppPIDFiles}`], config);
-			expect(invokeMock).toHaveBeenCalledWith('app:postTransaction', {
+			expect(invokeMock).toHaveBeenCalledWith('txpool_postTransaction', {
 				transaction: encodedTransaction,
 			});
 			expect(stdout[0]).toContain(
@@ -115,7 +114,7 @@ describe('transaction:send command', () => {
 	describe('transaction:send <hex encoded invalid transaction> --data-path=<path to a not running app>', () => {
 		it('should throw error.', async () => {
 			when(invokeMock)
-				.calledWith('app:postTransaction', {
+				.calledWith('txpool_postTransaction', {
 					transaction: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 				})
 				.mockRejectedValue(

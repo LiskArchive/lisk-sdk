@@ -11,10 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseChannel } from 'lisk-framework';
+import { BasePlugin } from 'lisk-sdk';
 import { PeerInfo, SharedState, TransactionPropagationStats } from '../types';
 
-interface TransactionStats {
+export interface TransactionStats {
 	transactions: Record<string, TransactionPropagationStats>;
 	connectedPeers: number;
 	averageReceivedTransactions: number;
@@ -33,10 +33,11 @@ const getAverage = (transactions: Record<string, TransactionPropagationStats>): 
 };
 
 export const getTransactionStats = async (
-	channel: BaseChannel,
+	client: BasePlugin['apiClient'],
 	state: SharedState,
 ): Promise<TransactionStats> => ({
 	transactions: state.transactions,
-	connectedPeers: (await channel.invoke<ReadonlyArray<PeerInfo>>('app:getConnectedPeers')).length,
+	connectedPeers: (await client.invoke<ReadonlyArray<PeerInfo>>('network_getConnectedPeers'))
+		.length,
 	averageReceivedTransactions: getAverage(state.transactions),
 });

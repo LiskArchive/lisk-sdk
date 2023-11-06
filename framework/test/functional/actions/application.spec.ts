@@ -40,12 +40,9 @@ describe('Application related actions', () => {
 				expect.objectContaining({
 					height: expect.any(Number),
 					version: expect.any(String),
-					networkIdentifier: expect.any(String),
+					chainID: expect.any(String),
 					networkVersion: expect.any(String),
 					lastBlockID: expect.any(String),
-					backup: {
-						height: expect.any(Number),
-					},
 					finalizedHeight: expect.any(Number),
 					unconfirmedTransactions: expect.any(Number),
 				}),

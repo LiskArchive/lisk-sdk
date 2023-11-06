@@ -16,25 +16,42 @@
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { baseTransactionSchema } from './schema';
 
+/**
+ * Validates a given transaction against its' schema.
+ *
+ * @example
+ * ```ts
+ * import { validateTransaction } from '@liskhq/lisk-transactions';
+ * const validation = validateTransaction(transaction, paramsSchema);
+ * ```
+ *
+ * @param transactionObject The transaction to validate.
+ * @param paramsSchema The parameters schema for the transaction.
+ *
+ * @returns `undefined`, if the transaction is valid and no errors are found.
+ * Returns the Error, if any errors are discovered curing the validation.
+ *
+ * @see [LIP 0062 - Use pre-hashing for signatures](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0062.md)
+ * @see {@link @liskhq/lisk-validator!LiskValidator.validate}
+ */
 export const validateTransaction = (
-	assetSchema: object,
 	transactionObject: Record<string, unknown>,
+	paramsSchema?: object,
 ): LiskValidationError | Error | undefined => {
-	const transactionObjectWithEmptyAsset = {
+	const transactionObjectWithEmptyParameters = {
 		...transactionObject,
-		asset: Buffer.alloc(0),
+		params: Buffer.alloc(0),
 	};
-	const schemaErrors = validator.validate(baseTransactionSchema, transactionObjectWithEmptyAsset);
-	if (schemaErrors.length) {
-		return new LiskValidationError([...schemaErrors]);
+	validator.validate(baseTransactionSchema, transactionObjectWithEmptyParameters);
+
+	if (!paramsSchema) {
+		return undefined;
 	}
 
-	if (typeof transactionObject.asset !== 'object' || transactionObject.asset === null) {
-		return new Error('Transaction object asset must be of type object and not null');
+	if (typeof transactionObject.params !== 'object' || transactionObject.params === null) {
+		return new Error('Transaction object params must be of type object and not null');
 	}
-	const assetSchemaErrors = validator.validate(assetSchema, transactionObject.asset);
-	if (assetSchemaErrors.length) {
-		return new LiskValidationError([...assetSchemaErrors]);
-	}
+	validator.validate(paramsSchema, transactionObject.params);
+
 	return undefined;
 };

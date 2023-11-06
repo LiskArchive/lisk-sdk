@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { flags as flagParser } from '@oclif/command';
+import { Flags as flagParser } from '@oclif/core';
 import BaseBootstrapCommand from '../base_bootstrap_command';
 
 export default class InitCommand extends BaseBootstrapCommand {
@@ -27,7 +27,7 @@ export default class InitCommand extends BaseBootstrapCommand {
 		'init /project/path --template lisk-ts',
 	];
 
-	static flags: flagParser.Input<any> = {
+	static flags = {
 		...BaseBootstrapCommand.flags,
 		registry: flagParser.string({
 			description: 'URL of a registry to download dependencies from.',
@@ -46,7 +46,10 @@ export default class InitCommand extends BaseBootstrapCommand {
 		const {
 			args: { projectPath },
 			flags: { registry },
-		} = this.parse(InitCommand) as { args: { projectPath: string }; flags: { registry?: string } };
+		} = (await this.parse(InitCommand)) as {
+			args: { projectPath: string };
+			flags: { registry?: string };
+		};
 
 		return this._runBootstrapCommand('lisk:init', {
 			projectPath,

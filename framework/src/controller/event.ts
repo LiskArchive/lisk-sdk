@@ -14,6 +14,7 @@
 
 import { strict as assert } from 'assert';
 import { eventWithModuleNameReg } from '../constants';
+import { getEndpointPath } from '../endpoint';
 import { NotificationRequest, VERSION } from './jsonrpc';
 
 export type EventCallback = (data?: Record<string, unknown>) => void | Promise<void>;
@@ -31,9 +32,9 @@ export class Event {
 			`Event name "${name}" must be a valid name with module name and event name.`,
 		);
 
-		const [moduleName, ...eventName] = name.split(':');
+		const [moduleName, ...eventName] = name.split('_');
 		this.module = moduleName;
-		this.name = eventName.join(':');
+		this.name = eventName.join('_');
 		this.data = data;
 	}
 
@@ -47,12 +48,12 @@ export class Event {
 	public toJSONRPCNotification(): NotificationRequest {
 		return {
 			jsonrpc: VERSION,
-			method: `${this.module}:${this.name}`,
+			method: getEndpointPath(this.module, this.name),
 			params: this.data,
 		};
 	}
 
 	public key(): string {
-		return `${this.module}:${this.name}`;
+		return getEndpointPath(this.module, this.name);
 	}
 }

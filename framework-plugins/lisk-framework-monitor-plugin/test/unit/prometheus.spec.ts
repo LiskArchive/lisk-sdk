@@ -14,7 +14,7 @@
 
 import { when } from 'jest-when';
 import { Request } from 'express';
-import { testing } from 'lisk-framework';
+import { testing } from 'lisk-sdk';
 import { PeerInfo, SharedState } from '../../src/types';
 import { prometheusExport, blocks, transactions } from '../../src/controllers';
 
@@ -126,11 +126,11 @@ describe('networkStats', () => {
 		channelMock.invoke = channelInvokeMock;
 
 		when(channelInvokeMock)
-			.calledWith('app:getConnectedPeers')
+			.calledWith('network_getConnectedPeers')
 			.mockResolvedValue(connectedPeers)
-			.calledWith('app:getDisconnectedPeers')
+			.calledWith('network_getDisconnectedPeers')
 			.mockResolvedValue(disconnectedPeers)
-			.calledWith('app:getNodeInfo')
+			.calledWith('system_getNodeInfo')
 			.mockResolvedValue(nodeInfo);
 	});
 

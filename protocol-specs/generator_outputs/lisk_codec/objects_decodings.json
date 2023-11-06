@@ -1,0 +1,109 @@
+{
+	"title": "Decoding for objects types supported by lisk-codec",
+	"summary": "Examples of encoding objects with lisk-codec",
+	"config": {
+		"network": "devnet"
+	},
+	"runner": "lisk_codec",
+	"handler": "objects_decodings",
+	"testCases": [
+		{
+			"description": "Decoding of object",
+			"input": {
+				"value": "0a14e11a11364738225813f86ea85214400e5db08d6e1080ade2041801220976616c696461746f722a2d0a25436865636b206f757420746865204c69736b2053444b206e6f7720696e2062696e61727921120408091009",
+				"schema": {
+					"$id": "/object11",
+					"type": "object",
+					"properties": {
+						"address": {
+							"dataType": "bytes",
+							"fieldNumber": 1
+						},
+						"balance": {
+							"dataType": "uint64",
+							"fieldNumber": 2
+						},
+						"isValidator": {
+							"dataType": "boolean",
+							"fieldNumber": 3
+						},
+						"name": {
+							"dataType": "string",
+							"fieldNumber": 4
+						},
+						"asset": {
+							"type": "object",
+							"fieldNumber": 5,
+							"properties": {
+								"data": {
+									"dataType": "string",
+									"fieldNumber": 1
+								},
+								"fooBar": {
+									"type": "object",
+									"fieldNumber": 2,
+									"properties": {
+										"foo": {
+											"dataType": "uint32",
+											"fieldNumber": 1
+										},
+										"bar": {
+											"dataType": "uint32",
+											"fieldNumber": 2
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"output": {
+				"object": {
+					"address": "e11a11364738225813f86ea85214400e5db08d6e",
+					"balance": "10000000",
+					"isValidator": true,
+					"name": "validator",
+					"asset": {
+						"data": "Check out the Lisk SDK now in binary!",
+						"fooBar": {
+							"foo": 9,
+							"bar": 9
+						}
+					}
+				}
+			}
+		},
+		{
+			"description": "Decoding of object with optional property",
+			"input": {
+				"value": "08011801",
+				"schema": {
+					"$id": "/object12",
+					"type": "object",
+					"properties": {
+						"isActive": {
+							"dataType": "boolean",
+							"fieldNumber": 1
+						},
+						"data": {
+							"dataType": "bytes",
+							"fieldNumber": 2
+						},
+						"value": {
+							"dataType": "uint64",
+							"fieldNumber": 3
+						}
+					}
+				}
+			},
+			"output": {
+				"object": {
+					"isActive": true,
+					"value": "1",
+					"data": ""
+				}
+			}
+		}
+	]
+}

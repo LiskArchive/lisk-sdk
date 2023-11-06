@@ -12,21 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing, PartialApplicationConfig } from 'lisk-framework';
-import {
-	getForgerInfoByAddress,
-	getForgerInfoByPublicKey,
-	getForgerPlugin,
-	waitTill,
-} from '../../utils/application';
+import { testing, PartialApplicationConfig } from 'lisk-sdk';
+import { getForgerInfoByAddress, getForgerPlugin, waitTill } from '../../utils/application';
 import { getRandomAccount } from '../../utils/accounts';
-import { createTransferTransaction, createVoteTransaction } from '../../utils/transactions';
+import { createTransferTransaction, createStakeTransaction } from '../../utils/transactions';
 import { ForgerPlugin } from '../../../src';
 
 describe('Forger Info', () => {
 	let appEnv: testing.ApplicationEnv;
 	let accountNonce = 0;
-	let networkIdentifier: Buffer;
+	let chainID: Buffer;
 
 	beforeAll(async () => {
 		const rootPath = '~/.lisk/forger-plugin';
@@ -37,11 +32,11 @@ describe('Forger Info', () => {
 
 		appEnv = testing.createDefaultApplicationEnv({
 			config,
-			plugins: [ForgerPlugin],
+			plugins: [new ForgerPlugin()],
 		});
 		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
-		networkIdentifier = appEnv.networkIdentifier;
+		chainID = appEnv.chainID;
 	});
 
 	afterAll(async () => {
@@ -56,17 +51,17 @@ describe('Forger Info', () => {
 			const forgerPluginInstance = getForgerPlugin(appEnv.application);
 
 			// Act
-			const { generatorPublicKey } = appEnv.lastBlock.header;
-			const forgerInfo = await getForgerInfoByPublicKey(
+			const { generatorAddress } = appEnv.lastBlock.header;
+			const forgerInfo = await getForgerInfoByAddress(
 				forgerPluginInstance,
-				generatorPublicKey.toString('hex'),
+				generatorAddress.toString('binary'),
 			);
 
 			// Assert
 			expect(forgerInfo).toMatchSnapshot();
 		});
 
-		it('should save forger info with received fees if payload included in new block', async () => {
+		it('should save forger info with received fees if transactions included in new block', async () => {
 			// Arrange
 			const forgerPluginInstance = getForgerPlugin(appEnv.application);
 			const account = getRandomAccount();
@@ -75,42 +70,42 @@ describe('Forger Info', () => {
 				recipientAddress: account.address,
 				fee: '0.3',
 				nonce: accountNonce,
-				networkIdentifier,
+				chainID,
 			});
 			accountNonce += 1;
 
-			await appEnv.ipcClient.invoke('app:postTransaction', {
+			await appEnv.ipcClient.invoke('txpool_postTransaction', {
 				transaction: transaction.getBytes().toString('hex'),
 			});
 			await appEnv.waitNBlocks(1);
 
 			const {
-				header: { generatorPublicKey },
+				header: { generatorAddress },
 			} = appEnv.lastBlock;
-			const forgerInfo = await getForgerInfoByPublicKey(
+			const forgerInfo = await getForgerInfoByAddress(
 				forgerPluginInstance,
-				generatorPublicKey.toString('hex'),
+				generatorAddress.toString('binary'),
 			);
 
 			// Assert
 			expect(forgerInfo).toMatchSnapshot();
 		});
 
-		describe('Vote transactions', () => {
-			it('should save forger info with votes received in new block', async () => {
+		describe('Stake transactions', () => {
+			it('should save forger info with stakes received in new block', async () => {
 				// Arrange
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
-				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
-				const transaction1 = createVoteTransaction({
+				const [forgingValidatorAddress] = forgerPluginInstance['_forgersList'].entries()[0];
+				const transaction1 = createStakeTransaction({
 					amount: '10',
-					recipientAddress: forgingDelegateAddress.toString('hex'),
+					recipientAddress: forgingValidatorAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
-					networkIdentifier,
+					chainID,
 				});
 				accountNonce += 1;
 
-				await appEnv.ipcClient.invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('txpool_postTransaction', {
 					transaction: transaction1.getBytes().toString('hex'),
 				});
 				await appEnv.waitNBlocks(1);
@@ -118,38 +113,38 @@ describe('Forger Info', () => {
 
 				const forgerInfo = await getForgerInfoByAddress(
 					forgerPluginInstance,
-					forgingDelegateAddress.toString('binary'),
+					forgingValidatorAddress.toString('binary'),
 				);
 				// Assert
 				expect(forgerInfo).toMatchSnapshot();
-				expect(forgerInfo.votesReceived[0].amount).toEqual(BigInt(1000000000));
+				expect(forgerInfo.stakeReceived[0].amount).toEqual(BigInt(1000000000));
 			});
 
-			it('should update forger info with multiple votes received for same delegate in new block', async () => {
+			it('should update forger info with multiple stakes received for same validator in new block', async () => {
 				// Arrange
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
-				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
-				const transaction1 = createVoteTransaction({
+				const [forgingValidatorAddress] = forgerPluginInstance['_forgersList'].entries()[0];
+				const transaction1 = createStakeTransaction({
 					amount: '10',
-					recipientAddress: forgingDelegateAddress.toString('hex'),
+					recipientAddress: forgingValidatorAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
-					networkIdentifier,
+					chainID,
 				});
 				accountNonce += 1;
-				const transaction2 = createVoteTransaction({
+				const transaction2 = createStakeTransaction({
 					amount: '50',
-					recipientAddress: forgingDelegateAddress.toString('hex'),
+					recipientAddress: forgingValidatorAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
-					networkIdentifier,
+					chainID,
 				});
 				accountNonce += 1;
 
-				await appEnv.ipcClient.invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('txpool_postTransaction', {
 					transaction: transaction1.getBytes().toString('hex'),
 				});
-				await appEnv.ipcClient.invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('txpool_postTransaction', {
 					transaction: transaction2.getBytes().toString('hex'),
 				});
 				await appEnv.waitNBlocks(1);
@@ -157,38 +152,38 @@ describe('Forger Info', () => {
 
 				const forgerInfo = await getForgerInfoByAddress(
 					forgerPluginInstance,
-					forgingDelegateAddress.toString('binary'),
+					forgingValidatorAddress.toString('binary'),
 				);
 				// Assert
 				expect(forgerInfo).toMatchSnapshot();
-				expect(forgerInfo.votesReceived[0].amount).toEqual(BigInt(7000000000));
+				expect(forgerInfo.stakeReceived[0].amount).toEqual(BigInt(7000000000));
 			});
 
-			it('should update forger info with upvote and downvote for same delegate in new block', async () => {
+			it('should update forger info with upvote and downvote for same validator in new block', async () => {
 				// Arrange
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
-				const [forgingDelegateAddress] = forgerPluginInstance['_forgersList'].entries()[0];
-				const transaction1 = createVoteTransaction({
+				const [forgingValidatorAddress] = forgerPluginInstance['_forgersList'].entries()[0];
+				const transaction1 = createStakeTransaction({
 					amount: '-50',
-					recipientAddress: forgingDelegateAddress.toString('hex'),
+					recipientAddress: forgingValidatorAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
-					networkIdentifier,
+					chainID,
 				});
 				accountNonce += 1;
-				const transaction2 = createVoteTransaction({
+				const transaction2 = createStakeTransaction({
 					amount: '+10',
-					recipientAddress: forgingDelegateAddress.toString('hex'),
+					recipientAddress: forgingValidatorAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
-					networkIdentifier,
+					chainID,
 				});
 				accountNonce += 1;
 
-				await appEnv.ipcClient.invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('txpool_postTransaction', {
 					transaction: transaction1.getBytes().toString('hex'),
 				});
-				await appEnv.ipcClient.invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('txpool_postTransaction', {
 					transaction: transaction2.getBytes().toString('hex'),
 				});
 				await appEnv.waitNBlocks(1);
@@ -196,39 +191,39 @@ describe('Forger Info', () => {
 
 				const forgerInfo = await getForgerInfoByAddress(
 					forgerPluginInstance,
-					forgingDelegateAddress.toString('binary'),
+					forgingValidatorAddress.toString('binary'),
 				);
 				// Assert
 				expect(forgerInfo).toMatchSnapshot();
-				expect(forgerInfo.votesReceived[0].amount).toEqual(BigInt(3000000000));
+				expect(forgerInfo.stakeReceived[0].amount).toEqual(BigInt(3000000000));
 			});
 
-			it('should update forger info with voters info and remove when amount becomes zero', async () => {
+			it('should update forger info with stakers info and remove when amount becomes zero', async () => {
 				// Arrange
 				const forgerPluginInstance = getForgerPlugin(appEnv.application);
-				const [forgingDelegateAddress1] = forgerPluginInstance['_forgersList'].entries()[0];
-				const [forgingDelegateAddress2] = forgerPluginInstance['_forgersList'].entries()[1];
-				const transaction1 = createVoteTransaction({
+				const [forgingValidatorAddress1] = forgerPluginInstance['_forgersList'].entries()[0];
+				const [forgingValidatorAddress2] = forgerPluginInstance['_forgersList'].entries()[1];
+				const transaction1 = createStakeTransaction({
 					amount: '-30',
-					recipientAddress: forgingDelegateAddress1.toString('hex'),
+					recipientAddress: forgingValidatorAddress1.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
-					networkIdentifier,
+					chainID,
 				});
 				accountNonce += 1;
-				const transaction2 = createVoteTransaction({
+				const transaction2 = createStakeTransaction({
 					amount: '20',
-					recipientAddress: forgingDelegateAddress2.toString('hex'),
+					recipientAddress: forgingValidatorAddress2.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
-					networkIdentifier,
+					chainID,
 				});
 				accountNonce += 1;
 
-				await appEnv.ipcClient.invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('txpool_postTransaction', {
 					transaction: transaction1.getBytes().toString('hex'),
 				});
-				await appEnv.ipcClient.invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('txpool_postTransaction', {
 					transaction: transaction2.getBytes().toString('hex'),
 				});
 				await appEnv.waitNBlocks(1);
@@ -236,17 +231,17 @@ describe('Forger Info', () => {
 
 				const forgerInfo1 = await getForgerInfoByAddress(
 					forgerPluginInstance,
-					forgingDelegateAddress1.toString('binary'),
+					forgingValidatorAddress1.toString('binary'),
 				);
 				const forgerInfo2 = await getForgerInfoByAddress(
 					forgerPluginInstance,
-					forgingDelegateAddress2.toString('binary'),
+					forgingValidatorAddress2.toString('binary'),
 				);
 				// Assert
 				expect(forgerInfo1).toMatchSnapshot();
-				expect(forgerInfo1.votesReceived).toBeEmpty();
+				expect(forgerInfo1.stakeReceived).toBeEmpty();
 				expect(forgerInfo2).toMatchSnapshot();
-				expect(forgerInfo2.votesReceived[0].amount).toEqual(BigInt(2000000000));
+				expect(forgerInfo2.stakeReceived[0].amount).toEqual(BigInt(2000000000));
 			});
 		});
 	});
@@ -254,15 +249,15 @@ describe('Forger Info', () => {
 	describe('Delete Block', () => {
 		it('should update forger info after delete block', async () => {
 			// Arrange
-			const { generatorPublicKey } = appEnv.lastBlock.header;
+			const { generatorAddress } = appEnv.lastBlock.header;
 			const forgerPluginInstance = getForgerPlugin(appEnv.application);
 			await appEnv.application['_node']['_processor'].deleteLastBlock();
 
 			// Act
 			await waitTill(50);
-			const forgerInfo = await getForgerInfoByPublicKey(
+			const forgerInfo = await getForgerInfoByAddress(
 				forgerPluginInstance,
-				generatorPublicKey.toString('hex'),
+				generatorAddress.toString('binary'),
 			);
 
 			// Asserts

@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { db } from 'lisk-sdk';
 import * as fs from 'fs-extra';
 import { homedir } from 'os';
 import { join } from 'path';
@@ -24,6 +25,10 @@ const mockedFsExtra = fs as jest.Mocked<typeof fs>;
 describe('Plugins DB', () => {
 	const unresolvedRootPath = '~/.lisk/devnet';
 	const dbName = 'lisk-framework-forger-plugin.db';
+
+	beforeEach(() => {
+		jest.spyOn(db, 'Database');
+	});
 
 	it('should resolve to data directory', async () => {
 		await getDBInstance(unresolvedRootPath);

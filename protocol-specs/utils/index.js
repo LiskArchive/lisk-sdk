@@ -36,6 +36,28 @@ const getFilesFromDir = (dir, fileTypes) => {
 	return filesToReturn;
 };
 
+const replacer = (_, value) => {
+	if (
+		value &&
+		typeof value === 'object' &&
+		value.type &&
+		value.type === 'Buffer' &&
+		value.data &&
+		Array.isArray(value.data)
+	) {
+		return Buffer.from(value.data).toString('hex');
+	}
+
+	if (value && typeof value === 'bigint') {
+		return value.toString();
+	}
+
+	return value;
+};
+
+const jsonStringify = (obj, space) => JSON.stringify(obj, replacer, space);
+
 module.exports = {
 	getFilesFromDir,
+	jsonStringify,
 };

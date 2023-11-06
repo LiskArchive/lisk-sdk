@@ -1,6 +1,6 @@
 /*
  * LiskHQ/lisk-commander
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2023 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,70 +13,5 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { signMessageWithPassphrase } from '@liskhq/lisk-cryptography';
-import { flags as flagParser } from '@oclif/command';
 
-import BaseCommand from '../../base';
-import { ValidationError } from '../../utils/error';
-import { flags as commonFlags } from '../../utils/flags';
-import { getPassphraseFromPrompt, isFileSource, readFileSource } from '../../utils/reader';
-
-interface Args {
-	readonly message?: string;
-}
-
-const processInputs = (passphrase: string, message?: string) => {
-	if (!message) {
-		throw new ValidationError('No message was provided.');
-	}
-
-	const signedMessageWithOnePassphrase = signMessageWithPassphrase(message, passphrase);
-	return {
-		...signedMessageWithOnePassphrase,
-		publicKey: signedMessageWithOnePassphrase.publicKey.toString('hex'),
-		signature: signedMessageWithOnePassphrase.signature.toString('hex'),
-	};
-};
-
-export default class SignCommand extends BaseCommand {
-	static args = [
-		{
-			name: 'message',
-			description: 'Message to sign.',
-		},
-	];
-
-	static description = `
-	Signs a message using your secret passphrase.
-	`;
-
-	static examples = ['message:sign "Hello world"'];
-
-	static flags = {
-		...BaseCommand.flags,
-		passphrase: flagParser.string(commonFlags.passphrase),
-		message: flagParser.string(commonFlags.message),
-	};
-
-	async run(): Promise<void> {
-		const {
-			args,
-			flags: { passphrase: passphraseSource, message: messageSource },
-		} = this.parse(SignCommand);
-
-		const { message }: Args = args;
-
-		if (!message && !messageSource) {
-			throw new ValidationError('No message was provided.');
-		}
-
-		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
-		const dataFromSource =
-			messageSource && isFileSource(messageSource)
-				? await readFileSource(messageSource)
-				: messageSource;
-
-		const result = processInputs(passphrase, message ?? dataFromSource);
-		this.print(result);
-	}
-}
+export { SignCommand } from '../../bootstrapping/commands/message/sign';

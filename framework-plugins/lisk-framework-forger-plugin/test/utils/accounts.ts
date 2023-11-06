@@ -12,14 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getAddressFromPublicKey, getKeys, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { cryptography } from 'lisk-sdk';
 
 export const getRandomAccount = () => {
-	const { publicKey, privateKey } = getKeys(getRandomBytes(20).toString('hex'));
-	const address = getAddressFromPublicKey(publicKey);
+	const { publicKey, privateKey } = cryptography.legacy.getKeys(
+		cryptography.utils.getRandomBytes(20).toString('hex'),
+	);
+	const address = cryptography.address.getAddressFromPublicKey(publicKey);
 
 	return {
-		address: address.toString('hex'),
+		address: cryptography.address.getLisk32AddressFromAddress(address),
 		publicKey: publicKey.toString('hex'),
 		privateKey: privateKey.toString('hex'),
 		nonce: 0,

@@ -11,8 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import {
 	JSONRPCErrorObject,
 	ID,
@@ -20,12 +19,13 @@ import {
 	JSONRPCResult,
 	ResponseObjectWithResult,
 	ResponseObjectWithError,
+	RequestObject,
 } from './types';
 
 export const VERSION = '2.0';
 
 const requestSchema = {
-	$id: 'jsonRPCRequestSchema',
+	$id: '/jsonRPCRequestSchema',
 	type: 'object',
 	required: ['jsonrpc', 'method', 'id'],
 	properties: {
@@ -47,7 +47,7 @@ const requestSchema = {
 };
 
 const notificationSchema = {
-	$id: 'jsonRPCRequestSchema',
+	$id: '/jsonRPCNotificationSchema',
 	type: 'object',
 	required: ['jsonrpc', 'method'],
 	properties: {
@@ -65,18 +65,15 @@ const notificationSchema = {
 	additionalProperties: false,
 };
 
-export const validateJSONRPCRequest = (data: Record<string, unknown>): void => {
-	const errors = validator.validate(requestSchema, data);
-	if (errors.length) {
-		throw new LiskValidationError(errors);
+export function validateJSONRPCRequest(data: unknown): asserts data is RequestObject {
+	if (typeof data !== 'object' || data === null) {
+		throw new Error('Data must be type of object.');
 	}
-};
+	validator.validate(requestSchema, data);
+}
 
 export const validateJSONRPCNotification = (data: Record<string, unknown>): void => {
-	const errors = validator.validate(notificationSchema, data);
-	if (errors.length) {
-		throw new LiskValidationError(errors);
-	}
+	validator.validate(notificationSchema, data);
 };
 
 export const notificationRequest = (
@@ -100,8 +97,8 @@ export const errorResponse = (id: ID, error: JSONRPCErrorObject): ResponseObject
 	error,
 });
 
-export const invalidRequest = (): JSONRPCErrorObject => ({
-	message: 'Invalid request',
+export const invalidRequest = (msg?: string): JSONRPCErrorObject => ({
+	message: msg ?? 'Invalid request',
 	code: -32600,
 });
 

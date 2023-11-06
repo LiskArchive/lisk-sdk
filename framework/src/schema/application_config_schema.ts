@@ -12,210 +12,89 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+import {
+	BFT_BATCH_SIZE,
+	DEFAULT_HOST,
+	DEFAULT_PORT_P2P,
+	DEFAULT_PORT_RPC,
+	MAX_CCM_SIZE,
+	MAX_NUM_VALIDATORS,
+	MAX_TRANSACTIONS_SIZE,
+} from '../constants';
+
 export const applicationConfigSchema = {
 	$id: '#/config',
 	type: 'object',
-	required: [
-		'version',
-		'networkVersion',
-		'backup',
-		'rpc',
-		'genesisConfig',
-		'forging',
-		'network',
-		'plugins',
-	],
+	required: ['system', 'rpc', 'network', 'modules', 'plugins', 'genesis'],
 	properties: {
-		label: {
-			type: 'string',
-			pattern: '^[a-zA-Z][0-9a-zA-Z_-]*$',
-			minLength: 1,
-			maxLength: 30,
-			description: 'Restricted length due to unix domain socket path length limitations.',
-		},
-		version: {
-			type: 'string',
-			format: 'version',
-		},
-		networkVersion: {
-			type: 'string',
-			format: 'networkVersion',
-		},
-		rootPath: {
-			type: 'string',
-			format: 'path',
-			minLength: 1,
-			maxLength: 50,
-			examples: ['~/.lisk'],
-			description:
-				'The root path for storing temporary pid and socket file and data. Restricted length due to unix domain socket path length limitations.',
-		},
-		backup: {
+		system: {
 			type: 'object',
-			required: ['height'],
+			required: ['version', 'dataPath', 'logLevel', 'keepEventsForHeights', 'backup'],
 			properties: {
-				height: {
-					type: 'integer',
-					minimum: 0,
-					description: 'Height at which the DB backup should be taken.',
+				version: {
+					type: 'string',
+					format: 'version',
 				},
-			},
-		},
-		logger: {
-			type: 'object',
-			required: ['fileLogLevel', 'logFileName', 'consoleLogLevel'],
-			properties: {
-				fileLogLevel: {
+				dataPath: {
+					type: 'string',
+				},
+				logLevel: {
 					type: 'string',
 					enum: ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'none'],
 				},
-				logFileName: {
-					type: 'string',
-				},
-				consoleLogLevel: {
-					type: 'string',
-					enum: ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'none'],
-				},
-			},
-		},
-		genesisConfig: {
-			$id: '#/config/genesisConfig',
-			type: 'object',
-			required: ['blockTime', 'communityIdentifier', 'maxPayloadLength', 'rewards', 'roundLength'],
-			properties: {
-				blockTime: {
-					type: 'number',
-					minimum: 2,
-					description: 'Slot time interval in seconds',
-				},
-				communityIdentifier: {
-					type: 'string',
-					description:
-						'The unique name of the relevant community as a string encoded in UTF-8 format',
-				},
-				bftThreshold: {
+				keepEventsForHeights: {
 					type: 'integer',
-					minimum: 1,
-					description: 'Number of validators required to set block finality',
 				},
-				minFeePerByte: {
-					type: 'integer',
-					minimum: 0,
-					description: 'Minimum fee per bytes required for a transaction to be valid',
-				},
-				roundLength: {
-					type: 'number',
-					minimum: 1,
-					description: 'Number of slots in a round',
-				},
-				baseFees: {
-					type: 'array',
-					description: 'Base fee for a transaction to be valid',
-					items: {
-						type: 'object',
-						properties: {
-							moduleID: {
-								type: 'number',
-								minimum: 2,
-							},
-							assetID: {
-								type: 'integer',
-								minimum: 0,
-							},
-							baseFee: {
-								type: 'string',
-								format: 'uint64',
-							},
-						},
-					},
-				},
-				maxPayloadLength: {
-					type: 'integer',
-					// eslint-disable-next-line @typescript-eslint/no-magic-numbers
-					minimum: 10 * 1024, // Kilo Bytes
-					// eslint-disable-next-line @typescript-eslint/no-magic-numbers
-					maximum: 30 * 1024, // Kilo Bytes
-					description: 'Maximum number of transactions allowed per block',
-				},
-				rewards: {
-					$id: '#/config/rewards',
+				backup: {
 					type: 'object',
-					required: ['milestones', 'offset', 'distance'],
-					description: 'Object representing LSK rewards milestone',
+					required: ['height'],
 					properties: {
-						milestones: {
-							type: 'array',
-							items: {
-								type: 'string',
-								format: 'uint64',
-							},
-							description: 'Initial 5, and decreasing until 1',
-						},
-						offset: {
+						height: {
 							type: 'integer',
-							minimum: 1,
-							description: 'Start rewards at block (n)',
-						},
-						distance: {
-							type: 'integer',
-							minimum: 1,
-							description: 'Distance between each milestone',
+							minimum: 0,
+							description: 'Height at which the DB backup should be taken.',
 						},
 					},
-					additionalProperties: false,
 				},
-			},
-			additionalProperties: true,
-		},
-		forging: {
-			type: 'object',
-			required: ['force', 'waitThreshold', 'delegates'],
-			properties: {
-				force: {
+				enableMetrics: {
 					type: 'boolean',
 				},
-				waitThreshold: {
-					description: 'Number of seconds to wait for previous block before forging',
-					type: 'integer',
+			},
+		},
+		rpc: {
+			type: 'object',
+			required: ['modes', 'host', 'port'],
+			properties: {
+				modes: {
+					type: 'array',
+					items: { type: 'string', enum: ['ipc', 'ws', 'http'] },
+					uniqueItems: true,
 				},
-				defaultPassword: {
-					type: 'string',
+				host: { type: 'string' },
+				port: { type: 'number', minimum: 1024, maximum: 65535 },
+				allowedMethods: {
+					type: 'array',
+					items: { type: 'string' },
+					uniqueItems: true,
 				},
-				delegates: {
+				accessControlAllowOrigin: { type: 'string' },
+			},
+		},
+		legacy: {
+			type: 'object',
+			required: ['brackets'],
+			properties: {
+				sync: { type: 'boolean' },
+				brackets: {
 					type: 'array',
 					items: {
-						required: ['encryptedPassphrase', 'address', 'hashOnion'],
+						type: 'object',
+						required: ['startHeight', 'snapshotHeight', 'snapshotBlockID'],
 						properties: {
-							encryptedPassphrase: {
-								type: 'string',
-								format: 'encryptedPassphrase',
-							},
-							address: {
-								type: 'string',
-								format: 'hex',
-							},
-							hashOnion: {
-								type: 'object',
-								required: ['count', 'distance', 'hashes'],
-								properties: {
-									count: {
-										minimum: 1,
-										type: 'integer',
-									},
-									distance: {
-										minimum: 1,
-										type: 'integer',
-									},
-									hashes: {
-										type: 'array',
-										minItems: 2,
-										items: {
-											type: 'string',
-											format: 'hex',
-										},
-									},
-								},
-							},
+							startHeight: { type: 'number', minimum: 0 },
+							snapshotHeight: { type: 'number', minimum: 0 },
+							snapshotBlockID: { type: 'string', format: 'hex' },
 						},
 					},
 				},
@@ -224,12 +103,16 @@ export const applicationConfigSchema = {
 		network: {
 			type: 'object',
 			properties: {
+				version: {
+					type: 'string',
+					format: 'networkVersion',
+				},
 				port: {
 					type: 'integer',
 					minimum: 1,
 					maximum: 65535,
 				},
-				hostIp: {
+				host: {
 					type: 'string',
 					format: 'ip',
 				},
@@ -295,33 +178,11 @@ export const applicationConfigSchema = {
 						},
 					},
 				},
-				peerBanTime: {
-					type: 'integer',
-				},
-				connectTimeout: {
-					type: 'integer',
-				},
-				ackTimeout: {
-					type: 'integer',
-				},
 				maxOutboundConnections: {
 					type: 'integer',
 				},
 				maxInboundConnections: {
 					type: 'integer',
-				},
-				sendPeerLimit: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 100,
-				},
-				maxPeerDiscoveryResponseLength: {
-					type: 'integer',
-					maximum: 1000,
-				},
-				maxPeerInfoSize: {
-					type: 'integer',
-					maximum: 20480,
 				},
 				wsMaxPayload: {
 					type: 'integer',
@@ -332,9 +193,6 @@ export const applicationConfigSchema = {
 				},
 			},
 			required: ['seedPeers'],
-		},
-		plugins: {
-			type: 'object',
 		},
 		transactionPool: {
 			type: 'object',
@@ -361,77 +219,122 @@ export const applicationConfigSchema = {
 				},
 			},
 		},
-		rpc: {
+		genesis: {
 			type: 'object',
+			required: ['block', 'blockTime', 'bftBatchSize', 'chainID', 'maxTransactionsSize'],
 			properties: {
-				enable: {
-					type: 'boolean',
+				block: {
+					type: 'object',
+					oneOf: [
+						{
+							required: ['fromFile'],
+							properties: {
+								fromFile: {
+									type: 'string',
+								},
+								blob: {
+									type: 'string',
+									format: 'hex',
+								},
+							},
+						},
+						{
+							required: ['blob'],
+							properties: {
+								fromFile: {
+									type: 'string',
+								},
+								blob: {
+									type: 'string',
+									format: 'hex',
+								},
+							},
+						},
+					],
 				},
-				mode: {
-					type: 'string',
-					enum: ['ipc', 'ws'],
-				},
-				port: {
+				blockTime: {
 					type: 'number',
-					minimum: 1024,
-					maximum: 65535,
+					minimum: 3,
+					maximum: 30 * 24 * 60 * 60, // 1 block per month
+					description: 'Slot time interval in seconds',
 				},
-				host: {
+				bftBatchSize: {
+					type: 'number',
+					maximum: MAX_NUM_VALIDATORS + 2,
+					description: 'The length of a round',
+				},
+				chainID: {
 					type: 'string',
-					format: 'ip',
+					format: 'hex',
+					description: 'The unique name of the chain as a string encoded in Hex format',
+				},
+				maxTransactionsSize: {
+					type: 'integer',
+					minimum: MAX_CCM_SIZE + 1024,
+					maximum: 30 * 1024, // Kilo Bytes
+					description: 'Maximum number of transactions allowed per block',
+				},
+				minimumCertifyHeight: {
+					type: 'integer',
+					minimum: 1,
+					description: 'Minimum block height which can be certified',
 				},
 			},
+			additionalProperties: false,
+		},
+		generator: {
+			type: 'object',
+			required: ['keys'],
+			properties: {
+				keys: {
+					type: 'object',
+					properties: {
+						fromFile: {
+							type: 'string',
+							description: 'Path to a file which stores keys',
+						},
+					},
+				},
+			},
+		},
+		modules: {
+			type: 'object',
+			propertyNames: {
+				pattern: '^[a-zA-Z][a-zA-Z0-9_]*$',
+			},
+			additionalProperties: { type: 'object' },
+		},
+		plugins: {
+			type: 'object',
 		},
 	},
 	additionalProperties: false,
 	default: {
-		label: 'beta-sdk-app',
-		version: '0.0.0',
-		networkVersion: '1.1',
-		rootPath: '~/.lisk',
-		logger: {
-			fileLogLevel: 'info',
-			consoleLogLevel: 'none',
-			logFileName: 'lisk.log',
-		},
-		rpc: {
-			enable: false,
-			mode: 'ipc',
-			port: 8080,
-			host: '127.0.0.1',
-		},
-		backup: {
-			height: 0,
-		},
-		genesisConfig: {
-			blockTime: 10,
-			communityIdentifier: 'sdk',
-			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
-			maxPayloadLength: 15 * 1024, // Kilo Bytes
-			bftThreshold: 68,
-			minFeePerByte: 1000,
-			baseFees: [],
-			roundLength: 103,
-			rewards: {
-				milestones: [
-					'500000000', // Initial Reward
-					'400000000', // Milestone 1
-					'300000000', // Milestone 2
-					'200000000', // Milestone 3
-					'100000000', // Milestone 4
-				],
-				offset: 2160, // Start rewards at 39th block of 22nd round
-				distance: 3000000, // Distance between each milestone
+		system: {
+			dataPath: '~/.lisk/beta-sdk-app',
+			version: '0.1.0',
+			keepEventsForHeights: 300,
+			logLevel: 'info',
+			enableMetrics: false,
+			backup: {
+				height: 0,
 			},
 		},
-		forging: {
-			force: false,
-			waitThreshold: 2,
-			delegates: [],
+		rpc: {
+			modes: ['ipc'],
+			port: DEFAULT_PORT_RPC,
+			host: DEFAULT_HOST,
+			allowedMethods: [],
+			accessControlAllowOrigin: '*',
+		},
+		legacy: {
+			sync: false,
+			brackets: [],
 		},
 		network: {
+			version: '1.0',
 			seedPeers: [],
-			port: 5000,
+			port: DEFAULT_PORT_P2P,
 		},
 		transactionPool: {
 			maxTransactions: 4096,
@@ -440,6 +343,19 @@ export const applicationConfigSchema = {
 			minEntranceFeePriority: '0',
 			minReplacementFeeDifference: '10',
 		},
+		genesis: {
+			block: {
+				fromFile: './config/genesis_block.blob',
+			},
+			blockTime: 10,
+			bftBatchSize: BFT_BATCH_SIZE,
+			maxTransactionsSize: MAX_TRANSACTIONS_SIZE,
+			minimumCertifyHeight: 1,
+		},
+		generator: {
+			keys: {},
+		},
+		modules: {},
 		plugins: {},
 	},
 };

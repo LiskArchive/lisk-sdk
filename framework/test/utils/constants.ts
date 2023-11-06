@@ -17,12 +17,6 @@ import { deepFreeze } from './deep_freeze';
 import { nodeOptions } from '../fixtures/node';
 
 export const constants = deepFreeze({
-	...applicationConfigSchema.default.genesisConfig,
-	...nodeOptions.genesisConfig,
-	rewards: {
-		...applicationConfigSchema.default.genesisConfig.rewards,
-		milestones: applicationConfigSchema.default.genesisConfig.rewards.milestones.map(r =>
-			BigInt(r),
-		),
-	},
+	...applicationConfigSchema.default.genesis,
+	...nodeOptions.genesis,
 });

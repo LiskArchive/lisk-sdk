@@ -1,0 +1,53 @@
+{
+	"title": "Decoding for bytes types supported by lisk-codec",
+	"summary": "Examples of encoding bytes with lisk-codec",
+	"config": {
+		"network": "devnet"
+	},
+	"runner": "lisk_codec",
+	"handler": "bytes_decodings",
+	"testCases": [
+		{
+			"description": "Decoding of chunk of bytes",
+			"input": {
+				"value": "0a14e11a11364738225813f86ea85214400e5db08d6e",
+				"schema": {
+					"$id": "/object9",
+					"type": "object",
+					"properties": {
+						"address": {
+							"dataType": "bytes",
+							"fieldNumber": 1
+						}
+					}
+				}
+			},
+			"output": {
+				"object": {
+					"address": "e11a11364738225813f86ea85214400e5db08d6e"
+				}
+			}
+		},
+		{
+			"description": "Decoding of empty bytes",
+			"input": {
+				"value": "0a00",
+				"schema": {
+					"$id": "/object9",
+					"type": "object",
+					"properties": {
+						"address": {
+							"dataType": "bytes",
+							"fieldNumber": 1
+						}
+					}
+				}
+			},
+			"output": {
+				"object": {
+					"address": ""
+				}
+			}
+		}
+	]
+}

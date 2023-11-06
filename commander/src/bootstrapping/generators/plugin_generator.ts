@@ -19,13 +19,13 @@ import BaseGenerator from './base_generator';
 
 export default class PluginGenerator extends BaseGenerator {
 	protected _liskPluginArgs: {
-		alias: string;
+		name: string;
 	};
 
-	public constructor(args: string | string[], opts: { alias: string } & BaseGeneratorOptions) {
+	public constructor(args: string | string[], opts: { name: string } & BaseGeneratorOptions) {
 		super(args, opts);
 		this._liskPluginArgs = {
-			alias: opts.alias,
+			name: opts.name,
 		};
 	}
 

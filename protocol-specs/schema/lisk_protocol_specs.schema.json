@@ -1,7 +1,7 @@
 {
 	"title": "LiskProtocolSpec",
 	"description": "Schema specification for JSON specs output",
-	"$id": "https://lisk.io/schemas/protocol_specs",
+	"$id": "https://lisk.com/schemas/protocol_specs",
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"type": "object",
 	"additionalProperties": false,
@@ -21,7 +21,7 @@
 		},
 		"runner": {
 			"type": "string",
-			"description": "A string identifier to point to a protocol spec name e.g. dpos, bft",
+			"description": "A string identifier to point to a protocol spec name e.g. pos, bft",
 			"minLength": 3,
 			"maxLength": 100,
 			"pattern": "[a-z0-9_]*"

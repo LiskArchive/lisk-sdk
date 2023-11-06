@@ -11,146 +11,57 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { Database } from '@liskhq/lisk-db';
-import { codec } from '@liskhq/lisk-codec';
-import { BlockHeader, RawBlock, Transaction } from '@liskhq/lisk-chain';
 import {
-	decryptPassphraseWithPassword,
-	parseEncryptedPassphrase,
-	getAddressAndPublicKeyFromPassphrase,
-	getAddressFromPassphrase,
-	signData,
-} from '@liskhq/lisk-cryptography';
-import {
-	ActionsDefinition,
 	BasePlugin,
-	BaseChannel,
-	EventsDefinition,
-	PluginInfo,
-} from 'lisk-framework';
-import { objects } from '@liskhq/lisk-utils';
+	PluginInitContext,
+	db as liskDB,
+	codec,
+	chain,
+	cryptography,
+	blockHeaderSchema,
+} from 'lisk-sdk';
 import {
 	getDBInstance,
 	saveBlockHeaders,
 	getContradictingBlockHeader,
-	decodeBlockHeader,
 	clearBlockHeaders,
 } from './db';
-import * as config from './defaults';
-import { Options, State } from './types';
-import { postBlockEventSchema } from './schema';
+import { ReportMisbehaviorPluginConfig, State } from './types';
+import { configSchema } from './schemas';
+import { Endpoint } from './endpoint';
 
-// eslint-disable-next-line
-const packageJSON = require('../package.json');
+const { address, ed } = cryptography;
+const { BlockHeader, Transaction, TAG_TRANSACTION } = chain;
 
-const actionParamsSchema = {
-	$id: 'lisk/report_misbehavior/auth',
-	type: 'object',
-	required: ['password', 'enable'],
-	properties: {
-		password: {
-			type: 'string',
-		},
-		enable: {
-			type: 'boolean',
-		},
-	},
-};
+export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginConfig> {
+	public configSchema = configSchema;
+	public endpoint = new Endpoint();
 
-export class ReportMisbehaviorPlugin extends BasePlugin {
-	private _pluginDB!: Database;
-	private _options!: Options;
+	private _pluginDB!: liskDB.Database;
 	private readonly _state: State = { currentHeight: 0 };
-	private _channel!: BaseChannel;
-	private _clearBlockHeadersInterval!: number;
 	private _clearBlockHeadersIntervalId!: NodeJS.Timer | undefined;
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get alias(): string {
-		return 'reportMisbehavior';
+	public get nodeModulePath(): string {
+		return __filename;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get info(): PluginInfo {
-		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			author: packageJSON.author,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			version: packageJSON.version,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			name: packageJSON.name,
-		};
-	}
-
-	public get defaults(): Record<string, unknown> {
-		return config.defaultConfig;
-	}
-
-	public get events(): EventsDefinition {
-		return [];
-	}
-
-	public get actions(): ActionsDefinition {
-		return {
-			authorize: (params?: Record<string, unknown>): { result: string } => {
-				const errors = validator.validate(actionParamsSchema, params as Record<string, unknown>);
-
-				if (errors.length) {
-					throw new LiskValidationError([...errors]);
-				}
-
-				if (
-					!this._options.encryptedPassphrase ||
-					typeof this._options.encryptedPassphrase !== 'string'
-				) {
-					throw new Error('Encrypted passphrase string must be set in the config.');
-				}
-
-				const { enable, password } = params as Record<string, unknown>;
-
-				try {
-					const parsedEncryptedPassphrase = parseEncryptedPassphrase(
-						this._options.encryptedPassphrase,
-					);
-
-					const passphrase = decryptPassphraseWithPassword(
-						parsedEncryptedPassphrase,
-						password as string,
-					);
-
-					const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
-
-					this._state.publicKey = enable ? publicKey : undefined;
-					this._state.passphrase = enable ? passphrase : undefined;
-					const changedState = enable ? 'enabled' : 'disabled';
-
-					return {
-						result: `Successfully ${changedState} the reporting of misbehavior.`,
-					};
-				} catch (error) {
-					throw new Error('Password given is not valid.');
-				}
-			},
-		};
+	public async init(context: PluginInitContext): Promise<void> {
+		await super.init(context);
+		this.endpoint.init(this._state, this.config);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async load(channel: BaseChannel): Promise<void> {
-		this._channel = channel;
-		this._options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
-		this._clearBlockHeadersInterval = this._options.clearBlockHeadersInterval || 60000;
-
+	public async load(): Promise<void> {
 		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
-		this._pluginDB = await getDBInstance(this._options.dataPath);
+		this._pluginDB = await getDBInstance(this.dataPath);
 		// Listen to new block and delete block events
 		this._subscribeToChannel();
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._clearBlockHeadersIntervalId = setInterval(() => {
-			clearBlockHeaders(this._pluginDB, this.schemas, this._state.currentHeight).catch(error =>
-				this._logger.error(error),
+			clearBlockHeaders(this._pluginDB, this._state.currentHeight).catch(error =>
+				this.logger.error(error),
 			);
-		}, this._clearBlockHeadersInterval);
+		}, this.config.clearBlockHeadersInterval);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -161,26 +72,26 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	}
 
 	private _subscribeToChannel(): void {
-		this._channel.subscribe('app:network:event', async (eventData?: Record<string, unknown>) => {
-			const { event, data } = eventData as { event: string; data: unknown };
-
-			if (event === 'postBlock') {
-				const errors = validator.validate(postBlockEventSchema, data as Record<string, unknown>);
-				if (errors.length > 0) {
-					this._logger.error(errors, 'Invalid block data');
+		this.apiClient.subscribe(
+			'network_newBlock',
+			async (event: Record<string, unknown> | undefined) => {
+				if (!event) {
+					this.logger.error('Invalid payload for network_newBlock');
 					return;
 				}
-				const blockData = data as { block: string };
-				const { header } = codec.decode<RawBlock>(
-					this.schemas.block,
-					Buffer.from(blockData.block, 'hex'),
+
+				const { blockHeader: blockHeaderJSON } = event;
+
+				const headerBytes = codec.encodeJSON(
+					blockHeaderSchema,
+					blockHeaderJSON as Record<string, unknown>,
 				);
 				try {
-					const saved = await saveBlockHeaders(this._pluginDB, this.schemas, header);
+					const saved = await saveBlockHeaders(this._pluginDB, headerBytes);
 					if (!saved) {
 						return;
 					}
-					const decodedBlockHeader = decodeBlockHeader(header, this.schemas);
+					const decodedBlockHeader = BlockHeader.fromBytes(headerBytes);
 
 					// Set new currentHeight
 					if (decodedBlockHeader.height > this._state.currentHeight) {
@@ -189,81 +100,76 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 					const contradictingBlock = await getContradictingBlockHeader(
 						this._pluginDB,
 						decodedBlockHeader,
-						this.schemas,
 					);
-					if (contradictingBlock && this._state.passphrase) {
+					if (contradictingBlock && this._state.privateKey) {
 						const encodedTransaction = await this._createPoMTransaction(
 							decodedBlockHeader,
 							contradictingBlock,
 						);
-						const result = await this._channel.invoke<{
+						const result = await this.apiClient.invoke<{
 							transactionId?: string;
-						}>('app:postTransaction', {
+						}>('txpool_postTransaction', {
 							transaction: encodedTransaction,
 						});
 
-						this._logger.debug('Sent Report misbehavior transaction', result.transactionId);
+						this.logger.debug('Sent Report misbehavior transaction', result.transactionId);
 					}
 				} catch (error) {
-					this._logger.error(error);
+					this.logger.error(error);
 				}
-			}
-		});
+			},
+		);
 	}
 
 	private async _createPoMTransaction(
-		contradictingBlock: BlockHeader,
-		decodedBlockHeader: BlockHeader,
+		contradictingBlock: chain.BlockHeader,
+		decodedBlockHeader: chain.BlockHeader,
 	): Promise<string> {
-		// ModuleID:5 (DPoS), AssetID:3 (PoMAsset)
-		const pomAssetInfo = this.schemas.transactionsAssets.find(
-			({ moduleID, assetID }) => moduleID === 5 && assetID === 3,
-		);
-
-		if (!pomAssetInfo) {
-			throw new Error('PoM asset schema is not registered in the application.');
+		// ModuleID:13 (PoS), CommandID:3 (PoMCommand)
+		const posMeta = this.apiClient.metadata.find(m => m.name === 'pos');
+		if (!posMeta) {
+			throw new Error('PoS module is not registered in the application.');
+		}
+		const pomParamsInfo = posMeta.commands.find(m => m.name === 'reportMisbehavior');
+		if (!pomParamsInfo?.params) {
+			throw new Error('PoM params schema is not registered in the application.');
 		}
 
 		// Assume passphrase is checked before calling this function
-		const passphrase = this._state.passphrase as string;
+		if (!this._state.publicKey || !this._state.privateKey) {
+			throw new Error('Key is not registered.');
+		}
 
-		const encodedAccount = await this._channel.invoke<string>('app:getAccount', {
-			address: getAddressFromPassphrase(passphrase).toString('hex'),
+		const authAccount = await this.apiClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
+			address: address.getLisk32AddressFromPublicKey(this._state.publicKey),
 		});
 
-		const {
-			sequence: { nonce },
-		} = codec.decode<{ sequence: { nonce: bigint } }>(
-			this.schemas.account,
-			Buffer.from(encodedAccount, 'hex'),
-		);
-
-		const pomTransactionAsset = {
-			header1: decodedBlockHeader,
-			header2: contradictingBlock,
+		const pomTransactionParams = {
+			header1: decodedBlockHeader.getBytes(),
+			header2: contradictingBlock.getBytes(),
 		};
 
-		const { networkIdentifier } = await this._channel.invoke<{ networkIdentifier: string }>(
-			'app:getNodeInfo',
-		);
+		const { chainID } = await this.apiClient.invoke<{ chainID: string }>('system_getNodeInfo');
 
-		const encodedAsset = codec.encode(pomAssetInfo.schema, pomTransactionAsset);
+		const encodedParams = codec.encode(pomParamsInfo.params, pomTransactionParams);
 
 		const tx = new Transaction({
-			moduleID: pomAssetInfo.moduleID,
-			assetID: pomAssetInfo.assetID,
-			nonce,
+			module: posMeta.name,
+			command: pomParamsInfo.name,
+			nonce: BigInt(authAccount.nonce),
 			senderPublicKey:
-				this._state.publicKey ?? getAddressAndPublicKeyFromPassphrase(passphrase).publicKey,
-			fee: BigInt(this._options.fee), // TODO: The static fee should be replaced by fee estimation calculation
-			asset: encodedAsset,
+				this._state.publicKey ?? ed.getPublicKeyFromPrivateKey(this._state.privateKey),
+			fee: BigInt(this.config.fee), // TODO: The static fee should be replaced by fee estimation calculation
+			params: encodedParams,
 			signatures: [],
 		});
 
-		(tx.signatures as Buffer[]).push(
-			signData(
-				Buffer.concat([Buffer.from(networkIdentifier, 'hex'), tx.getSigningBytes()]),
-				passphrase,
+		tx.signatures.push(
+			ed.signData(
+				TAG_TRANSACTION,
+				Buffer.from(chainID, 'hex'),
+				tx.getSigningBytes(),
+				this._state.privateKey,
 			),
 		);
 

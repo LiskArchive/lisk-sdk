@@ -14,24 +14,21 @@
 
 'use strict';
 
-const { signData } = require('@liskhq/lisk-cryptography');
+const { ed, legacy } = require('@liskhq/lisk-cryptography');
 const { Codec } = require('@liskhq/lisk-codec');
 const BaseGenerator = require('../base_generator');
 const { baseTransactionSchema } = require('../../utils/schema');
 
 const codec = new Codec();
-
-const networkIdentifier = Buffer.from(
-	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-	'hex',
-);
+const TAG_TRANSACTION = Buffer.from('LSK_TX_', 'utf8');
+const chainID = Buffer.from('10000000', 'hex');
 
 const senderAccount = {
 	passphrase: 'lava toe nuclear candy erode present guilt develop include type pluck current',
 	publicKey: Buffer.from('8c3d81b1555fbe4692adfa1026ee21c043633b9369924cf2790e2e0fc6b47a66', 'hex'),
 	address: Buffer.from('67aeac2f0dcaae0b7790777a3b4ba296c427dbeb', 'hex'),
 };
-const delegateAccounts = [
+const validatorAccounts = [
 	{
 		publicKey: Buffer.from(
 			'5430e775505b3145c124d15dc7c84ca7c751ecb69faf653bfb1e0c91e6e22f8a',
@@ -175,7 +172,7 @@ const delegateAccounts = [
 ];
 
 const assetSchema = {
-	$id: 'asset/unlock',
+	$id: '/asset/unlock',
 	type: 'object',
 	properties: {
 		unlockObjects: {
@@ -183,11 +180,11 @@ const assetSchema = {
 			items: {
 				type: 'object',
 				properties: {
-					delegateAddress: { dataType: 'bytes', fieldNumber: 1 },
+					validatorAddress: { dataType: 'bytes', fieldNumber: 1 },
 					amount: { dataType: 'uint64', fieldNumber: 2 },
-					unvoteHeight: { dataType: 'uint32', fieldNumber: 3 },
+					unstakeHeight: { dataType: 'uint32', fieldNumber: 3 },
 				},
-				required: ['delegateAddress', 'amount', 'unvoteHeight'],
+				required: ['validatorAddress', 'amount', 'unstakeHeight'],
 			},
 			fieldNumber: 1,
 		},
@@ -216,7 +213,7 @@ const encode = tx => {
 	return codec.encode(baseTransactionSchema, txWithAssetBytes);
 };
 
-const generateValidUpvoteTransaction = () => {
+const generateValidUpstakeTransaction = () => {
 	const unsignedTransaction = {
 		moduleID: 5,
 		assetID: 2,
@@ -226,112 +223,114 @@ const generateValidUpvoteTransaction = () => {
 		asset: {
 			unlockObjects: [
 				{
-					delegateAddress: delegateAccounts[0].address,
+					validatorAddress: validatorAccounts[0].address,
 					amount: BigInt('1000000000'),
-					unvoteHeight: 32,
+					unstakeHeight: 32,
 				},
 				{
-					delegateAddress: delegateAccounts[1].address,
+					validatorAddress: validatorAccounts[1].address,
 					amount: BigInt('50000000000'),
-					unvoteHeight: 12,
+					unstakeHeight: 12,
 				},
 				{
-					delegateAddress: delegateAccounts[2].address,
+					validatorAddress: validatorAccounts[2].address,
 					amount: BigInt('320000000000'),
-					unvoteHeight: 14,
+					unstakeHeight: 14,
 				},
 				{
-					delegateAddress: delegateAccounts[0].address,
+					validatorAddress: validatorAccounts[0].address,
 					amount: BigInt('420000000000'),
-					unvoteHeight: 19,
+					unstakeHeight: 19,
 				},
 				{
-					delegateAddress: delegateAccounts[0].address,
+					validatorAddress: validatorAccounts[0].address,
 					amount: BigInt('520000000000'),
-					unvoteHeight: 50,
+					unstakeHeight: 50,
 				},
 				{
-					delegateAddress: delegateAccounts[2].address,
+					validatorAddress: validatorAccounts[2].address,
 					amount: BigInt('620000000000'),
-					unvoteHeight: 14,
+					unstakeHeight: 14,
 				},
 				{
-					delegateAddress: delegateAccounts[2].address,
+					validatorAddress: validatorAccounts[2].address,
 					amount: BigInt('620000000000'),
-					unvoteHeight: 14,
+					unstakeHeight: 14,
 				},
 				{
-					delegateAddress: delegateAccounts[3].address,
+					validatorAddress: validatorAccounts[3].address,
 					amount: BigInt('920000000000'),
-					unvoteHeight: 33,
+					unstakeHeight: 33,
 				},
 				{
-					delegateAddress: delegateAccounts[4].address,
+					validatorAddress: validatorAccounts[4].address,
 					amount: BigInt('140000000000'),
-					unvoteHeight: 19,
+					unstakeHeight: 19,
 				},
 				{
-					delegateAddress: delegateAccounts[5].address,
+					validatorAddress: validatorAccounts[5].address,
 					amount: BigInt('130000000000'),
-					unvoteHeight: 53,
+					unstakeHeight: 53,
 				},
 				{
-					delegateAddress: delegateAccounts[6].address,
+					validatorAddress: validatorAccounts[6].address,
 					amount: BigInt('1000000000'),
-					unvoteHeight: 32,
+					unstakeHeight: 32,
 				},
 				{
-					delegateAddress: delegateAccounts[7].address,
+					validatorAddress: validatorAccounts[7].address,
 					amount: BigInt('50000000000'),
-					unvoteHeight: 18,
+					unstakeHeight: 18,
 				},
 				{
-					delegateAddress: delegateAccounts[8].address,
+					validatorAddress: validatorAccounts[8].address,
 					amount: BigInt('320000000000'),
-					unvoteHeight: 29,
+					unstakeHeight: 29,
 				},
 				{
-					delegateAddress: delegateAccounts[9].address,
+					validatorAddress: validatorAccounts[9].address,
 					amount: BigInt('420000000000'),
-					unvoteHeight: 6,
+					unstakeHeight: 6,
 				},
 				{
-					delegateAddress: senderAccount.address,
+					validatorAddress: senderAccount.address,
 					amount: BigInt('520000000000'),
-					unvoteHeight: 44,
+					unstakeHeight: 44,
 				},
 				{
-					delegateAddress: delegateAccounts[11].address,
+					validatorAddress: validatorAccounts[11].address,
 					amount: BigInt('620000000000'),
-					unvoteHeight: 41,
+					unstakeHeight: 41,
 				},
 				{
-					delegateAddress: delegateAccounts[12].address,
+					validatorAddress: validatorAccounts[12].address,
 					amount: BigInt('820000000000'),
-					unvoteHeight: 13,
+					unstakeHeight: 13,
 				},
 				{
-					delegateAddress: delegateAccounts[13].address,
+					validatorAddress: validatorAccounts[13].address,
 					amount: BigInt('920000000000'),
-					unvoteHeight: 25,
+					unstakeHeight: 25,
 				},
 				{
-					delegateAddress: delegateAccounts[14].address,
+					validatorAddress: validatorAccounts[14].address,
 					amount: BigInt('140000000000'),
-					unvoteHeight: 31,
+					unstakeHeight: 31,
 				},
 				{
-					delegateAddress: delegateAccounts[15].address,
+					validatorAddress: validatorAccounts[15].address,
 					amount: BigInt('130000000000'),
-					unvoteHeight: 21,
+					unstakeHeight: 21,
 				},
 			],
 		},
 	};
 	const signBytes = getSignBytes(unsignedTransaction);
-	const signature = Buffer.from(
-		signData(Buffer.concat([networkIdentifier, signBytes]), senderAccount.passphrase),
-		'hex',
+	const signature = ed.signData(
+		TAG_TRANSACTION,
+		chainID,
+		signBytes,
+		legacy.getPrivateAndPublicKeyFromPassphrase(senderAccount.passphrase).privateKey,
 	);
 	const encodedTx = encode({
 		...unsignedTransaction,
@@ -343,18 +342,18 @@ const generateValidUpvoteTransaction = () => {
 		input: {
 			account: {
 				...senderAccount,
-				address: senderAccount.address.toString('hex'),
-				publicKey: senderAccount.publicKey.toString('hex'),
+				address: senderAccount.address,
+				publicKey: senderAccount.publicKey,
 			},
-			networkIdentifier: networkIdentifier.toString('hex'),
-			delegates: delegateAccounts.map(d => ({
+			chainID,
+			validators: validatorAccounts.map(d => ({
 				...d,
-				address: d.address.toString('hex'),
-				publicKey: d.publicKey.toString('hex'),
+				address: d.address,
+				publicKey: d.publicKey,
 			})),
 		},
 		output: {
-			transaction: encodedTx.toString('hex'),
+			transaction: encodedTx,
 		},
 	};
 };
@@ -367,7 +366,7 @@ const validUnlockingSuite = () => ({
 	},
 	runner: 'unlock_transaction',
 	handler: 'unlock_transaction',
-	testCases: [generateValidUpvoteTransaction()],
+	testCases: [generateValidUpstakeTransaction()],
 });
 
 module.exports = BaseGenerator.runGenerator('unlock_transaction', [validUnlockingSuite]);

@@ -11,120 +11,107 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { GenesisBlock } from '@liskhq/lisk-chain';
-import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { Block, BlockAssets } from '@liskhq/lisk-chain';
 import { createBlock } from '../../../src/testing/create_block';
-
-import * as devnetConfig from '../../fixtures/config/devnet/config.json';
-import * as devnetGenesisBlock from '../../fixtures/config/devnet/genesis_block.json';
-import { genesis } from '../../fixtures/accounts';
-import { createGenesisBlock } from '../../../src/testing';
-import { TokenModule } from '../../../src/modules/token/token_module';
 import { defaultConfig } from '../../../src/testing/fixtures/config';
+import { createFakeBlockHeader } from '../../fixtures';
 
 describe('Create Block', () => {
-	const networkIdentifier = getNetworkIdentifier(
-		Buffer.from(devnetGenesisBlock.header.id, 'hex'),
-		devnetConfig.genesisConfig.communityIdentifier,
-	).toString('hex');
-	let genesisBlock: GenesisBlock;
+	const chainID = Buffer.from('1000000', 'hex');
+	const genesis = {
+		passphrase: 'cake cruise harvest senior glare resist acoustic maze stuff lizard autumn educate',
+		privateKey: Buffer.from(
+			'e3198f98b67c84daccf748587c5bab14c51019c3b9068cc38c67f35032ec0b3af6213e1d20b2fce41b424bd1794e98947b1db6e6bbc53e5013443de829777a04',
+			'hex',
+		),
+		publicKey: Buffer.from(
+			'f6213e1d20b2fce41b424bd1794e98947b1db6e6bbc53e5013443de829777a04',
+			'hex',
+		),
+		binaryAddress: Buffer.from('3d865276b83b6c7761fe8a1d9725eb9d45e710ee', 'hex'),
+		address: 'lsknecmphq2n9en728fy37a7485tqvf7pn7nmbeb3',
+	};
+
+	let genesisBlock: Block;
 
 	beforeAll(() => {
-		const accounts = [{ address: genesis.address }];
-		const initDelegates = [genesis.address];
-		const modules = [TokenModule];
-
-		genesisBlock = createGenesisBlock({ modules, accounts, initDelegates, timestamp: 0 })
-			.genesisBlock;
+		genesisBlock = new Block(createFakeBlockHeader(), [], new BlockAssets());
 	});
 
-	it('should return a valid default block', () => {
-		const block = createBlock({
-			passphrase: genesis.passphrase,
-			networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+	it('should return a valid default block', async () => {
+		const block = await createBlock({
+			privateKey: genesis.privateKey,
+			chainID,
 			timestamp: genesisBlock.header.timestamp,
 			previousBlockID: genesisBlock.header.id,
 			header: {},
-			payload: [],
+			transactions: [],
 		});
 
 		const expectedBlock = {
 			header: {
-				asset: {
-					maxHeightPreviouslyForged: expect.any(Number),
-					maxHeightPrevoted: expect.any(Number),
-					seedReveal: expect.any(Buffer),
-				},
-				generatorPublicKey: genesis.publicKey,
+				generatorAddress: genesis.binaryAddress,
 				height: expect.any(Number),
 				id: expect.any(Buffer),
 				previousBlockID: expect.any(Buffer),
-				reward: expect.any(BigInt),
 				signature: expect.any(Buffer),
 				timestamp: expect.any(Number),
 				transactionRoot: expect.any(Buffer),
+				stateRoot: expect.any(Buffer),
 				version: expect.any(Number),
 			},
-			payload: [],
+			transactions: [],
 		};
 
-		expect(block).toEqual(expect.objectContaining(expectedBlock));
+		expect(block.header.toObject()).toEqual(expect.objectContaining(expectedBlock.header));
+		expect(block.transactions).toBeEmpty();
 	});
 
-	it('should return a valid block for given block header', () => {
-		const expectedAsset = {
-			maxHeightPreviouslyForged: 10,
-			maxHeightPrevoted: 10,
-			seedReveal: Buffer.from('seed reveal'),
-		};
-
+	it('should return a valid block for given block header', async () => {
 		const expectedBlock = {
 			header: {
-				asset: { ...expectedAsset },
-				generatorPublicKey: genesis.publicKey,
+				generatorAddress: genesis.binaryAddress,
 				height: 200,
 				id: expect.any(Buffer),
 				previousBlockID: genesisBlock.header.id,
-				reward: BigInt(5),
 				signature: expect.any(Buffer),
 				timestamp: expect.any(Number),
 				transactionRoot: expect.any(Buffer),
 				version: 0,
 			},
-			payload: [],
+			transactions: [],
 		};
 
-		const block = createBlock({
-			passphrase: genesis.passphrase,
-			networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+		const block = await createBlock({
+			privateKey: genesis.privateKey,
+			chainID,
 			timestamp: genesisBlock.header.timestamp,
 			previousBlockID: genesisBlock.header.id,
 			header: {
-				asset: { ...expectedAsset },
-				generatorPublicKey: genesis.publicKey,
+				generatorAddress: genesis.binaryAddress,
 				height: 200,
 				version: 0,
-				reward: BigInt(5),
 			},
-			payload: [],
+			transactions: [],
 		});
 
-		expect(block).toEqual(expect.objectContaining(expectedBlock));
+		expect(block.header.toObject()).toEqual(expect.objectContaining(expectedBlock.header));
+		expect(block.transactions).toBeEmpty();
 	});
 
-	it('should return a valid previous block id and timestamp from genesis block', () => {
-		const block = createBlock({
-			passphrase: genesis.passphrase,
-			networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
+	it('should return a valid previous block id and timestamp from genesis block', async () => {
+		const block = await createBlock({
+			privateKey: genesis.privateKey,
+			chainID,
 			timestamp: genesisBlock.header.timestamp + 10,
 			previousBlockID: genesisBlock.header.id,
 			header: {},
-			payload: [],
+			transactions: [],
 		});
 
 		expect(block.header.previousBlockID).toEqual(genesisBlock.header.id);
 		expect(block.header.timestamp).toEqual(
-			genesisBlock.header.timestamp + defaultConfig.genesisConfig.blockTime,
+			genesisBlock.header.timestamp + defaultConfig.genesis.blockTime,
 		);
 	});
 });

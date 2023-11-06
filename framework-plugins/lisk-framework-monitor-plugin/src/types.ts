@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface Options {
+export interface MonitorPluginConfig {
 	readonly port: number;
 	readonly host: string;
 	readonly whiteList: ReadonlyArray<string>;
@@ -58,7 +58,7 @@ export interface SharedState {
 export interface PeerInfo {
 	readonly ipAddress: string;
 	readonly port: number;
-	readonly networkIdentifier: string;
+	readonly chainID: string;
 	readonly networkVersion: string;
 	readonly nonce: string;
 	readonly options: { [key: string]: unknown };

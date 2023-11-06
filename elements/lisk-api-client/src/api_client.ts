@@ -12,32 +12,42 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { EventCallback, Channel, RegisteredSchemas, NodeInfo } from './types';
-import { Node } from './node';
-import { Account } from './account';
-import { Block } from './block';
-import { Transaction } from './transaction';
+import { EventCallback, Channel, RegisteredSchemas, NodeInfo, ModuleMetadata } from './types';
+import { NodeMethods } from './node_methods';
+import { BlockMethods } from './block_methods';
+import { TransactionMethods } from './transaction_methods';
+import { EventMethods } from './event_methods';
 
 export class APIClient {
 	private readonly _channel: Channel;
-	private _schemas!: RegisteredSchemas;
+	private _schema!: RegisteredSchemas;
+	private _metadata!: ModuleMetadata[];
 	private _nodeInfo!: NodeInfo;
-	private _node!: Node;
-	private _account!: Account;
-	private _block!: Block;
-	private _transaction!: Transaction;
+	private _nodeMethods!: NodeMethods;
+	private _blockMethods!: BlockMethods;
+	private _transactionMethods!: TransactionMethods;
+	private _eventMethods!: EventMethods;
 
 	public constructor(channel: Channel) {
 		this._channel = channel;
 	}
 
 	public async init(): Promise<void> {
-		this._schemas = await this._channel.invoke<RegisteredSchemas>('app:getSchema');
-		this._node = new Node(this._channel);
-		this._account = new Account(this._channel, this._schemas);
-		this._block = new Block(this._channel, this._schemas);
-		this._nodeInfo = await this._node.getNodeInfo();
-		this._transaction = new Transaction(this._channel, this._schemas, this._nodeInfo);
+		const { modules } = await this._channel.invoke<{ modules: ModuleMetadata[] }>(
+			'system_getMetadata',
+		);
+		this._metadata = modules;
+		this._schema = await this._channel.invoke<RegisteredSchemas>('system_getSchema');
+		this._nodeMethods = new NodeMethods(this._channel);
+		this._blockMethods = new BlockMethods(this._channel, this._schema, this._metadata);
+		this._nodeInfo = await this._nodeMethods.getNodeInfo();
+		this._transactionMethods = new TransactionMethods(
+			this._channel,
+			this._schema,
+			this._metadata,
+			this._nodeInfo,
+		);
+		this._eventMethods = new EventMethods(this._channel, this._metadata);
 	}
 
 	public async disconnect(): Promise<void> {
@@ -55,23 +65,27 @@ export class APIClient {
 		this._channel.subscribe(eventName, cb);
 	}
 
-	public get schemas(): RegisteredSchemas {
-		return this._schemas;
+	public get schema(): RegisteredSchemas {
+		return this._schema;
 	}
 
-	public get node(): Node {
-		return this._node;
+	public get metadata(): ModuleMetadata[] {
+		return this._metadata;
 	}
 
-	public get account(): Account {
-		return this._account;
+	public get node(): NodeMethods {
+		return this._nodeMethods;
 	}
 
-	public get block(): Block {
-		return this._block;
+	public get block(): BlockMethods {
+		return this._blockMethods;
 	}
 
-	public get transaction(): Transaction {
-		return this._transaction;
+	public get transaction(): TransactionMethods {
+		return this._transactionMethods;
+	}
+
+	public get event(): EventMethods {
+		return this._eventMethods;
 	}
 }

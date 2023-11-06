@@ -15,6 +15,12 @@
 
 import { Schema } from '@liskhq/lisk-codec';
 
+export interface Defer<T> {
+	promise: Promise<T>;
+	resolve: (result: T) => void;
+	reject: (error?: Error) => void;
+}
+
 export interface JSONRPCNotification<T> {
 	readonly id: never;
 	readonly jsonrpc: string;
@@ -49,62 +55,73 @@ export interface Channel {
 }
 
 export interface RegisteredSchemas {
-	account: Schema;
 	block: Schema;
-	blockHeader: Schema;
-	blockHeadersAssets: { [version: number]: Schema };
+	header: Schema;
+	asset: Schema;
 	transaction: Schema;
-	transactionsAssets: {
-		moduleID: number;
-		moduleName: string;
-		assetID: number;
-		assetName: string;
-		schema: Schema;
-	}[];
+	event: Schema;
 }
 
-export interface RegisteredModule {
-	id: number;
+export interface ModuleMetadata {
+	id: string;
 	name: string;
-	actions: string[];
-	events: string[];
-	reducers: string[];
-	transactionAssets: {
-		id: number;
+	endpoints: {
 		name: string;
+		request?: Schema;
+		response: Schema;
+	}[];
+	events: {
+		name: string;
+		data: Schema;
+	}[];
+	commands: {
+		id: string;
+		name: string;
+		params: Schema;
+	}[];
+	assets: {
+		version: number;
+		data: Schema;
+	}[];
+	stores: {
+		key: string;
+		data: Schema;
 	}[];
 }
 
 export interface GenesisConfig {
 	[key: string]: unknown;
-	readonly bftThreshold: number;
-	readonly communityIdentifier: string;
+	readonly bftBatchSize: number;
+	readonly chainID: string;
 	readonly blockTime: number;
-	readonly maxPayloadLength: number;
-	readonly rewards: {
-		readonly milestones: string[];
-		readonly offset: number;
-		readonly distance: number;
-	};
-	readonly minFeePerByte: number;
-	readonly baseFees: {
-		readonly moduleID: number;
-		readonly assetID: number;
-		readonly baseFee: string;
-	}[];
+	readonly maxTransactionsSize: number;
 }
 
 export interface NodeInfo {
 	readonly version: string;
 	readonly networkVersion: string;
-	readonly networkIdentifier: string;
+	readonly chainID: string;
 	readonly lastBlockID: string;
 	readonly height: number;
+	readonly genesisHeight: number;
 	readonly finalizedHeight: number;
 	readonly syncing: boolean;
 	readonly unconfirmedTransactions: number;
-	readonly genesisConfig: GenesisConfig;
-	readonly registeredModules: RegisteredModule[];
+	readonly genesis: GenesisConfig;
+	readonly network: {
+		readonly port: number;
+		readonly hostIp?: string;
+		readonly seedPeers: {
+			readonly ip: string;
+			readonly port: number;
+		}[];
+		readonly blacklistedIPs?: string[];
+		readonly fixedPeers?: string[];
+		readonly whitelistedPeers?: {
+			readonly ip: string;
+			readonly port: number;
+		}[];
+	};
 }
 
 export interface MultiSignatureKeys {
@@ -151,21 +168,116 @@ export interface NetworkStats {
 export interface PeerInfo {
 	readonly ipAddress: string;
 	readonly port: number;
-	readonly networkIdentifier?: string;
+	readonly chainID?: Buffer;
 	readonly networkVersion?: string;
 	readonly nonce?: string;
 	readonly options?: { [key: string]: unknown };
 }
 
-export interface Block<T = Buffer | string> {
-	header: {
-		[key: string]: unknown;
-		id?: T;
-		version: number;
-		asset: Record<string, unknown>;
+type Primitive = string | number | bigint | boolean | null | undefined;
+type Replaced<T, TReplace, TWith, TKeep = Primitive> = T extends TReplace | TKeep
+	? T extends TReplace
+		? TWith | Exclude<T, TReplace>
+		: T
+	: {
+			[P in keyof T]: Replaced<T[P], TReplace, TWith, TKeep>;
+	  };
+
+export type JSONObject<T> = Replaced<T, bigint | Buffer, string>;
+
+export interface BlockHeader {
+	readonly version: number;
+	readonly height: number;
+	readonly generatorAddress: Buffer;
+	readonly previousBlockID: Buffer;
+	readonly timestamp: number;
+	readonly maxHeightPrevoted: number;
+	readonly maxHeightGenerated: number;
+	readonly aggregateCommit: {
+		readonly height: number;
+		readonly aggregationBits: Buffer;
+		readonly certificateSignature: Buffer;
 	};
-	payload: {
-		[key: string]: unknown;
-		id?: T;
-	}[];
+	readonly validatorsHash: Buffer;
+	readonly stateRoot: Buffer;
+	readonly transactionRoot: Buffer;
+	readonly assetRoot: Buffer;
+	readonly eventRoot: Buffer;
+	readonly signature: Buffer;
+	readonly id: Buffer;
 }
+
+export type BlockHeaderJSON = JSONObject<BlockHeader>;
+
+export interface BlockAsset {
+	module: string;
+	data: Buffer;
+}
+
+export type BlockAssetJSON = JSONObject<BlockAsset>;
+export type DecodedBlockAsset<T = Record<string, unknown>> = Omit<BlockAsset, 'data'> & { data: T };
+export type DecodedBlockAssetJSON<T = Record<string, unknown>> = Omit<BlockAssetJSON, 'data'> & {
+	data: T;
+};
+
+export interface Transaction {
+	readonly module: string;
+	readonly command: string;
+	readonly senderPublicKey: Buffer;
+	readonly nonce: bigint;
+	readonly fee: bigint;
+	readonly params: Buffer;
+	readonly signatures: ReadonlyArray<Buffer>;
+	readonly id: Buffer;
+}
+
+export type TransactionJSON = JSONObject<Transaction>;
+export type DecodedTransaction<T = Record<string, unknown>> = Omit<Transaction, 'params'> & {
+	params: T;
+};
+export type DecodedTransactionJSON<T = Record<string, unknown>> = Omit<
+	TransactionJSON,
+	'params'
+> & { params: T };
+
+export interface Block {
+	header: BlockHeader;
+	transactions: Transaction[];
+	assets: BlockAsset[];
+}
+
+export interface DecodedBlock {
+	header: BlockHeader;
+	transactions: DecodedTransaction[];
+	assets: DecodedBlockAsset[];
+}
+
+export interface BlockJSON {
+	header: BlockHeaderJSON;
+	transactions: TransactionJSON[];
+	assets: BlockAssetJSON[];
+}
+
+export interface DecodedBlockJSON {
+	header: BlockHeaderJSON;
+	transactions: DecodedTransactionJSON[];
+	assets: DecodedBlockAssetJSON[];
+}
+
+export interface Event {
+	readonly module: string;
+	/**
+	 * several events can be emitted from each module, e.g.
+	 * token module transfer event
+	 * nft module transfer event
+	 *
+	 * name of event
+	 */
+	readonly name: string;
+	readonly topics: Buffer[];
+	readonly index: number;
+	readonly data: Buffer;
+}
+
+export type EventJSON = JSONObject<Event>;
+export type DecodedEventJSON<T = Record<string, unknown>> = Omit<EventJSON, 'data'> & { data: T };

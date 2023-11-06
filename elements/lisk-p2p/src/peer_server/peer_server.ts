@@ -143,7 +143,7 @@ export class PeerServer extends EventEmitter {
 			this._bindInvalidControlFrameEvents(socket);
 		});
 
-		// Handle incoming invalid payload
+		// Handle incoming invalid transactions
 		// eslint-disable-next-line
 		(this._scServer as any).wsServer.on('connection', (ws: any, req: any) => {
 			this._handleIncomingPayload(ws, req);
@@ -246,10 +246,7 @@ export class PeerServer extends EventEmitter {
 			return undefined;
 		}
 
-		if (
-			typeof queryObject.networkVersion !== 'string' ||
-			typeof queryObject.networkIdentifier !== 'string'
-		) {
+		if (typeof queryObject.networkVersion !== 'string' || typeof queryObject.chainID !== 'string') {
 			this._disconnectSocketDueToFailedHandshake(
 				socket,
 				INVALID_CONNECTION_QUERY_CODE,
@@ -270,7 +267,7 @@ export class PeerServer extends EventEmitter {
 		const peerId = constructPeerId(socket.remoteAddress, remoteport);
 
 		// Remove these port and ip from the query object
-		const { advertiseAddress, nonce, networkIdentifier, networkVersion } = queryObject;
+		const { advertiseAddress, nonce, chainID, networkVersion } = queryObject;
 
 		const peerInPeerBook = this._peerBook.getPeer({
 			peerId,
@@ -285,7 +282,7 @@ export class PeerServer extends EventEmitter {
 						...peerInPeerBook.sharedState,
 						nonce: nonce as string,
 						networkVersion: networkVersion as string,
-						networkIdentifier: networkIdentifier as string,
+						chainID: Buffer.from(chainID as string, 'hex'),
 						options: { ...peerInPeerBook.sharedState?.options },
 					},
 					internalState: {
@@ -298,7 +295,7 @@ export class PeerServer extends EventEmitter {
 			  }
 			: {
 					sharedState: {
-						networkIdentifier: networkIdentifier as string,
+						chainID: Buffer.from(chainID as string, 'hex'),
 						nonce: nonce as string,
 						networkVersion: networkVersion as string,
 						options: {},
@@ -328,7 +325,11 @@ export class PeerServer extends EventEmitter {
 
 			return validPeerInfo;
 		} catch (error) {
-			this._disconnectSocketDueToFailedHandshake(socket, INCOMPATIBLE_PEER_INFO_CODE, error);
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				INCOMPATIBLE_PEER_INFO_CODE,
+				error instanceof Error ? error.message : '',
+			);
 
 			return undefined;
 		}
@@ -407,13 +408,13 @@ export class PeerServer extends EventEmitter {
 			const {
 				address: peerIpAddress,
 				port,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			} = ws._socket._peername;
+			}: // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			{ address: string; port: number } = ws._socket._peername;
 
 			const peerId = constructPeerId(peerIpAddress, port);
 
 			try {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
 				const parsed = JSON.parse(message);
 				validatePacket(parsed);
 
@@ -428,12 +429,13 @@ export class PeerServer extends EventEmitter {
 				if (
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 					(parsed.event && typeof parsed.event !== 'string') ||
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
 					invalidEvents.has(parsed.event) ||
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 					parsed.event?.length > MAX_EVENT_NAME_LENGTH
 				) {
-					throw new InvalidPayloadError('Received invalid payload', parsed);
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+					throw new InvalidPayloadError('Received invalid transactions', parsed);
 				}
 
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access

@@ -97,6 +97,19 @@ const compile = (
 					return false;
 				}
 			}
+			if (typeof parent.format === 'string') {
+				const { length } = data as Buffer;
+				if (parent.format === 'lisk32' && length !== 20) {
+					validate.errors = [
+						{
+							keyword: 'dataType',
+							message: 'address length invalid',
+							params: { dataType: value, format: parent.format, length },
+						},
+					];
+					return false;
+				}
+			}
 		}
 		if (value === 'string') {
 			return isString(data);

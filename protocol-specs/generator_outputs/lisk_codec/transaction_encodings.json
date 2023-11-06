@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for transaction types supported by lisk-codec",
+	"title": "Encoding for transaction types supported by lisk-codec",
 	"summary": "Examples of encoding transaction with lisk-codec",
 	"config": {
 		"network": "devnet"
@@ -13,213 +13,17 @@
 				"object": {
 					"moduleID": 20,
 					"assetID": 1,
-					"nonce": 1570179673932370,
-					"fee": 3156364651,
-					"senderPublicKey": {
-						"type": "Buffer",
-						"data": [
-							143,
-							5,
-							125,
-							8,
-							138,
-							88,
-							93,
-							147,
-							140,
-							32,
-							214,
-							62,
-							67,
-							10,
-							6,
-							141,
-							76,
-							234,
-							56,
-							78,
-							88,
-							138,
-							160,
-							183,
-							88,
-							198,
-							143,
-							202,
-							33,
-							100,
-							77,
-							188
-						]
-					},
-					"asset": {
-						"type": "Buffer",
-						"data": [
-							242,
-							20,
-							215,
-							91,
-							188,
-							75,
-							46,
-							168,
-							158,
-							67,
-							63,
-							58,
-							69,
-							175,
-							128,
-							55,
-							37,
-							65,
-							110,
-							195
-						]
-					},
+					"nonce": "1570179673932370",
+					"fee": "3156364651",
+					"senderPublicKey": "8f057d088a585d938c20d63e430a068d4cea384e588aa0b758c68fca21644dbc",
+					"asset": "f214d75bbc4b2ea89e433f3a45af803725416ec3",
 					"signatures": [
-						{
-							"type": "Buffer",
-							"data": [
-								32,
-								69,
-								20,
-								235,
-								17,
-								82,
-								53,
-								87,
-								153,
-								236,
-								227,
-								109,
-								23,
-								3,
-								126,
-								95,
-								235,
-								72,
-								113,
-								71,
-								44,
-								96,
-								118,
-								59,
-								218,
-								254,
-								103,
-								235,
-								106,
-								56,
-								190,
-								198,
-								50,
-								168,
-								226,
-								230,
-								47,
-								132,
-								163,
-								44,
-								247,
-								100,
-								52,
-								42,
-								71,
-								8,
-								166,
-								95,
-								186,
-								209,
-								148,
-								227,
-								127,
-								238,
-								192,
-								57,
-								64,
-								240,
-								255,
-								132,
-								211,
-								223,
-								42,
-								5
-							]
-						},
-						{
-							"type": "Buffer",
-							"data": [
-								11,
-								103,
-								48,
-								229,
-								137,
-								140,
-								165,
-								111,
-								224,
-								220,
-								28,
-								115,
-								222,
-								147,
-								99,
-								246,
-								252,
-								139,
-								51,
-								85,
-								146,
-								239,
-								16,
-								114,
-								90,
-								132,
-								99,
-								191,
-								241,
-								1,
-								164,
-								148,
-								62,
-								96,
-								49,
-								31,
-								11,
-								26,
-								67,
-								154,
-								44,
-								158,
-								2,
-								204,
-								161,
-								55,
-								155,
-								128,
-								168,
-								34,
-								244,
-								236,
-								72,
-								207,
-								33,
-								43,
-								255,
-								31,
-								28,
-								117,
-								126,
-								146,
-								236,
-								2
-							]
-						}
+						"204514eb1152355799ece36d17037e5feb4871472c60763bdafe67eb6a38bec632a8e2e62f84a32cf764342a4708a65fbad194e37feec03940f0ff84d3df2a05",
+						"0b6730e5898ca56fe0dc1c73de9363f6fc8b335592ef10725a8463bff101a4943e60311f0b1a439a2c9e02cca1379b80a822f4ec48cf212bff1f1c757e92ec02"
 					]
 				},
 				"schema": {
-					"$id": "baseTransactionSchema",
+					"$id": "/baseTransactionSchema",
 					"type": "object",
 					"properties": {
 						"moduleID": {
@@ -270,79 +74,31 @@
 			}
 		},
 		{
-			"description": "Encoding of valid vote asset",
+			"description": "Encoding of valid stake asset",
 			"input": {
 				"object": {
-					"votes": [
+					"stakes": [
 						{
-							"delegateAddress": {
-								"type": "Buffer",
-								"data": [
-									205,
-									50,
-									199,
-									62,
-									152,
-									81,
-									199,
-									19,
-									121,
-									128,
-									6,
-									59,
-									138,
-									246,
-									74,
-									165,
-									163,
-									22,
-									81,
-									248
-								]
-							},
-							"amount": -12000000000
+							"validatorAddress": "cd32c73e9851c7137980063b8af64aa5a31651f8",
+							"amount": "-12000000000"
 						},
 						{
-							"delegateAddress": {
-								"type": "Buffer",
-								"data": [
-									157,
-									134,
-									173,
-									36,
-									163,
-									240,
-									48,
-									229,
-									82,
-									43,
-									101,
-									152,
-									17,
-									91,
-									180,
-									215,
-									12,
-									22,
-									146,
-									201
-								]
-							},
-							"amount": 456000000000
+							"validatorAddress": "9d86ad24a3f030e5522b6598115bb4d70c1692c9",
+							"amount": "456000000000"
 						}
 					]
 				},
 				"schema": {
-					"$id": "voteAssetSchema",
+					"$id": "/voteAssetSchema",
 					"type": "object",
 					"properties": {
-						"votes": {
+						"stakes": {
 							"type": "array",
 							"fieldNumber": 1,
 							"items": {
 								"type": "object",
 								"properties": {
-									"delegateAddress": {
+									"validatorAddress": {
 										"dataType": "bytes",
 										"fieldNumber": 1
 									},
@@ -351,11 +107,11 @@
 										"fieldNumber": 2
 									}
 								},
-								"required": ["delegateAddress", "amount"]
+								"required": ["validatorAddress", "amount"]
 							}
 						}
 					},
-					"required": ["votes"]
+					"required": ["stakes"]
 				}
 			},
 			"output": {
@@ -368,160 +124,16 @@
 				"object": {
 					"numberOfSignatures": 2,
 					"mandatoryKeys": [
-						{
-							"type": "Buffer",
-							"data": [
-								7,
-								214,
-								56,
-								155,
-								230,
-								226,
-								16,
-								150,
-								19,
-								105,
-								156,
-								2,
-								231,
-								130,
-								83,
-								20,
-								137,
-								137,
-								81,
-								92,
-								56,
-								103,
-								228,
-								244,
-								144,
-								234,
-								253,
-								0,
-								74,
-								149,
-								178,
-								180
-							]
-						},
-						{
-							"type": "Buffer",
-							"data": [
-								62,
-								117,
-								77,
-								0,
-								129,
-								91,
-								107,
-								36,
-								138,
-								152,
-								21,
-								32,
-								175,
-								186,
-								249,
-								19,
-								21,
-								58,
-								38,
-								210,
-								94,
-								45,
-								82,
-								131,
-								150,
-								71,
-								121,
-								198,
-								92,
-								238,
-								231,
-								232
-							]
-						}
+						"07d6389be6e2109613699c02e78253148989515c3867e4f490eafd004a95b2b4",
+						"3e754d00815b6b248a981520afbaf913153a26d25e2d5283964779c65ceee7e8"
 					],
 					"optionalKeys": [
-						{
-							"type": "Buffer",
-							"data": [
-								200,
-								184,
-								251,
-								228,
-								116,
-								162,
-								182,
-								60,
-								203,
-								151,
-								68,
-								164,
-								9,
-								86,
-								155,
-								10,
-								70,
-								94,
-								225,
-								128,
-								63,
-								128,
-								67,
-								90,
-								236,
-								28,
-								94,
-								127,
-								194,
-								212,
-								238,
-								24
-							]
-						},
-						{
-							"type": "Buffer",
-							"data": [
-								97,
-								21,
-								66,
-								79,
-								236,
-								12,
-								233,
-								195,
-								186,
-								197,
-								168,
-								27,
-								92,
-								120,
-								40,
-								39,
-								209,
-								249,
-								86,
-								251,
-								149,
-								241,
-								204,
-								250,
-								54,
-								197,
-								102,
-								208,
-								78,
-								77,
-								114,
-								103
-							]
-						}
+						"c8b8fbe474a2b63ccb9744a409569b0a465ee1803f80435aec1c5e7fc2d4ee18",
+						"6115424fec0ce9c3bac5a81b5c782827d1f956fb95f1ccfa36c566d04e4d7267"
 					]
 				},
 				"schema": {
-					"$id": "multisigAssetSchema",
+					"$id": "/multisigAssetSchema",
 					"type": "object",
 					"properties": {
 						"numberOfSignatures": {
@@ -556,85 +168,13 @@
 				"object": {
 					"numberOfSignatures": 2,
 					"mandatoryKeys": [
-						{
-							"type": "Buffer",
-							"data": [
-								200,
-								184,
-								251,
-								228,
-								116,
-								162,
-								182,
-								60,
-								203,
-								151,
-								68,
-								164,
-								9,
-								86,
-								155,
-								10,
-								70,
-								94,
-								225,
-								128,
-								63,
-								128,
-								67,
-								90,
-								236,
-								28,
-								94,
-								127,
-								194,
-								212,
-								238,
-								24
-							]
-						},
-						{
-							"type": "Buffer",
-							"data": [
-								97,
-								21,
-								66,
-								79,
-								236,
-								12,
-								233,
-								195,
-								186,
-								197,
-								168,
-								27,
-								92,
-								120,
-								40,
-								39,
-								209,
-								249,
-								86,
-								251,
-								149,
-								241,
-								204,
-								250,
-								54,
-								197,
-								102,
-								208,
-								78,
-								77,
-								114,
-								103
-							]
-						}
+						"c8b8fbe474a2b63ccb9744a409569b0a465ee1803f80435aec1c5e7fc2d4ee18",
+						"6115424fec0ce9c3bac5a81b5c782827d1f956fb95f1ccfa36c566d04e4d7267"
 					],
 					"optionalKeys": []
 				},
 				"schema": {
-					"$id": "multisigAssetSchema",
+					"$id": "/multisigAssetSchema",
 					"type": "object",
 					"properties": {
 						"numberOfSignatures": {

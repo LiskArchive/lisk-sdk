@@ -53,11 +53,9 @@ const MyAccountWidget: React.FC<MyAccountProps> = props => {
 						</TableHeader>
 						<TableBody>
 							{accounts.map((account: Account) => (
-								<tr onClick={() => handleClick(account)} key={account.binaryAddress}>
+								<tr onClick={() => handleClick(account)} key={account.address}>
 									<td>
-										<CopiableText text={account.binaryAddress}>
-											{account.binaryAddress}
-										</CopiableText>
+										<CopiableText text={account.address}>{account.address}</CopiableText>
 									</td>
 									<td>
 										<CopiableText text={account.publicKey}>{account.publicKey}</CopiableText>

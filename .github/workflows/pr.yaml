@@ -32,7 +32,7 @@ jobs:
         uses: ./.github/actions/prepare-build
         with:
           cache-key: ${{ github.event.number }}
-      - run: yarn format
+      - run: yarn format:since --base ${{ github.base_ref }}
       - name: Check format
         run: |
           if [ -z "$(git status --untracked-files=no --porcelain)" ]; then
@@ -41,7 +41,10 @@ jobs:
             echo "Running format is required"
             exit 1
           fi
-      - run: yarn lint
+      - run: yarn lint:since --base ${{ github.base_ref }}
+      - name: Check duplicate schema
+        run: |
+          node scripts/duplicate_schema_id.js ./
 
   unit-test:
     runs-on: ubuntu-latest
@@ -56,9 +59,15 @@ jobs:
         uses: ./.github/actions/prepare-build
         with:
           cache-key: ${{ github.event.number }}
-      - run: yarn test:elements
-      - run: yarn test:framework
-      - run: yarn test:commander
+      - run: yarn test:ci
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          files: coverage-final.json
+          name: codecov-umbrella
+          verbose: true
 
   integration-test:
     runs-on: ubuntu-latest
@@ -73,7 +82,7 @@ jobs:
         uses: ./.github/actions/prepare-build
         with:
           cache-key: ${{ github.event.number }}
-      - run: yarn nx run-many --target=test:integration --projects=lisk-framework
+      - run:  yarn nx run-many --target=test:integration --projects=lisk-framework
 
   functional-test:
     runs-on: ubuntu-latest

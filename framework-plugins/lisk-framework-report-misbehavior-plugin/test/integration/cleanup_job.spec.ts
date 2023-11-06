@@ -11,48 +11,58 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as os from 'os';
-import * as path from 'path';
+import { utils } from '@liskhq/lisk-cryptography';
+import { ApplicationConfigForPlugin, GenesisConfig, testing, chain, codec } from 'lisk-sdk';
 import * as fs from 'fs-extra';
-import {
-	blockHeaderAssetSchema,
-	blockHeaderSchema,
-	blockSchema,
-	transactionSchema,
-} from '@liskhq/lisk-chain';
-import { codec } from '@liskhq/lisk-codec';
-import { testing } from 'lisk-framework';
 
 import { ReportMisbehaviorPlugin } from '../../src';
 import { blockHeadersSchema } from '../../src/db';
 
-import * as config from '../../src/defaults/default_config';
+import { configSchema } from '../../src/schemas';
 import { waitTill } from '../utils/application';
 
+const appConfigForPlugin: ApplicationConfigForPlugin = {
+	system: {
+		dataPath: '~/.lisk/my-app',
+		keepEventsForHeights: -1,
+	},
+	logger: {
+		consoleLogLevel: 'debug',
+		fileLogLevel: 'none',
+	},
+	rpc: {
+		modes: [],
+		port: 7887,
+		host: '127.0.0.1',
+	},
+	genesis: {} as GenesisConfig,
+	network: {
+		version: '1.0',
+		seedPeers: [],
+		port: 5000,
+	},
+	transactionPool: {
+		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		transactionExpiryTime: 3 * 60 * 60 * 1000,
+		minEntranceFeePriority: '0',
+		minReplacementFeeDifference: '10',
+	},
+	generator: {
+		keys: {},
+	},
+	modules: {},
+};
+
 const validPluginOptions = {
-	...config.defaultConfig.default,
+	...configSchema.default,
+	clearBlockHeadersInterval: 1,
 	encryptedPassphrase:
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
 };
 
 describe('Clean up old blocks', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
-	const accountSchema = {
-		$id: 'accountSchema',
-		type: 'object',
-		properties: {
-			sequence: {
-				type: 'object',
-				fieldNumber: 3,
-				properties: {
-					nonce: {
-						fieldNumber: 1,
-						dataType: 'uint64',
-					},
-				},
-			},
-		},
-	};
 	const channelMock = {
 		registerToBus: jest.fn(),
 		once: jest.fn(),
@@ -64,7 +74,7 @@ describe('Clean up old blocks', () => {
 		eventsList: [],
 		actionsList: [],
 		actions: {},
-		moduleAlias: '',
+		moduleName: '',
 		options: {},
 	} as any;
 	const blockHeader1 = Buffer.from(
@@ -74,49 +84,46 @@ describe('Clean up old blocks', () => {
 	const dbKey = 'the_db_key';
 
 	beforeEach(async () => {
-		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin(validPluginOptions as never);
-		(reportMisbehaviorPlugin as any)._channel = channelMock;
-		const dataPath = path.join(os.homedir(), '.lisk/report-misbehavior-plugin/data/integration/db');
-		await fs.remove(dataPath);
-		(reportMisbehaviorPlugin as any).options = {
-			fee: '100000000',
-			clearBlockHeadersInterval: 1,
-			dataPath,
-		};
-		reportMisbehaviorPlugin.schemas = {
-			block: blockSchema,
-			blockHeader: blockHeaderSchema,
-			blockHeadersAssets: {
-				2: blockHeaderAssetSchema,
-			},
-			transaction: transactionSchema,
-			transactionsAssets: [
+		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
+		await reportMisbehaviorPlugin.init({
+			config: validPluginOptions,
+			appConfig: appConfigForPlugin,
+			logger: testing.mocks.loggerMock,
+		});
+		(reportMisbehaviorPlugin as any).channel = channelMock;
+
+		await fs.remove(reportMisbehaviorPlugin.dataPath);
+
+		jest.spyOn(reportMisbehaviorPlugin['apiClient'], 'schema', 'get').mockReturnValue({
+			block: chain.blockSchema,
+			blockHeader: chain.blockHeaderSchema,
+			transaction: chain.transactionSchema,
+			commands: [
 				{
-					moduleID: 5,
-					moduleName: 'dpos',
-					assetID: 3,
-					assetName: 'reportDelegateMisbehavior',
+					moduleID: utils.intToBuffer(5, 4),
+					moduleName: 'pos',
+					commandID: utils.intToBuffer(3, 4),
+					commandName: 'reportValidatorMisbehavior',
 					schema: {
-						$id: 'lisk/dpos/pom',
+						$id: '/lisk/pos/pom',
 						type: 'object',
 						required: ['header1', 'header2'],
 						properties: {
 							header1: {
-								...blockHeaderSchema,
-								$id: 'block-header1',
+								...chain.blockHeaderSchema,
+								$id: 'blockHeader1',
 								fieldNumber: 1,
 							},
 							header2: {
-								...blockHeaderSchema,
-								$id: 'block-header2',
+								...chain.blockHeaderSchema,
+								$id: 'blockHeader2',
 								fieldNumber: 2,
 							},
 						},
 					},
 				},
 			],
-			account: accountSchema,
-		} as any;
+		} as never);
 		(reportMisbehaviorPlugin as any)._state = {
 			passphrase: testing.fixtures.defaultFaucetAccount.passphrase,
 			publicKey: testing.fixtures.defaultFaucetAccount.publicKey,
@@ -129,8 +136,8 @@ describe('Clean up old blocks', () => {
 	});
 
 	it('should clear old block headers', async () => {
-		await reportMisbehaviorPlugin.load(channelMock);
-		await (reportMisbehaviorPlugin as any)._pluginDB.put(
+		await reportMisbehaviorPlugin.load();
+		await (reportMisbehaviorPlugin as any)._pluginDB.set(
 			dbKey,
 			codec.encode(blockHeadersSchema, {
 				blockHeaders: [blockHeader1],

@@ -40,7 +40,7 @@ export abstract class GetCommand extends BaseIPCClientCommand {
 	};
 
 	async run(): Promise<void> {
-		const { args } = this.parse(GetCommand);
+		const { args } = await this.parse(GetCommand);
 		const { id: transactionId } = args as Args;
 		if (!this._client) {
 			this.error('APIClient is not initialized.');

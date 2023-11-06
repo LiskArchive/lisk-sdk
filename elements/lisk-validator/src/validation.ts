@@ -74,7 +74,7 @@ export const isHexString = (data: unknown): boolean => {
 		return false;
 	}
 
-	return data === '' || /^[a-f0-9]+$/i.test(data);
+	return data === '' || /^([0-9a-f]{2})+$/i.test(data);
 };
 
 export const isEncryptedPassphrase = (data: string): boolean => {
@@ -85,7 +85,7 @@ export const isEncryptedPassphrase = (data: string): boolean => {
 	// - cipherText=abcd1234&iterations=10000&iv=ef012345
 	// NOTE: Maximum lengths chosen here are arbitrary
 	const keyRegExp = /[a-zA-Z0-9]{2,15}/;
-	const valueRegExp = /[a-f0-9]{1,512}/;
+	const valueRegExp = /[a-z0-9+-]{1,512}/;
 	const keyValueRegExp = new RegExp(`${keyRegExp.source}=${valueRegExp.source}`);
 	const encryptedPassphraseRegExp = new RegExp(
 		`^(${keyValueRegExp.source})(?:&(${keyValueRegExp.source})){0,10}$`,

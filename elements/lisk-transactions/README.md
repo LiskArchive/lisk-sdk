@@ -25,4 +25,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 [lisk core github]: https://github.com/LiskHQ/lisk
-[lisk documentation site]: https://lisk.io/documentation/lisk-elements
+[lisk documentation site]: https://lisk.com/documentation/lisk-sdk/references/lisk-elements/transactions.html

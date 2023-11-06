@@ -19,13 +19,11 @@ import BaseGenerator from './base_generator';
 
 interface ModuleGeneratorOptions extends BaseGeneratorOptions {
 	moduleName: string;
-	moduleID: string;
 }
 
 export default class ModuleGenerator extends BaseGenerator {
 	protected _liskModuleArgs: {
 		moduleName: string;
-		moduleID: string;
 	};
 
 	public constructor(args: string | string[], opts: ModuleGeneratorOptions) {
@@ -33,7 +31,6 @@ export default class ModuleGenerator extends BaseGenerator {
 
 		this._liskModuleArgs = {
 			moduleName: opts.moduleName,
-			moduleID: opts.moduleID,
 		};
 	}
 

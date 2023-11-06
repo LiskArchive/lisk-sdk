@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Command, flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import { print, StringMap } from './utils/print';
 
 export const defaultConfigFolder = '.lisk';
@@ -30,8 +30,7 @@ interface PrintFlags {
 }
 
 export default abstract class BaseCommand extends Command {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	static flags: flagParser.Input<any> = {
+	static flags = {
 		json: flagParser.boolean({
 			char: 'j',
 			description: jsonDescription,
@@ -52,11 +51,7 @@ export default abstract class BaseCommand extends Command {
 	}
 
 	async init(): Promise<void> {
-		// Typing problem where constructor is not allow as Input<any> but it requires to be the type
-		const { flags } = this.parse(
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			(this.constructor as unknown) as flagParser.Input<any>,
-		);
+		const { flags } = await this.parse(this.constructor as never);
 		this.printFlags = flags as PrintFlags;
 
 		process.stdout.on('error', (err: { errno: string }): void => {
@@ -70,5 +65,16 @@ export default abstract class BaseCommand extends Command {
 		print({
 			...this.printFlags,
 		}).call(this, result as StringMap);
+	}
+
+	printJSON(message: Record<string, unknown> | string): void {
+		if (typeof message === 'string') {
+			this.log(message);
+		}
+		if (this.printFlags.json) {
+			this.log(JSON.stringify(message, undefined, '  '));
+		} else {
+			this.log(JSON.stringify(message));
+		}
 	}
 }

@@ -12,69 +12,72 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { ApplicationConfigForPlugin, testing } from 'lisk-sdk';
 import { FaucetPlugin } from '../../../src/plugin';
-import { config } from '../../../src/plugin/defaults';
+import { configSchema } from '../../../src/plugin/schemas';
+
+const appConfigForPlugin: ApplicationConfigForPlugin = {
+	...testing.fixtures.defaultConfig,
+};
 
 const validPluginOptions = {
-	...config.default,
+	...configSchema.default,
 	captchaSitekey: '123',
 	captchaSecretkey: '123',
-	encryptedPassphrase:
-		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
+	encryptedPrivateKey:
+		'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=6b90c4f36e5c198d6dc1a7e0f64f7524a2fc14fce8fb80165a9434de079a1dcbf8058ee9d369d2afbf26d64f9bc8954efb68a970d97af93a1a40ffe2d354244c9d8472007c618296a3d97e2a059e96f1b5b8004fd0aa254ac7615ade76ea4f2b0ecf0b13b7dcf8c78116e1770fc21aa5e0affcc00c8fd90795eea5c7bc29f597&mac=03cbf0d0695a937161e69c99744499414b52d56854087d8bc84971d2375bb59e&salt=184bc3eabc3ffbcb&iv=88aa7f136a044f09503348373c4b3efd&tag=a331b74e4e6fed55568966d572c4a525&iterations=1&parallelism=4&memorySize=2097023',
+	tokenID: '0400000000000000',
 	dataPath: '/my/app',
 };
 
+const logger = testing.mocks.loggerMock;
+
 describe('auth action', () => {
 	let faucetPlugin: FaucetPlugin;
-	let authorizeAction: any;
 
-	beforeEach(() => {
-		faucetPlugin = new FaucetPlugin(validPluginOptions as never);
-		(faucetPlugin as any)._options = {
-			encryptedPassphrase:
-				'iterations=1000000&cipherText=a31a3324ce12664a396329&iv=b476ef9d377397f4f9b0c1ae&salt=d81787ca5103be883a01d211746b1c3f&tag=e352880bb05a03bafc98af48b924fbf9&version=1',
+	beforeEach(async () => {
+		faucetPlugin = new FaucetPlugin();
+		faucetPlugin['_apiClient'] = {
+			schema: {},
+			invoke: jest.fn(),
 		};
-		authorizeAction = faucetPlugin.actions.authorize;
+		await faucetPlugin.init({
+			config: {
+				...validPluginOptions,
+			},
+			appConfig: appConfigForPlugin,
+			logger,
+		});
 	});
 
-	it('should disable faucet when enable=false', () => {
+	it('should disable faucet when enable=false', async () => {
 		const params = {
 			enable: false,
 			password: '123',
 		};
-		const response = authorizeAction(params);
+		const response = await faucetPlugin.endpoint.authorize({ params } as any);
 
 		expect(response.result).toContain('Successfully disabled the faucet.');
 	});
 
-	it('should enable the faucet when enable=true', () => {
+	it('should enable the faucet when enable=true', async () => {
 		const params = {
 			enable: true,
 			password: '123',
 		};
-		const response = authorizeAction(params);
+		const response = await faucetPlugin.endpoint.authorize({ params } as any);
 
 		expect(response.result).toContain('Successfully enabled the faucet.');
 	});
 
-	it('should fail when encrypted passphrase is not set', () => {
-		(faucetPlugin as any)._options.encryptedPassphrase = undefined;
+	it('should fail when encrypted passphrase does not match with password given', async () => {
 		const params = {
 			enable: true,
-			password: '123',
+			password: 'wrong',
 		};
 
-		expect(() => authorizeAction(params)).toThrow(
-			'Encrypted passphrase string must be set in the config.',
+		await expect(faucetPlugin.endpoint.authorize({ params } as any)).rejects.toThrow(
+			'Password given is not valid.',
 		);
-	});
-
-	it('should fail when encrypted passphrase does not match with password given', () => {
-		const params = {
-			enable: true,
-			password: '1234',
-		};
-
-		expect(() => authorizeAction(params)).toThrow('Password given is not valid.');
 	});
 });

@@ -1,0 +1,95 @@
+{
+	"title": "Decoding for number types supported by lisk-codec",
+	"summary": "Examples of encoding numbers with lisk-codec",
+	"config": {
+		"network": "devnet"
+	},
+	"runner": "lisk_codec",
+	"handler": "number_decodings",
+	"testCases": [
+		{
+			"description": "Decoding 32 bit unsigned number",
+			"input": {
+				"value": "080a",
+				"schema": {
+					"$id": "/numberSchemaUint32",
+					"type": "object",
+					"properties": {
+						"number": {
+							"dataType": "uint32",
+							"fieldNumber": 1
+						}
+					}
+				}
+			},
+			"output": {
+				"object": {
+					"number": 10
+				}
+			}
+		},
+		{
+			"description": "Decoding 32 bit signed number",
+			"input": {
+				"value": "0813",
+				"schema": {
+					"$id": "/numberSchemaSint32",
+					"type": "object",
+					"properties": {
+						"number": {
+							"dataType": "sint32",
+							"fieldNumber": 1
+						}
+					}
+				}
+			},
+			"output": {
+				"object": {
+					"number": -10
+				}
+			}
+		},
+		{
+			"description": "Decoding 64 bit unsigned number",
+			"input": {
+				"value": "08ffffc9a4d9cb54",
+				"schema": {
+					"$id": "/numberSchemaUint64",
+					"type": "object",
+					"properties": {
+						"number": {
+							"dataType": "uint64",
+							"fieldNumber": 1
+						}
+					}
+				}
+			},
+			"output": {
+				"object": {
+					"number": "372036854775807"
+				}
+			}
+		},
+		{
+			"description": "Decoding 64 bit signed number",
+			"input": {
+				"value": "08fdffffffffffff1f",
+				"schema": {
+					"$id": "/numberSchemaSint64",
+					"type": "object",
+					"properties": {
+						"number": {
+							"dataType": "sint64",
+							"fieldNumber": 1
+						}
+					}
+				}
+			},
+			"output": {
+				"object": {
+					"number": "-9007199254740991"
+				}
+			}
+		}
+	]
+}

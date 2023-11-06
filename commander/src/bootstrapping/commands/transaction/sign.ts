@@ -12,29 +12,33 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Command, { flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import * as apiClient from '@liskhq/lisk-api-client';
-import * as cryptography from '@liskhq/lisk-cryptography';
-import { Application, PartialApplicationConfig, RegisteredSchema } from 'lisk-framework';
+import {
+	Application,
+	blockHeaderSchema,
+	blockSchema,
+	ModuleMetadataJSON,
+	PartialApplicationConfig,
+	RegisteredSchema,
+	transactionSchema,
+} from 'lisk-framework';
 import * as transactions from '@liskhq/lisk-transactions';
 
+import { blockAssetSchema, eventSchema } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt } from '../../../utils/reader';
 import {
 	decodeTransaction,
-	encodeTransaction,
+	encodeTransactionJSON,
 	getApiClient,
-	transactionToJSON,
-	getAssetSchema,
+	getParamsSchema,
 } from '../../../utils/transaction';
 import { getDefaultPath } from '../../../utils/path';
-import { isApplicationRunning } from '../../../utils/application';
 import { PromiseResolvedType } from '../../../types';
-
-interface KeysAsset {
-	mandatoryKeys: Array<Readonly<string>>;
-	optionalKeys: Array<Readonly<string>>;
-}
+import { DEFAULT_KEY_DERIVATION_PATH } from '../../../utils/config';
+import { deriveKeypair } from '../../../utils/commons';
 
 interface Keys {
 	mandatoryKeys: Buffer[];
@@ -42,92 +46,86 @@ interface Keys {
 }
 
 interface SignFlags {
-	'network-identifier': string | undefined;
+	'chain-id': string | undefined;
 	passphrase: string | undefined;
-	'include-sender': boolean;
-	offline?: boolean;
-	json?: boolean;
-	pretty?: boolean;
+	offline: boolean;
 	'data-path': string | undefined;
-	'sender-public-key': string | undefined;
-	'mandatory-keys': string[];
-	'optional-keys': string[];
+	'mandatory-keys': string[] | undefined;
+	'optional-keys': string[] | undefined;
+	'key-derivation-path': string;
 }
 
 const signTransaction = async (
 	flags: SignFlags,
 	registeredSchema: RegisteredSchema,
+	metadata: ModuleMetadataJSON[],
 	transactionHexStr: string,
-	networkIdentifier: string | undefined,
+	chainID: string | undefined,
 	keys: Keys,
 ) => {
-	const transactionObject = decodeTransaction(registeredSchema, transactionHexStr);
-	// eslint-disable-next-line @typescript-eslint/ban-types
-	const assetSchema = getAssetSchema(
-		registeredSchema,
-		transactionObject.moduleID as number,
-		transactionObject.assetID as number,
-	) as object;
-	const networkIdentifierBuffer = Buffer.from(networkIdentifier as string, 'hex');
-	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
+	const decodedTransaction = decodeTransaction(registeredSchema, metadata, transactionHexStr);
+	const paramsSchema = getParamsSchema(
+		metadata,
+		decodedTransaction.module,
+		decodedTransaction.command,
+	);
+	const unsignedTransaction = {
+		...codec.fromJSON(registeredSchema.transaction, decodedTransaction),
+		params: paramsSchema ? codec.fromJSON(paramsSchema, decodedTransaction.params) : {},
+	};
 
-	// sign from multi sig account offline using input keys
-	if (!flags['include-sender'] && !flags['sender-public-key']) {
-		return transactions.signTransaction(
-			assetSchema,
-			transactionObject,
-			networkIdentifierBuffer,
-			passphrase,
+	const chainIDBuffer = Buffer.from(chainID as string, 'hex');
+	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase'));
+	const edKeys = await deriveKeypair(passphrase, flags['key-derivation-path']);
+
+	let signedTransaction: Record<string, unknown>;
+	if (flags['mandatory-keys'] || flags['optional-keys']) {
+		signedTransaction = transactions.signMultiSignatureTransaction(
+			unsignedTransaction,
+			chainIDBuffer,
+			edKeys.privateKey,
+			keys,
+			paramsSchema,
+		);
+	} else {
+		signedTransaction = transactions.signTransaction(
+			unsignedTransaction,
+			chainIDBuffer,
+			edKeys.privateKey,
+			paramsSchema,
 		);
 	}
 
-	return transactions.signMultiSignatureTransaction(
-		assetSchema,
-		transactionObject,
-		networkIdentifierBuffer,
-		passphrase,
-		keys,
-		flags['include-sender'],
-	);
+	return {
+		...codec.toJSON<Record<string, unknown>>(registeredSchema.transaction, signedTransaction),
+		params: decodedTransaction.params,
+		id: (signedTransaction.id as Buffer).toString('hex'),
+	};
 };
 
 const signTransactionOffline = async (
 	flags: SignFlags,
 	registeredSchema: RegisteredSchema,
+	metadata: ModuleMetadataJSON[],
 	transactionHexStr: string,
 ): Promise<Record<string, unknown>> => {
-	let signedTransaction: Record<string, unknown>;
-
-	if (!flags['include-sender'] && !flags['sender-public-key']) {
-		signedTransaction = await signTransaction(
-			flags,
-			registeredSchema,
-			transactionHexStr,
-			flags['network-identifier'],
-			{} as Keys,
-		);
-		return signedTransaction;
-	}
-
 	const mandatoryKeys = flags['mandatory-keys'];
 	const optionalKeys = flags['optional-keys'];
-	if (!mandatoryKeys.length && !optionalKeys.length) {
-		throw new Error(
-			'--mandatory-keys or --optional-keys flag must be specified to sign transaction from multi signature account.',
-		);
-	}
-	const keys = {
+
+	const keys: Keys = {
 		mandatoryKeys: mandatoryKeys ? mandatoryKeys.map(k => Buffer.from(k, 'hex')) : [],
 		optionalKeys: optionalKeys ? optionalKeys.map(k => Buffer.from(k, 'hex')) : [],
 	};
 
-	signedTransaction = await signTransaction(
+	const signedTransaction = await signTransaction(
 		flags,
 		registeredSchema,
+		metadata,
 		transactionHexStr,
-		flags['network-identifier'],
+		flags['chain-id'],
 		keys,
 	);
+
 	return signedTransaction;
 };
 
@@ -135,37 +133,17 @@ const signTransactionOnline = async (
 	flags: SignFlags,
 	client: apiClient.APIClient,
 	registeredSchema: RegisteredSchema,
+	metadata: ModuleMetadataJSON[],
 	transactionHexStr: string,
 ) => {
-	// Sign non multi-sig transaction
-	const transactionObject = decodeTransaction(registeredSchema, transactionHexStr);
-	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
-	const address = cryptography.getAddressFromPassphrase(passphrase);
+	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
+	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase'));
+	const edKeys = await deriveKeypair(passphrase, flags['key-derivation-path']);
 
-	let signedTransaction: Record<string, unknown>;
+	const signedTransaction = await client.transaction.sign(transactionObject, [
+		edKeys.privateKey.toString('hex'),
+	]);
 
-	if (!flags['include-sender']) {
-		signedTransaction = await client.transaction.sign(transactionObject, [passphrase]);
-		return signedTransaction;
-	}
-
-	// Sign multi-sig transaction
-	const account = (await client.account.get(address)) as { keys: KeysAsset };
-	let keysAsset: KeysAsset;
-	if (account.keys?.mandatoryKeys.length === 0 && account.keys?.optionalKeys.length === 0) {
-		keysAsset = transactionObject.asset as KeysAsset;
-	} else {
-		keysAsset = account.keys;
-	}
-	const keys = {
-		mandatoryKeys: keysAsset.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
-		optionalKeys: keysAsset.optionalKeys.map(k => Buffer.from(k, 'hex')),
-	};
-
-	signedTransaction = await client.transaction.sign(transactionObject, [passphrase], {
-		includeSenderSignature: flags['include-sender'],
-		multisignatureKeys: keys,
-	});
 	return signedTransaction;
 };
 
@@ -180,18 +158,14 @@ export abstract class SignCommand extends Command {
 		},
 	];
 
-	static flags: flagParser.Input<SignFlags> = {
+	static flags = {
 		passphrase: flagsWithParser.passphrase,
 		json: flagsWithParser.json,
 		offline: {
 			...flagsWithParser.offline,
-			dependsOn: ['network-identifier'],
+			dependsOn: ['chain-id'],
 			exclusive: ['data-path'],
 		},
-		'include-sender': flagParser.boolean({
-			description: 'Include sender signature in transaction.',
-			default: false,
-		}),
 		'mandatory-keys': flagParser.string({
 			multiple: true,
 			description: 'Mandatory publicKey string in hex format.',
@@ -200,9 +174,13 @@ export abstract class SignCommand extends Command {
 			multiple: true,
 			description: 'Optional publicKey string in hex format.',
 		}),
-		'network-identifier': flagsWithParser.networkIdentifier,
-		'sender-public-key': flagsWithParser.senderPublicKey,
+		'chain-id': flagsWithParser.chainID,
 		'data-path': flagsWithParser.dataPath,
+		'key-derivation-path': flagParser.string({
+			default: DEFAULT_KEY_DERIVATION_PATH,
+			description: 'Key derivation path to use to derive keypair from passphrase',
+			char: 'k',
+		}),
 		pretty: flagsWithParser.pretty,
 	};
 
@@ -213,53 +191,60 @@ export abstract class SignCommand extends Command {
 
 	protected _client: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 	protected _schema!: RegisteredSchema;
+	protected _metadata!: ModuleMetadataJSON[];
 	protected _dataPath!: string;
 
 	async run(): Promise<void> {
-		const {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			args: { transaction },
-			flags,
-		} = this.parse(SignCommand);
-		const { offline, 'data-path': dataPath } = flags;
-		this._dataPath = dataPath ?? getDefaultPath(this.config.pjson.name);
+		const { args, flags } = await this.parse(SignCommand);
+		this._dataPath = flags['data-path'] ?? getDefaultPath(this.config.pjson.name);
 
 		let signedTransaction: Record<string, unknown>;
 
-		if (offline) {
-			const app = this.getApplication({}, {});
-			this._schema = app.getSchema();
-			signedTransaction = await signTransactionOffline(flags, this._schema, transaction);
+		if (flags.offline) {
+			const app = this.getApplication({ genesis: { chainID: flags['chain-id'] } });
+			this._metadata = app.getMetadata();
+			this._schema = {
+				header: blockHeaderSchema,
+				transaction: transactionSchema,
+				block: blockSchema,
+				asset: blockAssetSchema,
+				event: eventSchema,
+			};
+			signedTransaction = await signTransactionOffline(
+				flags,
+				this._schema,
+				this._metadata,
+				args.transaction as string,
+			);
 		} else {
-			this._client = await getApiClient(dataPath, this.config.pjson.name);
-			this._schema = this._client.schemas;
+			this._client = await getApiClient(this._dataPath, this.config.pjson.name);
+			this._schema = this._client.schema;
+			this._metadata = this._client.metadata;
 			signedTransaction = await signTransactionOnline(
 				flags,
 				this._client,
 				this._schema,
-				transaction,
+				this._metadata,
+				args.transaction as string,
 			);
 		}
 
+		this.printJSON(flags.pretty, {
+			transaction: encodeTransactionJSON(
+				this._schema,
+				this._metadata,
+				signedTransaction,
+				this._client,
+			).toString('hex'),
+		});
 		if (flags.json) {
 			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(this._schema, signedTransaction, this._client).toString(
-					'hex',
-				),
-			});
-			this.printJSON(flags.pretty, {
-				transaction: transactionToJSON(this._schema, signedTransaction, this._client),
-			});
-		} else {
-			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(this._schema, signedTransaction, this._client).toString(
-					'hex',
-				),
+				transaction: signedTransaction,
 			});
 		}
 	}
 
-	printJSON(pretty?: boolean, message?: Record<string, unknown>): void {
+	printJSON(pretty: boolean, message?: Record<string, unknown>): void {
 		if (pretty) {
 			this.log(JSON.stringify(message, undefined, '  '));
 		} else {
@@ -269,9 +254,6 @@ export abstract class SignCommand extends Command {
 
 	async finally(error?: Error | string): Promise<void> {
 		if (error) {
-			if (!isApplicationRunning(this._dataPath)) {
-				throw new Error(`Application at data path ${this._dataPath} is not running.`);
-			}
 			this.error(error instanceof Error ? error.message : error);
 		}
 		if (this._client) {
@@ -279,8 +261,5 @@ export abstract class SignCommand extends Command {
 		}
 	}
 
-	abstract getApplication(
-		genesisBlock: Record<string, unknown>,
-		config: PartialApplicationConfig,
-	): Application;
+	abstract getApplication(config: PartialApplicationConfig): Application;
 }

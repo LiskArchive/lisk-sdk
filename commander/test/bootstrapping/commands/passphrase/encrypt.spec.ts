@@ -13,19 +13,18 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import * as Config from '@oclif/config';
-
+import * as fs from 'fs-extra';
 import * as readerUtils from '../../../../src/utils/reader';
 import { EncryptCommand } from '../../../../src/bootstrapping/commands/passphrase/encrypt';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
+import { OWNER_READ_WRITE } from '../../../../src/constants';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
 }));
 
 describe('passphrase:encrypt', () => {
-	const encryptedPassphraseString =
-		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1';
 	const defaultKeys = {
 		publicKey: Buffer.from(
 			'337600533a1f734c84b738d5f634c284a80ecc8b92bae4f30c1f22f8fd001e6a',
@@ -47,7 +46,7 @@ describe('passphrase:encrypt', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];
@@ -55,14 +54,10 @@ describe('passphrase:encrypt', () => {
 		config = await getConfig();
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
-		jest.spyOn(EncryptCommand.prototype, 'printJSON').mockReturnValue();
-		jest.spyOn(cryptography, 'getKeys').mockReturnValue(defaultKeys as never);
+		jest.spyOn(cryptography.legacy, 'getKeys').mockReturnValue(defaultKeys as never);
 		jest
-			.spyOn(cryptography, 'encryptPassphraseWithPassword')
-			.mockReturnValue(encryptedPassphraseObject);
-		jest
-			.spyOn(cryptography, 'stringifyEncryptedPassphrase')
-			.mockReturnValue(encryptedPassphraseString);
+			.spyOn(cryptography.encrypt, 'encryptMessageWithPassword')
+			.mockResolvedValue(encryptedPassphraseObject as never);
 		jest.spyOn(readerUtils, 'getPassphraseFromPrompt').mockImplementation(async (name?: string) => {
 			if (name === 'passphrase') {
 				return defaultInputs.passphrase;
@@ -75,100 +70,105 @@ describe('passphrase:encrypt', () => {
 			}
 			return '';
 		});
+		jest.spyOn(fs, 'ensureDirSync').mockReturnValue();
+		jest.spyOn(fs, 'writeJSONSync').mockReturnValue();
 	});
 
 	describe('passphrase:encrypt', () => {
 		it('should encrypt passphrase', async () => {
 			await EncryptCommand.run([], config);
-			expect(cryptography.encryptPassphraseWithPassword).toHaveBeenCalledWith(
+			const loggedData = JSON.parse(stdout[0]);
+			expect(cryptography.encrypt.encryptMessageWithPassword).toHaveBeenCalledWith(
 				defaultInputs.passphrase,
 				defaultInputs.password,
-			);
-			expect(cryptography.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
-				encryptedPassphraseObject,
 			);
 			expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
 			expect(readerUtils.getPasswordFromPrompt).toHaveBeenCalledWith('password', true);
 
-			expect(EncryptCommand.prototype.printJSON).toHaveBeenCalledWith(
-				{
-					encryptedPassphrase: encryptedPassphraseString,
-				},
-				undefined,
-			);
+			expect(loggedData).toEqual({ encryptedPassphrase: encryptedPassphraseObject });
 			expect(consoleWarnSpy).toHaveBeenCalledTimes(0);
 		});
 	});
 
-	describe('passphrase:encrypt --output-public-key', () => {
+	describe('passphrase:encrypt --output-public-key --output=/mypath/keys.json', () => {
 		it('should encrypt passphrase and output public key', async () => {
-			await EncryptCommand.run(['--output-public-key'], config);
-			expect(cryptography.encryptPassphraseWithPassword).toHaveBeenCalledWith(
+			await EncryptCommand.run(['--output-public-key', '--output=/mypath/keys.json'], config);
+			expect(cryptography.encrypt.encryptMessageWithPassword).toHaveBeenCalledWith(
 				defaultInputs.passphrase,
 				defaultInputs.password,
-			);
-			expect(cryptography.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
-				encryptedPassphraseObject,
 			);
 			expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
 			expect(readerUtils.getPasswordFromPrompt).toHaveBeenCalledWith('password', true);
-			expect(EncryptCommand.prototype.printJSON).toHaveBeenCalledWith(
+			expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
+			expect(fs.writeJSONSync).toHaveBeenCalledWith(
+				'/mypath/keys.json',
 				{
-					encryptedPassphrase: encryptedPassphraseString,
+					encryptedPassphrase: encryptedPassphraseObject,
 					publicKey: defaultKeys.publicKey.toString('hex'),
 				},
-				undefined,
+				{
+					spaces: ' ',
+					mode: OWNER_READ_WRITE,
+				},
 			);
 		});
 	});
 
-	describe('passphrase:encrypt --passphrase="enemy pill squeeze gold spoil aisle awake thumb congress false box wagon"', () => {
+	describe('passphrase:encrypt --passphrase="enemy pill squeeze gold spoil aisle awake thumb congress false box wagon"  --output=/mypath/keys.json', () => {
 		it('should encrypt passphrase from passphrase flag and stdout password', async () => {
 			await EncryptCommand.run(
-				['--passphrase=enemy pill squeeze gold spoil aisle awake thumb congress false box wagon'],
+				[
+					'--passphrase=enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
+					'--output=/mypath/keys.json',
+				],
 				config,
 			);
-			expect(cryptography.encryptPassphraseWithPassword).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.encryptMessageWithPassword).toHaveBeenCalledWith(
 				defaultInputs.passphrase,
 				defaultInputs.password,
 			);
-			expect(cryptography.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
-				encryptedPassphraseObject,
-			);
 			expect(readerUtils.getPassphraseFromPrompt).not.toHaveBeenCalledWith('passphrase', true);
 			expect(readerUtils.getPasswordFromPrompt).toHaveBeenCalledWith('password', true);
-			expect(EncryptCommand.prototype.printJSON).toHaveBeenCalledWith(
+			expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
+			expect(fs.writeJSONSync).toHaveBeenCalledWith(
+				'/mypath/keys.json',
 				{
-					encryptedPassphrase: encryptedPassphraseString,
+					encryptedPassphrase: encryptedPassphraseObject,
 				},
-				undefined,
+				{
+					spaces: ' ',
+					mode: OWNER_READ_WRITE,
+				},
 			);
 		});
 	});
 
-	describe('passphrase:encrypt --passphrase="enemy pill squeeze gold spoil aisle awake thumb congress false box wagon" --password=LbYpLpV9Wpec6ux8', () => {
+	describe('passphrase:encrypt --passphrase="enemy pill squeeze gold spoil aisle awake thumb congress false box wagon" --password=LbYpLpV9Wpec6ux8  --output=/mypath/keys.json', () => {
 		it('should encrypt passphrase from passphrase and password flags', async () => {
 			await EncryptCommand.run(
 				[
 					'--passphrase=enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
 					'--password=LbYpLpV9Wpec6ux8',
+					'--output=/mypath/keys.json',
 				],
 				config,
 			);
-			expect(cryptography.encryptPassphraseWithPassword).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.encryptMessageWithPassword).toHaveBeenCalledWith(
 				defaultInputs.passphrase,
 				defaultInputs.password,
 			);
-			expect(cryptography.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
-				encryptedPassphraseObject,
-			);
 			expect(readerUtils.getPassphraseFromPrompt).not.toHaveBeenCalledWith('passphrase', true);
 			expect(readerUtils.getPasswordFromPrompt).not.toHaveBeenCalledWith('password', true);
-			expect(EncryptCommand.prototype.printJSON).toHaveBeenCalledWith(
+			expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
+			expect(fs.writeJSONSync).toHaveBeenCalledWith(
+				'/mypath/keys.json',
 				{
-					encryptedPassphrase: encryptedPassphraseString,
+					encryptedPassphrase: encryptedPassphraseObject,
 				},
-				undefined,
+				{
+					spaces: ' ',
+					mode: OWNER_READ_WRITE,
+				},
 			);
 		});
 	});

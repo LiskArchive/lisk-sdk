@@ -19,7 +19,7 @@ Node version used: v12.17.0. Computer Spec: SSD, 6 Core, 16 GB RAM. No special c
 | Account                                   |      75,081      |           86,908 |
 | Transfer Transaction                      |     225,229      |          276,184 |
 | Multi-signature registration (64 Members) |      23,539      |           44,231 |
-| Block (15 KB payload)                     |      42,349      |           91,180 |
+| Block (15 KB transactions)                |      42,349      |           91,180 |
 
 This and additional benchmarks can be found in the `benchmarks` folder
 
@@ -40,4 +40,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 [lisk core github]: https://github.com/LiskHQ/lisk
-[lisk documentation site]: https://lisk.io/documentation/lisk-elements
+[lisk documentation site]: https://lisk.com/documentation/lisk-sdk/references/lisk-elements/codec.html

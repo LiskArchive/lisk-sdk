@@ -12,10 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
-import { formatInt } from '@liskhq/lisk-db';
-import { BlockHeader, RawBlock } from '@liskhq/lisk-chain';
-import { testing, RegisteredSchema, PartialApplicationConfig } from 'lisk-framework';
+import {
+	testing,
+	RegisteredSchema,
+	PartialApplicationConfig,
+	chain,
+	db as liskDB,
+	codec,
+} from 'lisk-sdk';
 import { rmdirSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
@@ -28,8 +32,8 @@ describe('save block header', () => {
 	let codecSpy: jest.SpyInstance;
 	let pluginDBGetSpy: jest.SpyInstance;
 	let pluginDBPutSpy: jest.SpyInstance;
-	let dbKey: string;
-	let blockHeader: BlockHeader;
+	let dbKey: Buffer;
+	let blockHeader: chain.BlockHeader;
 	let pluginInstance: ReportMisbehaviorPlugin;
 	const randomPublicKey = 'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd';
 	const randomSignature =
@@ -45,7 +49,7 @@ describe('save block header', () => {
 	const rootPath = join(homedir(), '.lisk', 'report-misbehavior-plugin');
 	const apiPort = 5002;
 
-	const encodeBlockHeader = (schemas: RegisteredSchema, newHeader: BlockHeader) =>
+	const encodeBlockHeader = (schemas: RegisteredSchema, newHeader: chain.BlockHeader) =>
 		codec.encode(schemas.blockHeader, newHeader);
 
 	beforeAll(async () => {
@@ -65,13 +69,20 @@ describe('save block header', () => {
 
 		appEnv = testing.createDefaultApplicationEnv({
 			config,
-			plugins: [ReportMisbehaviorPlugin],
+			plugins: [new ReportMisbehaviorPlugin()],
 		});
 		await appEnv.startApplication();
 		pluginInstance = getReportMisbehaviorPlugin(appEnv.application);
-		const { header } = codec.decode<RawBlock>(pluginInstance.schemas.block, encodedBlockBuffer);
-		blockHeader = codec.decode(pluginInstance.schemas.blockHeader, header);
-		dbKey = `${blockHeader.generatorPublicKey.toString('binary')}:${formatInt(blockHeader.height)}`;
+		const { header } = codec.decode<chain.RawBlock>(
+			pluginInstance['apiClient'].schemas.block,
+			encodedBlockBuffer,
+		);
+		blockHeader = codec.decode(pluginInstance['apiClient'].schemas.blockHeader, header);
+		dbKey = Buffer.concat([
+			blockHeader.generatorAddress,
+			Buffer.from(':', 'utf8'),
+			liskDB.formatInt(blockHeader.height),
+		]);
 	});
 
 	beforeEach(() => {
@@ -93,49 +104,69 @@ describe('save block header', () => {
 			await waitTill(300);
 
 			// Assert
-			expect(codecSpy).toHaveBeenCalledWith(pluginInstance.schemas.block, encodedBlockBuffer);
+			expect(codecSpy).toHaveBeenCalledWith(
+				pluginInstance['apiClient'].schemas.block,
+				encodedBlockBuffer,
+			);
 			expect(pluginDBPutSpy).toHaveBeenCalledTimes(1);
 			expect(pluginDBGetSpy).toHaveBeenCalledWith(dbKey);
 			expect(pluginDBPutSpy).toHaveBeenCalledWith(
 				dbKey,
-				encodeBlockHeaders([], encodeBlockHeader(pluginInstance.schemas, blockHeader)),
+				encodeBlockHeaders([], encodeBlockHeader(pluginInstance['apiClient'].schemas, blockHeader)),
 			);
 		});
 
 		it('should save block headers with different height', async () => {
 			// Arrange
-			const updatedBlockHeader = { ...blockHeader, height: blockHeader.height + 1 };
-			dbKey = `${updatedBlockHeader.generatorPublicKey.toString('binary')}:${formatInt(
-				updatedBlockHeader.height,
-			)}`;
-			const newBlockHeader = encodeBlockHeader(pluginInstance.schemas, updatedBlockHeader);
-			const newEncodedBlock = codec.encode(pluginInstance.schemas.block, {
+			const updatedBlockHeader = new chain.BlockHeader({
+				...blockHeader,
+				height: blockHeader.height + 1,
+			});
+			dbKey = Buffer.concat([
+				updatedBlockHeader.generatorAddress,
+				Buffer.from(':', 'utf8'),
+				liskDB.formatInt(updatedBlockHeader.height),
+			]);
+
+			const newBlockHeader = encodeBlockHeader(
+				pluginInstance['apiClient'].schemas,
+				updatedBlockHeader,
+			);
+			const newEncodedBlock = codec.encode(pluginInstance['apiClient'].schemas.block, {
 				header: newBlockHeader,
-				payload: [],
+				transactions: [],
 			});
 			// Act
 			publishEvent(appEnv.application, newEncodedBlock.toString('hex'));
 			await waitTill(200);
 
 			// Assert
-			expect(codecSpy).toHaveBeenCalledWith(pluginInstance.schemas.block, newEncodedBlock);
+			expect(codecSpy).toHaveBeenCalledWith(
+				pluginInstance['apiClient'].schemas.block,
+				newEncodedBlock,
+			);
 			expect(pluginDBGetSpy).toHaveBeenCalledWith(dbKey);
 			expect(pluginDBPutSpy).toHaveBeenCalledWith(dbKey, encodeBlockHeaders([], newBlockHeader));
 		});
 
 		it('should save different block header with same height', async () => {
 			// Arrange
-			const modifiedBlockHeader = {
+			const modifiedBlockHeader = new chain.BlockHeader({
 				...blockHeader,
 				signature: Buffer.from(randomSignature, 'hex'),
-			};
-			dbKey = `${modifiedBlockHeader.generatorPublicKey.toString('binary')}:${formatInt(
-				modifiedBlockHeader.height,
-			)}`;
-			const newBlockHeader = encodeBlockHeader(pluginInstance.schemas, modifiedBlockHeader);
-			const blockBuff = codec.encode(pluginInstance.schemas.block, {
+			});
+			dbKey = Buffer.concat([
+				modifiedBlockHeader.generatorAddress,
+				Buffer.from(':', 'utf8'),
+				liskDB.formatInt(modifiedBlockHeader.height),
+			]);
+			const newBlockHeader = encodeBlockHeader(
+				pluginInstance['apiClient'].schemas,
+				modifiedBlockHeader,
+			);
+			const blockBuff = codec.encode(pluginInstance['apiClient'].schemas.block, {
 				header: newBlockHeader,
-				payload: [],
+				transactions: [],
 			});
 			const { blockHeaders } = await getBlockHeaders(pluginInstance['_pluginDB'], dbKey);
 
@@ -144,7 +175,7 @@ describe('save block header', () => {
 			await waitTill(200);
 
 			// Assert
-			expect(codecSpy).toHaveBeenCalledWith(pluginInstance.schemas.block, blockBuff);
+			expect(codecSpy).toHaveBeenCalledWith(pluginInstance['apiClient'].schemas.block, blockBuff);
 			expect(pluginDBGetSpy).toHaveBeenCalledWith(dbKey);
 			expect(pluginDBPutSpy).toHaveBeenCalledWith(
 				dbKey,
@@ -158,24 +189,32 @@ describe('save block header', () => {
 	describe('from different generator', () => {
 		it('should save block headers by publicKey and height', async () => {
 			// Arrange
-			const updatedBlockHeader = {
+			const updatedBlockHeader = new chain.BlockHeader({
 				...blockHeader,
-				generatorPublicKey: Buffer.from(randomPublicKey, 'hex'),
-			};
-			dbKey = `${updatedBlockHeader.generatorPublicKey.toString('binary')}:${formatInt(
-				updatedBlockHeader.height,
-			)}`;
-			const newBlockHeader = encodeBlockHeader(pluginInstance.schemas, updatedBlockHeader);
-			const newEncodedBlock = codec.encode(pluginInstance.schemas.block, {
+				generatorAddress: Buffer.from(randomPublicKey, 'hex'),
+			});
+			dbKey = Buffer.concat([
+				updatedBlockHeader.generatorAddress,
+				Buffer.from(':', 'utf8'),
+				liskDB.formatInt(updatedBlockHeader.height),
+			]);
+			const newBlockHeader = encodeBlockHeader(
+				pluginInstance['apiClient'].schemas,
+				updatedBlockHeader,
+			);
+			const newEncodedBlock = codec.encode(pluginInstance['apiClient'].schemas.block, {
 				header: newBlockHeader,
-				payload: [],
+				transactions: [],
 			});
 			// Act
 			publishEvent(appEnv.application, newEncodedBlock.toString('hex'));
 			await waitTill(200);
 
 			// Assert
-			expect(codecSpy).toHaveBeenCalledWith(pluginInstance.schemas.block, newEncodedBlock);
+			expect(codecSpy).toHaveBeenCalledWith(
+				pluginInstance['apiClient'].schemas.block,
+				newEncodedBlock,
+			);
 			expect(pluginDBGetSpy).toHaveBeenCalledWith(dbKey);
 			expect(pluginDBPutSpy).toHaveBeenCalledWith(dbKey, encodeBlockHeaders([], newBlockHeader));
 			const { blockHeaders } = await getBlockHeaders(pluginInstance['_pluginDB'], dbKey);

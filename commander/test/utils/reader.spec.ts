@@ -22,6 +22,8 @@ import {
 	getPassphraseFromPrompt,
 	isFileSource,
 	readFileSource,
+	checkFileExtension,
+	readParamsFile,
 } from '../../src/utils/reader';
 
 describe('reader', () => {
@@ -160,6 +162,50 @@ describe('reader', () => {
 					.mockReturnValue(createFakeInterface(multilineStdContents) as any);
 				const result = await readStdIn();
 				return expect(result).toEqual(['passphrase', 'password', 'data']);
+			});
+		});
+
+		describe('checkFileExtension', () => {
+			it('should throw an error if no file extension is passed', () => {
+				const filePath = './some/path';
+				expect(() => checkFileExtension(filePath)).toThrow('Not a JSON file.');
+			});
+
+			it('should throw an error if file extension is not .json', () => {
+				const filePath = './some/path.txt';
+				expect(() => checkFileExtension(filePath)).toThrow('Not a JSON file.');
+			});
+		});
+
+		describe('readParamsFile', () => {
+			const filePath = './some/path.json';
+			const fileData = {
+				tokenID: '0000000000000000',
+				amount: 100000000,
+				recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+				data: 'send token',
+			};
+
+			beforeEach(() => {
+				jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(fileData));
+			});
+
+			it('should read a json file and check that an amount value and a recipient address are contained in the file', () => {
+				const result = readParamsFile(filePath);
+
+				expect(JSON.parse(result)).toEqual(fileData);
+				expect(JSON.parse(result).amount).toBe(100000000);
+				expect(JSON.parse(result).recipientAddress).toBe(
+					'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+				);
+			});
+
+			it('should throw an error if the file is not found', () => {
+				jest.spyOn(fs, 'readFileSync').mockImplementation(() => {
+					throw new Error('ENOENT');
+				});
+
+				expect(() => readParamsFile(filePath)).toThrow(`No such file or directory.`);
 			});
 		});
 	});

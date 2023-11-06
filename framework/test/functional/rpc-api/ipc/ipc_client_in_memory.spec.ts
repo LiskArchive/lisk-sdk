@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { DB_KEY_ACCOUNTS_ADDRESS, concatDBKeys } from '@liskhq/lisk-chain';
 import { createIPCClient } from '@liskhq/lisk-api-client';
 import {
 	closeApplication,
@@ -20,7 +21,7 @@ import {
 import { Application } from '../../../../src';
 import { APP_EVENT_BLOCK_NEW } from '../../../../src/constants';
 
-describe('api client ipc mode', () => {
+describe('method client ipc mode', () => {
 	const label = 'client-ipc-in-memory';
 	let app: Application;
 	let client: any;
@@ -32,7 +33,7 @@ describe('api client ipc mode', () => {
 		app = await createApplicationWithHelloPlugin({
 			label,
 			pluginChildProcess: false,
-			rpcConfig: { enable: true, mode: 'ipc', port: 8080 },
+			rpcConfig: { modes: ['ipc'] },
 		});
 
 		const dataPath = `${app.config.rootPath}/${label}`;
@@ -43,7 +44,7 @@ describe('api client ipc mode', () => {
 			newBlockEvent.push(blockEvent);
 		});
 
-		client.subscribe('hello:greet', (message: any) => {
+		client.subscribe('hello_greet', (message: any) => {
 			helloMessage = message;
 		});
 	});
@@ -74,7 +75,7 @@ describe('api client ipc mode', () => {
 
 		it('should invoke getNodeInfo action', async () => {
 			// Act
-			const nodeInfo = await client.invoke('app:getNodeInfo');
+			const nodeInfo = await client.invoke('app_getNodeInfo');
 
 			// Assert
 			expect(nodeInfo.version).toEqual(app.config.version);
@@ -87,12 +88,12 @@ describe('api client ipc mode', () => {
 			// Act
 			const block = await client.block.getByHeight(1);
 			// Assert
-			expect(block.header.height).toEqual(1);
+			expect(block.header.height).toBe(1);
 		});
 
 		it('should throw an error when action fails due to missing argument', async () => {
 			// Assert
-			await expect(client.invoke('app:getAccount')).rejects.toThrow(
+			await expect(client.invoke('app_getAccount')).rejects.toThrow(
 				'The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined',
 			);
 		});
@@ -100,16 +101,20 @@ describe('api client ipc mode', () => {
 		it('should throw an error on invalid action fails due to invalid argument', async () => {
 			// Assert
 			await expect(
-				client.invoke('app:getAccount', { address: 'randomString*&&^%^' }),
-			).rejects.toThrow('Specified key accounts:address: does not exist');
+				client.invoke('app_getAccount', { address: 'randomString*&&^%^' }),
+			).rejects.toThrow(
+				`Specified key ${concatDBKeys(DB_KEY_ACCOUNTS_ADDRESS, Buffer.alloc(0)).toString(
+					'hex',
+				)} does not exist`,
+			);
 		});
 
-		it('should return a list of registered actions', async () => {
-			const actions = await await client.invoke('app:getRegisteredActions');
+		it('should return a list of registered endpoints', async () => {
+			const actions = await await client.invoke('app_getRegisteredEndpoints');
 			expect(actions).toBeArray();
-			expect(actions).toContain('app:getConnectedPeers');
-			expect(actions).toContain('dpos:getAllDelegates');
-			expect(actions).toContain('hello:callGreet');
+			expect(actions).toContain('app_getConnectedPeers');
+			expect(actions).toContain('pos_getAllValidators');
+			expect(actions).toContain('hello_callGreet');
 		});
 	});
 
@@ -124,26 +129,26 @@ describe('api client ipc mode', () => {
 			expect(newBlockEvent[0]).toHaveProperty('block');
 		});
 		it('should return a list of registered events', async () => {
-			const events = await await client.invoke('app:getRegisteredEvents');
+			const events = await await client.invoke('app_getRegisteredEvents');
 			expect(events).toBeArray();
-			expect(events).toContain('app:ready');
-			expect(events).toContain('token:registeredToBus');
-			expect(events).toContain('hello:greet');
+			expect(events).toContain('app_ready');
+			expect(events).toContain('token_registeredToBus');
+			expect(events).toContain('hello_greet');
 		});
 	});
 
 	describe('module actions', () => {
-		it('should return all the delegates', async () => {
+		it('should return all the validators', async () => {
 			// Act
-			const delegates = await client.invoke('dpos:getAllDelegates');
+			const validators = await client.invoke('pos_getAllValidators');
 			// Assert
-			expect(delegates).toHaveLength(103);
+			expect(validators).toHaveLength(103);
 		});
 
 		it('should throw an error on invalid action', async () => {
 			// Assert
-			await expect(client.invoke('token:getAllDelegates')).rejects.toThrow(
-				"Action 'token:getAllDelegates' is not registered to bus",
+			await expect(client.invoke('token_getAllValidators')).rejects.toThrow(
+				"Action 'token_getAllValidators' is not registered to bus",
 			);
 		});
 	});
@@ -151,7 +156,7 @@ describe('api client ipc mode', () => {
 	describe('plugin actions', () => {
 		it('should be able to get data from plugin action', async () => {
 			// Act
-			const data = await client.invoke('hello:callGreet');
+			const data = await client.invoke('hello_callGreet');
 
 			// Assert
 			expect(data).toEqual({
@@ -159,27 +164,27 @@ describe('api client ipc mode', () => {
 			});
 		});
 
-		it('should be able to get data from plugin `hello:greet` event by calling action that returns undefined', async () => {
+		it('should be able to get data from plugin `hello_greet` event by calling action that returns undefined', async () => {
 			// Act
-			const data = await client.invoke('hello:publishGreetEvent');
+			const data = await client.invoke('hello_publishGreetEvent');
 
 			// Assert
 			expect(data).toBeUndefined();
 			expect(helloMessage).toEqual({ message: 'hello event' });
 		});
 
-		it('should return undefined when void action `hello:blankAction` is called', async () => {
+		it('should return undefined when void action `hello_blankAction` is called', async () => {
 			// Act
-			const data = await client.invoke('hello:publishGreetEvent');
+			const data = await client.invoke('hello_publishGreetEvent');
 
 			// Assert
 			expect(data).toBeUndefined();
 		});
 
-		it('should throw an error on invalid action `hello:randomEventName`', async () => {
+		it('should throw an error on invalid action `hello_randomEventName`', async () => {
 			// Assert
-			await expect(client.invoke('hello:randomEventName')).rejects.toThrow(
-				"Action 'hello:randomEventName' is not registered to bus",
+			await expect(client.invoke('hello_randomEventName')).rejects.toThrow(
+				"Action 'hello_randomEventName' is not registered to bus",
 			);
 		});
 	});

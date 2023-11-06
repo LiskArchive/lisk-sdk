@@ -38,12 +38,10 @@ const { transactions } = require('lisk-elements');
 | -------------------------------------------------------------------------------------------- | :----------------------------------------------------------------: | -------------------------------------------------------------------------------------------------------- |
 | [lisk-elements](https://www.npmjs.com/package/@liskhq/lisk-elements)                         |         ![npm](https://img.shields.io/npm/v/lisk-elements)         | Package contains everything                                                                              |
 | [@liskhq/lisk-api-client](https://www.npmjs.com/package/@liskhq/lisk-api-client)             |    ![npm](https://img.shields.io/npm/v/@liskhq/lisk-api-client)    | An API client for the Lisk network                                                                       |
-| [@liskhq/lisk-bft](https://www.npmjs.com/package/@liskhq/lisk-bft)                           |       ![npm](https://img.shields.io/npm/v/@liskhq/lisk-bft)        | Byzantine fault tolerance implementation according to the Lisk protocol                                  |
 | [@liskhq/lisk-chain](https://www.npmjs.com/package/@liskhq/lisk-chain)                       |      ![npm](https://img.shields.io/npm/v/@liskhq/lisk-chain)       | Implements blocks and state management that are used for block processing according to the Lisk protocol |
 | [@liskhq/lisk-codec](https://www.npmjs.com/package/@liskhq/lisk-codec)                       |      ![npm](https://img.shields.io/npm/v/@liskhq/lisk-codec)       | Decoder and encoder using Lisk JSON schema according to the Lisk protocol                                |
 | [@liskhq/lisk-cryptography](https://www.npmjs.com/package/@liskhq/lisk-cryptography)         |   ![npm](https://img.shields.io/npm/v/@liskhq/lisk-cryptography)   | General cryptographic functions for use with Lisk-related software                                       |
 | [@liskhq/lisk-db](https://www.npmjs.com/package/@liskhq/lisk-db)                             |        ![npm](https://img.shields.io/npm/v/@liskhq/lisk-db)        | A database access implementation for use with Lisk-related software                                      |
-| [@liskhq/lisk-genesis](https://www.npmjs.com/package/@liskhq/lisk-genesis)                   |     ![npm](https://img.shields.io/npm/v/@liskhq/lisk-genesis)      | Genesis block creation functions according to the Lisk protocol                                          |
 | [@liskhq/lisk-p2p](https://www.npmjs.com/package/@liskhq/lisk-p2p)                           |       ![npm](https://img.shields.io/npm/v/@liskhq/lisk-p2p)        | _unstructured_ P2P library for the Lisk protocol                                                         |
 | [@liskhq/lisk-passphrase](https://www.npmjs.com/package/@liskhq/lisk-passphrase)             |    ![npm](https://img.shields.io/npm/v/@liskhq/lisk-passphrase)    | Mnemonic passphrase helpers for use with Lisk-related software                                           |
 | [@liskhq/lisk-transactions](https://www.npmjs.com/package/@liskhq/lisk-transactions)         |   ![npm](https://img.shields.io/npm/v/@liskhq/lisk-transactions)   | Everything related to transactions according to the Lisk protocol                                        |
@@ -69,4 +67,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 [lisk core github]: https://github.com/LiskHQ/lisk
-[lisk documentation site]: https://lisk.io/documentation/lisk-elements
+[lisk documentation site]: https://lisk.com/documentation/lisk-sdk/references/lisk-elements

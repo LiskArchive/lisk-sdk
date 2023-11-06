@@ -1,16 +1,13 @@
 module.exports = {
-	globals: {
-		'ts-jest': {
-			tsconfig: './test/tsconfig.json',
-		},
-	},
 	testMatch: ['<rootDir>/test/**/?(*.)+(spec|test).+(ts|tsx|js)'],
 	setupFilesAfterEnv: ['<rootDir>/test/setup.js'],
 	transform: {
-		'^.+\\.(ts|tsx)$': 'ts-jest',
-	},
-	moduleNameMapper: {
-		'^axios$': 'axios/dist/axios.js',
+		'^.+\\.(ts|tsx)$': [
+			'ts-jest',
+			{
+				tsconfig: '<rootDir>/test/tsconfig.json',
+			},
+		],
 	},
 	verbose: false,
 	collectCoverage: false,
@@ -40,4 +37,5 @@ module.exports = {
 	 * This can be done programmatically using jest.resetModules().
 	 */
 	resetModules: true,
+	testEnvironment: 'node',
 };

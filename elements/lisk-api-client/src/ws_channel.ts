@@ -15,42 +15,11 @@
 
 import * as WebSocket from 'isomorphic-ws';
 import { EventEmitter } from 'events';
-import { JSONRPCMessage, JSONRPCNotification, EventCallback } from './types';
-import { convertRPCError } from './utils';
+import { JSONRPCMessage, EventCallback, Defer } from './types';
+import { convertRPCError, defer, messageIsNotification, promiseWithTimeout } from './utils';
 
 const CONNECTION_TIMEOUT = 2000;
 const RESPONSE_TIMEOUT = 3000;
-
-const timeout = async <T = void>(ms: number, message?: string): Promise<T> =>
-	new Promise((_, reject) => {
-		const id = setTimeout(() => {
-			clearTimeout(id);
-			reject(new Error(message ?? `Timed out in ${ms}ms.`));
-		}, ms);
-	});
-
-interface Defer<T> {
-	promise: Promise<T>;
-	resolve: (result: T) => void;
-	reject: (error?: Error) => void;
-}
-
-const defer = <T>(): Defer<T> => {
-	let resolve!: (res: T) => void;
-	let reject!: (error?: Error) => void;
-
-	const promise = new Promise<T>((_resolve, _reject) => {
-		resolve = _resolve;
-		reject = _reject;
-	});
-
-	return { promise, resolve, reject };
-};
-
-const messageIsNotification = <T = unknown>(
-	input: JSONRPCMessage<T>,
-): input is JSONRPCNotification<T> =>
-	!!((input.id === undefined || input.id === null) && input.method);
 
 export class WSChannel {
 	public isAlive = false;
@@ -58,7 +27,7 @@ export class WSChannel {
 	private _ws?: WebSocket;
 	private _requestCounter = 0;
 	private _pendingRequests: {
-		[key: number]: Defer<any>;
+		[key: number]: Defer<unknown>;
 	} = {};
 	private readonly _emitter: EventEmitter;
 
@@ -94,11 +63,11 @@ export class WSChannel {
 		});
 
 		try {
-			await Promise.race([
-				connectHandler,
-				errorHandler,
-				timeout(CONNECTION_TIMEOUT, `Could not connect in ${CONNECTION_TIMEOUT}ms`),
-			]);
+			await promiseWithTimeout(
+				[connectHandler, errorHandler],
+				CONNECTION_TIMEOUT,
+				`Could not connect in ${CONNECTION_TIMEOUT}ms`,
+			);
 		} catch (err) {
 			this._ws.close();
 
@@ -131,10 +100,11 @@ export class WSChannel {
 		});
 
 		this._ws.close();
-		await Promise.race([
-			closeHandler,
-			timeout(CONNECTION_TIMEOUT, `Could not disconnect in ${CONNECTION_TIMEOUT}ms`),
-		]);
+		await promiseWithTimeout(
+			[closeHandler],
+			CONNECTION_TIMEOUT,
+			`Could not disconnect in ${CONNECTION_TIMEOUT}ms`,
+		);
 	}
 
 	public async invoke<T = Record<string, unknown>>(
@@ -155,18 +125,41 @@ export class WSChannel {
 		this._ws?.send(JSON.stringify(request));
 
 		const response = defer<T>();
-		this._pendingRequests[this._requestCounter] = response;
+		this._pendingRequests[this._requestCounter] = response as Defer<unknown>;
 		this._requestCounter += 1;
-
-		return Promise.race<T>([
-			response.promise,
-			timeout<T>(RESPONSE_TIMEOUT, `Response not received in ${RESPONSE_TIMEOUT}ms`),
-		]);
+		return promiseWithTimeout(
+			[response.promise],
+			RESPONSE_TIMEOUT,
+			`Response not received in ${RESPONSE_TIMEOUT}ms`,
+		);
 	}
 
 	public subscribe<T = Record<string, unknown>>(eventName: string, cb: EventCallback<T>): void {
+		const request = {
+			jsonrpc: '2.0',
+			id: this._requestCounter,
+			method: 'subscribe',
+			params: {
+				topics: [eventName],
+			},
+		};
+		this._requestCounter += 1;
+		this._ws?.send(JSON.stringify(request));
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._emitter.on(eventName, cb);
+	}
+
+	public unsubscribe(eventName: string): void {
+		const request = {
+			jsonrpc: '2.0',
+			id: this._requestCounter,
+			method: 'unsubscribe',
+			params: {
+				topics: [eventName],
+			},
+		};
+		this._requestCounter += 1;
+		this._ws?.send(JSON.stringify(request));
 	}
 
 	private _handleClose(): void {

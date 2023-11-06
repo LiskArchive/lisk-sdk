@@ -46,7 +46,6 @@ build/Release
 # Dependency directories
 node_modules
 jspm_packages
-.husky
 
 # Optional npm cache directory
 .npm
@@ -72,6 +71,7 @@ browsertest/browsertest.min.js
 browsertest/src
 browsertest/test
 tsconfig.tsbuildinfo
+.parcel-cache
 
 # Unsupported lock files
 package-lock.json

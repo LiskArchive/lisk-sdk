@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ReportMisbehaviorCommand constructor should have valid schema 1`] = `
+{
+  "$id": "/pos/command/reportMisbehaviorParams",
+  "properties": {
+    "header1": {
+      "dataType": "bytes",
+      "fieldNumber": 1,
+    },
+    "header2": {
+      "dataType": "bytes",
+      "fieldNumber": 2,
+    },
+  },
+  "required": [
+    "header1",
+    "header2",
+  ],
+  "type": "object",
+}
+`;

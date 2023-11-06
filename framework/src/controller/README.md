@@ -7,18 +7,6 @@ The controller defines a set of events, that each component can subscribe to:
 
 The following events and actions are available for all enabled plugins and are at the same time accessible by all enabled plugins.
 
-#### Events
-
-| Event                       | Description                                                                                                                                                                                                                                    |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| _plugin_:registeredToBus    | Triggered when the plugin has completed registering its events and actions with the controller. So when this event is triggered, the subscriber of the event can be sure that the controller has whitelisted its requested events and actions. |
-| _plugin_:loading:started    | Triggered just before the controller calls the plugin’s `load` method.                                                                                                                                                                         |
-| _plugin_:loading:finished   | Triggered just after the plugin’s `load` method has completed execution.                                                                                                                                                                       |
-| _plugin_:unloading:started  | Triggered just before the controller calls the plugin’s `unload` method.                                                                                                                                                                       |
-| _plugin_:unloading:error    | Triggered if any error occurred during the call of plugin’s `unload` method.                                                                                                                                                                   |
-| _plugin_:unloading:finished | Triggered just after the plugin’s `unload` method has completed execution.                                                                                                                                                                     |
-| app:ready                   | Triggered when the controller has finished initializing the plugins and each plugin has been successfully loaded.                                                                                                                              |
-
 #### Actions
 
 Most of the data flow will be handled through the propagation of such events.

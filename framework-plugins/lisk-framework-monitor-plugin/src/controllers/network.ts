@@ -11,10 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseChannel } from 'lisk-framework';
+import { BasePlugin } from 'lisk-sdk';
 import { PeerInfo } from '../types';
 
-interface NetworkStats {
+export interface NetworkStats {
 	[key: string]: unknown;
 }
 
@@ -36,10 +36,10 @@ const getMajorityHeight = (peers: PeerInfo[]): { height: number; count: number }
 	return majority;
 };
 
-export const getNetworkStats = async (channel: BaseChannel): Promise<NetworkStats> => {
-	const networkStats = await channel.invoke<Record<string, unknown>>('app:getNetworkStats');
-	const connectedPeers = await channel.invoke<PeerInfo[]>('app:getConnectedPeers');
-	const disconnectedPeers = await channel.invoke<PeerInfo[]>('app:getDisconnectedPeers');
+export const getNetworkStats = async (client: BasePlugin['apiClient']): Promise<NetworkStats> => {
+	const networkStats = await client.invoke('network_getStats');
+	const connectedPeers = await client.invoke<PeerInfo[]>('network_getConnectedPeers');
+	const disconnectedPeers = await client.invoke<PeerInfo[]>('network_getDisconnectedPeers');
 	const majorityHeight = getMajorityHeight(connectedPeers);
 	const totalPeers = {
 		connected: connectedPeers.length,

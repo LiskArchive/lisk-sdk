@@ -13,12 +13,13 @@
  *
  */
 
-import Command, { flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as validator from '@liskhq/lisk-validator';
 import { flagsWithParser } from '../../utils/flags';
+import { OWNER_READ_WRITE } from '../../constants';
 
 export class HashOnionCommand extends Command {
 	static description = 'Create hash onions to be used by the forger.';
@@ -32,24 +33,24 @@ export class HashOnionCommand extends Command {
 		output: flagParser.string({
 			char: 'o',
 			description: 'Output file path',
-		}) as flagParser.IFlag<string | undefined>,
+		}),
 		count: flagParser.integer({
 			char: 'c',
 			description: 'Total number of hashes to produce',
 			default: 1000000,
-		}) as flagParser.IFlag<number>,
+		}),
 		distance: flagParser.integer({
 			char: 'd',
-			description: 'Distance between each hashes',
+			description: 'Distance between each hash',
 			default: 1000,
-		}) as flagParser.IFlag<number>,
+		}),
 		pretty: flagsWithParser.pretty,
 	};
 
 	async run(): Promise<void> {
 		const {
 			flags: { output, count, distance, pretty },
-		} = this.parse(HashOnionCommand);
+		} = await this.parse(HashOnionCommand);
 
 		if (distance <= 0 || !validator.isValidInteger(distance)) {
 			throw new Error('Distance flag must be an integer and greater than 0.');
@@ -64,18 +65,18 @@ export class HashOnionCommand extends Command {
 			fs.ensureDirSync(dir);
 		}
 
-		const seed = cryptography.generateHashOnionSeed();
+		const seed = cryptography.utils.generateHashOnionSeed();
 
-		const hashBuffers = cryptography.hashOnion(seed, count, distance);
+		const hashBuffers = cryptography.utils.hashOnion(seed, count, distance);
 		const hashes = hashBuffers.map(buf => buf.toString('hex'));
 
 		const result = { count, distance, hashes };
 
 		if (output) {
 			if (pretty) {
-				fs.writeJSONSync(output, result, { spaces: ' ' });
+				fs.writeJSONSync(output, result, { spaces: ' ', mode: OWNER_READ_WRITE });
 			} else {
-				fs.writeJSONSync(output, result);
+				fs.writeJSONSync(output, result, { mode: OWNER_READ_WRITE });
 			}
 		} else {
 			this.printJSON(result, pretty);

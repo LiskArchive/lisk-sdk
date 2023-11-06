@@ -13,21 +13,29 @@
  */
 
 import { randomBytes } from 'crypto';
-import { testing } from 'lisk-framework';
+import { testing, ApplicationConfigForPlugin } from 'lisk-sdk';
 import { MonitorPlugin } from '../../src/monitor_plugin';
-import * as config from '../../src/defaults/default_config';
+import { configSchema } from '../../src/schemas';
 
-const validPluginOptions = config.defaultConfig.default;
+const appConfigForPlugin: ApplicationConfigForPlugin = {
+	...testing.fixtures.defaultConfig,
+};
+
+const validPluginOptions = configSchema.default;
 
 describe('_handlePostTransactionAnnounce', () => {
 	let monitorPluginInstance: MonitorPlugin;
-	const {
-		mocks: { channelMock },
-	} = testing;
 
 	beforeEach(async () => {
-		monitorPluginInstance = new MonitorPlugin(validPluginOptions as never);
-		await monitorPluginInstance.load(channelMock);
+		monitorPluginInstance = new MonitorPlugin();
+		monitorPluginInstance['_apiClient'] = {
+			invoke: jest.fn(),
+		};
+		await monitorPluginInstance.init({
+			config: validPluginOptions,
+			appConfig: appConfigForPlugin,
+			logger: testing.mocks.loggerMock,
+		});
 	});
 
 	it('should add new transactions to state', () => {
@@ -54,13 +62,16 @@ describe('_handlePostTransactionAnnounce', () => {
 
 describe('_cleanUpTransactionStats', () => {
 	let monitorPluginInstance: MonitorPlugin;
-	const {
-		mocks: { channelMock },
-	} = testing;
-
 	beforeEach(async () => {
-		monitorPluginInstance = new MonitorPlugin(validPluginOptions as never);
-		await monitorPluginInstance.load(channelMock);
+		monitorPluginInstance = new MonitorPlugin();
+		monitorPluginInstance['_apiClient'] = {
+			invoke: jest.fn(),
+		};
+		await monitorPluginInstance.init({
+			config: validPluginOptions,
+			appConfig: appConfigForPlugin,
+			logger: testing.mocks.loggerMock,
+		});
 	});
 
 	it('should remove transaction stats that are more than 10 minutes old', () => {

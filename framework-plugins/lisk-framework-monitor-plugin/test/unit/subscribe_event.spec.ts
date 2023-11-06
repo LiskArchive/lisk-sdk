@@ -11,54 +11,53 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { testing } from 'lisk-framework';
+import { testing, ApplicationConfigForPlugin } from 'lisk-sdk';
 import { MonitorPlugin } from '../../src';
-import * as config from '../../src/defaults/default_config';
+import { configSchema } from '../../src/schemas';
 
-const validPluginOptions = config.defaultConfig.default;
+const appConfigForPlugin: ApplicationConfigForPlugin = {
+	...testing.fixtures.defaultConfig,
+};
+
+const validPluginOptions = configSchema.default;
 
 describe('subscribe to event', () => {
 	let monitorPlugin: MonitorPlugin;
-	let subscribeMock: jest.Mock;
 	const {
 		mocks: { channelMock },
 	} = testing;
 
-	beforeEach(() => {
-		subscribeMock = jest.fn();
-		channelMock.subscribe = subscribeMock;
-		monitorPlugin = new MonitorPlugin(validPluginOptions as never);
+	beforeEach(async () => {
+		monitorPlugin = new MonitorPlugin();
+		monitorPlugin['_apiClient'] = {
+			schema: {},
+			invoke: jest.fn(),
+			subscribe: jest.fn(),
+		};
+		await monitorPlugin.init({
+			config: validPluginOptions,
+			appConfig: appConfigForPlugin,
+			logger: testing.mocks.loggerMock,
+		});
 		(monitorPlugin as any)._channel = channelMock;
 	});
 
-	it('should register listener to network:event', () => {
+	it('should register listener to networkEvent', () => {
 		// Act
 		monitorPlugin['_subscribeToEvents']();
 		// Assert
-		expect(subscribeMock).toHaveBeenCalledTimes(2);
-		expect(subscribeMock).toHaveBeenCalledWith('app:network:event', expect.any(Function));
-	});
-
-	it('should not handle block when data is invalid', () => {
-		// Arrange
-		jest.spyOn(monitorPlugin as any, '_handlePostBlock');
-		// Act
-		monitorPlugin['_subscribeToEvents']();
-		subscribeMock.mock.calls[0][1]({ event: 'postBlock', data: null });
-		// Assert
-		expect(monitorPlugin['_handlePostBlock']).not.toHaveBeenCalled();
-	});
-
-	it('should not handle transaction when data is invalid', () => {
-		// Arrange
-		jest.spyOn(monitorPlugin as any, '_handlePostTransactionAnnounce');
-		// Act
-		monitorPlugin['_subscribeToEvents']();
-		subscribeMock.mock.calls[0][1]({
-			event: 'postTransactionsAnnouncement',
-			data: { transactionIds: [1, 2, 3] },
-		});
-		// Assert
-		expect(monitorPlugin['_handlePostTransactionAnnounce']).not.toHaveBeenCalled();
+		expect(monitorPlugin.apiClient.subscribe).toHaveBeenCalledTimes(3);
+		expect(monitorPlugin.apiClient.subscribe).toHaveBeenCalledWith(
+			'network_newBlock',
+			expect.any(Function),
+		);
+		expect(monitorPlugin.apiClient.subscribe).toHaveBeenCalledWith(
+			'network_newTransaction',
+			expect.any(Function),
+		);
+		expect(monitorPlugin.apiClient.subscribe).toHaveBeenCalledWith(
+			'chain_forked',
+			expect.any(Function),
+		);
 	});
 });

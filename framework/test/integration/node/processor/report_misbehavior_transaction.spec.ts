@@ -11,24 +11,28 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Block } from '@liskhq/lisk-chain';
-import { signData, getAddressFromPassphrase } from '@liskhq/lisk-cryptography';
+import { Block, BlockHeader } from '@liskhq/lisk-chain';
 
+import { address } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../utils';
-import { DefaultAccountProps } from '../../../fixtures';
 import {
 	createTransferTransaction,
 	createReportMisbehaviorTransaction,
-} from '../../../utils/node/transaction';
+	defaultTokenID,
+	createValidatorStakeTransaction,
+} from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
+import { Keys } from '../../../../src/testing/fixtures';
+import { defaultConfig } from '../../../../src/modules/token/constants';
 
 describe('Transaction order', () => {
 	let processEnv: testing.BlockProcessingEnv;
-	let networkIdentifier: Buffer;
-	let blockGenerator: string;
+	let chainID: Buffer;
+	let blockGenerator: Keys;
 	let newBlock: Block;
-	let senderAccount: { address: Buffer; passphrase: string };
+	let senderAccount: ReturnType<typeof nodeUtils.createAccount>;
 	const databasePath = '/tmp/lisk/report_misbehavior/test';
+	const genesis = testing.fixtures.defaultFaucetAccount;
 
 	beforeAll(async () => {
 		processEnv = await testing.getBlockProcessingEnv({
@@ -36,65 +40,91 @@ describe('Transaction order', () => {
 				databasePath,
 			},
 		});
-		networkIdentifier = processEnv.getNetworkId();
-		blockGenerator = await processEnv.getNextValidatorPassphrase(processEnv.getLastBlock().header);
+		chainID = processEnv.getChainID();
+		blockGenerator = await processEnv.getNextValidatorKeys(processEnv.getLastBlock().header);
 		// Fund sender account
-		const genesisAccount = await processEnv
-			.getDataAccess()
-			.getAccountByAddress<DefaultAccountProps>(testing.fixtures.defaultFaucetAccount.address);
+		const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+			address: genesis.address,
+		});
 		senderAccount = nodeUtils.createAccount();
 		const transaction = createTransferTransaction({
-			nonce: genesisAccount.sequence.nonce,
+			nonce: BigInt(authData.nonce),
 			recipientAddress: senderAccount.address,
 			amount: BigInt('10000000000'),
-			networkIdentifier,
-			passphrase: testing.fixtures.defaultFaucetAccount.passphrase,
-			fee: BigInt(142000), // minFee not to give fee for generator
+			chainID,
+			privateKey: Buffer.from(genesis.privateKey, 'hex'),
+			fee: BigInt(166000) + BigInt(defaultConfig.userAccountInitializationFee), // minFee not to give fee for generator
 		});
 		newBlock = await processEnv.createBlock([transaction]);
 
 		await processEnv.process(newBlock);
 	});
 
-	afterAll(async () => {
-		await processEnv.cleanup({ databasePath });
+	afterAll(() => {
+		processEnv.cleanup({ databasePath });
 	});
 
-	describe('when report misbehavior transaction is submitted against the delegate', () => {
+	describe('when report misbehavior transaction is submitted against the validator', () => {
 		it('should accept the block with transaction', async () => {
 			// get last block
 			const { header } = processEnv.getLastBlock();
 			// create report misbehavior against last block
-			const conflictingBlockHeader = {
-				...header,
+			const conflictingHeader = new BlockHeader({
+				...header.toObject(),
 				height: 100,
-			};
-			const conflictingBytes = processEnv
-				.getDataAccess()
-				.encodeBlockHeader(conflictingBlockHeader, true);
-			const signature = signData(
-				Buffer.concat([networkIdentifier, conflictingBytes]),
-				blockGenerator,
+			});
+			conflictingHeader.sign(chainID, Buffer.from(blockGenerator.plain.generatorPrivateKey, 'hex'));
+			const originalBalance = await processEnv.invoke<{ availableBalance: string }>(
+				'token_getBalance',
+				{
+					address: blockGenerator.address,
+					tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
+				},
 			);
+
+			const stakeTx = createValidatorStakeTransaction({
+				chainID,
+				nonce: BigInt(0),
+				privateKey: Buffer.from(blockGenerator.privateKey, 'hex'),
+				stakes: [
+					{
+						validatorAddress: address.getAddressFromLisk32Address(blockGenerator.address),
+						amount: BigInt('100000000000'),
+					},
+				],
+			});
+			newBlock = await processEnv.createBlock([stakeTx]);
+			await processEnv.process(newBlock);
+
 			const tx = createReportMisbehaviorTransaction({
 				nonce: BigInt(0),
-				passphrase: senderAccount.passphrase,
+				privateKey: senderAccount.privateKey,
 				header1: header,
-				header2: {
-					...conflictingBlockHeader,
-					signature,
-				},
-				networkIdentifier,
+				header2: conflictingHeader,
+				chainID,
 			});
 			// create a block and process them
 			const nextBlock = await processEnv.createBlock([tx]);
 
 			await processEnv.process(nextBlock);
-			const updatedDelegate = await processEnv
-				.getDataAccess()
-				.getAccountByAddress<DefaultAccountProps>(getAddressFromPassphrase(blockGenerator));
-			expect(updatedDelegate.dpos.delegate.pomHeights).toHaveLength(1);
-			expect(updatedDelegate.token.balance).toEqual(BigInt(0));
+			const updatedValidator = await processEnv.invoke<{ reportMisbehaviorHeights: number[] }>(
+				'pos_getValidator',
+				{
+					address: blockGenerator.address,
+				},
+			);
+			expect(updatedValidator.reportMisbehaviorHeights).toHaveLength(1);
+			const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
+				address: blockGenerator.address,
+				tokenID: defaultTokenID(processEnv.getChainID()).toString('hex'),
+			});
+			expect(balance.availableBalance).toEqual(
+				(
+					BigInt(originalBalance.availableBalance) -
+					BigInt(100000000) -
+					BigInt('100000000000')
+				).toString(),
+			);
 		});
 	});
 });

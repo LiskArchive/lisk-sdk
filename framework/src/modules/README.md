@@ -23,7 +23,7 @@ export class MyModule extends BaseModule {
      * ID of this module, which must be greater than 1000 for non-default modules and unique across the application.
      * This property is used for routing transaction asset and account schema field number.
      */
-    public abstract id: number;
+    public abstract id: Buffer;
 
     /**
      * Name of this module.
@@ -100,7 +100,7 @@ export class MyAsset extends BaseAsset<T = unknown> {
      * ID of this asset, which must be unique within a registering module.
      * This property is used for routing transaction asset.
      */
-    public abstract id: number;
+    public abstract id: Buffer;
 
     /**
      * Name of this asset.

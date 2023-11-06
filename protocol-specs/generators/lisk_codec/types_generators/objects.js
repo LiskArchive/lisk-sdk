@@ -19,114 +19,121 @@ const prepareProtobuffersObjects = () =>
 
 const { Objects, ObjectWithOptionalProp } = prepareProtobuffersObjects();
 
-const generateValidObjectEncodings = () => {
-	const object = {
-		address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
-		balance: 10000000,
-		isDelegate: true,
-		name: 'delegate',
-		asset: {
-			data: 'Check out the Lisk SDK now in binary!',
-			fooBar: {
-				foo: 9,
-				bar: 9,
-			},
+const object = {
+	address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
+	balance: '10000000',
+	isValidator: true,
+	name: 'validator',
+	asset: {
+		data: 'Check out the Lisk SDK now in binary!',
+		fooBar: {
+			foo: 9,
+			bar: 9,
 		},
-	};
-
-	const input = {
-		object: {
-			object,
-			schema: {
-				$id: 'object11',
-				type: 'object',
-				properties: {
-					address: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-					balance: {
-						dataType: 'uint64',
-						fieldNumber: 2,
-					},
-					isDelegate: {
-						dataType: 'boolean',
-						fieldNumber: 3,
-					},
-					name: {
-						dataType: 'string',
-						fieldNumber: 4,
-					},
-					asset: {
-						type: 'object',
-						fieldNumber: 5,
-						properties: {
-							data: {
-								dataType: 'string',
-								fieldNumber: 1,
-							},
-							fooBar: {
-								type: 'object',
-								fieldNumber: 2,
-								properties: {
-									foo: {
-										dataType: 'uint32',
-										fieldNumber: 1,
-									},
-									bar: {
-										dataType: 'uint32',
-										fieldNumber: 2,
-									},
-								},
-							},
+	},
+};
+const objectSchema = {
+	$id: '/object11',
+	type: 'object',
+	properties: {
+		address: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		balance: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		isValidator: {
+			dataType: 'boolean',
+			fieldNumber: 3,
+		},
+		name: {
+			dataType: 'string',
+			fieldNumber: 4,
+		},
+		asset: {
+			type: 'object',
+			fieldNumber: 5,
+			properties: {
+				data: {
+					dataType: 'string',
+					fieldNumber: 1,
+				},
+				fooBar: {
+					type: 'object',
+					fieldNumber: 2,
+					properties: {
+						foo: {
+							dataType: 'uint32',
+							fieldNumber: 1,
+						},
+						bar: {
+							dataType: 'uint32',
+							fieldNumber: 2,
 						},
 					},
 				},
 			},
 		},
-		objectOptionalProp: {
-			object: {
-				isActive: true,
-				value: 1,
-			},
-			schema: {
-				$id: 'object12',
-				type: 'object',
-				properties: {
-					isActive: {
-						dataType: 'boolean',
-						fieldNumber: 1,
-					},
-					data: {
-						dataType: 'bytes',
-						fieldNumber: 2,
-					},
-					value: {
-						dataType: 'uint64',
-						fieldNumber: 3,
-					},
-				},
-			},
+	},
+};
+
+const objectWithOptionalProps = {
+	isActive: true,
+	value: '1',
+};
+
+const objectWithOptionalPropsSchema = {
+	$id: '/object12',
+	type: 'object',
+	properties: {
+		isActive: {
+			dataType: 'boolean',
+			fieldNumber: 1,
 		},
-	};
+		data: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		value: {
+			dataType: 'uint64',
+			fieldNumber: 3,
+		},
+	},
+};
 
-	const objectEncoded = Objects.encode(input.object.object).finish();
-	const objectOptionalPropEncoded = ObjectWithOptionalProp.encode(
-		input.objectOptionalProp.object,
-	).finish();
+const objectEncoded = Objects.encode(object).finish();
+const objectOptionalPropEncoded = ObjectWithOptionalProp.encode(objectWithOptionalProps).finish();
 
-	return [
+module.exports = {
+	validObjectEncodingsTestCases: [
 		{
 			description: 'Encoding of object',
-			input: input.object,
-			output: { value: objectEncoded.toString('hex') },
+			input: { object, schema: objectSchema },
+			output: { value: objectEncoded },
 		},
 		{
 			description: 'Encoding of object with optional property',
-			input: input.objectOptionalProp,
-			output: { value: objectOptionalPropEncoded.toString('hex') },
+			input: { object: objectWithOptionalProps, schema: objectWithOptionalPropsSchema },
+			output: { value: objectOptionalPropEncoded },
 		},
-	];
+	],
+	validObjectDecodingsTestCases: [
+		{
+			description: 'Decoding of object',
+			input: { value: objectEncoded, schema: objectSchema },
+			output: { object },
+		},
+		{
+			description: 'Decoding of object with optional property',
+			input: { value: objectOptionalPropEncoded, schema: objectWithOptionalPropsSchema },
+			output: {
+				object: {
+					...objectWithOptionalProps,
+					data: Buffer.alloc(0),
+				},
+			},
+		},
+	],
 };
-
-module.exports = generateValidObjectEncodings;

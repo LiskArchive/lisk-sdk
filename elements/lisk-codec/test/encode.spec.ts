@@ -12,442 +12,359 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { codec } from '../src/codec';
+import { buildTestCases, getAccountFromJSON } from './utils';
 
-import { testCases as objectTestCases } from '../fixtures/objects_encodings.json';
-import { testCases as bytesTestCases } from '../fixtures/bytes_encodings.json';
-import { testCases as stringTestCases } from '../fixtures/string_encodings.json';
-import { testCases as booleanTestCases } from '../fixtures/boolean_encodings.json';
-import { testCases as numberTestCases } from '../fixtures/number_encodings.json';
-import { testCases as CartTestCases } from '../fixtures/cart_sample_encoding.json';
+import { testCases as accountTestCases } from '../fixtures/account_encodings.json';
 import { testCases as arrayTestCases } from '../fixtures/arrays_encodings.json';
-import * as blockEncoding from '../fixtures/block_encodings.json';
-import * as blockHeaderEncoding from '../fixtures/block_header_encodings.json';
-import * as blockAssetEncoding from '../fixtures/block_asset_encodings.json';
-import * as genesisBlockAssetEncoding from '../fixtures/genesis_block_encodings.json';
-import * as accountEncoding from '../fixtures/account_encodings.json';
-import * as transactionEncoding from '../fixtures/transaction_encodings.json';
-import * as peerInfoEncoding from '../fixtures/peer_info_sample_encoding.json';
-import * as nestedArrayEncoding from '../fixtures/nested_array_encoding.json';
+import { testCases as blockAssetTestCases } from '../fixtures/block_asset_encodings.json';
+import { testCases as blockTestCases } from '../fixtures/block_encodings.json';
+import { testCases as blockHeaderTestCases } from '../fixtures/block_header_encodings.json';
+import { testCases as booleanTestCases } from '../fixtures/boolean_encodings.json';
+import { testCases as bytesTestCases } from '../fixtures/bytes_encodings.json';
+import { testCases as cartSampleTestCases } from '../fixtures/cart_sample_encodings.json';
+import { testCases as genesisBlockTestCases } from '../fixtures/genesis_block_encodings.json';
+import { testCases as nestedArrayTestCases } from '../fixtures/nested_array_encoding.json';
+import { testCases as numberTestCases } from '../fixtures/number_encodings.json';
+import { testCases as objectsTestCases } from '../fixtures/objects_encodings.json';
+import { testCases as peerInfoTestCases } from '../fixtures/peer_info_sample_encoding.json';
+import { testCases as stringTestCases } from '../fixtures/string_encodings.json';
+import { testCases as transactionTestCases } from '../fixtures/transaction_encodings.json';
 
 describe('encode', () => {
-	describe('objects', () => {
-		it('should encode an object with nested objects to Buffer', () => {
-			const objectFixtureInput = objectTestCases[0].input;
-			const objectFixtureOutput = objectTestCases[0].output;
-			const message = objectFixtureInput.object;
+	describe('empty', () => {
+		const emptySchema = {
+			$id: '/lisk/empty',
+			type: 'object',
+			properties: {},
+		};
 
-			// Replace the JSON representation of buffer with an actual buffer
-			(message as any).address = Buffer.from((message as any).address.data);
-			// Fix number not being bigint
-			(message as any).balance = BigInt(message.balance);
-
-			const { schema } = objectFixtureInput;
-
-			const { value: expectedOutput } = objectFixtureOutput;
-
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
+		it('should encode empty schema to empty bytes', () => {
+			expect(codec.encode(emptySchema, {})).toEqual(Buffer.alloc(0));
 		});
 
-		it('should not encode missing properties of an object to Buffer', () => {
-			const objectFixtureInput = objectTestCases[1].input;
-			const objectFixtureOutput = objectTestCases[1].output;
-			const message = objectFixtureInput.object;
-			const { schema } = objectFixtureInput;
-			const { value: expectedOutput } = objectFixtureOutput;
+		it('should encode empty schema to empty bytes when additional properties exist', () => {
+			expect(codec.encode(emptySchema, { additional: 'property' })).toEqual(Buffer.alloc(0));
+		});
+	});
 
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
+	describe('account', () => {
+		it.each(buildTestCases(accountTestCases))('%s', ({ input, output }) => {
+			const message = getAccountFromJSON(input.object);
+
+			const result = codec.encode(input.schema, message);
+
+			expect(result.toString('hex')).toEqual(output.value);
+		});
+	});
+
+	describe('array', () => {
+		const isObjectArray = (x: any): x is { address: string; amount: string }[] =>
+			typeof x[0] === 'object' && x[0].address;
+
+		it.each(buildTestCases(arrayTestCases))('%s', ({ input, output }) => {
+			let message: any = { ...input.object };
+
+			if (isObjectArray(message.list)) {
+				message = {
+					list: message.list.map(
+						(o: { address: string; amount: string | number | bigint | boolean }) => ({
+							...o,
+							amount: BigInt(o.amount),
+						}),
+					),
+				};
+			}
+
+			const result = codec.encode(input.schema, message);
+
+			expect(result.toString('hex')).toEqual(output.value);
 		});
 
-		it('should encode array of objects containing array of objects', () => {
-			const objectFixtureInput = CartTestCases[0].input;
-			const objectFixtureOutput = CartTestCases[0].output;
-			const message = objectFixtureInput.object;
-			const { schema } = objectFixtureInput;
-			const { value: expectedOutput } = objectFixtureOutput;
+		it('should encode empty array where the datatype of the items implies non-packed encoding e.g. string', () => {
+			const schema = {
+				type: 'object',
+				$id: 'array-schema-string',
+				properties: {
+					list: {
+						type: 'array',
+						items: {
+							dataType: 'string',
+						},
+						fieldNumber: 1,
+					},
+				},
+			};
 
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
+			const result = codec.encode(schema, { list: [] });
+
+			expect(result.toString('hex')).toBe('');
+		});
+	});
+
+	describe('block_asset', () => {
+		it.each(buildTestCases(blockAssetTestCases))('%s', ({ input, output }) => {
+			const message = {
+				...input.object,
+				seedReveal: Buffer.from(input.object.seedReveal, 'hex'),
+			};
+
+			const result = codec.encode(input.schema, message);
+
+			expect(result.toString('hex')).toEqual(output.value);
+		});
+	});
+
+	describe('block', () => {
+		it.each(buildTestCases(blockTestCases))('%s', ({ input, output }) => {
+			const object = {
+				header: Buffer.from(input.object.header, 'hex'),
+				payload: input.object.payload.map(p => Buffer.from(p, 'hex')),
+			};
+
+			const result = codec.encode(input.schema, object);
+
+			expect(result.toString('hex')).toEqual(output.value);
+		});
+	});
+
+	describe('block_header', () => {
+		it.each(buildTestCases(blockHeaderTestCases))('%s', ({ input, output }) => {
+			const object = {
+				...input.object,
+				previousBlockID: Buffer.from(input.object.previousBlockID, 'hex'),
+				transactionRoot: Buffer.from(input.object.transactionRoot, 'hex'),
+				generatorPublicKey: Buffer.from(input.object.generatorPublicKey, 'hex'),
+				reward: BigInt(input.object.reward),
+				asset: Buffer.from(input.object.asset, 'hex'),
+				signature: Buffer.from(input.object.signature, 'hex'),
+			};
+
+			const result = codec.encode(input.schema, object);
+
+			expect(result.toString('hex')).toEqual(output.value);
+		});
+	});
+
+	describe('boolean', () => {
+		it.each(buildTestCases(booleanTestCases))('%s', ({ input, output }) => {
+			const result = codec.encode(input.schema, input.object);
+
+			expect(result.toString('hex')).toEqual(output.value);
 		});
 	});
 
 	describe('bytes', () => {
-		it('should encode a chunk of bytes as bytes with no changes', () => {
-			const bytesFixtureInput = bytesTestCases[0].input;
-			const bytesFixtureOutput = bytesTestCases[0].output;
-			const message = bytesFixtureInput.object;
-
-			const originalMessageBytes = Buffer.from(bytesFixtureInput.object.address.data).toString(
-				'hex',
-			);
-			// Replace the JSON representation of buffer with an actual buffer
-			(message as any).address = Buffer.from(message.address.data);
-			const { schema } = bytesFixtureInput;
-			const { value: expectedOutput } = bytesFixtureOutput;
-
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-			const liskBinaryMessageAsHex = liskBinaryMessage.toString('hex');
-
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
-
-			expect(liskBinaryMessageAsHex.substring(4)).toEqual(originalMessageBytes);
-		});
-
-		it('should encode empty bytes', () => {
-			const bytesFixtureInput = bytesTestCases[1].input;
-			const bytesFixtureOutput = bytesTestCases[1].output;
-			const message = bytesFixtureInput.object;
-			const { schema } = bytesFixtureInput;
-
-			(message as any).address = Buffer.from(message.address.data);
-			const { value: expectedOutput } = bytesFixtureOutput;
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
-		});
-	});
-
-	describe('strings', () => {
-		it('should encode a regular strings', () => {
-			const stringFixtureInput = stringTestCases[0].input;
-			const stringFixtureOutput = stringTestCases[0].output;
-			const { object: message, schema } = stringFixtureInput;
-			const { value: expectedOutput } = stringFixtureOutput;
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
-		});
-
-		it('should encode empty string', () => {
-			const stringFixtureInput = stringTestCases[1].input;
-			const stringFixtureOutput = stringTestCases[1].output;
-			const { object: message, schema } = stringFixtureInput;
-			const { value: expectedOutput } = stringFixtureOutput;
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
-		});
-
-		it('should encode symbols string', () => {
-			const stringFixtureInput = stringTestCases[2].input;
-			const stringFixtureOutput = stringTestCases[2].output;
-			const { object: message, schema } = stringFixtureInput;
-			const { value: expectedOutput } = stringFixtureOutput;
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
-		});
-	});
-
-	describe('booleans', () => {
-		it('should encode boolean true', () => {
-			const booleanFixtureInput = booleanTestCases[0].input;
-			const booleanFixtureOutput = booleanTestCases[0].output;
-			const { object: message, schema } = booleanFixtureInput;
-			const { value: expectedOutput } = booleanFixtureOutput;
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
-		});
-
-		it('should encode boolean false', () => {
-			const booleanFixtureInput = booleanTestCases[1].input;
-			const booleanFixtureOutput = booleanTestCases[1].output;
-			const { object: message, schema } = booleanFixtureInput;
-			const { value: expectedOutput } = booleanFixtureOutput;
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
-		});
-	});
-
-	describe('numbers', () => {
-		it('should encode unsigned 32', () => {
-			const numberFixtureInput = numberTestCases[0].input;
-			const numberFixtureOutput = numberTestCases[0].output;
-			const { object: message, schema } = numberFixtureInput;
-			const { value: expectedOutput } = numberFixtureOutput;
-
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
-		});
-
-		it('should encode signed 32', () => {
-			const numberFixtureInput = numberTestCases[1].input;
-			const numberFixtureOutput = numberTestCases[1].output;
-			const { object: message, schema } = numberFixtureInput;
-			const { value: expectedOutput } = numberFixtureOutput;
-
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
-		});
-
-		it('should encode unsigned 64', () => {
-			const numberFixtureInput = numberTestCases[2].input;
-			const numberFixtureOutput = numberTestCases[2].output;
-			const { object: message, schema } = numberFixtureInput;
-			(message as any).number = BigInt(message.number);
-			const { value: expectedOutput } = numberFixtureOutput;
-
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
-		});
-
-		it('should encode signed 64', () => {
-			const numberFixtureInput = numberTestCases[3].input;
-			const numberFixtureOutput = numberTestCases[3].output;
-			const { object: message, schema } = numberFixtureInput;
-			(message as any).number = BigInt(message.number);
-			const { value: expectedOutput } = numberFixtureOutput;
-
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
-		});
-	});
-
-	describe('arrays', () => {
-		it('should encode array of integers', () => {
-			const arrayFixtureInput = arrayTestCases[0].input;
-			const arrayFixtureOutput = arrayTestCases[0].output;
-			const { object: message, schema } = arrayFixtureInput;
-			const { value: expectedOutput } = arrayFixtureOutput;
-
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
-		});
-
-		it('should encode array of booleans', () => {
-			const arrayFixtureInput = arrayTestCases[1].input;
-			const arrayFixtureOutput = arrayTestCases[1].output;
-			const { object: message, schema } = arrayFixtureInput;
-			const { value: expectedOutput } = arrayFixtureOutput;
-
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
-		});
-
-		it('should encode array of strings', () => {
-			const arrayFixtureInput = arrayTestCases[2].input;
-			const arrayFixtureOutput = arrayTestCases[2].output;
-			const { object: message, schema } = arrayFixtureInput;
-			const { value: expectedOutput } = arrayFixtureOutput;
-
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
-		});
-
-		it('should encode array of objects', () => {
-			const arrayFixtureInput = arrayTestCases[3].input;
-			const arrayFixtureOutput = arrayTestCases[3].output;
-			const { object: message, schema } = arrayFixtureInput;
-			(message as any).myArray.forEach((element: { amount: any }) => {
-				// eslint-disable-next-line no-param-reassign
-				(element as any).amount = BigInt(element.amount);
-			});
-
-			const { value: expectedOutput } = arrayFixtureOutput;
-
-			const liskBinaryMessage = codec.encode(schema as any, message as any);
-			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
-		});
-	});
-
-	describe('block encoding', () => {
-		for (const testCase of blockEncoding.testCases) {
-			it(testCase.description, () => {
-				const message = {
-					header: Buffer.from(testCase.input.object.header.data),
-					payload: testCase.input.object.payload.map(payloadItem => Buffer.from(payloadItem.data)),
-				};
-
-				const result = codec.encode(testCase.input.schema, message);
-				expect(result.toString('hex')).toEqual(testCase.output.value);
-			});
-		}
-	});
-
-	describe('block header encoding', () => {
-		for (const testCase of blockHeaderEncoding.testCases) {
-			it(testCase.description, () => {
-				const message = {
-					...testCase.input.object,
-					reward: BigInt(testCase.input.object.reward),
-					asset: Buffer.from(testCase.input.object.asset.data),
-					signature: Buffer.from(testCase.input.object.signature.data),
-					transactionRoot: Buffer.from(testCase.input.object.transactionRoot.data),
-					previousBlockID: Buffer.from(testCase.input.object.previousBlockID.data),
-					generatorPublicKey: Buffer.from(testCase.input.object.generatorPublicKey.data),
-				};
-
-				const result = codec.encode(testCase.input.schema, message);
-				expect(result.toString('hex')).toEqual(testCase.output.value);
-			});
-		}
-	});
-
-	describe('block asset encoding', () => {
-		for (const testCase of blockAssetEncoding.testCases) {
-			it(testCase.description, () => {
-				const message = {
-					...testCase.input.object,
-					seedReveal: Buffer.from(testCase.input.object.seedReveal.data),
-				};
-
-				const result = codec.encode(testCase.input.schema, message);
-
-				expect(result.toString('hex')).toEqual(testCase.output.value);
-			});
-		}
-	});
-
-	describe('genesis block asset encoding', () => {
-		for (const testCase of genesisBlockAssetEncoding.testCases) {
-			it(testCase.description, () => {
-				const message = {
-					...testCase.input.object,
-					initDelegates: testCase.input.object.initDelegates.map(d => Buffer.from(d.data)),
-					accounts: testCase.input.object.accounts.map(acc => ({
-						...acc,
-						address: Buffer.from(acc.address.data),
-						balance: BigInt(acc.balance),
-						publicKey: Buffer.from(acc.publicKey.data),
-						nonce: BigInt(acc.nonce),
-						keys: {
-							...acc.keys,
-							mandatoryKeys: acc.keys.mandatoryKeys.map((b: any) => Buffer.from(b.data)),
-							optionalKeys: acc.keys.optionalKeys.map((b: any) => Buffer.from(b.data)),
-						},
-						asset: {
-							...acc.asset,
-							delegate: {
-								...acc.asset.delegate,
-								totalVotesReceived: BigInt(acc.asset.delegate.totalVotesReceived),
-							},
-							sentVotes: acc.asset.sentVotes.map(v => ({
-								...v,
-								delegateAddress: Buffer.from(v.delegateAddress.data),
-								amount: BigInt(v.amount),
-							})),
-							unlocking: acc.asset.unlocking.map((v: any) => ({
-								...v,
-								delegateAddress: Buffer.from(v.delegateAddress.data),
-								amount: BigInt(v.amount),
-							})),
-						},
-					})),
-				};
-
-				const result = codec.encode(testCase.input.schema, message);
-
-				expect(result.toString('hex')).toEqual(testCase.output.value);
-			});
-		}
-	});
-
-	describe('account encoding', () => {
-		for (const testCase of accountEncoding.testCases) {
-			it(testCase.description, () => {
-				const message = {
-					...testCase.input.object,
-					address: Buffer.from(testCase.input.object.address.data),
-					balance: BigInt(testCase.input.object.balance),
-					publicKey: Buffer.from(testCase.input.object.publicKey.data),
-					nonce: BigInt(testCase.input.object.nonce),
-					keys: {
-						...testCase.input.object.keys,
-						mandatoryKeys: testCase.input.object.keys.mandatoryKeys.map(b => Buffer.from(b.data)),
-						optionalKeys: testCase.input.object.keys.optionalKeys.map((b: any) =>
-							Buffer.from(b.data),
-						),
-					},
-					asset: {
-						...testCase.input.object.asset,
-						delegate: {
-							...testCase.input.object.asset.delegate,
-							totalVotesReceived: BigInt(testCase.input.object.asset.delegate.totalVotesReceived),
-						},
-						sentVotes: testCase.input.object.asset.sentVotes.map(v => ({
-							...v,
-							delegateAddress: Buffer.from(v.delegateAddress.data),
-							amount: BigInt(v.amount),
-						})),
-						unlocking: testCase.input.object.asset.unlocking.map(v => ({
-							...v,
-							delegateAddress: Buffer.from(v.delegateAddress.data),
-							amount: BigInt(v.amount),
-						})),
-					},
-				};
-
-				const result = codec.encode(testCase.input.schema as any, message);
-
-				expect(result.toString('hex')).toEqual(testCase.output.value);
-			});
-		}
-	});
-
-	describe('transaction encoding', () => {
-		it('Encoding of base transaction', () => {
-			const testCase = transactionEncoding.testCases[0];
-			const message = {
-				...testCase.input.object,
-				nonce: BigInt(testCase.input.object.nonce),
-				fee: BigInt(testCase.input.object.fee),
-				senderPublicKey: Buffer.from((testCase.input.object.senderPublicKey as any).data),
-				signatures: testCase.input.object.signatures?.map(v => Buffer.from(v.data)),
-				asset: Buffer.from((testCase.input.object.asset as any).data),
+		it.each(buildTestCases(bytesTestCases))('%s', ({ input, output }) => {
+			const object = {
+				...input.object,
+				address: Buffer.from(input.object.address, 'hex'),
 			};
 
-			const result = codec.encode(testCase.input.schema as any, message as any);
+			const result = codec.encode(input.schema, object);
+
+			expect(result.toString('hex')).toEqual(output.value);
+		});
+	});
+
+	describe('cart_sample', () => {
+		it.each(buildTestCases(cartSampleTestCases))('%s', ({ input, output }) => {
+			const result = codec.encode(input.schema, input.object);
+
+			expect(result.toString('hex')).toEqual(output.value);
+		});
+	});
+
+	describe('genesis_block', () => {
+		it.each(buildTestCases(genesisBlockTestCases))('%s', ({ input, output }) => {
+			const object = {
+				...input.object,
+				initValidators: input.object.initValidators.map(d => Buffer.from(d, 'hex')),
+				accounts: input.object.accounts.map(a => getAccountFromJSON(a)),
+			};
+
+			const result = codec.encode(input.schema, object);
+
+			expect(result.toString('hex')).toEqual(output.value);
+		});
+	});
+
+	describe('nested_array', () => {
+		it.each(buildTestCases(nestedArrayTestCases))('%s', ({ input, output }) => {
+			const result = codec.encode(input.schema, input.object);
+
+			expect(result.toString('hex')).toEqual(output.value);
+		});
+	});
+
+	describe('number', () => {
+		it.each(buildTestCases(numberTestCases))('%s', ({ input, output }) => {
+			const object = {
+				...input.object,
+				number:
+					typeof input.object.number === 'string'
+						? BigInt(input.object.number)
+						: input.object.number,
+			};
+
+			const result = codec.encode(input.schema, object);
+
+			expect(result.toString('hex')).toEqual(output.value);
+		});
+	});
+
+	describe('objects', () => {
+		it(objectsTestCases[0].description, () => {
+			const testCase = objectsTestCases[0];
+			const input = testCase.input as any;
+
+			const object = {
+				...input.object,
+				address: Buffer.from(input.object.address, 'hex'),
+				balance: BigInt(input.object.balance),
+			};
+
+			const result = codec.encode(input.schema, object);
+
 			expect(result.toString('hex')).toEqual(testCase.output.value);
 		});
 
-		it('Encoding of vote transaction asset', () => {
-			const testCase = transactionEncoding.testCases[1];
-			const message = {
-				votes: testCase.input.object.votes?.map(v => ({
-					delegateAddress: Buffer.from(v.delegateAddress.data),
+		it(objectsTestCases[1].description, () => {
+			const testCase = objectsTestCases[1];
+			const input = testCase.input as any;
+
+			const object = {
+				...input.object,
+				value: BigInt(input.object.value),
+			};
+
+			const result = codec.encode(input.schema, object);
+
+			expect(result.toString('hex')).toEqual(testCase.output.value);
+		});
+
+		it('should encode when object has fieldNumbers which are not sequential', () => {
+			const schema = {
+				$id: 'test/fieldNumberNotSeq',
+				type: 'object',
+				properties: {
+					address: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					balance: {
+						dataType: 'uint32',
+						fieldNumber: 3,
+					},
+				},
+			};
+
+			expect(codec.encode(schema, { address: Buffer.alloc(1), balance: 1 })).toBeInstanceOf(Buffer);
+		});
+	});
+
+	describe('peer info', () => {
+		it.each(buildTestCases(peerInfoTestCases))('%s', ({ input, output }) => {
+			const result = codec.encode(input.schema, input.object);
+
+			expect(result.toString('hex')).toEqual(output.value);
+		});
+	});
+
+	describe('string', () => {
+		it.each(buildTestCases(stringTestCases))('%s', ({ input, output }) => {
+			const result = codec.encode(input.schema, input.object);
+
+			expect(result.toString('hex')).toEqual(output.value);
+		});
+
+		it('should encode a string that contains some non-ASCII characters', () => {
+			const schema = {
+				$id: 'string-schema',
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'string',
+						fieldNumber: 1,
+					},
+				},
+			};
+
+			const result = codec.encode(schema, {
+				data: 'Checkout Lisk SDK!¢£¡',
+			});
+
+			expect(result).toBeInstanceOf(Buffer);
+		});
+	});
+
+	describe('transaction', () => {
+		// Base transaction
+		it(transactionTestCases[0].description, () => {
+			const testCase = transactionTestCases[0];
+			const input = testCase.input as any;
+
+			const object = {
+				...input.object,
+				nonce: BigInt(input.object.nonce),
+				fee: BigInt(input.object.fee),
+				senderPublicKey: Buffer.from(input.object.senderPublicKey, 'hex'),
+				asset: Buffer.from(input.object.asset, 'hex'),
+				signatures: input.object.signatures.map((s: string) => Buffer.from(s, 'hex')),
+			};
+
+			const result = codec.encode(input.schema, object);
+
+			expect(result.toString('hex')).toEqual(testCase.output.value);
+		});
+
+		// stake asset
+		it(transactionTestCases[1].description, () => {
+			const testCase = transactionTestCases[1];
+			const input = testCase.input as any;
+
+			const object = {
+				...input.object,
+				stakes: input.object.stakes.map((v: any) => ({
+					validatorAddress: Buffer.from(v.validatorAddress, 'hex'),
 					amount: BigInt(v.amount),
 				})),
 			};
 
-			const result = codec.encode(testCase.input.schema as any, message as any);
+			const result = codec.encode(input.schema, object);
+
 			expect(result.toString('hex')).toEqual(testCase.output.value);
 		});
 
-		describe('Encoding of multi signature transaction asset', () => {
-			const testCases = transactionEncoding.testCases.slice(2, 4);
-			for (const testCase of testCases) {
-				it(testCase.description, () => {
-					const message = {
-						...testCase.input.object,
-						mandatoryKeys: testCase.input.object.mandatoryKeys?.map(k => Buffer.from(k.data)),
-						optionalKeys: testCase.input.object.optionalKeys?.map(k => Buffer.from(k.data)),
-					};
+		// multisignature asset
+		it(transactionTestCases[2].description, () => {
+			const testCase = transactionTestCases[2];
+			const input = testCase.input as any;
 
-					const result = codec.encode(testCase.input.schema as any, message as any);
-					expect(result.toString('hex')).toEqual(testCase.output.value);
-				});
-			}
+			const object = {
+				...input.object,
+				mandatoryKeys: input.object.mandatoryKeys.map((v: string) => Buffer.from(v, 'hex')),
+				optionalKeys: input.object.optionalKeys.map((v: string) => Buffer.from(v, 'hex')),
+			};
+
+			const result = codec.encode(input.schema, object);
+
+			expect(result.toString('hex')).toEqual(testCase.output.value);
 		});
-	});
 
-	describe('peer info encoding', () => {
-		for (const testCase of peerInfoEncoding.testCases) {
-			it(testCase.description, () => {
-				const result = codec.encode(testCase.input.schema, testCase.input.object);
-				expect(result.toString('hex')).toEqual(testCase.output.value);
-			});
-		}
-	});
+		// multisignature asset
+		it(transactionTestCases[3].description, () => {
+			const testCase = transactionTestCases[3];
+			const input = testCase.input as any;
 
-	describe('nested array encoding', () => {
-		for (const testCase of nestedArrayEncoding.testCases) {
-			it(testCase.description, () => {
-				const result = codec.encode(testCase.input.schema, testCase.input.object);
-				expect(result.toString('hex')).toEqual(testCase.output.value);
-			});
-		}
+			const object = {
+				...input.object,
+				mandatoryKeys: input.object.mandatoryKeys.map((v: string) => Buffer.from(v, 'hex')),
+				optionalKeys: input.object.optionalKeys.map((v: string) => Buffer.from(v, 'hex')),
+			};
+
+			const result = codec.encode(input.schema, object);
+
+			expect(result.toString('hex')).toEqual(testCase.output.value);
+		});
 	});
 });

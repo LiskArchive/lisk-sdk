@@ -19,97 +19,75 @@ const prepareProtobuffersNumbers = () =>
 
 const { Number32, SignedNumber32, Number64, SignedNumber64 } = prepareProtobuffersNumbers();
 
-const generateValidNumberEncodings = () => {
-	const input = {
-		message32: {
-			object: {
-				number: 10,
-			},
-			schema: {
-				$id: 'object1',
-				type: 'object',
-				properties: {
-					number: {
-						dataType: 'uint32',
-						fieldNumber: 1,
-					},
-				},
-			},
+const getNumberSchema = type => ({
+	$id: `/numberSchema${type.replace(/^./, str => str.toUpperCase())}`,
+	type: 'object',
+	properties: {
+		number: {
+			dataType: type,
+			fieldNumber: 1,
 		},
-		messageSigned32: {
-			object: {
-				number: -10,
-			},
-			schema: {
-				$id: 'object2',
-				type: 'object',
-				properties: {
-					number: {
-						dataType: 'sint32',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-		message64: {
-			object: {
-				number: 372036854775807,
-			},
-			schema: {
-				$id: 'object3',
-				type: 'object',
-				properties: {
-					number: {
-						dataType: 'uint64',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-		messageSigned64: {
-			object: {
-				number: -9007199254740991,
-			},
-			schema: {
-				$id: 'object4',
-				type: 'object',
-				properties: {
-					number: {
-						dataType: 'sint64',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-	};
+	},
+});
 
-	const numberEncoded32 = Number32.encode(input.message32.object).finish();
-	const signedNumberEncoded32 = SignedNumber32.encode(input.messageSigned32.object).finish();
-	const numberEncoded64 = Number64.encode(input.message64.object).finish();
-	const signedNumberEncoded64 = SignedNumber64.encode(input.messageSigned64.object).finish();
+const number32Schema = getNumberSchema('uint32');
+const number32 = { number: 10 };
+const signedNumber32Schema = getNumberSchema('sint32');
+const signedNumber32 = { number: -10 };
+const number64Schema = getNumberSchema('uint64');
+const number64 = { number: '372036854775807' };
+const signedNumber64Schema = getNumberSchema('sint64');
+const signedNumber64 = { number: '-9007199254740991' };
 
-	return [
+const numberEncoded32 = Number32.encode(number32).finish();
+const signedNumberEncoded32 = SignedNumber32.encode(signedNumber32).finish();
+const numberEncoded64 = Number64.encode(number64).finish();
+const signedNumberEncoded64 = SignedNumber64.encode(signedNumber64).finish();
+
+module.exports = {
+	validNumberEncodingsTestCases: [
 		{
 			description: 'Encoding 32 bit unsigned number',
-			input: input.message32,
-			output: { value: numberEncoded32.toString('hex') },
+			input: { object: number32, schema: number32Schema },
+			output: { value: numberEncoded32 },
 		},
 		{
 			description: 'Encoding 32 bit signed number',
-			input: input.messageSigned32,
-			output: { value: signedNumberEncoded32.toString('hex') },
+			input: { object: signedNumber32, schema: signedNumber32Schema },
+			output: { value: signedNumberEncoded32 },
 		},
 		{
 			description: 'Encoding 64 bit unsigned number',
-			input: input.message64,
-			output: { value: numberEncoded64.toString('hex') },
+			input: { object: { number: BigInt(number64.number) }, schema: number64Schema },
+			output: { value: numberEncoded64 },
 		},
 		{
 			description: 'Encoding 64 bit signed number',
-			input: input.messageSigned64,
-			output: { value: signedNumberEncoded64.toString('hex') },
+			input: { object: { number: BigInt(signedNumber64.number) }, schema: signedNumber64Schema },
+			output: { value: signedNumberEncoded64 },
 		},
-	];
-};
+	],
 
-module.exports = generateValidNumberEncodings;
+	validNumberDecodingsTestCases: [
+		{
+			description: 'Decoding 32 bit unsigned number',
+			input: { value: numberEncoded32, schema: number32Schema },
+			output: { object: number32 },
+		},
+		{
+			description: 'Decoding 32 bit signed number',
+			input: { value: signedNumberEncoded32, schema: signedNumber32Schema },
+			output: { object: signedNumber32 },
+		},
+		{
+			description: 'Decoding 64 bit unsigned number',
+			input: { value: numberEncoded64, schema: number64Schema },
+			output: { object: { number: BigInt(number64.number) } },
+		},
+		{
+			description: 'Decoding 64 bit signed number',
+			input: { value: signedNumberEncoded64, schema: signedNumber64Schema },
+			output: { object: { number: BigInt(signedNumber64.number) } },
+		},
+	],
+};

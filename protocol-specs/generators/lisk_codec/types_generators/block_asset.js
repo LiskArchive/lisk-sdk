@@ -20,7 +20,7 @@ const prepareProtobuffersBlock = () =>
 const { BlockAsset } = prepareProtobuffersBlock();
 
 const blockAssetSchema = {
-	$id: 'blockAssetSchema',
+	$id: '/blockAssetSchema',
 	type: 'object',
 	properties: {
 		maxHeightPreviouslyForged: { dataType: 'uint32', fieldNumber: 1 },
@@ -30,41 +30,45 @@ const blockAssetSchema = {
 	required: ['maxHeightPreviouslyForged', 'maxHeightPrevoted', 'seedReveal'],
 };
 
-const generateValidBlockAssetEncodings = () => {
-	const input = {
-		validBlockAsset1: {
-			object: {
-				maxHeightPreviouslyForged: 1049,
-				maxHeightPrevoted: 901049,
-				seedReveal: Buffer.from('d59386e0ae435e292fbe0ebcdb954b75', 'hex'),
-			},
-			schema: blockAssetSchema,
-		},
-		validBlockAsset2: {
-			object: {
-				maxHeightPreviouslyForged: 0,
-				maxHeightPrevoted: 1049,
-				seedReveal: Buffer.from('eaaf9d4c65cb501c811ef812847a5551', 'hex'),
-			},
-			schema: blockAssetSchema,
-		},
-	};
+const validBlockAsset1 = {
+	maxHeightPreviouslyForged: 1049,
+	maxHeightPrevoted: 901049,
+	seedReveal: Buffer.from('d59386e0ae435e292fbe0ebcdb954b75', 'hex'),
+};
 
-	const validBlockAsset1Encoded = BlockAsset.encode(input.validBlockAsset1.object).finish();
-	const validBlockAsset2Encoded = BlockAsset.encode(input.validBlockAsset2.object).finish();
+const validBlockAsset2 = {
+	maxHeightPreviouslyForged: 0,
+	maxHeightPrevoted: 1049,
+	seedReveal: Buffer.from('eaaf9d4c65cb501c811ef812847a5551', 'hex'),
+};
 
-	return [
+const validBlockAsset1Encoded = BlockAsset.encode(validBlockAsset1).finish();
+const validBlockAsset2Encoded = BlockAsset.encode(validBlockAsset2).finish();
+
+module.exports = {
+	validBlockAssetEncodingsTestCases: [
 		{
 			description: 'Encoding of valid block asset',
-			input: input.validBlockAsset1,
-			output: { value: validBlockAsset1Encoded.toString('hex') },
+			input: { object: validBlockAsset1, schema: blockAssetSchema },
+			output: { value: validBlockAsset1Encoded },
 		},
 		{
 			description: 'Encoding of valid block asset with zero previously forged',
-			input: input.validBlockAsset2,
-			output: { value: validBlockAsset2Encoded.toString('hex') },
+			input: { object: validBlockAsset2, schema: blockAssetSchema },
+			output: { value: validBlockAsset2Encoded },
 		},
-	];
-};
+	],
 
-module.exports = generateValidBlockAssetEncodings;
+	validBlockAssetDecodingsTestCases: [
+		{
+			description: 'Decoding of valid block asset',
+			input: { value: validBlockAsset1Encoded, schema: blockAssetSchema },
+			output: { object: validBlockAsset1 },
+		},
+		{
+			description: 'Decoding of valid block asset with zero previously forged',
+			input: { value: validBlockAsset2Encoded, schema: blockAssetSchema },
+			output: { object: validBlockAsset2 },
+		},
+	],
+};

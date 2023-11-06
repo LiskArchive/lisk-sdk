@@ -39,7 +39,7 @@ export abstract class SendCommand extends BaseIPCClientCommand {
 	];
 
 	async run(): Promise<void> {
-		const { args } = this.parse(SendCommand);
+		const { args } = await this.parse(SendCommand);
 		const { transaction } = args as Args;
 		if (!validator.isHexString(transaction)) {
 			throw new Error('The transaction must be provided as a encoded hex string.');
@@ -49,7 +49,7 @@ export abstract class SendCommand extends BaseIPCClientCommand {
 		}
 
 		const { transactionId } = await this._client.invoke<{ transactionId: string }>(
-			'app:postTransaction',
+			'txpool_postTransaction',
 			{ transaction },
 		);
 		this.log(`Transaction with id: '${transactionId}' received by node.`);

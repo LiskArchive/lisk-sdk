@@ -78,8 +78,11 @@ describe('validation', () => {
 
 	describe('#isHexString', () => {
 		it('should return true when valid hex was provided', () => {
-			return expect(
-				isHexString('215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc'),
+			expect(
+				isHexString('215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b'),
+			).toBeTrue();
+			expect(
+				isHexString('215B667A32a5cd51A94c9c2046c11fffb08c65748febec099451e3b164452B'),
 			).toBeTrue();
 		});
 
@@ -92,13 +95,21 @@ describe('validation', () => {
 				isHexString('zzzzzzza32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bc'),
 			).toBeFalse();
 		});
+
+		it('should return true when input is empty', () => {
+			return expect(isHexString('')).toBeTrue();
+		});
+
+		it('should return false when input length is odd', () => {
+			return expect(isHexString('ff1')).toBeFalse();
+		});
 	});
 
 	describe('#isEncryptedPassphrase', () => {
 		it('should return true when value is valid encrypted passphrase', () => {
 			return expect(
 				isEncryptedPassphrase(
-					'iterations=1&salt=d3e4c10d1f889d45fc1f23dd1a55a4ed&cipherText=c030aae98cb41b3cadf6cf8b71d8dc1304c709696880e09c6c5f41361666ced2ce804407ac99c05799f06ea513be9cb80bbb824db6e0e69fa252f3ce2fe654d34d4f7344fcaeafe143d3b1&iv=03414e5d5e79f22c04f20a57&tag=5025de28a5134e2cf6c4cc3a3212723b&version=1',
+					'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=31b2cec3ca4585d4503b46444f5836b948d875367a5f5fc08bc4ca424db60acb4a86ab98f8dd4dd73f5589ede1b8c5abc16eb73561b48aab422dd6e716b97c91721a781e3e8acfdb39c0a7f41fd23ba8&mac=bfdf26800dab13a8e88ee7fa90fcd6d43459e762fe811b3be3664537df36c026&salt=e3db480467e4e61e&iv=11af231d8cbbe77d09e515f1b3308c57&tag=81b20ab2154678a020412a8459d79554&iterations=1&parallelism=4&memorySize=2024',
 				),
 			).toBeTrue();
 		});
@@ -116,7 +127,7 @@ describe('validation', () => {
 		it('should return true when 24 words bip39 Mnemonic was encrypted', () => {
 			return expect(
 				isEncryptedPassphrase(
-					'iterations=1000000&cipherText=d8d8bd8a883cd5a8a5b0c0a5ee7221f5fcd93bad0ab7675d156bec831f2aee8c10c683eb472188dd28e6caa1e9ed3d3f2769b9265c5a11e28428775cd0697ad023dc6f4b780f37f18ac03a2c14b51def04ec0391e7d258c0c65e3910b65812c61aebb8b098537a4240111a8c1509cffdc970b7cd0885c32811a0d5e7cd4539740fad661dd4c8a131a0438e7d17ed54e8d5127a81a663a0af127b01&iv=87a17399fe06332c2775dd75&salt=3503a17ea682784b490f22cf9d728563&tag=23be4e96c71d31eae005b29502179862&version=1',
+					'kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=31b2cec3ca4585d4503b46444f5836b948d875367a5f5fc08bc4ca424db60acb4a86ab98f8dd4dd73f5589ede1b8c5abc16eb73561b48aab422dd6e716b97c91721a781e3e8acfdb39c0a7f41fd23ba8&mac=bfdf26800dab13a8e88ee7fa90fcd6d43459e762fe811b3be3664537df36c026&salt=e3db480467e4e61e&iv=11af231d8cbbe77d09e515f1b3308c57&tag=81b20ab2154678a020412a8459d79554&iterations=1&parallelism=4&memorySize=2024',
 				),
 			).toBeTrue();
 		});
@@ -377,7 +388,7 @@ describe('validation', () => {
 		});
 
 		it('should return false when a bigint was provided below the limit "BigInt(-92233720368547758102)"', () => {
-			return expect(isSInt64(BigInt(-92233720368547758102))).toBeFalse();
+			return expect(isSInt64(BigInt('-92233720368547758102'))).toBeFalse();
 		});
 
 		it('should return true when a valid bigint was provided', () => {

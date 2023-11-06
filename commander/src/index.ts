@@ -12,14 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { run } from '@oclif/command';
+export { run } from '@oclif/core';
 export { BaseIPCClientCommand } from './bootstrapping/commands/base_ipc_client';
-export {
-	AccountCreateCommand,
-	AccountGetCommand,
-	AccountShowCommand,
-	AccountValidateCommand,
-} from './bootstrapping/commands/account';
 export { BlockGetCommand } from './bootstrapping/commands/block';
 export {
 	BlockchainExportCommand,
@@ -29,19 +23,23 @@ export {
 } from './bootstrapping/commands/blockchain';
 export { ConfigShowCommand, ConfigCreateCommand } from './bootstrapping/commands/config';
 export {
-	ForgerInfoExportCommand,
-	ForgerInfoImportCommand,
-} from './bootstrapping/commands/forger-info';
+	KeysCreateCommand,
+	KeysExportCommand,
+	KeysImportCommand,
+	KeysEncryptCommand,
+} from './bootstrapping/commands/keys';
 export {
-	ForgingConfigCommand,
-	ForgingDisableCommand,
-	ForgingEnableCommand,
-	ForgingStatusCommand,
-} from './bootstrapping/commands/forging';
-export { NodeInfoCommand } from './bootstrapping/commands/node';
+	GeneratorDisableCommand,
+	GeneratorEnableCommand,
+	GeneratorStatusCommand,
+	GeneratorImportCommand,
+	GeneratorExportCommand,
+} from './bootstrapping/commands/generator';
+export { NodeInfoCommand, NodeMetadataCommand } from './bootstrapping/commands/system';
 export {
 	PassphraseDecryptCommand,
 	PassphraseEncryptCommand,
+	PassphraseCreateCommand,
 } from './bootstrapping/commands/passphrase';
 export {
 	TransactionCreateCommand,
@@ -53,3 +51,10 @@ export { HashOnionCommand } from './bootstrapping/commands/hash-onion';
 export { StartCommand as BaseStartCommand } from './bootstrapping/commands/start';
 export { BaseGenesisBlockCommand } from './bootstrapping/commands/genesis-block/create';
 export { ConsoleCommand } from './bootstrapping/commands/console';
+export { InvokeCommand, ListCommand } from './bootstrapping/commands/endpoint';
+export {
+	MessageEncryptCommand,
+	MessageDecryptCommand,
+	MessageSignCommand,
+	MessageVerifyCommand,
+} from './bootstrapping/commands/message';

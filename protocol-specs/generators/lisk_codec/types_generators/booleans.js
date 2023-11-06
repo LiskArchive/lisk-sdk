@@ -18,55 +18,43 @@ const prepareProtobuffersBooleans = () =>
 	protobuf.loadSync('./generators/lisk_codec/proto_files/booleans.proto');
 const { Boolean } = prepareProtobuffersBooleans();
 
-const generateValidBooleanEncodings = () => {
-	const input = {
-		booleanTrue: {
-			object: {
-				state: true,
-			},
-			schema: {
-				$id: 'object5',
-				type: 'object',
-				properties: {
-					state: {
-						dataType: 'boolean',
-						fieldNumber: 1,
-					},
-				},
-			},
+const schema = {
+	$id: '/object5',
+	type: 'object',
+	properties: {
+		state: {
+			dataType: 'boolean',
+			fieldNumber: 1,
 		},
-		booleanFalse: {
-			object: {
-				state: false,
-			},
-			schema: {
-				$id: 'object6',
-				type: 'object',
-				properties: {
-					state: {
-						dataType: 'boolean',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-	};
+	},
+};
 
-	const booleanTrueEncoded = Boolean.encode(input.booleanTrue.object).finish();
-	const booleanFalseEncoded = Boolean.encode(input.booleanFalse.object).finish();
+const booleanTrueEncoded = Boolean.encode({ state: true }).finish();
+const booleanFalseEncoded = Boolean.encode({ state: false }).finish();
 
-	return [
+module.exports = {
+	validBooleanEncodingsTestCases: [
 		{
 			description: 'Encoding of boolean with value true',
-			input: input.booleanTrue,
-			output: { value: booleanTrueEncoded.toString('hex') },
+			input: { object: { state: true }, schema },
+			output: { value: booleanTrueEncoded },
 		},
 		{
 			description: 'Encoding of boolean with value false',
-			input: input.booleanFalse,
-			output: { value: booleanFalseEncoded.toString('hex') },
+			input: { object: { state: false }, schema },
+			output: { value: booleanFalseEncoded },
 		},
-	];
+	],
+	validBooleanDecodingsTestCases: [
+		{
+			description: 'Decoding of boolean with value true',
+			input: { value: booleanTrueEncoded, schema },
+			output: { object: { state: true } },
+		},
+		{
+			description: 'Decoding of boolean with value false',
+			input: { value: booleanFalseEncoded, schema },
+			output: { object: { state: false } },
+		},
+	],
 };
-
-module.exports = generateValidBooleanEncodings;

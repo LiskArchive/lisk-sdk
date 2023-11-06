@@ -2,23 +2,25 @@
 
 describe('<%= moduleClass %>Module', () => {
 	describe('constructor', () => {
-		it.todo('should have valid id');
 		it.todo('should have valid name');
 	});
 
-	describe('beforeBlockApply', () => {
-		it.todo('should execute before block apply');
+	describe('beforeTransactionsExecute', () => {
+		it.todo('should execute before block execute');
 	});
-	describe('afterBlockApply', () => {
-		it.todo('should execute after block apply');
+	describe('afterTransactionsExecute', () => {
+		it.todo('should execute after block execute');
 	});
-	describe('beforeTransactionApply', () => {
-		it.todo('should execute before transaction apply');
+	describe('beforeCommandExecute', () => {
+		it.todo('should execute before transaction execute');
 	});
-	describe('afterTransactionApply', () => {
-		it.todo('should execute after transaction apply');
+	describe('afterCommandExecute', () => {
+		it.todo('should execute after transaction execute');
 	});
-	describe('afterGenesisBlockApply', () => {
-		it.todo('should execute after genesis apply');
+	describe('beforeTransactionsExecute', () => {
+		it.todo('should execute after genesis execute');
+	});
+	describe('afterTransactionsExecute', () => {
+		it.todo('should execute after genesis execute');
 	});
 });

@@ -1,0 +1,416 @@
+{
+	"list": [
+		{
+			"address": "974220530fbc7fe9a7ae264291d100ccb0f31995",
+			"validatorWeight": "4417000000000"
+		},
+		{
+			"address": "ce2f23f3a64f98d047b0ebf95abc494e756862da",
+			"validatorWeight": "3193000000000"
+		},
+		{
+			"address": "8219a1280139782dca3e0a23276bbcf1fc51e3d7",
+			"validatorWeight": "3488000000000"
+		},
+		{
+			"address": "9cefd80238c85da98d2b6223b01d081df9a44220",
+			"validatorWeight": "10435000000000"
+		},
+		{
+			"address": "d0bb81d6d7dd2ebf7d552de2442ab2b63e721c77",
+			"validatorWeight": "15295000000000"
+		},
+		{
+			"address": "86c9ae659019ce0bf03e930ef63c841c3497b8be",
+			"validatorWeight": "13083000000000"
+		},
+		{
+			"address": "8014de0219a3a7daba0e39cb86abf4f0bef41890",
+			"validatorWeight": "7638000000000"
+		},
+		{
+			"address": "495abf615560748860623ae79c9d363ce2cdd350",
+			"validatorWeight": "13569000000000"
+		},
+		{
+			"address": "a4b641f30212148d7f8b01d712df26693fb3a3b1",
+			"validatorWeight": "10160000000000"
+		},
+		{
+			"address": "ccc37a8265016dc99fa4c9ecaca5c1ffd0f96d2e",
+			"validatorWeight": "2886000000000"
+		},
+		{
+			"address": "8965ce2863a1e0bb05a31dafea51943eb88c3738",
+			"validatorWeight": "6211000000000"
+		},
+		{
+			"address": "5fe743fbf6693fcbfcac621fb5eb31b5ced441e9",
+			"validatorWeight": "14093000000000"
+		},
+		{
+			"address": "f19958a6aa1a0ada54d2cbb89791d0976d26a874",
+			"validatorWeight": "12805000000000"
+		},
+		{
+			"address": "04be24cdb49d27ce6f570ee17524f2ccd308950f",
+			"validatorWeight": "12199000000000"
+		},
+		{
+			"address": "b36e8e489476997f96f723b99e488a498a4675d7",
+			"validatorWeight": "2334000000000"
+		},
+		{
+			"address": "1927feb0515fcfb9c739eb081e8c1df94ff0e1e2",
+			"validatorWeight": "7683000000000"
+		},
+		{
+			"address": "620bc0927ac8ac4f58e89cdef6d2df44ae0b7a04",
+			"validatorWeight": "8793000000000"
+		},
+		{
+			"address": "8f111ef7a4ed4332b20d4ac13770a475e63c20e0",
+			"validatorWeight": "9205000000000"
+		},
+		{
+			"address": "90fde7da68aca929f2c2373fbc891198c8f46869",
+			"validatorWeight": "5918000000000"
+		},
+		{
+			"address": "a177d9508061c67a502cda20afd5e1019b8e0320",
+			"validatorWeight": "3162000000000"
+		},
+		{
+			"address": "739439fa9ca7f03194683babfb72dc6856fe55be",
+			"validatorWeight": "16242000000000"
+		},
+		{
+			"address": "671a35f220419f9b778abbc59763396a096a6b7f",
+			"validatorWeight": "12985000000000"
+		},
+		{
+			"address": "deacb26855aefd6c7c590132a5a6b833761f170b",
+			"validatorWeight": "4894000000000"
+		},
+		{
+			"address": "c956d6b3a39ea9adab2aeac2c9572c2d34270c3c",
+			"validatorWeight": "18295000000000"
+		},
+		{
+			"address": "24041fdbe29ddd1a8f5e0c6df83a4a0d16d7cfd8",
+			"validatorWeight": "9109000000000"
+		},
+		{
+			"address": "0090c75fd90fe7ff9010320b1d636d779a6d8080",
+			"validatorWeight": "18265000000000"
+		},
+		{
+			"address": "0f3d47eef61a934021447234e63b2f47f982d065",
+			"validatorWeight": "1056000000000"
+		},
+		{
+			"address": "0f862ce596471f880b87368b2423437b66a5b14f",
+			"validatorWeight": "11570000000000"
+		},
+		{
+			"address": "df5d69d3621841d539a967800ed2e640538d32af",
+			"validatorWeight": "3053000000000"
+		},
+		{
+			"address": "1663aa8edaa4945101475d7c1266b3ecaefd25c7",
+			"validatorWeight": "8028000000000"
+		},
+		{
+			"address": "1c0a9695190d6acc5cd3f9de5bc9e6d4efd0b2c8",
+			"validatorWeight": "11847000000000"
+		},
+		{
+			"address": "ecf35e39bf5d519f62ecce5d8eab2cb90b01443c",
+			"validatorWeight": "9661000000000"
+		},
+		{
+			"address": "d31543f307b8122b19e331440d5914422fd639aa",
+			"validatorWeight": "1835000000000"
+		},
+		{
+			"address": "35223a42f4129a26e4e167d057bb03a248222a06",
+			"validatorWeight": "14602000000000"
+		},
+		{
+			"address": "0b9fa3509216032958fddcf27ba4d96db9774144",
+			"validatorWeight": "15394000000000"
+		},
+		{
+			"address": "724ef2b4357cd1e5c9990339db68e589d74f8743",
+			"validatorWeight": "7636000000000"
+		},
+		{
+			"address": "322b2129fa0572383a24fa6b7c0b92f7f731a201",
+			"validatorWeight": "14607000000000"
+		},
+		{
+			"address": "2e129a40ff1ceb05c3661b5393bc2349ae66712f",
+			"validatorWeight": "4851000000000"
+		},
+		{
+			"address": "b02c6e5c0495673d972ddfa091b8880f500a7d03",
+			"validatorWeight": "17437000000000"
+		},
+		{
+			"address": "51663c65345019ad678e199636a1ca4f42a166da",
+			"validatorWeight": "6108000000000"
+		},
+		{
+			"address": "df1e39039d11104dcdc868817965d28658e5e7f1",
+			"validatorWeight": "4442000000000"
+		},
+		{
+			"address": "ac0bc374f43ffc437fe0295672186f0fa71eca14",
+			"validatorWeight": "13565000000000"
+		},
+		{
+			"address": "c7f36f6f33c63eb4b18791eecaf045c27beddb0d",
+			"validatorWeight": "695000000000"
+		},
+		{
+			"address": "f3b0144d1b062c808ef1ca7e10fa5902688c1515",
+			"validatorWeight": "16183000000000"
+		},
+		{
+			"address": "fad140a0eb35908a7931ca3935911a3cea21d817",
+			"validatorWeight": "12652000000000"
+		},
+		{
+			"address": "355b5b39a85eda7097f704de3d2fdd59dca3fbb5",
+			"validatorWeight": "12619000000000"
+		},
+		{
+			"address": "7a0d6bc8d4ab70312dc47e737fc1fb26d8eb6ab4",
+			"validatorWeight": "5970000000000"
+		},
+		{
+			"address": "80677764c610369f08189ac643f4f3a0ab6dbd8a",
+			"validatorWeight": "17766000000000"
+		},
+		{
+			"address": "95a419546a925b8ca10b3c21a88150a149d521c1",
+			"validatorWeight": "17106000000000"
+		},
+		{
+			"address": "288afbad7ded1b83b9f736b5946a670e38d4a9bc",
+			"validatorWeight": "1662000000000"
+		},
+		{
+			"address": "9998ea6a60bf3f68871c4add8242a62cb08b6eeb",
+			"validatorWeight": "9707000000000"
+		},
+		{
+			"address": "9166ef6615054219a4691362bdd215e06810d35d",
+			"validatorWeight": "16887000000000"
+		},
+		{
+			"address": "0c54702ecec15b9a59d842b4385bec7c43695376",
+			"validatorWeight": "306700000000"
+		},
+		{
+			"address": "9fc348ae95a35796be2424a50ea77fc3e2c357ba",
+			"validatorWeight": "14996000000000"
+		},
+		{
+			"address": "1be67cd8fc624e63767e7074e0145d16e07a571c",
+			"validatorWeight": "2749000000000"
+		},
+		{
+			"address": "5d694b5246a565cdeebc8bd9e09c916657f6a5dc",
+			"validatorWeight": "133400000000"
+		},
+		{
+			"address": "c7523d8f8540442bfdf6e1a1127d9e71eda4bec5",
+			"validatorWeight": "6899000000000"
+		},
+		{
+			"address": "0cdec38828e14d6aa1badb069c9619ce741def53",
+			"validatorWeight": "5904000000000"
+		},
+		{
+			"address": "573f50430032f249759a3e6f0aa6bfcee00e68f4",
+			"validatorWeight": "5684000000000"
+		},
+		{
+			"address": "c0c2cfebe0f5692fe27614e63314a1f5173bac90",
+			"validatorWeight": "8035000000000"
+		},
+		{
+			"address": "d6796acc8e859fc5125b347d0d8f8ff26e00757e",
+			"validatorWeight": "8367000000000"
+		},
+		{
+			"address": "10911ed28ac81dd8a378d380f79f37486cf59956",
+			"validatorWeight": "6260000000000"
+		},
+		{
+			"address": "5daacd2f506f5a3611fd9548e7b24326d95a92dd",
+			"validatorWeight": "15317000000000"
+		},
+		{
+			"address": "47b5b2b5036084a98df339c4b7985ee3fa86517b",
+			"validatorWeight": "741000000000"
+		},
+		{
+			"address": "ded706b137d7a9db82050c0a7a615e5a38341253",
+			"validatorWeight": "4521000000000"
+		},
+		{
+			"address": "4aab9f8e831f5e7f8362e8cadb225088d4f80f91",
+			"validatorWeight": "15277000000000"
+		},
+		{
+			"address": "bd687e0c559ae6906c88640591cfe9f93e135218",
+			"validatorWeight": "11917000000000"
+		},
+		{
+			"address": "836405486dca3b2694686a01249f2144cb94a13b",
+			"validatorWeight": "11086000000000"
+		},
+		{
+			"address": "a1d55de4e27db7e8bdf60daf394f7233d0477c5a",
+			"validatorWeight": "7444000000000"
+		},
+		{
+			"address": "cefdcfc2bdac5884e4d35cbd58c83535c01997b0",
+			"validatorWeight": "16271000000000"
+		},
+		{
+			"address": "b8cf37d1f7300aa5a24bf159e4ab8c47648fb1fa",
+			"validatorWeight": "10163000000000"
+		},
+		{
+			"address": "c23a3f47418d8d29440b243c5a5110ab00d60169",
+			"validatorWeight": "446000000000"
+		},
+		{
+			"address": "5ea3e0b205c766e5dda0228dad8a87da7b4bfb06",
+			"validatorWeight": "7353000000000"
+		},
+		{
+			"address": "bc05e3ac94a0cbdcdbd96d5a822e5d1fa5773a77",
+			"validatorWeight": "4016000000000"
+		},
+		{
+			"address": "e54f55ef2b34fcddedea1e441e8990f3e30578fa",
+			"validatorWeight": "8082000000000"
+		},
+		{
+			"address": "3ab2d19af2bc57ea9444a0aecc69ab22afbebd42",
+			"validatorWeight": "8758000000000"
+		},
+		{
+			"address": "69dc1f4a5e56039294cd0e6bae96fd42e30cac02",
+			"validatorWeight": "1978000000000"
+		},
+		{
+			"address": "f615adade9f0ac313e06c2455b3fcd999ed499ca",
+			"validatorWeight": "9645000000000"
+		},
+		{
+			"address": "3d829d2c2c71668d5902ca24478b635da7f15a4a",
+			"validatorWeight": "13466000000000"
+		},
+		{
+			"address": "1d4f568f1c871cbade7c1926fb7e838b9984eaa2",
+			"validatorWeight": "6586000000000"
+		},
+		{
+			"address": "928719b9b1ba2642f3577d2c57123fc8f45d9309",
+			"validatorWeight": "231000000000"
+		},
+		{
+			"address": "333899e5ed7cd5741e82e71b0b6b418a2d26fdc5",
+			"validatorWeight": "871000000000"
+		},
+		{
+			"address": "fafbea758f17d2e6912f51b0b10690abd5e9627e",
+			"validatorWeight": "6091000000000"
+		},
+		{
+			"address": "d73b77dfc710f5ec0ca5710af1a1c15336aa04f1",
+			"validatorWeight": "8901000000000"
+		},
+		{
+			"address": "eac9942e59efb18cdd7298fc10e29b58356b3c02",
+			"validatorWeight": "17059000000000"
+		},
+		{
+			"address": "7b2459ff0c1e7a80efb2ae6b69f4b5f6b1e8a5d4",
+			"validatorWeight": "2190000000000"
+		},
+		{
+			"address": "a85204d9a4d689b042b54a12b1e8725586e113c3",
+			"validatorWeight": "4709000000000"
+		},
+		{
+			"address": "56a95065ffc927f7ff581a68efa145c5ad8b240e",
+			"validatorWeight": "17590000000000"
+		},
+		{
+			"address": "344225995799ec5a9974782a0f4eb15e2d3aa355",
+			"validatorWeight": "7245000000000"
+		},
+		{
+			"address": "a57c955b95224adf1f54521d625a0ec6658122a8",
+			"validatorWeight": "14475000000000"
+		},
+		{
+			"address": "de5a59881eb5e288d8d0c6913e9091ea378b6877",
+			"validatorWeight": "8959000000000"
+		},
+		{
+			"address": "b0131ed02d6bf4fe1addb6f880ed48115b34b23b",
+			"validatorWeight": "2060000000000"
+		},
+		{
+			"address": "ab3dc0112ed7f31f7eabba658f5d9b847038ccca",
+			"validatorWeight": "6748000000000"
+		},
+		{
+			"address": "d274f89a763e1cd79ac09a2d8b370a9e3fc5a46e",
+			"validatorWeight": "13781000000000"
+		},
+		{
+			"address": "2b2f222ebb9fb8550b05a5d12325cda08035441a",
+			"validatorWeight": "4832000000000"
+		},
+		{
+			"address": "3549354f43d94fe8135b06e24935d3ff490a6dac",
+			"validatorWeight": "6353000000000"
+		},
+		{
+			"address": "66e0838ecb69da082687c852f32db32602541bf3",
+			"validatorWeight": "8393000000000"
+		},
+		{
+			"address": "8e7d24a52160ad7a65c76d5268785553707c6666",
+			"validatorWeight": "1170000000000"
+		},
+		{
+			"address": "bb0b67c015f4e9624444d8428f6b3a4def11d9a4",
+			"validatorWeight": "852000000000"
+		},
+		{
+			"address": "f4deb58061c4e5ea1e9167083c9c6d0f73df630a",
+			"validatorWeight": "13785000000000"
+		},
+		{
+			"address": "0c7d4406be25bd608ea244180a494214a7630c55",
+			"validatorWeight": "10409000000000"
+		},
+		{
+			"address": "fbdd3475d0a8fc0e79b12d0b3ee79ad795c29925",
+			"validatorWeight": "110000000000"
+		},
+		{
+			"address": "854e0ef4c5474884f45bddc71c46eccc63d93989",
+			"validatorWeight": "13823000000000"
+		}
+	]
+}

@@ -24,12 +24,15 @@ export const getDefaultPath = (name: string): string => path.join(os.homedir(), 
 
 export const getFullPath = (dataPath: string): string => path.resolve(dataPath);
 
-export const splitPath = (dataPath: string): { rootPath: string; label: string } => {
-	const rootPath = path.resolve(path.join(dataPath, '../'));
-	const label = path.parse(dataPath).name;
+export const getConfigFilesPath = (
+	dataPath: string,
+	configDirIncluded = false,
+): { basePath: string; genesisBlockFilePath: string; configFilePath: string } => {
+	const basePath = configDirIncluded ? path.join(dataPath) : path.join(dataPath, 'config');
 	return {
-		rootPath,
-		label,
+		basePath,
+		genesisBlockFilePath: path.join(basePath, 'genesis_block.blob'),
+		configFilePath: path.join(basePath, 'config.json'),
 	};
 };
 
@@ -37,12 +40,13 @@ export const getNetworkConfigFilesPath = (
 	dataPath: string,
 	network: string,
 	configDirIncluded = false,
-): { genesisBlockFilePath: string; configFilePath: string } => {
+): { basePath: string; genesisBlockFilePath: string; configFilePath: string } => {
 	const basePath = configDirIncluded
 		? path.join(dataPath, network)
 		: path.join(dataPath, 'config', network);
 	return {
-		genesisBlockFilePath: path.join(basePath, 'genesis_block.json'),
+		basePath,
+		genesisBlockFilePath: path.join(basePath, 'genesis_block.blob'),
 		configFilePath: path.join(basePath, 'config.json'),
 	};
 };
@@ -53,15 +57,16 @@ export const getConfigDirs = (dataPath: string, configDirIncluded = false): stri
 	const files = fs.readdirSync(configPath);
 	return files.filter(file => fs.statSync(path.join(configPath, file)).isDirectory());
 };
-
-export const removeConfigDir = (dataPath: string, network: string): void =>
-	fs.removeSync(path.join(dataPath, 'config', network));
-
-export const ensureConfigDir = (dataPath: string, network: string): void =>
-	fs.ensureDirSync(path.join(dataPath, 'config', network));
+export const ensureConfigDir = (dataPath: string): void =>
+	fs.ensureDirSync(path.join(dataPath, 'config'));
 
 export const getBlockchainDBPath = (dataPath: string): string =>
 	path.join(dataPath, 'data', 'blockchain.db');
+
+export const getStateDBPath = (dataPath: string): string => path.join(dataPath, 'data', 'state.db');
+
+export const getModuleDBPath = (dataPath: string): string =>
+	path.join(dataPath, 'data', 'module.db');
 
 export const getForgerDBPath = (dataPath: string): string =>
 	path.join(dataPath, 'data', 'forger.db');

@@ -114,14 +114,14 @@ describe('peerPool', () => {
 			peerId: constructPeerId('127.0.0.1', 5000),
 			sharedState: {
 				networkVersion: '1.0.1',
-				networkIdentifier: 'abc',
+				chainID: Buffer.from('abc', 'hex'),
 				nonce: 'nonce',
 				options: {},
 			},
 		};
 		nodeInfo = {
 			networkVersion: '1.0.1',
-			networkIdentifier: 'abc',
+			chainID: Buffer.from('abc', 'hex'),
 			nonce: 'nonce',
 			advertiseAddress: true,
 			options: {},
@@ -232,7 +232,6 @@ describe('peerPool', () => {
 			try {
 				await peerPool.request(requestPacket);
 			} catch (e) {
-				// eslint-disable-next-line jest/no-try-expect
 				expect(peerPool.getAllConnectedPeerInfos).toHaveBeenCalled();
 			}
 		});
@@ -310,7 +309,6 @@ describe('peerPool', () => {
 			try {
 				peerPool.send(1 as any);
 			} catch (error) {
-				// eslint-disable-next-line jest/no-try-expect
 				expect(peerPool.emit).toHaveBeenCalled();
 			}
 		});
@@ -871,10 +869,14 @@ describe('peerPool', () => {
 					peerKind: PeerKind.NONE,
 				},
 			}));
-			(peerPool as any)._peerPoolConfig.netgroupProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_NETGROUP;
-			(peerPool as any)._peerPoolConfig.latencyProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_LATENCY;
-			(peerPool as any)._peerPoolConfig.productivityProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_USEFULNESS;
-			(peerPool as any)._peerPoolConfig.longevityProtectionRatio = DEFAULT_PEER_PROTECTION_FOR_LONGEVITY;
+			(peerPool as any)._peerPoolConfig.netgroupProtectionRatio =
+				DEFAULT_PEER_PROTECTION_FOR_NETGROUP;
+			(peerPool as any)._peerPoolConfig.latencyProtectionRatio =
+				DEFAULT_PEER_PROTECTION_FOR_LATENCY;
+			(peerPool as any)._peerPoolConfig.productivityProtectionRatio =
+				DEFAULT_PEER_PROTECTION_FOR_USEFULNESS;
+			(peerPool as any)._peerPoolConfig.longevityProtectionRatio =
+				DEFAULT_PEER_PROTECTION_FOR_LONGEVITY;
 
 			getPeersStub = jest.spyOn(peerPool, 'getPeers').mockReturnValue(originalPeers as Peer[]);
 		});

@@ -2,15 +2,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as React from 'react';
-import { apiClient } from '@liskhq/lisk-client';
-import { validateBase32Address, getAddressFromBase32Address } from '@liskhq/lisk-cryptography';
+import { apiClient, cryptography } from '@liskhq/lisk-client';
 import logo from './logo.svg';
 import illustration from './illustration.svg';
 import styles from './app.module.scss';
 
 const validateAddress = (address: string, prefix: string): boolean => {
 	try {
-		return validateBase32Address(address, prefix);
+		return cryptography.address.validateLisk32Address(address, prefix);
 	} catch (error) {
 		return false;
 	}
@@ -136,15 +135,17 @@ export const App: React.FC = () => {
 		}
 		try {
 			const client = await apiClient.createWSClient(config.applicationUrl);
-			await client.invoke('faucet:fundTokens', {
-				address: getAddressFromBase32Address(input, config.tokenPrefix).toString('hex'),
+			await client.invoke('faucet_fundTokens', {
+				address: cryptography.address
+					.getAddressFromLisk32Address(input, config.tokenPrefix)
+					.toString('hex'),
 				token,
 			});
 			updateErrorMsg('');
 			updateShowSuccessDialog(true);
 		} catch (error) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			updateErrorMsg(error?.message ?? 'Fail to connect to server');
+			updateErrorMsg((error as Error)?.message ?? 'Fail to connect to server');
 		}
 	};
 	return (
@@ -203,7 +204,7 @@ export const App: React.FC = () => {
 				</div>
 			</section>
 			<footer>
-				<p className={styles.copyright}>© 2021 Lisk Foundation</p>
+				<p className={styles.copyright}>© 2023 Lisk Foundation</p>
 			</footer>
 		</div>
 	);

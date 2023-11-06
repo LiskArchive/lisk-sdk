@@ -14,11 +14,11 @@
  */
 import * as fs from 'fs-extra';
 import * as apiClient from '@liskhq/lisk-api-client';
-import * as Config from '@oclif/config';
 import { BaseIPCClientCommand } from '../../../../src/bootstrapping/commands/base_ipc_client';
 import * as appUtils from '../../../../src/utils/application';
 import { GetCommand } from '../../../../src/bootstrapping/commands/block/get';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('block:get command', () => {
 	const blockSchema = {
@@ -26,63 +26,91 @@ describe('block:get command', () => {
 		type: 'object',
 		properties: {
 			header: { dataType: 'bytes', fieldNumber: 1 },
-			payload: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 2 },
+			transactions: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 2 },
+			assets: {
+				type: 'array',
+				items: {
+					dataType: 'bytes',
+				},
+				fieldNumber: 3,
+			},
 		},
 	};
 	const blockHeaderSchema = {
-		$id: 'blockHeaderSchema',
+		$id: '/block/header/signing/3',
 		type: 'object',
 		properties: {
 			version: { dataType: 'uint32', fieldNumber: 1 },
 			timestamp: { dataType: 'uint32', fieldNumber: 2 },
 			height: { dataType: 'uint32', fieldNumber: 3 },
 			previousBlockID: { dataType: 'bytes', fieldNumber: 4 },
-			transactionRoot: { dataType: 'bytes', fieldNumber: 5 },
-			generatorPublicKey: { dataType: 'bytes', fieldNumber: 6 },
-			reward: { dataType: 'uint64', fieldNumber: 7 },
-			asset: { dataType: 'bytes', fieldNumber: 8 },
-			signature: { dataType: 'bytes', fieldNumber: 9 },
-		},
-	};
-	const blockHeadersAssets = {
-		2: {
-			$id: '/block-header/asset/v2',
-			type: 'object',
-			properties: {
-				maxHeightPreviouslyForged: { dataType: 'uint32', fieldNumber: 1 },
-				maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 2 },
-				seedReveal: { dataType: 'bytes', fieldNumber: 3 },
+			generatorAddress: { dataType: 'bytes', fieldNumber: 5 },
+			transactionRoot: { dataType: 'bytes', fieldNumber: 6 },
+			assetRoot: { dataType: 'bytes', fieldNumber: 7 },
+			eventRoot: { dataType: 'bytes', fieldNumber: 8 },
+			stateRoot: { dataType: 'bytes', fieldNumber: 9 },
+			maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 10 },
+			maxHeightGenerated: { dataType: 'uint32', fieldNumber: 11 },
+			validatorsHash: { dataType: 'bytes', fieldNumber: 12 },
+			aggregateCommit: {
+				type: 'object',
+				fieldNumber: 13,
+				required: ['height', 'aggregationBits', 'certificateSignature'],
+				properties: {
+					height: {
+						dataType: 'uint32',
+						fieldNumber: 1,
+					},
+					aggregationBits: {
+						dataType: 'bytes',
+						fieldNumber: 2,
+					},
+					certificateSignature: {
+						dataType: 'bytes',
+						fieldNumber: 3,
+					},
+				},
 			},
+			signature: { dataType: 'bytes', fieldNumber: 14 },
 		},
+		required: [
+			'version',
+			'timestamp',
+			'height',
+			'previousBlockID',
+			'generatorAddress',
+			'transactionRoot',
+			'assetRoot',
+			'eventRoot',
+			'stateRoot',
+			'maxHeightPrevoted',
+			'maxHeightGenerated',
+			'validatorsHash',
+			'aggregateCommit',
+		],
 	};
 
 	const blockId = '4f7e41f5744c0c2a434f13afb186b77fb4b176a5298f91ed866680ff5ef13a6d';
 	const blockDataAtHeightTwo = {
 		header: {
-			asset: {
-				maxHeightPreviouslyForged: 0,
-				maxHeightPrevoted: 0,
-				seedReveal: '8903ea6e67ccd67bafa1c9c04184a387',
-			},
-			generatorPublicKey: 'a9a3c363a71a3089566352127cf0e6f79d3834e1d67b4132b98d35afd3b85375',
+			generatorAddress: 'a9a3c363a71a3089566352127cf0e6f79d3834e1d67b4132b98d35afd3b85375',
 			height: 2,
 			id: '085d7c9b7bddc8052be9eefe185f407682a495f1b4498677df1480026b74f2e9',
 			previousBlockID: '4f7e41f5744c0c2a434f13afb186b77fb4b176a5298f91ed866680ff5ef13a6d',
-			reward: '0',
 			signature:
 				'5aa36d00cbcd135b55484c17ba89da8ecbac4df2ccc2c0c12b9db0cf4e48c74122c6c8d5100cf83fa83f79d5684eccf2ef9e6c55408bac9dea45c2b5aa590a0c',
 			timestamp: 1592924699,
 			transactionRoot: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+			maxHeightGenerated: 0,
+			maxHeightPrevoted: 0,
 			version: 2,
 		},
-		payload: [],
+		transactions: [],
 	};
-	const encodedBlockData =
-		'0acc010802109bb4c8f705180222204f7e41f5744c0c2a434f13afb186b77fb4b176a5298f91ed866680ff5ef13a6d2a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8553220a9a3c363a71a3089566352127cf0e6f79d3834e1d67b4132b98d35afd3b8537538004216080010001a108903ea6e67ccd67bafa1c9c04184a3874a405aa36d00cbcd135b55484c17ba89da8ecbac4df2ccc2c0c12b9db0cf4e48c74122c6c8d5100cf83fa83f79d5684eccf2ef9e6c55408bac9dea45c2b5aa590a0c';
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let getMock: jest.Mock;
 	let getByHeightMock: jest.Mock;
 
@@ -94,14 +122,13 @@ describe('block:get command', () => {
 		jest.spyOn(fs, 'existsSync').mockReturnValue(true);
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
-		getMock = jest.fn().mockResolvedValue(encodedBlockData);
-		getByHeightMock = jest.fn().mockResolvedValue(encodedBlockData);
+		getMock = jest.fn().mockResolvedValue(blockDataAtHeightTwo);
+		getByHeightMock = jest.fn().mockResolvedValue(blockDataAtHeightTwo);
 		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({
 			disconnect: jest.fn(),
 			schemas: {
 				block: blockSchema,
 				blockHeader: blockHeaderSchema,
-				blockHeadersAssets,
 			},
 			block: {
 				get: getMock,

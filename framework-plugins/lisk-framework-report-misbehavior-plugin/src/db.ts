@@ -12,18 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Batch, Database } from '@liskhq/lisk-db';
-import { codec } from '@liskhq/lisk-codec';
-import { RawBlockHeader, BlockHeader } from '@liskhq/lisk-chain';
-import { areHeadersContradicting } from '@liskhq/lisk-bft';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
-import { RegisteredSchema } from 'lisk-framework';
-import { hash } from '@liskhq/lisk-cryptography';
+import {
+	cryptography,
+	codec,
+	chain,
+	db as liskDB,
+	areDistinctHeadersContradicting,
+} from 'lisk-sdk';
+
+const { BlockHeader } = chain;
+const { utils } = cryptography;
 
 export const blockHeadersSchema = {
-	$id: 'lisk/reportMisbehavior/blockHeaders',
+	$id: '/lisk/reportMisbehavior/blockHeaders',
 	type: 'object',
 	required: ['blockHeaders'],
 	properties: {
@@ -47,76 +51,43 @@ interface BlockHeaders {
 	readonly blockHeaders: Buffer[];
 }
 
-const formatInt = (num: number | bigint): string => {
-	let buf: Buffer;
-	if (typeof num === 'bigint') {
-		if (num < BigInt(0)) {
-			throw new Error('Negative number cannot be formatted');
-		}
-		buf = Buffer.alloc(8);
-		buf.writeBigUInt64BE(num);
-	} else {
-		if (num < 0) {
-			throw new Error('Negative number cannot be formatted');
-		}
-		buf = Buffer.alloc(4);
-		buf.writeUInt32BE(num, 0);
-	}
-	return buf.toString('binary');
-};
-
-const getFirstPrefix = (prefix: string): Buffer => Buffer.from(`${prefix}\x00`);
-const getLastPrefix = (prefix: string): Buffer => Buffer.from(`${prefix}\xFF`);
-
 export const getDBInstance = async (
 	dataPath: string,
 	dbName = 'lisk-framework-report-misbehavior-plugin.db',
-): Promise<Database> => {
+): Promise<liskDB.Database> => {
 	const dirPath = join(dataPath.replace('~', os.homedir()), 'plugins/data', dbName);
 	await ensureDir(dirPath);
 
-	return new Database(dirPath);
+	return new liskDB.Database(dirPath);
 };
 
 export const getBlockHeaders = async (
-	db: Database,
-	dbKeyBlockHeader: string,
+	db: liskDB.Database,
+	dbKeyBlockHeader: Buffer,
 ): Promise<BlockHeaders> => {
 	try {
-		const encodedBlockHeaders = await db.get(Buffer.from(dbKeyBlockHeader));
+		const encodedBlockHeaders = await db.get(dbKeyBlockHeader);
 		return codec.decode<BlockHeaders>(blockHeadersSchema, encodedBlockHeaders);
 	} catch (error) {
 		return { blockHeaders: [] as Buffer[] };
 	}
 };
 
-export const decodeBlockHeader = (encodedHeader: Buffer, schema: RegisteredSchema): BlockHeader => {
-	const id = hash(encodedHeader);
-	const blockHeader = codec.decode<RawBlockHeader>(schema.blockHeader, encodedHeader);
-	const assetSchema = schema.blockHeadersAssets[blockHeader.version];
-	const asset = codec.decode<BlockHeaderAsset>(assetSchema, blockHeader.asset);
-	return {
-		...blockHeader,
-		asset,
-		id,
-	};
-};
-
 export const saveBlockHeaders = async (
-	db: Database,
-	schemas: RegisteredSchema,
-	header: Buffer,
+	db: liskDB.Database,
+	headerBytes: Buffer,
 ): Promise<boolean> => {
-	const blockId = hash(header);
-	const { generatorPublicKey, height } = codec.decode<RawBlockHeader>(schemas.blockHeader, header);
-	const dbKey = `${generatorPublicKey.toString('binary')}:${formatInt(height)}`;
+	const header = BlockHeader.fromBytes(headerBytes);
+	const heightBytes = Buffer.alloc(4);
+	heightBytes.writeUInt32BE(header.height, 0);
+	const dbKey = Buffer.concat([header.generatorAddress, Buffer.from(':', 'utf8'), heightBytes]);
 	const { blockHeaders } = await getBlockHeaders(db, dbKey);
 
-	if (!blockHeaders.find(blockHeader => hash(blockHeader).equals(blockId))) {
+	if (!blockHeaders.find(blockHeader => utils.hash(blockHeader).equals(header.id))) {
 		await db.set(
-			Buffer.from(dbKey),
+			dbKey,
 			codec.encode(blockHeadersSchema, {
-				blockHeaders: [...blockHeaders, header],
+				blockHeaders: [...blockHeaders, header.getBytes()],
 			}),
 		);
 		return true;
@@ -127,47 +98,58 @@ export const saveBlockHeaders = async (
 type IteratableStream = NodeJS.ReadableStream & { destroy: (err?: Error) => void };
 
 export const getContradictingBlockHeader = async (
-	db: Database,
-	blockHeader: BlockHeader,
-	schemas: RegisteredSchema,
-): Promise<BlockHeader | undefined> =>
-	new Promise((resolve, reject) => {
+	db: liskDB.Database,
+	blockHeader: chain.BlockHeader,
+): Promise<chain.BlockHeader | undefined> => {
+	const existingHeaders = await new Promise<string[]>((resolve, reject) => {
 		const stream = db.createReadStream({
-			gte: getFirstPrefix(blockHeader.generatorPublicKey.toString('binary')),
-			lte: getLastPrefix(blockHeader.generatorPublicKey.toString('binary')),
+			gte: Buffer.concat([blockHeader.generatorAddress, Buffer.alloc(4, 0)]),
+			lte: Buffer.concat([blockHeader.generatorAddress, Buffer.alloc(4, 255)]),
 		}) as IteratableStream;
+		const results: string[] = [];
 		stream
 			.on('data', ({ value }: { value: Buffer }) => {
 				const { blockHeaders } = codec.decode<BlockHeaders>(blockHeadersSchema, value);
 				for (const encodedHeader of blockHeaders) {
-					const decodedBlockHeader = decodeBlockHeader(encodedHeader, schemas);
-					if (areHeadersContradicting(blockHeader, decodedBlockHeader)) {
-						stream.destroy();
-						resolve(decodedBlockHeader);
-					}
+					results.push(encodedHeader.toString('hex'));
 				}
 			})
 			.on('error', error => {
 				reject(error);
 			})
 			.on('end', () => {
-				resolve(undefined);
+				resolve(results);
 			});
 	});
 
+	for (const headerString of existingHeaders) {
+		const header = BlockHeader.fromBytes(Buffer.from(headerString, 'hex'));
+
+		if (blockHeader.id.equals(header.id)) {
+			continue;
+		}
+
+		const isContradicting = areDistinctHeadersContradicting(header, blockHeader);
+
+		if (isContradicting) {
+			return header;
+		}
+	}
+	return undefined;
+};
+
 export const clearBlockHeaders = async (
-	db: Database,
-	schemas: RegisteredSchema,
+	db: liskDB.Database,
 	currentHeight: number,
 ): Promise<void> => {
-	const keys = await new Promise<string[]>((resolve, reject) => {
-		const stream = db.createReadStream() as IteratableStream;
-		const res: string[] = [];
+	const keys = await new Promise<Buffer[]>((resolve, reject) => {
+		const stream = db.createReadStream();
+		const res: Buffer[] = [];
 		stream
-			.on('data', ({ key, value }: { key: string; value: Buffer }) => {
+			.on('data', ({ key, value }: { key: Buffer; value: Buffer }) => {
 				const { blockHeaders } = codec.decode<BlockHeaders>(blockHeadersSchema, value);
 				for (const encodedHeader of blockHeaders) {
-					const decodedBlockHeader = decodeBlockHeader(encodedHeader, schemas);
+					const decodedBlockHeader = BlockHeader.fromBytes(encodedHeader);
 					if (decodedBlockHeader.height < currentHeight - 260000) {
 						res.push(key);
 					}
@@ -180,9 +162,9 @@ export const clearBlockHeaders = async (
 				resolve(res);
 			});
 	});
-	const batch = new Batch();
+	const batch = new liskDB.Batch();
 	for (const k of keys) {
-		batch.del(Buffer.from(k));
+		batch.del(k);
 	}
 	await db.write(batch);
 };

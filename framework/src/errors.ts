@@ -13,11 +13,14 @@
  */
 /* eslint-disable max-classes-per-file */
 
+import { LiskErrorObject } from '@liskhq/lisk-validator/dist-node/types';
+
 export class FrameworkError extends Error {
 	public name: string;
 	public code = 'ERR_FRAMEWORK';
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public constructor(...args: any[]) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		super(...args);
 		this.name = this.constructor.name;
 		Error.captureStackTrace(this, FrameworkError);
@@ -57,8 +60,8 @@ export class DuplicateAppInstanceError extends FrameworkError {
 
 export class ImplementationMissingError extends FrameworkError {
 	public code = 'ERR_IMPLEMENTATION_MISSING';
-	public constructor() {
-		super('Implementation missing error');
+	public constructor(message = '') {
+		super(message === '' ? 'Implementation missing error' : message);
 	}
 }
 
@@ -66,6 +69,15 @@ export class ValidationError extends FrameworkError {
 	public code = 'ERR_VALIDATION';
 	public value: string;
 	public constructor(message: string, value: string) {
+		super(message);
+		this.value = value;
+	}
+}
+
+export class AggregateValidationError extends FrameworkError {
+	public code = 'ERR_AGGREGATE_VALIDATION';
+	public value: LiskErrorObject[];
+	public constructor(message: string, value: LiskErrorObject[]) {
 		super(message);
 		this.value = value;
 	}
@@ -86,4 +98,25 @@ export class TransactionApplyError extends Error {
 
 export class ApplyPenaltyError extends FrameworkError {
 	public code = 'ERR_APPLY_PENALTY';
+}
+
+export class InsufficientBalanceError extends Error {
+	public code = 'ERR_INSUFFICIENT_BALANCE';
+	public constructor(
+		senderAddress: string,
+		availableBalance: string,
+		amount: string,
+		tokenID?: string,
+	) {
+		let errorMessage = `${senderAddress} balance ${availableBalance}`;
+
+		if (tokenID) {
+			errorMessage += ` for ${tokenID}`;
+		}
+
+		errorMessage += ` is not sufficient for ${amount}.`;
+
+		super(errorMessage);
+		this.name = this.constructor.name;
+	}
 }

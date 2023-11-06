@@ -13,15 +13,16 @@
  *
  */
 
+import * as fs from 'fs-extra';
 import * as inquirer from 'inquirer';
 import { homedir } from 'os';
 import { join } from 'path';
-import * as Config from '@oclif/config';
 
 import * as appUtils from '../../../../src/utils/application';
-import * as dbUtils from '../../../../src/utils/db';
+import * as pathUtils from '../../../../src/utils/path';
 import { ResetCommand } from '../../../../src/bootstrapping/commands/blockchain/reset';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 const defaultDataPath = join(homedir(), '.lisk', 'lisk-core');
 
@@ -30,21 +31,18 @@ describe('blockchain:reset', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
-	let kvStoreStubInstance: any;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];
 		stderr = [];
-		kvStoreStubInstance = {
-			clear: jest.fn(),
-		};
 		config = await getConfig();
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
-		jest.spyOn(dbUtils, 'getBlockchainDB').mockReturnValue(kvStoreStubInstance);
+		jest.spyOn(pathUtils, 'getBlockchainDBPath').mockReturnValue('path');
 		jest.spyOn(appUtils, 'getPid').mockReturnValue(pid);
 		jest.spyOn(inquirer, 'prompt').mockResolvedValue({ answer: false });
+		jest.spyOn(fs, 'removeSync').mockReturnValue();
 	});
 
 	describe('when application is running', () => {
@@ -85,8 +83,8 @@ describe('blockchain:reset', () => {
 		describe('when reset without flag', () => {
 			it('should create db object for "blockchain.db" for default data path', async () => {
 				await ResetCommand.run([], config);
-				expect(dbUtils.getBlockchainDB).toHaveBeenCalledTimes(1);
-				expect(dbUtils.getBlockchainDB).toHaveBeenCalledWith(defaultDataPath);
+				expect(pathUtils.getBlockchainDBPath).toHaveBeenCalledTimes(1);
+				expect(pathUtils.getBlockchainDBPath).toHaveBeenCalledWith(defaultDataPath);
 			});
 
 			it('should prompt user for confirmation', async () => {
@@ -104,7 +102,7 @@ describe('blockchain:reset', () => {
 
 			it('should reset the blockchain db', async () => {
 				await ResetCommand.run([], config);
-				expect(kvStoreStubInstance.clear).toHaveBeenCalledTimes(1);
+				expect(fs.removeSync).toHaveBeenCalledTimes(3);
 			});
 		});
 
@@ -115,8 +113,8 @@ describe('blockchain:reset', () => {
 
 			it('should create db object for "blockchain.db" for given data path', async () => {
 				await ResetCommand.run(['--data-path=/my/app/'], config);
-				expect(dbUtils.getBlockchainDB).toHaveBeenCalledTimes(1);
-				expect(dbUtils.getBlockchainDB).toHaveBeenCalledWith('/my/app/');
+				expect(pathUtils.getBlockchainDBPath).toHaveBeenCalledTimes(1);
+				expect(pathUtils.getBlockchainDBPath).toHaveBeenCalledWith('/my/app/');
 			});
 
 			it('should prompt user for confirmation', async () => {
@@ -134,7 +132,7 @@ describe('blockchain:reset', () => {
 
 			it('should reset the blockchain db', async () => {
 				await ResetCommand.run(['--data-path=/my/app/'], config);
-				expect(kvStoreStubInstance.clear).toHaveBeenCalledTimes(1);
+				expect(fs.removeSync).toHaveBeenCalledTimes(3);
 			});
 		});
 
@@ -145,12 +143,12 @@ describe('blockchain:reset', () => {
 
 			it('should create db object for "blockchain.db"', async () => {
 				await ResetCommand.run(['--yes'], config);
-				expect(dbUtils.getBlockchainDB).toHaveBeenCalledTimes(1);
+				expect(pathUtils.getBlockchainDBPath).toHaveBeenCalledTimes(1);
 			});
 
 			it('should reset the blockchain db', async () => {
 				await ResetCommand.run(['--yes'], config);
-				expect(kvStoreStubInstance.clear).toHaveBeenCalledTimes(1);
+				expect(fs.removeSync).toHaveBeenCalledTimes(3);
 			});
 		});
 	});

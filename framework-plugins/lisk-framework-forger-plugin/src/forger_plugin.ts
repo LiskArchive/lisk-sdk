@@ -12,20 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { Database } from '@liskhq/lisk-db';
 import {
-	ActionsDefinition,
 	BasePlugin,
-	BaseChannel,
-	EventsDefinition,
-	PluginInfo,
-	TransactionJSON,
-	BlockHeaderJSON,
 	GenesisConfig,
-} from 'lisk-framework';
-import { objects, dataStructures } from '@liskhq/lisk-utils';
-
+	utils,
+	codec,
+	chain,
+	db as liskDB,
+	cryptography,
+	PluginInitContext,
+} from 'lisk-sdk';
 import {
 	getDBInstance,
 	getForgerInfo,
@@ -33,117 +29,86 @@ import {
 	setForgerInfo,
 	setForgerSyncInfo,
 } from './db';
-import * as config from './defaults';
-import { Forger, Options, TransactionFees, Voters } from './types';
-import * as controllers from './controllers';
+import { Forger, Stakers } from './types';
+import { Endpoint } from './endpoint';
+
+type BlockHeaderJSON = chain.BlockHeaderJSON;
+type BlockJSON = chain.BlockJSON;
+type TransactionJSON = chain.TransactionJSON;
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
+const MODULE_POS = 'pos';
+const COMMAND_STAKE = 'stake';
 
 interface Data {
-	readonly block: string;
+	readonly blockHeader: BlockHeaderJSON;
 }
 
-interface Asset {
-	readonly votes: Array<Readonly<Vote>>;
+interface StakesParams {
+	readonly stakes: Array<Readonly<Stake>>;
 }
-interface Vote {
-	delegateAddress: string;
+interface Stake {
+	validatorAddress: string;
 	amount: string;
 }
 
-interface ForgerPayloadInfo {
+interface ForgerTransactionsInfo {
 	forgerAddress: string;
 	forgerAddressBuffer: Buffer;
 	forgerAddressBinary: string;
 	header: BlockHeaderJSON;
-	payload: readonly TransactionJSON[];
+	transactions: TransactionJSON[];
 }
 
 interface NodeInfo {
 	genesisHeight: number;
-	genesisConfig: GenesisConfig;
+	genesis: GenesisConfig;
 }
 
 interface MissedBlocksByAddress {
 	[key: string]: number;
 }
 
-interface ForgerReceivedVotes {
-	[key: string]: Voters;
+interface ForgerReceivedStakes {
+	[key: string]: Stakers;
 }
 
-// eslint-disable-next-line
-const packageJSON = require('../package.json');
 const getBinaryAddress = (hexAddressStr: string) =>
 	Buffer.from(hexAddressStr, 'hex').toString('binary');
 const getAddressBuffer = (hexAddressStr: string) => Buffer.from(hexAddressStr, 'hex');
 
 export class ForgerPlugin extends BasePlugin {
-	private _forgerPluginDB!: Database;
-	private _channel!: BaseChannel;
-	private _forgersList!: dataStructures.BufferMap<boolean>;
-	private _transactionFees!: TransactionFees;
-	private _syncingWithNode!: boolean;
+	public endpoint = new Endpoint();
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get alias(): string {
-		return 'forger';
+	private _forgerPluginDB!: liskDB.Database;
+	private _forgersList!: utils.dataStructures.BufferMap<boolean>;
+
+	public get nodeModulePath(): string {
+		return __filename;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get info(): PluginInfo {
-		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			author: packageJSON.author,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			version: packageJSON.version,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			name: packageJSON.name,
-		};
-	}
-
-	public get defaults(): object {
-		return config.defaultConfig;
-	}
-
-	public get events(): EventsDefinition {
+	public get events(): string[] {
 		return ['block:created', 'block:missed'];
 	}
 
-	public get actions(): ActionsDefinition {
-		return {
-			getVoters: async () =>
-				controllers.voters.getVoters(this._channel, this.codec, this._forgerPluginDB),
-			getForgingInfo: async () =>
-				controllers.forgingInfo.getForgingInfo(this._channel, this.codec, this._forgerPluginDB),
-		};
+	public async init(context: PluginInitContext): Promise<void> {
+		await super.init(context);
+		this.endpoint.init(this._forgerPluginDB, this.apiClient);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async load(channel: BaseChannel): Promise<void> {
-		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
-		this._channel = channel;
-
+	public async load(): Promise<void> {
 		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
-		// eslint-disable-next-line new-cap
-		this._forgerPluginDB = await getDBInstance(options.dataPath);
+		this._forgerPluginDB = await getDBInstance(this.dataPath);
 
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this._channel.once('app:ready', async () => {
-			// Fetch and set forger list from the app
-			await this._setForgersList();
+		// Fetch and set forger list from the app
+		await this._setForgersList();
 
-			// Fetch and set transactions fees
-			await this._setTransactionFees();
+		// Sync the information
+		await this._syncForgerInfo();
 
-			// Sync the information
-			this._syncingWithNode = true;
-			await this._syncForgerInfo();
-			this._syncingWithNode = false;
-
-			// Listen to new block and delete block events
-			this._subscribeToChannel();
-		});
+		// Listen to new block and delete block events
+		this._subscribeToChannel();
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -152,26 +117,20 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	private async _setForgersList(): Promise<void> {
-		this._forgersList = new dataStructures.BufferMap<boolean>();
-		const forgersList = await this._channel.invoke<Forger[]>('app:getForgingStatus');
+		this._forgersList = new utils.dataStructures.BufferMap<boolean>();
+		const { status: forgersList } = await this.apiClient.invoke<{ status: Forger[] }>(
+			'generator_getStatus',
+		);
 		for (const { address, forging } of forgersList) {
 			this._forgersList.set(Buffer.from(address, 'hex'), forging);
 		}
 	}
 
-	private async _setTransactionFees(): Promise<void> {
-		const { genesisConfig } = await this._channel.invoke<NodeInfo>('app:getNodeInfo');
-		this._transactionFees = {
-			minFeePerByte: genesisConfig.minFeePerByte,
-			baseFees: genesisConfig.baseFees,
-		};
-	}
-
-	private _getForgerHeaderAndPayloadInfo(block: string): ForgerPayloadInfo {
-		const { header, payload } = this.codec.decodeBlock(block);
-		const forgerAddress = getAddressFromPublicKey(
-			Buffer.from(header.generatorPublicKey, 'hex'),
-		).toString('hex');
+	private _getForgerHeaderAndTransactionsInfo(
+		header: BlockHeaderJSON,
+		transactions: TransactionJSON[],
+	): ForgerTransactionsInfo {
+		const forgerAddress = header.generatorAddress;
 		const forgerAddressBuffer = getAddressBuffer(forgerAddress);
 		const forgerAddressBinary = getBinaryAddress(forgerAddress);
 
@@ -180,16 +139,19 @@ export class ForgerPlugin extends BasePlugin {
 			forgerAddressBuffer,
 			forgerAddressBinary,
 			header,
-			payload,
+			transactions,
 		};
 	}
 
 	private async _syncForgerInfo(): Promise<void> {
+		const lastBlock = await this.apiClient.invoke<{ header: { height: number } }>(
+			'chain_getLastBlock',
+		);
 		const {
 			header: { height: lastBlockHeight },
-		} = this.codec.decodeBlock(await this._channel.invoke<string>('app:getLastBlock'));
+		} = lastBlock;
 		const { syncUptoHeight } = await getForgerSyncInfo(this._forgerPluginDB);
-		const { genesisHeight } = await this._channel.invoke<NodeInfo>('app:getNodeInfo');
+		const { genesisHeight } = await this.apiClient.invoke<NodeInfo>('system_getNodeInfo');
 		const forgerPluginSyncedHeight = syncUptoHeight === 0 ? genesisHeight : syncUptoHeight;
 
 		if (forgerPluginSyncedHeight === lastBlockHeight) {
@@ -215,15 +177,21 @@ export class ForgerPlugin extends BasePlugin {
 					? BLOCKS_BATCH_TO_SYNC
 					: lastBlockHeight - needleHeight);
 
-			const blocks = await this._channel.invoke<string[]>('app:getBlocksByHeightBetween', {
-				from: needleHeight,
-				to: toHeight,
-			});
+			const blocks = await this.apiClient.invoke<chain.BlockJSON[]>(
+				'chain_getBlocksByHeightBetween',
+				{
+					from: needleHeight,
+					to: toHeight,
+				},
+			);
 
 			// Reverse the blocks to get blocks from lower height to highest
 			for (const block of blocks.reverse()) {
-				const forgerPayloadInfo = this._getForgerHeaderAndPayloadInfo(block);
-				await this._addForgerInfo(block, forgerPayloadInfo);
+				const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(
+					block.header,
+					block.transactions,
+				);
+				await this._addForgerInfo(block.header, forgerTransactionsInfo);
 			}
 
 			needleHeight = toHeight + 1;
@@ -237,194 +205,196 @@ export class ForgerPlugin extends BasePlugin {
 
 	private _subscribeToChannel(): void {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this._channel.subscribe('app:block:new', async (data?: Record<string, unknown>) => {
-			const { block } = (data as unknown) as Data;
-			const forgerPayloadInfo = this._getForgerHeaderAndPayloadInfo(block);
+		this.apiClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) => {
+			const { blockHeader } = data as unknown as Data;
+			const transactions = await this.apiClient.invoke<TransactionJSON[]>(
+				'chain_getTransactionsByHeight',
+				{ height: blockHeader.height },
+			);
+			const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(
+				blockHeader,
+				transactions,
+			);
 			const {
 				header: { height },
-			} = forgerPayloadInfo;
+			} = forgerTransactionsInfo;
 
-			await this._addForgerInfo(block, forgerPayloadInfo);
+			await this._addForgerInfo(blockHeader, forgerTransactionsInfo);
 			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this._channel.subscribe('app:block:delete', async (data?: Record<string, unknown>) => {
-			const { block } = (data as unknown) as Data;
-			const forgerPayloadInfo = this._getForgerHeaderAndPayloadInfo(block);
+		this.apiClient.subscribe('chain_deleteBlock', async (data?: Record<string, unknown>) => {
+			const { blockHeader } = data as unknown as Data;
+			const transactions = await this.apiClient.invoke<TransactionJSON[]>(
+				'chain_getTransactionsByHeight',
+				{ height: blockHeader.height },
+			);
+			const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(
+				blockHeader,
+				transactions,
+			);
 			const {
 				header: { height },
-			} = forgerPayloadInfo;
+			} = forgerTransactionsInfo;
 
-			await this._revertForgerInfo(block, forgerPayloadInfo);
+			await this._revertForgerInfo(forgerTransactionsInfo);
 			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 	}
 
 	private async _addForgerInfo(
-		encodedBlock: string,
-		forgerPayloadInfo: ForgerPayloadInfo,
+		header: BlockHeaderJSON,
+		forgerTransactionsInfo: ForgerTransactionsInfo,
 	): Promise<void> {
-		const {
-			forgerAddress,
-			forgerAddressBuffer,
-			forgerAddressBinary,
-			header: { reward, height },
-			payload,
-		} = forgerPayloadInfo;
+		const { forgerAddressBuffer, forgerAddressBinary, transactions } = forgerTransactionsInfo;
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
 
 		if (this._forgersList.has(forgerAddressBuffer)) {
 			forgerInfo.totalProducedBlocks += 1;
-			forgerInfo.totalReceivedRewards += BigInt(reward);
-			forgerInfo.totalReceivedFees += this._getFee(payload, encodedBlock);
+			forgerInfo.totalReceivedFees += this._getFee(transactions);
 
-			this._channel.publish('forger:block:created', {
-				reward,
-				forgerAddress,
-				height,
-				timestamp: Date.now(),
-			});
 			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
 
-		await this._addVotesReceived(payload);
-		await this._updateMissedBlock(encodedBlock);
+		await this._addStakesReceived(transactions);
+		await this._updateMissedBlock(header, transactions);
 	}
 
-	private async _revertForgerInfo(
-		encodedBlock: string,
-		forgerPayloadInfo: ForgerPayloadInfo,
-	): Promise<void> {
-		const {
-			forgerAddressBuffer,
-			forgerAddressBinary,
-			header: { reward },
-			payload,
-		} = forgerPayloadInfo;
+	private async _revertForgerInfo(forgerTransactionsInfo: ForgerTransactionsInfo): Promise<void> {
+		const { forgerAddressBuffer, forgerAddressBinary, transactions } = forgerTransactionsInfo;
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
 
 		if (this._forgersList.has(forgerAddressBuffer)) {
 			forgerInfo.totalProducedBlocks -= 1;
-			forgerInfo.totalReceivedRewards -= BigInt(reward);
-			forgerInfo.totalReceivedFees -= this._getFee(payload, encodedBlock);
+			forgerInfo.totalReceivedFees -= this._getFee(transactions);
 			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
 
-		await this._revertVotesReceived(payload);
+		await this._revertStakesReceived(transactions);
 	}
 
-	private _getForgerReceivedVotes(payload: ReadonlyArray<TransactionJSON>): ForgerReceivedVotes {
-		const forgerReceivedVotes: ForgerReceivedVotes = {};
+	private _getForgerReceivedStakes(
+		transactions: ReadonlyArray<TransactionJSON>,
+	): ForgerReceivedStakes {
+		const forgerReceivedStakes: ForgerReceivedStakes = {};
 
-		for (const trx of payload) {
-			if (trx.moduleID === 5 && trx.assetID === 1) {
-				const senderAddress = getAddressFromPublicKey(Buffer.from(trx.senderPublicKey, 'hex'));
-				(trx.asset as Asset).votes.reduce((acc: ForgerReceivedVotes, curr) => {
+		const posModuleMeta = this.apiClient.metadata.find(c => c.name === MODULE_POS);
+		if (!posModuleMeta) {
+			throw new Error('PoS stakes command is not registered.');
+		}
+		const voteCommandMeta = posModuleMeta.commands.find(c => c.name === COMMAND_STAKE);
+		if (!voteCommandMeta?.params) {
+			throw new Error('PoS stakes command is not registered.');
+		}
+
+		for (const trx of transactions) {
+			if (trx.module === MODULE_POS && trx.command === COMMAND_STAKE) {
+				const params = codec.decode<StakesParams>(
+					voteCommandMeta.params,
+					Buffer.from(trx.params, 'hex'),
+				);
+				params.stakes.reduce((acc: ForgerReceivedStakes, curr) => {
 					if (
-						this._forgersList.has(getAddressBuffer(curr.delegateAddress)) &&
-						acc[curr.delegateAddress]
+						this._forgersList.has(getAddressBuffer(curr.validatorAddress)) &&
+						acc[curr.validatorAddress]
 					) {
-						acc[curr.delegateAddress].amount += BigInt(curr.amount);
+						acc[curr.validatorAddress].amount += BigInt(curr.amount);
 					} else {
-						acc[curr.delegateAddress] = {
-							address: senderAddress,
+						acc[curr.validatorAddress] = {
+							address: cryptography.address.getAddressFromPublicKey(
+								Buffer.from(trx.senderPublicKey, 'hex'),
+							),
 							amount: BigInt(curr.amount),
 						};
 					}
 					return acc;
-				}, forgerReceivedVotes);
+				}, forgerReceivedStakes);
 			}
 		}
 
-		return forgerReceivedVotes;
+		return forgerReceivedStakes;
 	}
 
-	private async _addVotesReceived(payload: ReadonlyArray<TransactionJSON>): Promise<void> {
-		const forgerReceivedVotes = this._getForgerReceivedVotes(payload);
+	private async _addStakesReceived(transactions: ReadonlyArray<TransactionJSON>): Promise<void> {
+		const forgerReceivedStakes = this._getForgerReceivedStakes(transactions);
 
-		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
+		for (const [validatorAddress, stakeReceived] of Object.entries(forgerReceivedStakes)) {
 			const forgerInfo = await getForgerInfo(
 				this._forgerPluginDB,
-				getBinaryAddress(delegateAddress),
+				getBinaryAddress(validatorAddress),
 			);
 
-			const voterIndex = forgerInfo.votesReceived.findIndex(aVote =>
-				aVote.address.equals(votesReceived.address),
+			const stakerIndex = forgerInfo.stakeReceived.findIndex(aStake =>
+				aStake.address.equals(stakeReceived.address),
 			);
-			if (voterIndex === -1) {
-				forgerInfo.votesReceived.push(votesReceived);
+			if (stakerIndex === -1) {
+				forgerInfo.stakeReceived.push(stakeReceived);
 			} else {
-				forgerInfo.votesReceived[voterIndex].amount += votesReceived.amount;
-				// Remove voter when amount becomes zero
-				if (forgerInfo.votesReceived[voterIndex].amount === BigInt(0)) {
-					forgerInfo.votesReceived.splice(voterIndex, 1);
+				forgerInfo.stakeReceived[stakerIndex].amount += stakeReceived.amount;
+				// Remove staker when amount becomes zero
+				if (forgerInfo.stakeReceived[stakerIndex].amount === BigInt(0)) {
+					forgerInfo.stakeReceived.splice(stakerIndex, 1);
 				}
 			}
-			await setForgerInfo(this._forgerPluginDB, getBinaryAddress(delegateAddress), forgerInfo);
+			await setForgerInfo(this._forgerPluginDB, getBinaryAddress(validatorAddress), forgerInfo);
 		}
 	}
 
-	private async _revertVotesReceived(payload: ReadonlyArray<TransactionJSON>): Promise<void> {
-		const forgerReceivedVotes = this._getForgerReceivedVotes(payload);
+	private async _revertStakesReceived(transactions: ReadonlyArray<TransactionJSON>): Promise<void> {
+		const forgerReceivedStakes = this._getForgerReceivedStakes(transactions);
 
-		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
+		for (const [validatorAddress, stakeReceived] of Object.entries(forgerReceivedStakes)) {
 			const forgerInfo = await getForgerInfo(
 				this._forgerPluginDB,
-				getBinaryAddress(delegateAddress),
+				getBinaryAddress(validatorAddress),
 			);
-			const voterIndex = forgerInfo.votesReceived.findIndex(aVote =>
-				aVote.address.equals(votesReceived.address),
+			const stakerIndex = forgerInfo.stakeReceived.findIndex(aStake =>
+				aStake.address.equals(stakeReceived.address),
 			);
 
-			if (voterIndex !== -1) {
-				forgerInfo.votesReceived[voterIndex].amount -= BigInt(votesReceived.amount);
-				// Remove voter when amount becomes zero
-				if (forgerInfo.votesReceived[voterIndex].amount === BigInt(0)) {
-					forgerInfo.votesReceived.splice(voterIndex, 1);
+			if (stakerIndex !== -1) {
+				forgerInfo.stakeReceived[stakerIndex].amount -= BigInt(stakeReceived.amount);
+				// Remove staker when amount becomes zero
+				if (forgerInfo.stakeReceived[stakerIndex].amount === BigInt(0)) {
+					forgerInfo.stakeReceived.splice(stakerIndex, 1);
 				}
-				await setForgerInfo(this._forgerPluginDB, getBinaryAddress(delegateAddress), forgerInfo);
+				await setForgerInfo(this._forgerPluginDB, getBinaryAddress(validatorAddress), forgerInfo);
 			}
 		}
 	}
 
-	private _getFee(payload: ReadonlyArray<TransactionJSON>, block: string): bigint {
-		const { payload: payloadBuffer } = this.codec.decodeRawBlock(block);
+	private _getFee(transactions: ReadonlyArray<TransactionJSON>): bigint {
 		let fee = BigInt(0);
 
-		for (let index = 0; index < payload.length; index += 1) {
-			const trx = payload[index];
-			const baseFee =
-				this._transactionFees.baseFees.find(
-					bf => bf.moduleID === trx.moduleID && bf.assetID === trx.assetID,
-				)?.baseFee ?? '0';
-			const minFeeRequired =
-				BigInt(baseFee) +
-				BigInt(this._transactionFees.minFeePerByte) * BigInt(payloadBuffer[index].length);
-			fee += BigInt(trx.fee) - minFeeRequired;
+		for (const txJSON of transactions) {
+			const trx = chain.Transaction.fromJSON(txJSON);
+			fee += BigInt(trx.fee);
 		}
 
 		return fee;
 	}
 
-	private async _updateMissedBlock(block: string): Promise<void> {
+	private async _updateMissedBlock(
+		header: BlockHeaderJSON,
+		transactions: TransactionJSON[],
+	): Promise<void> {
 		const {
 			header: { height, timestamp },
 			forgerAddress,
-		} = this._getForgerHeaderAndPayloadInfo(block);
-		const previousBlockStr = await this._channel.invoke<string>('app:getBlockByHeight', {
+		} = this._getForgerHeaderAndTransactionsInfo(header, transactions);
+		const previousBlock = await this.apiClient.invoke<BlockJSON>('chain_getBlockByHeight', {
 			height: height - 1,
 		});
 		const {
-			genesisConfig: { blockTime },
-		} = await this._channel.invoke<NodeInfo>('app:getNodeInfo');
-		const { header: previousBlock } = this.codec.decodeBlock(previousBlockStr);
-		const missedBlocks = Math.ceil((timestamp - previousBlock.timestamp) / blockTime) - 1;
+			genesis: { blockTime },
+		} = await this.apiClient.invoke<NodeInfo>('system_getNodeInfo');
+		const missedBlocks = Math.ceil((timestamp - previousBlock.header.timestamp) / blockTime) - 1;
 
 		if (missedBlocks > 0) {
-			const forgersInfo = await this._channel.invoke<
-				readonly { address: string; nextForgingTime: number }[]
-			>('app:getForgers');
+			const { list: forgersInfo } = await this.apiClient.invoke<{ list: { address: string }[] }>(
+				'chain_getGeneratorList',
+			);
 			const forgersRoundLength = forgersInfo.length;
 			const forgerIndex = forgersInfo.findIndex(f => f.address === forgerAddress);
 
@@ -439,15 +409,6 @@ export class ForgerPlugin extends BasePlugin {
 					missedBlocksByAddress[missedForgerInfo.address] === undefined
 						? 1
 						: (missedBlocksByAddress[missedForgerInfo.address] += 1);
-			}
-
-			// Only emit event if block missed and the plugin is not syncing with the forging node
-			if (!this._syncingWithNode) {
-				this._channel.publish('forger:block:missed', {
-					missedBlocksByAddress,
-					height,
-					timestamp: Date.now(),
-				});
 			}
 		}
 	}

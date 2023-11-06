@@ -1,1 +1,15 @@
-../../../../config/devnet/genesis_block.json
+{
+	"header": {
+		"generatorAddress": "",
+		"height": 0,
+		"id": "5fcd9e0023a6cde6b6add2dee9038eaa432b0306aca24d55028ba28a43dff21e",
+		"previousBlockID": "",
+		"reward": "0",
+		"signature": "",
+		"timestamp": 1610643809,
+		"transactionRoot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		"version": 0
+	},
+	"assets": [],
+	"transactions": []
+}

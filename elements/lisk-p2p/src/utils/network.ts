@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
 
 // eslint-disable-next-line import/no-cycle
@@ -111,7 +111,7 @@ export const getNetgroup = (address: string, secret: number): number => {
 
 	const netgroupBytes = Buffer.concat([secretBytes, networkBytes, aBytes, bBytes]);
 
-	return hash(netgroupBytes).readUInt32BE(0);
+	return utils.hash(netgroupBytes).readUInt32BE(0);
 };
 
 export const constructPeerId = (ipAddress: string, port: number): string => `${ipAddress}:${port}`;
@@ -187,7 +187,7 @@ export const getBucketId = (options: {
 
 	// Separate buckets for local and private addresses
 	if (network !== NETWORK.NET_IPV4) {
-		return hash(Buffer.concat([secretBytes, networkBytes])).readUInt32BE(0) % bucketCount;
+		return utils.hash(Buffer.concat([secretBytes, networkBytes])).readUInt32BE(0) % bucketCount;
 	}
 
 	const addressBytes = Buffer.concat([targetABytes, targetBBytes, targetCBytes, targetDBytes]);
@@ -201,17 +201,20 @@ export const getBucketId = (options: {
 
 	const k =
 		peerType === PEER_TYPE.NEW_PEER && sourceBytes
-			? hash(
-					Buffer.concat([
-						secretBytes,
-						networkBytes,
-						sourceBytes.aBytes,
-						sourceBytes.bBytes,
-						targetABytes,
-						targetBBytes,
-					]),
-			  ).readUInt32BE(0) % firstMod
-			: hash(Buffer.concat([secretBytes, networkBytes, addressBytes])).readUInt32BE(0) % firstMod;
+			? utils
+					.hash(
+						Buffer.concat([
+							secretBytes,
+							networkBytes,
+							sourceBytes.aBytes,
+							sourceBytes.bBytes,
+							targetABytes,
+							targetBBytes,
+						]),
+					)
+					.readUInt32BE(0) % firstMod
+			: utils.hash(Buffer.concat([secretBytes, networkBytes, addressBytes])).readUInt32BE(0) %
+			  firstMod;
 
 	kBytes.writeUInt32BE(k, 0);
 
@@ -222,5 +225,5 @@ export const getBucketId = (options: {
 			? Buffer.concat([secretBytes, networkBytes, sourceBytes.aBytes, sourceBytes.bBytes, kBytes])
 			: Buffer.concat([secretBytes, networkBytes, targetABytes, targetBBytes, kBytes]);
 
-	return hash(bucketBytes).readUInt32BE(0) % bucketCount;
+	return utils.hash(bucketBytes).readUInt32BE(0) % bucketCount;
 };

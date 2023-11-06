@@ -14,8 +14,8 @@
 
 export const constantsConfig = (overriddenConfigProperties = {}) => ({
 	blockTime: 10,
-	delegateListRoundOffset: 2,
-	communityIdentifier: 'Lisk',
+	validatorListRoundOffset: 2,
+	chainID: '10000000',
 	rewards: {
 		milestones: [
 			'500000000', // Initial Reward
@@ -28,17 +28,12 @@ export const constantsConfig = (overriddenConfigProperties = {}) => ({
 		distance: 3000000, // Distance between each milestone
 	},
 	bftThreshold: 68,
+	bftBatchSize: 103,
 	minRemainingBalance: '5000000',
 	minFeePerByte: 1000,
-	baseFees: [
-		{
-			moduleID: 5,
-			assetID: 0,
-			baseFee: '1000000000',
-		},
-	],
-	activeDelegates: 101,
-	standbyDelegates: 2,
-	maxPayloadLength: 15 * 1024,
+	activeValidators: 101,
+	standbyValidators: 2,
+	maxTransactionsSize: 15 * 1024,
+	modules: {},
 	...overriddenConfigProperties,
 });

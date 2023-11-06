@@ -13,11 +13,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Command, flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
+import { homedir } from 'os';
 import * as fs from 'fs-extra';
 import { join, resolve } from 'path';
 import * as inquirer from 'inquirer';
+import { isHexString } from '@liskhq/lisk-validator';
 import { defaultConfig } from '../../../utils/config';
+import { OWNER_READ_WRITE } from '../../../constants';
 
 export class CreateCommand extends Command {
 	static description = 'Creates network configuration file.';
@@ -38,18 +41,17 @@ export class CreateCommand extends Command {
 			description: 'App Label',
 			default: 'beta-sdk-app',
 		}),
-		'community-identifier': flagParser.string({
+		'chain-id': flagParser.string({
 			char: 'i',
-			description: 'Community Identifier',
-			default: 'sdk',
+			description: 'ChainID in hex format. For example, Lisk mainnet mainchain is 00000000',
+			required: true,
 		}),
 	};
 
 	async run(): Promise<void> {
 		const {
-			flags: { output, label, 'community-identifier': communityIdentifier },
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		} = this.parse(CreateCommand);
+			flags: { output, label, 'chain-id': chainID },
+		} = await this.parse(CreateCommand);
 
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;
@@ -58,12 +60,16 @@ export class CreateCommand extends Command {
 			this.error('Invalid name');
 		}
 
+		if (!isHexString(chainID) || chainID.length !== 8) {
+			this.error('Invalid chain ID format. ChainID must be in hex format with 8 characters');
+		}
+
 		// determine proper path
 		const configPath = resolve(output);
 		const filePath = join(configPath, 'config');
 
-		defaultConfig.label = label;
-		defaultConfig.genesisConfig.communityIdentifier = communityIdentifier;
+		defaultConfig.system.dataPath = join(homedir(), '.lisk', label);
+		(defaultConfig.genesis as Record<string, unknown>).chainID = chainID;
 
 		// check for existing file at given location & ask the user before overwriting
 		if (fs.existsSync(filePath)) {
@@ -75,11 +81,17 @@ export class CreateCommand extends Command {
 			if (!userResponse.confirm) {
 				this.error('Operation cancelled, config file already present at the desired location');
 			} else {
-				fs.writeJSONSync(resolve(configPath, 'config.json'), defaultConfig, { spaces: '\t' });
+				fs.writeJSONSync(resolve(configPath, 'config.json'), defaultConfig, {
+					spaces: '\t',
+					mode: OWNER_READ_WRITE,
+				});
 			}
 		} else {
 			fs.mkdirSync(configPath, { recursive: true });
-			fs.writeJSONSync(resolve(configPath, 'config.json'), defaultConfig, { spaces: '\t' });
+			fs.writeJSONSync(resolve(configPath, 'config.json'), defaultConfig, {
+				spaces: '\t',
+				mode: OWNER_READ_WRITE,
+			});
 		}
 	}
 }

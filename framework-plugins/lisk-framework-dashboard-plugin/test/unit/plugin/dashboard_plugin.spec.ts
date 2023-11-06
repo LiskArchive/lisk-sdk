@@ -18,18 +18,18 @@ describe('DashboardPlugin', () => {
 	describe('defaults', () => {
 		it('should return valid config schema with default options', () => {
 			// eslint-disable-nextline
-			const plugin = new DashboardPlugin({} as any);
+			const plugin = new DashboardPlugin();
 
-			expect(plugin.defaults).toMatchSnapshot();
+			expect(plugin.configSchema).toMatchSnapshot();
 		});
 	});
 
 	describe('constructor', () => {
 		it('should load default config', () => {
 			// eslint-disable-nextline
-			const plugin = new DashboardPlugin({} as any);
+			const plugin = new DashboardPlugin();
 
-			expect(plugin.options).toMatchSnapshot();
+			expect(plugin.config).toMatchSnapshot();
 		});
 	});
 });

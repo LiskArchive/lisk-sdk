@@ -14,7 +14,7 @@
  *
  */
 
-import { flags as flagParser } from '@oclif/command';
+import { Flags as flagParser } from '@oclif/core';
 import { DEFAULT_NETWORK } from '../constants';
 
 const messageDescription = `Specifies a source for providing a message to the command. If a string is provided directly as an argument, this option will be ignored. The message must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
@@ -33,10 +33,6 @@ const passwordDescription = `Specifies a source for your secret password. Comman
 	Examples:
 	- --password=pass:password123 (should only be used where security is not important)
 `;
-const networkIdentifierDescription =
-	'Network identifier defined for the network or main | test for the Lisk Network.';
-
-const communityIdentifierDescription = 'Unique community identifier for network.';
 
 const dataPathDescription =
 	'Directory path to specify where node data is stored. Environment variable "LISK_DATA_PATH" can also be used.';
@@ -52,6 +48,11 @@ const configDescription =
 const prettyDescription = 'Prints JSON in pretty format rather than condensed.';
 
 const outputDescription = 'The output directory. Default will set to current working directory.';
+
+const fileDescription = `The file to upload.
+	Example:
+		--file=./myfile.json
+`;
 
 export type AlphabetLowercase =
 	| 'a'
@@ -101,12 +102,6 @@ export const flags: FlagMap = {
 		char: 'w',
 		description: passwordDescription,
 	},
-	networkIdentifier: {
-		description: networkIdentifierDescription,
-	},
-	communityIdentifier: {
-		description: communityIdentifierDescription,
-	},
 	dataPath: {
 		char: 'd',
 		description: dataPathDescription,
@@ -136,7 +131,11 @@ export const flags: FlagMap = {
 	senderPublicKey: {
 		char: 's',
 		description:
-			'Sign the transaction with provided sender public key, when passphrase is not provided',
+			"Set a custom senderPublicKey property for the transaction, to be used when account address does not correspond to signer's private key",
+	},
+	file: {
+		char: 'f',
+		description: fileDescription,
 	},
 };
 
@@ -144,24 +143,25 @@ export const flagsWithParser = {
 	dataPath: flagParser.string({
 		...flags.dataPath,
 		env: 'LISK_DATA_PATH',
-	}) as flagParser.IFlag<string | undefined>,
+	}),
 	network: flagParser.string({
 		...flags.network,
 		env: 'LISK_NETWORK',
 		default: DEFAULT_NETWORK,
-	}) as flagParser.IFlag<string>,
+	}),
 	config: flagParser.string({
 		...flags.config,
 		env: 'LISK_CONFIG_FILE',
-	}) as flagParser.IFlag<string | undefined>,
-	pretty: flagParser.boolean(flags.pretty) as flagParser.IFlag<boolean | undefined>,
+	}),
+	pretty: flagParser.boolean(flags.pretty),
 	passphrase: flagParser.string(flags.passphrase),
 	output: flagParser.string(flags.output),
 	password: flagParser.string(flags.password),
 	offline: flagParser.boolean({
 		...flags.offline,
-	}) as flagParser.IFlag<boolean | undefined>,
-	json: flagParser.boolean(flags.json) as flagParser.IFlag<boolean | undefined>,
+	}),
+	json: flagParser.boolean(flags.json),
 	senderPublicKey: flagParser.string(flags.senderPublicKey),
-	networkIdentifier: flagParser.string(flags.networkIdentifier),
+	chainID: flagParser.string(flags.chainID),
+	file: flagParser.string(flags.file),
 };

@@ -30,7 +30,7 @@ export const NETWORK_DESTROY_WAIT_TIME = 1000;
 export const FALLBACK_PEER_DISCOVER_INTERVAL = 800;
 
 export const nodeInfoConstants = {
-	networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+	chainID: Buffer.from('10000000', 'hex'),
 	version: '1.0.1',
 	networkVersion: '1.1',
 	minVersion: '1.0.0',
@@ -44,6 +44,7 @@ interface TestNetworkConfig {
 	startNodePort?: number;
 	networkDiscoveryWaitTime?: number;
 	customConfig?: (index: number, startPort: number, networkSize: number) => object;
+	initNodeInfo?: object;
 }
 
 export const createNetwork = async ({
@@ -51,6 +52,7 @@ export const createNetwork = async ({
 	startNodePort,
 	networkDiscoveryWaitTime,
 	customConfig,
+	initNodeInfo,
 }: TestNetworkConfig = {}): Promise<P2P[]> => {
 	const numberOfPeers = networkSize ?? NETWORK_PEER_COUNT;
 	const startPort = startNodePort ?? NETWORK_START_PORT;
@@ -85,10 +87,10 @@ export const createNetwork = async ({
 			maxInboundConnections: DEFAULT_MAX_INBOUND_CONNECTIONS,
 			fallbackSeedPeerDiscoveryInterval: FALLBACK_PEER_DISCOVER_INTERVAL,
 			nodeInfo: {
-				networkIdentifier: nodeInfoConstants.networkIdentifier,
+				chainID: nodeInfoConstants.chainID,
 				networkVersion: nodeInfoConstants.networkVersion,
 				nonce: `${nodeInfoConstants.nonce}${nodePort}`,
-				options: {},
+				options: initNodeInfo ?? {},
 				...customNodeInfo,
 			},
 			...customConfigObject,

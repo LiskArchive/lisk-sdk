@@ -43,7 +43,7 @@ describe('utils/network', () => {
 	describe('#getIPGroup', () => {
 		it('should return first group when passing 0 in second argument', () => {
 			const byte = getIPGroup(IPv4Address, 0);
-			return expect(byte).toEqual(1);
+			return expect(byte).toBe(1);
 		});
 
 		it('should throw an error for second argument greater than 3', () => {
@@ -181,8 +181,8 @@ describe('utils/network', () => {
 
 		it("should return undefined when peers don't have dateAdded field", () => {
 			const peerBucketWithoutDateAdded = new Map<string, P2PEnhancedPeerInfo>();
-			const peers2 = initPeerInfoList();
-			for (const p of peers2) {
+			const peerInfoList = initPeerInfoList();
+			for (const p of peerInfoList) {
 				peerBucketWithoutDateAdded.set(p?.peerId, p);
 			}
 			expect(

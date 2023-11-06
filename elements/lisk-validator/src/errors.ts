@@ -17,7 +17,7 @@ import { LiskErrorObject } from './types';
 // Ajv.ErrorObject makes `schemaPath` and `dataPath` required
 // While these are not if we want to infer default values from validation
 
-const errorParamToString = (param: string | Buffer | BigInt | undefined | unknown): string => {
+const errorParamToString = (param: string | Buffer | bigint | undefined | unknown): string => {
 	let paramAsString = '';
 	if (typeof param === 'bigint') {
 		paramAsString = param.toString();
@@ -86,7 +86,6 @@ export class LiskValidationError extends Error {
 	}
 
 	private _compileErrors(): string[] {
-		const errorMsgs = this.errors.map(errorFormatter);
-		return errorMsgs;
+		return this.errors.map(errorFormatter);
 	}
 }

@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing, PartialApplicationConfig } from 'lisk-framework';
-import { getForgerInfoByPublicKey, getForgerPlugin, waitTill } from '../../utils/application';
+import { testing, PartialApplicationConfig } from 'lisk-sdk';
+import { getForgerInfoByAddress, getForgerPlugin, waitTill } from '../../utils/application';
 import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction } from '../../utils/transactions';
 import { ForgerPlugin } from '../../../src';
@@ -21,7 +21,7 @@ import { ForgerPlugin } from '../../../src';
 describe('Forger Info Sync', () => {
 	let appEnv: testing.ApplicationEnv;
 	let accountNonce = 0;
-	let networkIdentifier: Buffer;
+	let chainID: Buffer;
 
 	beforeAll(async () => {
 		const rootPath = '~/.lisk/forger-plugin';
@@ -32,11 +32,11 @@ describe('Forger Info Sync', () => {
 
 		appEnv = testing.createDefaultApplicationEnv({
 			config,
-			plugins: [ForgerPlugin],
+			plugins: [new ForgerPlugin()],
 		});
 		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
-		networkIdentifier = appEnv.networkIdentifier;
+		chainID = appEnv.chainID;
 	});
 
 	afterAll(async () => {
@@ -53,19 +53,19 @@ describe('Forger Info Sync', () => {
 			recipientAddress: account.address,
 			fee: '0.3',
 			nonce: accountNonce,
-			networkIdentifier,
+			chainID,
 		});
 		accountNonce += 1;
-		await appEnv.ipcClient.invoke('app:postTransaction', {
+		await appEnv.ipcClient.invoke('txpool_postTransaction', {
 			transaction: transaction.getBytes().toString('hex'),
 		});
 		await appEnv.waitNBlocks(1);
-		const { generatorPublicKey } = appEnv.lastBlock.header;
+		const { generatorAddress } = appEnv.lastBlock.header;
 		let forgerPluginInstance = getForgerPlugin(appEnv.application);
 		await waitTill(2000);
-		const forgerInfo = await getForgerInfoByPublicKey(
+		const forgerInfo = await getForgerInfoByAddress(
 			forgerPluginInstance,
-			generatorPublicKey.toString('hex'),
+			generatorAddress.toString('binary'),
 		);
 		// Make sure forger info is not changed
 		expect(forgerInfo).toMatchSnapshot();
@@ -85,9 +85,9 @@ describe('Forger Info Sync', () => {
 
 		await waitTill(2000);
 		// Get forger info
-		const forgerInfoAfterRestart = await getForgerInfoByPublicKey(
+		const forgerInfoAfterRestart = await getForgerInfoByAddress(
 			forgerPluginInstance,
-			generatorPublicKey.toString('hex'),
+			generatorAddress.toString('binary'),
 		);
 
 		// Assert

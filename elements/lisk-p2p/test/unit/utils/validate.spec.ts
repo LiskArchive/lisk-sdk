@@ -89,7 +89,7 @@ describe('utils/validate', () => {
 				expect(
 					validatePeerInfo.bind(
 						null,
-						sanitizeIncomingPeerInfo((peerInvalid as unknown) as ProtocolPeerInfo),
+						sanitizeIncomingPeerInfo(peerInvalid as unknown as ProtocolPeerInfo),
 						10000,
 					),
 				).toThrow('Invalid peer ipAddress or port');
@@ -157,7 +157,7 @@ describe('utils/validate', () => {
 			const maximumSize = 10;
 
 			const nodeInfo: P2PNodeInfo = {
-				networkIdentifier: '12.23.54.3',
+				chainID: Buffer.from('chainID', 'hex'),
 				networkVersion: '1.1',
 				options: {
 					foo: 'bar',

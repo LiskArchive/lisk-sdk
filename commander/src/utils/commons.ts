@@ -26,21 +26,35 @@ export const liskSnapshotUrl = (url: string, network: NETWORK): string => {
 	return url;
 };
 
-export const encryptPassphrase = (
+export const encryptPassphrase = async (
 	passphrase: string,
 	password: string,
 	outputPublicKey: boolean,
-): Record<string, unknown> => {
-	const encryptedPassphraseObject = cryptography.encryptPassphraseWithPassword(
+): Promise<Record<string, unknown>> => {
+	const encryptedPassphrase = await cryptography.encrypt.encryptMessageWithPassword(
 		passphrase,
 		password,
 	);
-	const encryptedPassphrase = cryptography.stringifyEncryptedPassphrase(encryptedPassphraseObject);
 
 	return outputPublicKey
 		? {
 				encryptedPassphrase,
-				publicKey: cryptography.getKeys(passphrase).publicKey.toString('hex'),
+				publicKey: cryptography.legacy.getKeys(passphrase).publicKey.toString('hex'),
 		  }
 		: { encryptedPassphrase };
+};
+
+export const deriveKeypair = async (passphrase: string, keyDerivationPath: string) => {
+	if (keyDerivationPath === 'legacy') {
+		return cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+	}
+	const privateKey = await cryptography.ed.getPrivateKeyFromPhraseAndPath(
+		passphrase,
+		keyDerivationPath,
+	);
+	const publicKey = cryptography.ed.getPublicKeyFromPrivateKey(privateKey);
+	return {
+		publicKey,
+		privateKey,
+	};
 };

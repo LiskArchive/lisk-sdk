@@ -14,81 +14,108 @@
  *
  */
 
-import { BFT } from '@liskhq/lisk-bft';
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import * as os from 'os';
 import {
 	Block,
 	Chain,
 	DataAccess,
-	GenesisBlock,
-	Validator,
 	BlockHeader,
 	Transaction,
-	AccountDefaultProps,
+	StateStore,
+	standardEventDataSchema,
 } from '@liskhq/lisk-chain';
-import {
-	getNetworkIdentifier,
-	getPrivateAndPublicKeyFromPassphrase,
-	getAddressAndPublicKeyFromPassphrase,
-} from '@liskhq/lisk-cryptography';
-import { Database } from '@liskhq/lisk-db';
+import { Database, StateDB } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
-
-import { TokenModule, SequenceModule, KeysModule, DPoSModule } from '../modules';
-import { Processor } from '../node/processor';
-import { InMemoryChannel } from '../controller';
-import { loggerMock, channelMock } from './mocks';
-import { createBlock } from './create_block';
+import { codec, Schema } from '@liskhq/lisk-codec';
+import { BaseModule } from '../modules';
+import { channelMock } from './mocks';
 import {
 	defaultConfig,
-	defaultAccounts,
-	createDefaultAccount,
-	getHashOnionFromDefaultConfig,
-	getPassphraseFromDefaultConfig,
-	defaultFaucetAccount,
+	getGeneratorPrivateKeyFromDefaultConfig,
+	getKeysFromDefaultConfig,
+	Keys,
 } from './fixtures';
-import { createDB, removeDB, getAccountSchemaFromModules, getModuleInstance } from './utils';
-import { ApplicationConfig, GenesisConfig } from '../types';
-import { ModuleClass, PartialAccount } from './types';
-import { createGenesisBlock } from './create_genesis_block';
+import { removeDB } from './utils';
+import { ApplicationConfig, EndpointHandler, EventJSON, GenesisConfig } from '../types';
+import { Consensus } from '../engine/consensus';
+import { MethodContext, StateMachine } from '../state_machine';
+import { Engine } from '../engine';
+import {
+	createImmutableMethodContext,
+	createNewMethodContext,
+} from '../state_machine/method_context';
+import { blockAssetsJSON } from './fixtures/genesis-asset';
+import { ValidatorsModule } from '../modules/validators';
+import { TokenModule } from '../modules/token';
+import { AuthModule } from '../modules/auth';
+import { FeeModule } from '../modules/fee';
+import { RandomModule } from '../modules/random';
+import { PoSModule } from '../modules/pos';
+import { Generator } from '../engine/generator';
+import { ABIHandler } from '../abi_handler/abi_handler';
+import { generateGenesisBlock } from '../genesis_block';
+import { systemDirs } from '../system_dirs';
+import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
+import { createLogger } from '../logger';
+import { MainchainInteroperabilityModule } from '../modules/interoperability';
+import { DynamicRewardModule } from '../modules/dynamic_reward';
 
 type Options = {
-	genesisConfig?: GenesisConfig;
+	genesis?: GenesisConfig;
+	modules?: Record<string, Record<string, unknown>>;
 	databasePath?: string;
 	passphrase?: string;
 };
 
-interface BlockProcessingParams<T = AccountDefaultProps> {
-	modules?: ModuleClass[];
+interface BlockProcessingParams {
+	modules?: BaseModule[];
 	options?: Options;
-	accounts?: PartialAccount<T>[];
-	initDelegates?: Buffer[];
+	initValidators?: Buffer[];
+	logLevel?: string;
 }
 
+type DecodedEventJSON = EventJSON & { decodedData: Record<string, unknown> };
+
 export interface BlockProcessingEnv {
-	createBlock: (payload?: Transaction[], timestamp?: number) => Promise<Block>;
-	getProcessor: () => Processor;
+	createBlock: (transactions?: Transaction[], timestamp?: number) => Promise<Block>;
+	getConsensus: () => Consensus;
+	getConsensusStore: () => StateStore;
+	getGenerator: () => Generator;
+	getGenesisBlock: () => Block;
 	getChain: () => Chain;
+	getMethodContext: () => MethodContext;
 	getBlockchainDB: () => Database;
 	process: (block: Block) => Promise<void>;
 	processUntilHeight: (height: number) => Promise<void>;
 	getLastBlock: () => Block;
-	getValidators: () => Promise<Validator[]>;
-	getNextValidatorPassphrase: (blockHeader: BlockHeader) => Promise<string>;
+	getNextValidatorKeys: (blockHeader: BlockHeader, distance?: number) => Promise<Keys>;
 	getDataAccess: () => DataAccess;
-	getNetworkId: () => Buffer;
-	cleanup: (config: Options) => Promise<void>;
+	getEvents: (height: number, module?: string, name?: string) => Promise<DecodedEventJSON[]>;
+	getChainID: () => Buffer;
+	invoke: <T = void>(path: string, params?: Record<string, unknown>) => Promise<T>;
+	cleanup: (config: Options) => void;
 }
 
-const defaultModules = [TokenModule, SequenceModule, KeysModule, DPoSModule];
-
-const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
+const getAppConfig = (
+	genesisConfig?: Partial<GenesisConfig>,
+	moduleConfig?: Record<string, Record<string, unknown>>,
+): ApplicationConfig => {
 	const mergedConfig = objects.mergeDeep(
 		{},
 		{
 			...defaultConfig,
-			genesisConfig: {
-				...defaultConfig.genesisConfig,
+			system: {
+				...defaultConfig.system,
+				dataPath: path.join(os.tmpdir(), `lisk-framework-test-${Date.now().toString()}`),
+			},
+			genesis: {
+				...defaultConfig.genesis,
 				...(genesisConfig ?? {}),
+			},
+			modules: {
+				...(moduleConfig ?? {}),
 			},
 		},
 	) as ApplicationConfig;
@@ -96,202 +123,273 @@ const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
 	return mergedConfig;
 };
 
-const getProcessor = (
-	db: Database,
-	appConfig: ApplicationConfig,
-	genesisBlock: GenesisBlock,
-	networkIdentifier: Buffer,
-	params: BlockProcessingParams,
-): Processor => {
-	const channel = (channelMock as unknown) as InMemoryChannel;
-	const modules = params.modules ?? defaultModules;
-
-	const chainModule = new Chain({
-		db,
-		genesisBlock,
-		networkIdentifier,
-		maxPayloadLength: appConfig.genesisConfig.maxPayloadLength,
-		rewardDistance: appConfig.genesisConfig.rewards.distance,
-		rewardOffset: appConfig.genesisConfig.rewards.offset,
-		rewardMilestones: appConfig.genesisConfig.rewards.milestones.map(s => BigInt(s)),
-		blockTime: appConfig.genesisConfig.blockTime,
-		minFeePerByte: appConfig.genesisConfig.minFeePerByte,
-		baseFees: appConfig.genesisConfig.baseFees,
-		accountSchemas: getAccountSchemaFromModules(modules),
-		roundLength: appConfig.genesisConfig.roundLength,
-	});
-
-	const bftModule = new BFT({
-		chain: chainModule,
-		threshold: appConfig.genesisConfig.bftThreshold,
-		genesisHeight: genesisBlock.header.height,
-	});
-
-	const processor = new Processor({
-		channel,
-		logger: loggerMock,
-		chainModule,
-		bftModule,
-		config: appConfig.genesisConfig,
-	});
-
-	for (const InstantiableModule of modules) {
-		const module = getModuleInstance(InstantiableModule, {
-			genesisConfig: appConfig.genesisConfig,
-		});
-		processor.register(module);
-	}
-
-	return processor;
-};
-
-const getNextTimestamp = (processor: Processor, previousBlock: BlockHeader) => {
-	const previousSlotNumber = processor['_chain'].slots.getSlotNumber(previousBlock.timestamp);
-
-	return processor['_chain'].slots.getSlotTime(previousSlotNumber + 1);
-};
-
-const getMaxHeightPreviouslyForged = async (
-	processor: Processor,
-	previousBlock: BlockHeader,
-	passphrase: string,
-): Promise<number> => {
-	const NUM_OF_ROUNDS = 3;
-	const ROUND_LENGTH = defaultConfig.genesisConfig.roundLength;
-	const toHeight = previousBlock.height;
-	const fromHeight = Math.max(0, toHeight - ROUND_LENGTH * NUM_OF_ROUNDS);
-	const { publicKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
-	const lastBlockHeaders = await processor['_chain'].dataAccess.getBlockHeadersByHeightBetween(
-		fromHeight,
-		toHeight,
+const getNextTimestamp = (engine: Engine, previousBlock: BlockHeader, distance = 1) => {
+	const previousSlotNumber = engine['_consensus']['_bft'].method.getSlotNumber(
+		previousBlock.timestamp,
 	);
-	const maxHeightPreviouslyForged =
-		lastBlockHeaders.find(h => h.generatorPublicKey.equals(publicKey))?.height ?? 0;
-
-	return maxHeightPreviouslyForged;
-};
-
-const getHashOnion = async (
-	processor: Processor,
-	previousBlock: BlockHeader,
-	passphrase: string,
-): Promise<Buffer> => {
-	const fromHeight = 0;
-	const toHeight = previousBlock.height;
-	const { publicKey, address } = getAddressAndPublicKeyFromPassphrase(passphrase);
-	const lastBlockHeaders = await processor['_chain'].dataAccess.getBlockHeadersByHeightBetween(
-		fromHeight,
-		toHeight,
-	);
-	const hashCount = lastBlockHeaders.filter(h => h.generatorPublicKey.equals(publicKey)).length;
-
-	return getHashOnionFromDefaultConfig(address, hashCount);
+	return engine['_consensus']['_bft'].method.getSlotTime(previousSlotNumber + distance);
 };
 
 const createProcessableBlock = async (
-	processor: Processor,
-	networkIdentifier: Buffer,
-	payload: Transaction[],
+	engine: Engine,
+	transactions: Transaction[],
 	timestamp?: number,
 ): Promise<Block> => {
+	engine['_logger'].info({ numberOfTransactions: transactions.length }, 'Start generating block');
 	// Get previous block and generate valid timestamp, seed reveal, maxHeightPrevoted, reward and maxHeightPreviouslyForged
-	const previousBlockHeader = processor['_chain'].lastBlock.header;
-	const nextTimestamp = timestamp ?? getNextTimestamp(processor, previousBlockHeader);
-	const validator = await processor['_chain'].getValidator(nextTimestamp);
-	const passphrase = getPassphraseFromDefaultConfig(validator.address);
-	const seedReveal = await getHashOnion(processor, previousBlockHeader, passphrase);
-	const maxHeightPrevoted = await processor['_bft'].getMaxHeightPrevoted(
-		previousBlockHeader.asset.maxHeightPrevoted,
+	const stateStore = new StateStore(engine['_blockchainDB']);
+	const previousBlockHeader = engine['_chain'].lastBlock.header;
+	const nextTimestamp = timestamp ?? getNextTimestamp(engine, previousBlockHeader);
+	const generator = await engine['_consensus']['_bft'].method.getGeneratorAtTimestamp(
+		stateStore,
+		previousBlockHeader.height + 1,
+		nextTimestamp,
 	);
-	const reward = processor['_chain'].calculateDefaultReward(previousBlockHeader.height + 1);
-	const maxHeightPreviouslyForged = await getMaxHeightPreviouslyForged(
-		processor,
-		previousBlockHeader,
-		passphrase,
-	);
-
-	return createBlock({
-		passphrase,
-		networkIdentifier,
+	const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(generator.address);
+	for (const tx of transactions) {
+		await engine['_generator']['_pool'].add(tx);
+	}
+	const block = await engine.generateBlock({
+		generatorAddress: generator.address,
+		height: previousBlockHeader.height + 1,
+		privateKey: generatorPrivateKey,
 		timestamp: nextTimestamp,
-		previousBlockID: previousBlockHeader.id,
-		header: {
-			height: previousBlockHeader.height + 1,
-			reward,
-			asset: {
-				maxHeightPreviouslyForged,
-				maxHeightPrevoted,
-				seedReveal,
-			},
-		},
-		payload,
+		transactions,
 	});
-};
-
-const getDefaultAccountsWithModules = () => {
-	const faucetAccount = {
-		address: defaultFaucetAccount.address,
-		token: { balance: BigInt(defaultFaucetAccount.balance) },
-		sequence: { nonce: BigInt('0') },
-	};
-	const accounts = defaultAccounts().map((a, i) =>
-		createDefaultAccount(defaultModules, {
-			address: a.address,
-			dpos: {
-				delegate: {
-					username: `delegate_${i}`,
-				},
-			},
-		}),
+	engine['_logger'].info(
+		{ height: block.header.height, numberOfTransactions: block.transactions.length },
+		'Generated block',
 	);
 
-	return [...accounts, faucetAccount];
+	return block;
 };
 
 export const getBlockProcessingEnv = async (
 	params: BlockProcessingParams,
 ): Promise<BlockProcessingEnv> => {
-	const appConfig = getAppConfig(params.options?.genesisConfig);
-	const modules = params.modules ?? defaultModules;
-	const accounts = params.accounts ?? getDefaultAccountsWithModules();
-	const { genesisBlock } = createGenesisBlock({ modules, accounts });
-	const networkIdentifier = getNetworkIdentifier(
-		genesisBlock.header.id,
-		appConfig.genesisConfig.communityIdentifier,
+	const chainID = Buffer.from('00000000', 'hex');
+	const appConfig = getAppConfig(
+		params.options?.genesis
+			? {
+					...params.options.genesis,
+					chainID: chainID.toString('hex'),
+			  }
+			: { chainID: chainID.toString('hex') },
+		params.options?.modules ?? {},
 	);
-	removeDB(params.options?.databasePath);
-	const db = createDB('blockchain', params.options?.databasePath);
-	const processor = getProcessor(db, appConfig, genesisBlock, networkIdentifier, params);
-	await processor.init(genesisBlock);
+
+	const systemDir = systemDirs(appConfig.system.dataPath);
+
+	removeDB(systemDir.data);
+	const moduleDB = new Database(path.join(systemDir.data, 'module.db'));
+	const stateDB = new StateDB(path.join(systemDir.data, 'state.db'));
+
+	const validatorsModule = new ValidatorsModule();
+	const authModule = new AuthModule();
+	const tokenModule = new TokenModule();
+	const feeModule = new FeeModule();
+	const rewardModule = new DynamicRewardModule();
+	const randomModule = new RandomModule();
+	const posModule = new PoSModule();
+	const interopModule = new MainchainInteroperabilityModule();
+	const modules = [
+		validatorsModule,
+		authModule,
+		tokenModule,
+		feeModule,
+		rewardModule,
+		randomModule,
+		posModule,
+	];
+	const stateMachine = new StateMachine();
+	const logger = createLogger({ name: 'blockProcessingEnv', logLevel: params.logLevel ?? 'none' });
+
+	// resolve dependencies
+	tokenModule.addDependencies(interopModule.method, feeModule.method);
+	feeModule.addDependencies(tokenModule.method, interopModule.method);
+	rewardModule.addDependencies(
+		tokenModule.method,
+		randomModule.method,
+		validatorsModule.method,
+		posModule.method,
+	);
+	posModule.addDependencies(
+		randomModule.method,
+		validatorsModule.method,
+		tokenModule.method,
+		feeModule.method,
+	);
+
+	// register modules
+	stateMachine.registerModule(feeModule);
+	stateMachine.registerModule(authModule);
+	stateMachine.registerModule(validatorsModule);
+	stateMachine.registerModule(tokenModule);
+	stateMachine.registerModule(rewardModule);
+	stateMachine.registerModule(randomModule);
+	stateMachine.registerModule(posModule);
+	const blockAssets = blockAssetsJSON.map(asset => ({
+		...asset,
+		data: codec.fromJSON<Record<string, unknown>>(asset.schema, asset.data),
+	}));
+	await stateMachine.init(logger, appConfig.genesis, appConfig.modules);
+	const genesisBlock = await generateGenesisBlock(stateMachine, logger, {
+		timestamp: Math.floor(Date.now() / 1000) - 60 * 60 * 12,
+		assets: blockAssets,
+		chainID,
+	});
+	const abiHandler = new ABIHandler({
+		channel: channelMock,
+		config: appConfig,
+		logger,
+		stateDB,
+		moduleDB,
+		modules,
+		stateMachine,
+		chainID,
+	});
+	appConfig.genesis.block.blob = genesisBlock.getBytes().toString('hex');
+	appConfig.generator.keys.fromFile = path.join(__dirname, './fixtures/keys_fixture.json');
+	const engine = new Engine(abiHandler, appConfig);
+	await engine['_init']();
+	engine['_logger'] = logger;
+	engine['_consensus']['_logger'] = logger;
+
+	await abiHandler.init({
+		chainID,
+		lastBlockHeight: engine['_chain'].lastBlock.header.height,
+		lastStateRoot: engine['_chain'].lastBlock.header.stateRoot as Buffer,
+	});
 
 	return {
-		createBlock: async (payload: Transaction[] = [], timestamp?: number): Promise<Block> =>
-			createProcessableBlock(processor, networkIdentifier, payload, timestamp),
-		getChain: () => processor['_chain'],
-		getProcessor: () => processor,
-		getBlockchainDB: () => db,
-		process: async (block): Promise<void> => processor.process(block),
+		createBlock: async (transactions: Transaction[] = [], timestamp?: number): Promise<Block> =>
+			createProcessableBlock(engine, transactions, timestamp),
+		getGenesisBlock: () => genesisBlock,
+		getChain: () => engine['_chain'],
+		getConsensus: () => engine['_consensus'],
+		getConsensusStore: () => new StateStore(engine['_blockchainDB']),
+		getGenerator: () => engine['_generator'],
+		getMethodContext: () => createNewMethodContext(stateDB.newReadWriter()),
+		getBlockchainDB: () => engine['_blockchainDB'],
+		process: async (block): Promise<void> => {
+			logger.debug(
+				{ height: block.header.height, numberOfTransactions: block.transactions.length },
+				'Start executing block',
+			);
+			await engine['_consensus']['_execute'](block, 'peer-id');
+			logger.debug(
+				{ height: block.header.height, numberOfTransactions: block.transactions.length },
+				'Executed block',
+			);
+		},
 		processUntilHeight: async (height): Promise<void> => {
-			for (let index = 0; index < height; index += 1) {
-				const nextBlock = await createProcessableBlock(processor, networkIdentifier, []);
-				await processor.process(nextBlock);
+			while (engine['_chain'].lastBlock.header.height < height) {
+				const nextBlock = await createProcessableBlock(engine, []);
+				await engine['_consensus'].execute(nextBlock);
 			}
 		},
-		getLastBlock: () => processor['_chain'].lastBlock,
-		getValidators: async (): Promise<Validator[]> => processor['_chain'].getValidators(),
-		getNextValidatorPassphrase: async (previousBlockHeader: BlockHeader): Promise<string> => {
-			const nextTimestamp = getNextTimestamp(processor, previousBlockHeader);
-			const validator = await processor['_chain'].getValidator(nextTimestamp);
-			const passphrase = getPassphraseFromDefaultConfig(validator.address);
+		getLastBlock: () => engine['_chain'].lastBlock,
+		getNextValidatorKeys: async (previousBlockHeader: BlockHeader, distance = 1): Promise<Keys> => {
+			const stateStore = new StateStore(engine['_blockchainDB']);
+			const nextTimestamp = getNextTimestamp(engine, previousBlockHeader, distance);
+			const validator = await engine['_consensus']['_bft'].method.getGeneratorAtTimestamp(
+				stateStore,
+				previousBlockHeader.height + distance,
+				nextTimestamp,
+			);
+			const keys = getKeysFromDefaultConfig(validator.address);
 
-			return passphrase;
+			return keys;
 		},
-		getNetworkId: () => networkIdentifier,
-		getDataAccess: () => processor['_chain'].dataAccess,
-		cleanup: async ({ databasePath }): Promise<void> => {
-			await processor.stop();
-			db.close();
-			removeDB(databasePath);
+		getEvents: async (
+			height: number,
+			module?: string,
+			name?: string,
+		): Promise<DecodedEventJSON[]> => {
+			const handler = engine['_rpcServer']['_getHandler']('chain', 'getEvents');
+			if (!handler) {
+				throw new Error('invalid');
+			}
+			const resp = (await handler({
+				logger,
+				chainID: engine['_chain'].chainID,
+				params: { height },
+			})) as EventJSON[];
+			const eventMetadata = stateMachine['_modules']
+				.map(m => ({ module: m.name, ...m.metadata().events } as Record<string, unknown>))
+				.flat();
+			const results: DecodedEventJSON[] = [];
+			for (const event of resp) {
+				if (module && event.module !== module) {
+					continue;
+				}
+				if (name && event.name !== name) {
+					continue;
+				}
+				if (event.name === 'commandExecutionResult') {
+					results.push({
+						...event,
+						decodedData: codec.decodeJSON(standardEventDataSchema, Buffer.from(event.data, 'hex')),
+					});
+					continue;
+				}
+				const metadata = eventMetadata.find(
+					e => e.module === event.module && e.name === event.name,
+				);
+
+				results.push({
+					...event,
+					decodedData: metadata
+						? codec.decodeJSON(metadata.schema as Schema, Buffer.from(event.data, 'hex'))
+						: {},
+				});
+			}
+			return results;
+		},
+		async invoke<T = void>(func: string, input: Record<string, unknown> = {}): Promise<T> {
+			const [namespace, method] = func.split('_');
+			const handler = engine['_rpcServer']['_getHandler'](namespace, method);
+			if (handler) {
+				const resp = (await handler({
+					logger,
+					chainID: engine['_chain'].chainID,
+					params: input,
+				})) as T;
+				return resp;
+			}
+			const moduleIndex = modules.findIndex(mod => mod.name === namespace);
+			if (moduleIndex < 0) {
+				throw new Error(`namespace ${namespace} is not registered`);
+			}
+			const moduleHandler = modules[moduleIndex].endpoint[method] as EndpointHandler | undefined;
+			if (!moduleHandler) {
+				throw new Error(`Method ${method} in namespace ${namespace} is not registered`);
+			}
+			const bindedHandler = moduleHandler.bind(modules[moduleIndex].endpoint);
+
+			const stateStore = new PrefixedStateReadWriter(stateDB.newReadWriter());
+			try {
+				const result = await bindedHandler({
+					getStore: (moduleID: Buffer, storePrefix: Buffer) =>
+						stateStore.getStore(moduleID, storePrefix),
+					getImmutableMethodContext: () => createImmutableMethodContext(stateStore),
+					logger: engine['_logger'],
+					chainID: engine['_chain'].chainID,
+					params: input,
+				});
+
+				return result as T;
+			} finally {
+				stateStore.inner.close();
+			}
+		},
+		getChainID: () => chainID,
+		getDataAccess: () => engine['_chain'].dataAccess,
+		cleanup: (_val): void => {
+			engine['_closeDB']();
+			moduleDB.close();
+			stateDB.close();
+			fs.removeSync(systemDir.data);
 		},
 	};
 };

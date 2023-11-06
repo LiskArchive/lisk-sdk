@@ -18,29 +18,29 @@ const path = require('path');
 const BaseGenerator = require('../base_generator');
 const { loadCSVFile, generateBlockHeader, generateBlockHeadersSeries } = require('../../utils/bft');
 
-const bftFinalityStepsGenerator = ({ activeDelegates, filePath }) => {
+const bftFinalityStepsGenerator = ({ activeValidators, filePath }) => {
 	const rows = loadCSVFile(path.join(__dirname, filePath));
 
-	const threshold = Math.ceil((activeDelegates * 2) / 3);
+	const threshold = Math.ceil((activeValidators * 2) / 3);
 
 	const steps = [];
 
 	for (let i = 1; i < rows.length - 1; i += 2) {
-		const delegateName = rows[i][1];
+		const validatorName = rows[i][1];
 		const maxHeightPreviouslyForged = parseInt(rows[i][2], 10);
 		const maxHeightPrevoted = parseInt(rows[i][3], 10);
-		const delegateMinHeightActive = (parseInt(rows[i][4], 10) - 1) * activeDelegates + 1;
+		const validatorMinHeightActive = (parseInt(rows[i][4], 10) - 1) * activeValidators + 1;
 		const height = parseInt(rows[i][5], 10);
 
 		const blockHeader = generateBlockHeader({
-			delegateName,
+			validatorName,
 			height,
 			maxHeightPreviouslyForged,
 			maxHeightPrevoted,
-			delegateMinHeightActive,
+			validatorMinHeightActive,
 		});
 
-		const input = { delegateName, blockHeader };
+		const input = { validatorName, blockHeader };
 
 		const preCommitsRow = rows[i].slice(7).map(Number);
 		const preVotesRow = rows[i + 1].slice(7).map(Number);
@@ -83,13 +83,13 @@ const bftFinalityStepsGenerator = ({ activeDelegates, filePath }) => {
 
 		// Since BFT only keep track of 5 rounds
 		Object.keys(preVotes)
-			.slice(0, -1 * activeDelegates * 5)
+			.slice(0, -1 * activeValidators * 5)
 			.forEach(key => {
 				delete preVotes[key];
 			});
 
 		Object.keys(preCommits)
-			.slice(0, -1 * activeDelegates * 5)
+			.slice(0, -1 * activeValidators * 5)
 			.forEach(key => {
 				delete preCommits[key];
 			});
@@ -111,34 +111,36 @@ const bftFinalityStepsGenerator = ({ activeDelegates, filePath }) => {
 	return steps;
 };
 
-const bftFinalityTestSuiteGenerator = ({ activeDelegates, title, filePath }) => () => ({
-	title: 'BFT processing generation',
-	summary:
-		'Generate status of pre-votes, pre-commits, finalized height and pre-voted height  as per BFT specification',
-	config: { activeDelegates, finalizedHeight: 0 },
-	runner: 'bft_processing',
-	handler: title,
-	testCases: bftFinalityStepsGenerator({ activeDelegates, filePath }),
-});
+const bftFinalityTestSuiteGenerator =
+	({ activeValidators, title, filePath }) =>
+	() => ({
+		title: 'BFT processing generation',
+		summary:
+			'Generate status of pre-votes, pre-commits, finalized height and pre-voted height  as per BFT specification',
+		config: { activeValidators, finalizedHeight: 0 },
+		runner: 'bft_processing',
+		handler: title,
+		testCases: bftFinalityStepsGenerator({ activeValidators, filePath }),
+	});
 
 /**
  *	This will generate a test step where we have invalid header attribute passed
  *
- * @param {int} activeDelegates
+ * @param {int} activeValidators
  * @return {{output: *, input: *, initialState: *}}
  */
-const invalidMaxHeightPrevoted = activeDelegates => {
+const invalidMaxHeightPrevoted = activeValidators => {
 	// We need minimum three rounds to perform verification of block headers
 	const blockHeaders = generateBlockHeadersSeries({
-		activeDelegates,
-		count: activeDelegates * 3 + 1,
+		activeValidators,
+		count: activeValidators * 3 + 1,
 	});
 
 	const blockHeader = blockHeaders.pop();
 
 	// It's an invalid block header as the value for "maxHeightPrevoted"
 	// didn't match with one BFT compute for this particular height
-	// which is normally incremented in sequence if same delegates keep forging
+	// which is normally incremented in sequence if same validators keep forging
 	const invalidBlockHeader = {
 		...blockHeader,
 		maxHeightPrevoted: blockHeader.maxHeightPrevoted + 10,
@@ -158,27 +160,27 @@ const invalidMaxHeightPrevoted = activeDelegates => {
 };
 
 /**
- * This will generate a test step when delegated moved on different chain
+ * This will generate a test step when validatord moved on different chain
  *
- * @param {int} activeDelegates
+ * @param {int} activeValidators
  * @return {{output: *, input: *, initialState: *}}
  */
-const invalidSameHeightBlock = activeDelegates => {
+const invalidSameHeightBlock = activeValidators => {
 	// We need minimum three rounds to perform verification of block headers
 	const blockHeaders = generateBlockHeadersSeries({
-		activeDelegates,
-		count: activeDelegates * 3 + 1,
+		activeValidators,
+		count: activeValidators * 3 + 1,
 	});
 
 	const blockHeader = blockHeaders.pop();
-	const delegateLastBlockHeader = blockHeaders[activeDelegates * 2];
+	const validatorLastBlockHeader = blockHeaders[activeValidators * 2];
 
 	// If a block header have same height as previously forged block
 	const invalidBlockHeader = {
 		...blockHeader,
-		// This delegate has forged block at first block of second round
-		maxHeightPreviouslyForged: delegateLastBlockHeader.maxHeightPreviouslyForged,
-		height: delegateLastBlockHeader.height,
+		// This validator has forged block at first block of second round
+		maxHeightPreviouslyForged: validatorLastBlockHeader.maxHeightPreviouslyForged,
+		height: validatorLastBlockHeader.height,
 	};
 
 	return {
@@ -193,28 +195,28 @@ const invalidSameHeightBlock = activeDelegates => {
 };
 
 /**
- * This will generate a test step when delegated moved on different chain
+ * This will generate a test step when validatord moved on different chain
  *
- * @param {int} activeDelegates
+ * @param {int} activeValidators
  * @return {{output: *, input: *, initialState: *}}
  */
-const invalidLowerHeightBlock = activeDelegates => {
+const invalidLowerHeightBlock = activeValidators => {
 	// We need minimum three rounds to perform verification of block headers
 	const blockHeaders = generateBlockHeadersSeries({
-		activeDelegates,
-		count: activeDelegates * 3 + 1,
+		activeValidators,
+		count: activeValidators * 3 + 1,
 	});
 
 	const blockHeader = blockHeaders.pop();
-	const delegateLastBlockHeader = blockHeaders[activeDelegates * 2];
+	const validatorLastBlockHeader = blockHeaders[activeValidators * 2];
 
 	// If a block header have height lower then previously forged height
 	const invalidBlockHeader = {
 		...blockHeader,
-		// This delegate has forged block at first block of second round
+		// This validator has forged block at first block of second round
 		// so we make it 1 less as last block of second round
-		maxHeightPreviouslyForged: delegateLastBlockHeader.maxHeightPreviouslyForged,
-		height: delegateLastBlockHeader.height - 1,
+		maxHeightPreviouslyForged: validatorLastBlockHeader.maxHeightPreviouslyForged,
+		height: validatorLastBlockHeader.height - 1,
 	};
 
 	return {
@@ -231,26 +233,26 @@ const invalidLowerHeightBlock = activeDelegates => {
 /**
  * This will generate a test step we found a missing block in the chain
  *
- * @param {int} activeDelegates
+ * @param {int} activeValidators
  * @return {{output: *, input: *, initialState: *}}
  */
 // eslint-disable-next-line no-unused-vars
-const invalidPreviouslyForgedHeight = activeDelegates => {
+const invalidPreviouslyForgedHeight = activeValidators => {
 	// We need minimum three rounds to perform verification of block headers
 	const blockHeaders = generateBlockHeadersSeries({
-		activeDelegates,
-		count: activeDelegates * 3 + 1,
+		activeValidators,
+		count: activeValidators * 3 + 1,
 	});
 
 	const blockHeader = blockHeaders.pop();
-	const delegateLastBlockHeader = blockHeaders[activeDelegates * 2];
+	const validatorLastBlockHeader = blockHeaders[activeValidators * 2];
 
 	// If a block header have height lower then previously forged height
 	const invalidBlockHeader = {
 		...blockHeader,
-		// This delegate has forged block at first block of second round
+		// This validator has forged block at first block of second round
 		// so we make it 1 less as last block of second round
-		maxHeightPreviouslyForged: delegateLastBlockHeader.height - 1,
+		maxHeightPreviouslyForged: validatorLastBlockHeader.height - 1,
 	};
 
 	return {
@@ -267,22 +269,22 @@ const invalidPreviouslyForgedHeight = activeDelegates => {
 /**
  * This will generate a test step when block is forged on a lower chain
  *
- * @param {int} activeDelegates
+ * @param {int} activeValidators
  * @return {{output: *, input: *, initialState: *}}
  */
-const invalidLowerMaxHeightPrevoted = activeDelegates => {
+const invalidLowerMaxHeightPrevoted = activeValidators => {
 	// We need minimum three rounds to perform verification of block headers
 	const blockHeaders = generateBlockHeadersSeries({
-		activeDelegates,
-		count: activeDelegates * 3 + 1,
+		activeValidators,
+		count: activeValidators * 3 + 1,
 	});
 
 	const blockHeader = blockHeaders.pop();
-	const delegateLastBlockHeader = blockHeaders[activeDelegates * 2];
+	const validatorLastBlockHeader = blockHeaders[activeValidators * 2];
 
-	// If delegate last forged block have higher maxHeightPrevoted
+	// If validator last forged block have higher maxHeightPrevoted
 	// value that means it moved to different chain
-	delegateLastBlockHeader.maxHeightPrevoted = blockHeader.maxHeightPrevoted + 1;
+	validatorLastBlockHeader.maxHeightPrevoted = blockHeader.maxHeightPrevoted + 1;
 	const invalidBlockHeader = {
 		...blockHeader,
 	};
@@ -298,20 +300,22 @@ const invalidLowerMaxHeightPrevoted = activeDelegates => {
 	};
 };
 
-const bftInvalidBlockHeaderTestSuiteGenerator = ({ activeDelegates }) => () => ({
-	title: 'BFT processing generation',
-	summary: 'Generate set of invalid blocks headers for BFT',
-	config: { activeDelegates, finalizedHeight: 0 },
-	runner: 'bft_processing',
-	handler: 'bft_invalid_block_headers',
-	testCases: [
-		invalidMaxHeightPrevoted(activeDelegates),
-		invalidSameHeightBlock(activeDelegates),
-		invalidLowerHeightBlock(activeDelegates),
-		invalidPreviouslyForgedHeight(activeDelegates),
-		invalidLowerMaxHeightPrevoted(activeDelegates),
-	],
-});
+const bftInvalidBlockHeaderTestSuiteGenerator =
+	({ activeValidators }) =>
+	() => ({
+		title: 'BFT processing generation',
+		summary: 'Generate set of invalid blocks headers for BFT',
+		config: { activeValidators, finalizedHeight: 0 },
+		runner: 'bft_processing',
+		handler: 'bft_invalid_block_headers',
+		testCases: [
+			invalidMaxHeightPrevoted(activeValidators),
+			invalidSameHeightBlock(activeValidators),
+			invalidLowerHeightBlock(activeValidators),
+			invalidPreviouslyForgedHeight(activeValidators),
+			invalidLowerMaxHeightPrevoted(activeValidators),
+		],
+	});
 
 const FORK_STATUS_IDENTICAL_BLOCK = 1;
 const FORK_STATUS_VALID_BLOCK = 2;
@@ -518,30 +522,30 @@ const bftForkChoiceTestSuiteGenerator = () => {
 
 BaseGenerator.runGenerator('bft_finality_processing', [
 	bftFinalityTestSuiteGenerator({
-		activeDelegates: 4,
-		title: '4_delegates_missed_slots',
-		filePath: '4_delegates_missed_slots.csv',
+		activeValidators: 4,
+		title: '4_validators_missed_slots',
+		filePath: '4_validators_missed_slots.csv',
 	}),
 	bftFinalityTestSuiteGenerator({
-		activeDelegates: 4,
-		title: '4_delegates_simple',
-		filePath: '4_delegates_simple.csv',
+		activeValidators: 4,
+		title: '4_validators_simple',
+		filePath: '4_validators_simple.csv',
 	}),
 	bftFinalityTestSuiteGenerator({
-		activeDelegates: 5,
-		title: '5_delegates_switched_completely',
-		filePath: '5_delegates_switched_completely.csv',
+		activeValidators: 5,
+		title: '5_validators_switched_completely',
+		filePath: '5_validators_switched_completely.csv',
 	}),
 	bftFinalityTestSuiteGenerator({
-		activeDelegates: 7,
-		title: '7_delegates_partial_switch',
-		filePath: '7_delegates_partial_switch.csv',
+		activeValidators: 7,
+		title: '7_validators_partial_switch',
+		filePath: '7_validators_partial_switch.csv',
 	}),
 	bftFinalityTestSuiteGenerator({
-		activeDelegates: 11,
-		title: '11_delegates_partial_switch',
-		filePath: '11_delegates_partial_switch.csv',
+		activeValidators: 11,
+		title: '11_validators_partial_switch',
+		filePath: '11_validators_partial_switch.csv',
 	}),
-	bftInvalidBlockHeaderTestSuiteGenerator({ activeDelegates: 5 }),
+	bftInvalidBlockHeaderTestSuiteGenerator({ activeValidators: 5 }),
 	bftForkChoiceTestSuiteGenerator,
 ]);

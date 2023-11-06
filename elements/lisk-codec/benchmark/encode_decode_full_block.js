@@ -16,23 +16,23 @@ const crypto = require('crypto');
 const { Suite } = require('benchmark');
 const { codec } = require('../dist-node/codec');
 
-const payload = [...Array(65).keys()].map(() => crypto.randomBytes(220));
+const transactions = [...Array(65).keys()].map(() => crypto.randomBytes(220));
 
 const suite = new Suite();
 
 const block = {
 	header: Buffer.from('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad', 'hex'),
-	payload,
+	transactions,
 };
 
 const testSchema = {
-	$id: 'blockSchema',
+	$id: '/blockSchema',
 	type: 'object',
 	properties: {
 		header: { dataType: 'bytes', fieldNumber: 1 },
-		payload: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 2 },
+		transactions: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 2 },
 	},
-	required: ['header', 'payload'],
+	required: ['header', 'transactions'],
 };
 
 const blockEncoded = codec.encode(testSchema, block);

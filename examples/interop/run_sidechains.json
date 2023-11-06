@@ -1,0 +1,28 @@
+{
+	"apps": [
+		{
+			"name": "pos-sidechain-1",
+			"script": "pos-sidechain-example-one/bin/run",
+			"args": [
+				"start",
+				"--api-ipc",
+				"--api-http",
+				"--api-ws",
+				"--enable-dashboard-plugin",
+				"--enable-chain-connector-plugin"
+			]
+		},
+		{
+			"name": "pos-sidechain-2",
+			"script": "pos-sidechain-example-two/bin/run",
+			"args": [
+				"start",
+				"--api-ipc",
+				"--api-http",
+				"--api-ws",
+				"--enable-dashboard-plugin",
+				"--enable-chain-connector-plugin"
+			]
+		}
+	]
+}

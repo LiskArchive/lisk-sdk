@@ -12,12 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Command, flags as flagParser } from '@oclif/command';
+import * as fs from 'fs-extra';
+import { Command, Flags as flagParser } from '@oclif/core';
 import * as inquirer from 'inquirer';
-import { getDefaultPath } from '../../../utils/path';
+import {
+	getDefaultPath,
+	getBlockchainDBPath,
+	getStateDBPath,
+	getModuleDBPath,
+} from '../../../utils/path';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPid, isApplicationRunning } from '../../../utils/application';
-import { getBlockchainDB } from '../../../utils/db';
 
 export class ResetCommand extends Command {
 	static description = 'Reset the blockchain data.';
@@ -33,11 +38,11 @@ export class ResetCommand extends Command {
 		yes: flagParser.boolean({
 			char: 'y',
 			description: 'Skip confirmation prompt.',
-		}) as flagParser.IFlag<boolean | undefined>,
+		}),
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(ResetCommand);
+		const { flags } = await this.parse(ResetCommand);
 		const dataPath = flags['data-path']
 			? flags['data-path']
 			: getDefaultPath(this.config.pjson.name);
@@ -67,8 +72,13 @@ export class ResetCommand extends Command {
 			}
 		}
 
-		const db = getBlockchainDB(dataPath);
-		await db.clear();
+		// Remove blockchain, state and module dbs
+		// Generator and node dbs will not be cleared
+		// We manually remove the dbs vs. using db.clear as clear is not implemented yet in state and module dbs (blockchain db for consistency)
+		fs.removeSync(getBlockchainDBPath(dataPath));
+		fs.removeSync(getStateDBPath(dataPath));
+		fs.removeSync(getModuleDBPath(dataPath));
+
 		this.log('Blockchain data has been reset.');
 	}
 }

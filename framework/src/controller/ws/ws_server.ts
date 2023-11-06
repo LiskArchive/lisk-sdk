@@ -11,64 +11,134 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { utils } from '@liskhq/lisk-cryptography';
+import { IncomingMessage } from 'http';
+import { Socket } from 'net';
 import * as WebSocket from 'ws';
 import { Logger } from '../../logger';
+import { NotificationRequest, RequestObject } from '../jsonrpc';
 
 interface WebSocketWithTracking extends WebSocket {
 	isAlive?: boolean;
+	id: string;
 }
 
 export type WSMessageHandler = (socket: WebSocketWithTracking, message: string) => void;
 
 export class WSServer {
 	public server!: WebSocket.Server;
-	private pingTimer!: NodeJS.Timeout;
-	private readonly port: number;
-	private readonly host?: string;
-	private readonly path: string;
-	private readonly logger: Logger;
 
-	public constructor(options: { port: number; host?: string; path: string; logger: Logger }) {
-		this.port = options.port;
-		this.host = options.host;
-		this.path = options.path;
-		this.logger = options.logger;
+	private _pingTimer!: NodeJS.Timeout;
+	private _logger!: Logger;
+	private readonly _port: number;
+	private readonly _host?: string;
+	private readonly _path: string;
+	// subscription holds id: event names array
+	private readonly _subscriptions: Record<string, Set<string>> = {};
+	private readonly _accessControlAllowOrigin: string;
+
+	public constructor(options: {
+		port: number;
+		host?: string;
+		path: string;
+		accessControlAllowOrigin?: string;
+	}) {
+		this._port = options.port;
+		this._host = options.host;
+		this._path = options.path;
+		this._accessControlAllowOrigin = options.accessControlAllowOrigin ?? '*';
 	}
 
-	public start(messageHandler: WSMessageHandler): WebSocket.Server {
-		this.server = new WebSocket.Server({
-			path: this.path,
-			port: this.port,
-			host: this.host,
-			clientTracking: true,
+	public start(
+		logger: Logger,
+		messageHandler: WSMessageHandler,
+		httpServer?: WebSocket.ServerOptions['server'],
+	): WebSocket.Server {
+		this._logger = logger;
+		if (httpServer) {
+			this.server = new WebSocket.Server({
+				noServer: true,
+			});
+			httpServer.on('upgrade', (request: IncomingMessage, socket: Socket, head: Buffer) => {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+				if (request.url === this._path) {
+					this.server.handleUpgrade(request, socket, head, ws => {
+						this.server.emit('connection', ws, request);
+					});
+				} else {
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+					socket.destroy();
+				}
+			});
+		} else {
+			this.server = new WebSocket.Server({
+				path: this._path,
+				port: this._port,
+				host: this._host,
+				clientTracking: true,
+			});
+		}
+
+		this.server.on('connection', (socket, req) => {
+			const { origin } = req.headers;
+			if (
+				origin &&
+				this._accessControlAllowOrigin !== '*' &&
+				!this._accessControlAllowOrigin.includes(origin)
+			) {
+				socket.close();
+				return;
+			}
+
+			this._handleConnection(socket as WebSocketWithTracking, messageHandler);
 		});
-		this.server.on('connection', socket => this._handleConnection(socket, messageHandler));
+
 		this.server.on('error', error => {
-			this.logger.error(error);
+			this._logger.error(error);
 		});
+
 		this.server.on('listening', () => {
-			this.logger.info('Websocket Server Ready');
+			this._logger.info(
+				{ host: this._host, port: this._port, path: this._path },
+				'Websocket Server Ready',
+			);
 		});
 
 		this.server.on('close', () => {
-			clearInterval(this.pingTimer);
+			clearInterval(this._pingTimer);
 		});
 
-		this.pingTimer = this._setUpPing();
+		this._pingTimer = this._setUpPing();
+
+		this._logger.info(`RPC WS Server starting at ${this._host ?? ''}:${this._port}${this._path}`);
 
 		return this.server;
 	}
 
 	public stop(): void {
 		if (this.server) {
+			for (const cli of this.server.clients) {
+				cli.terminate();
+			}
 			this.server.close();
 		}
 	}
 
-	public broadcast(message: string): void {
+	public broadcast(message: NotificationRequest): void {
 		for (const client of this.server.clients) {
-			if (client.readyState === WebSocket.OPEN) {
-				client.send(message);
+			const wsClient = client as WebSocketWithTracking;
+			if (wsClient.readyState === WebSocket.OPEN && wsClient.id) {
+				const subscription = this._subscriptions[wsClient.id];
+				if (!subscription) {
+					continue;
+				}
+				if (
+					Array.from(subscription).some(
+						key => message.method === key || message.method.includes(key),
+					)
+				) {
+					client.send(JSON.stringify(message));
+				}
 			}
 		}
 	}
@@ -76,9 +146,31 @@ export class WSServer {
 	private _handleConnection(socket: WebSocketWithTracking, messageHandler: WSMessageHandler) {
 		// eslint-disable-next-line no-param-reassign
 		socket.isAlive = true;
-		socket.on('message', (message: string) => messageHandler(socket, message));
+		// eslint-disable-next-line no-param-reassign
+		socket.id = utils.getRandomBytes(20).toString('hex');
+		socket.on('message', (message: string, isBytes: boolean) => {
+			// Read the message, and if it's subscription message, handle here
+			try {
+				const parsedMessage = JSON.parse(isBytes ? message.toString() : message) as RequestObject;
+				if (parsedMessage.method === 'subscribe') {
+					this._handleSubscription(socket, parsedMessage);
+					return;
+				}
+				if (parsedMessage.method === 'unsubscribe') {
+					this._handleUnsubscription(socket, parsedMessage);
+					return;
+				}
+			} catch (error) {
+				this._logger.error({ err: error as Error }, 'Received invalid websocket message');
+				return;
+			}
+			messageHandler(socket, message);
+		});
 		socket.on('pong', () => this._handleHeartbeat(socket));
-		this.logger.info('New web socket client connected');
+		socket.on('close', () => {
+			delete this._subscriptions[socket.id];
+		});
+		this._logger.info('New web socket client connected');
 	}
 
 	private _handleHeartbeat(socket: WebSocketWithTracking) {
@@ -100,5 +192,31 @@ export class WSServer {
 			}
 			return null;
 		}, 3000);
+	}
+
+	private _handleSubscription(socket: WebSocketWithTracking, message: Partial<RequestObject>) {
+		const { params } = message;
+		if (!params || !Array.isArray(params.topics) || !params.topics.length) {
+			throw new Error('Invalid subscription message.');
+		}
+		if (!this._subscriptions[socket.id]) {
+			this._subscriptions[socket.id] = new Set<string>();
+		}
+		for (const eventName of params.topics) {
+			this._subscriptions[socket.id].add(eventName as string);
+		}
+	}
+
+	private _handleUnsubscription(socket: WebSocketWithTracking, message: Partial<RequestObject>) {
+		const { params } = message;
+		if (!params || !Array.isArray(params.topics) || !params.topics.length) {
+			throw new Error('Invalid unsubscription message.');
+		}
+		if (!this._subscriptions[socket.id]) {
+			return;
+		}
+		for (const eventName of params.topics) {
+			this._subscriptions[socket.id].delete(eventName as string);
+		}
 	}
 }

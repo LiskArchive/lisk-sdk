@@ -1,5 +1,5 @@
 {
-	"title": "Encondings for number types supported by lisk-codec",
+	"title": "Encoding for number types supported by lisk-codec",
 	"summary": "Examples of encoding numbers with lisk-codec",
 	"config": {
 		"network": "devnet"
@@ -14,7 +14,7 @@
 					"number": 10
 				},
 				"schema": {
-					"$id": "object1",
+					"$id": "/numberSchemaUint32",
 					"type": "object",
 					"properties": {
 						"number": {
@@ -35,7 +35,7 @@
 					"number": -10
 				},
 				"schema": {
-					"$id": "object2",
+					"$id": "/numberSchemaSint32",
 					"type": "object",
 					"properties": {
 						"number": {
@@ -53,10 +53,10 @@
 			"description": "Encoding 64 bit unsigned number",
 			"input": {
 				"object": {
-					"number": 372036854775807
+					"number": "372036854775807"
 				},
 				"schema": {
-					"$id": "object3",
+					"$id": "/numberSchemaUint64",
 					"type": "object",
 					"properties": {
 						"number": {
@@ -74,10 +74,10 @@
 			"description": "Encoding 64 bit signed number",
 			"input": {
 				"object": {
-					"number": -9007199254740991
+					"number": "-9007199254740991"
 				},
 				"schema": {
-					"$id": "object4",
+					"$id": "/numberSchemaSint64",
 					"type": "object",
 					"properties": {
 						"number": {

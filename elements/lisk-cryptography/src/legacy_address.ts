@@ -13,10 +13,23 @@
  *
  */
 
-import { hash } from './hash';
-import { getKeys } from './keys';
-import { getFirstEightBytesReversed } from './convert';
+import { getKeys } from './legacy';
 import { getPublicKey } from './nacl';
+import { hash } from './utils';
+
+// eslint-disable-next-line import/order
+import reverse = require('buffer-reverse');
+
+export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
+	const BUFFER_SIZE = 8;
+	// Union type arguments on overloaded functions do not work in typescript.
+	// Relevant discussion: https://github.com/Microsoft/TypeScript/issues/23155
+	if (typeof input === 'string') {
+		return reverse(Buffer.from(input).slice(0, BUFFER_SIZE));
+	}
+
+	return reverse(Buffer.from(input).slice(0, BUFFER_SIZE));
+};
 
 export const getLegacyAddressFromPublicKey = (publicKey: Buffer): string => {
 	const publicKeyHash = hash(publicKey);

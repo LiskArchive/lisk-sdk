@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as axios from 'axios';
-import { testing, PartialApplicationConfig } from 'lisk-framework';
+import { testing, PartialApplicationConfig, BasePlugin } from 'lisk-sdk';
 import { FaucetPlugin } from '../../src/plugin';
 
 describe('fund tokens action', () => {
@@ -34,7 +34,7 @@ describe('fund tokens action', () => {
 		} as PartialApplicationConfig;
 		appEnv = testing.createDefaultApplicationEnv({
 			config,
-			plugins: [FaucetPlugin],
+			plugins: [new FaucetPlugin() as BasePlugin<any>],
 		});
 		await appEnv.startApplication();
 		await appEnv.ipcClient.invoke<{ result: string }>('faucet:authorize', {

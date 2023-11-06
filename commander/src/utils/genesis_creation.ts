@@ -13,109 +13,142 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Account } from '@liskhq/lisk-chain';
-import { createGenesisBlock, getGenesisBlockJSON, accountAssetSchemas } from '@liskhq/lisk-genesis';
-import { RegisteredSchema } from 'lisk-framework';
-import { objects } from '@liskhq/lisk-utils';
-import * as cryptography from '@liskhq/lisk-cryptography';
-import { createMnemonicPassphrase } from './mnemonic';
+import { Schema } from '@liskhq/lisk-codec';
+import { address } from '@liskhq/lisk-cryptography';
+import {
+	genesisInteroperabilitySchema,
+	MODULE_NAME_INTEROPERABILITY,
+	posGenesisStoreSchema,
+	PoSModule,
+	tokenGenesisStoreSchema,
+	TokenModule,
+} from 'lisk-framework';
 
-interface generateGenesisBlockInput {
-	readonly schema: RegisteredSchema;
-	readonly defaultAccount: Record<string, unknown>;
-	readonly numOfAccounts: number;
-	readonly numOfValidators: number;
-	readonly tokenDistribution: number;
-}
+export const genesisAssetsSchema = {
+	$id: '/genesis/asset/0',
+	type: 'object',
+	required: ['assets'],
+	properties: {
+		assets: {
+			type: 'array',
+			items: {
+				type: 'object',
+				required: ['module', 'data', 'schema'],
+				properties: {
+					module: {
+						type: 'string',
+					},
+					data: {
+						type: 'object',
+					},
+					schema: {
+						type: 'object',
+					},
+				},
+			},
+		},
+	},
+};
 
-interface generateGenesisBlockOutput {
-	readonly genesisBlock: Record<string, unknown>;
-	readonly accountList: AccountInfo[];
-	readonly delegateList: {
-		readonly address: string;
-		readonly passphrase: string;
-		readonly username: string;
+export interface GenesisAssetsInput {
+	assets: {
+		module: string;
+		data: Record<string, unknown>;
+		schema: Schema;
 	}[];
 }
 
-interface AccountInfo {
-	readonly address: string;
-	readonly passphrase: string;
-}
-const createAccount = (): AccountInfo => {
-	const passphrase = createMnemonicPassphrase();
-	const address = cryptography.getAddressFromPassphrase(passphrase).toString('hex');
-	return {
-		passphrase,
-		address,
+interface Keys {
+	address: string;
+	keyPath: string;
+	publicKey: string;
+	privateKey: string;
+	plain: {
+		generatorKeyPath: string;
+		generatorKey: string;
+		generatorPrivateKey: string;
+		blsKeyPath: string;
+		blsKey: string;
+		blsProofOfPossession: string;
+		blsPrivateKey: string;
 	};
-};
+}
 
-const prepareNormalAccounts = (
-	data: {
-		address: string;
-	}[],
-	tokenBalance: number,
-): Account[] =>
-	data.map(acc => ({
-		address: Buffer.from(acc.address, 'hex'),
-		token: { balance: BigInt(tokenBalance) },
-	}));
+interface GenesisBlockDefaultAccountInput {
+	keysList: Keys[];
+	chainID: string;
+	tokenDistribution: bigint;
+	numberOfValidators: number;
+}
 
-const prepareValidatorAccounts = (
-	data: {
-		username: string;
-		address: string;
-	}[],
-	tokenBalance: number,
-): Account[] =>
-	data.map(acc => ({
-		address: Buffer.from(acc.address, 'hex'),
-		token: { balance: BigInt(tokenBalance) },
-		dpos: {
-			delegate: {
-				username: acc.username,
-			},
+export const generateGenesisBlockDefaultPoSAssets = (input: GenesisBlockDefaultAccountInput) => {
+	const localID = Buffer.from([0, 0, 0, 0]).toString('hex');
+	const tokenID = `${input.chainID}${localID}`;
+	input.keysList.sort((a, b) =>
+		address
+			.getAddressFromLisk32Address(a.address)
+			.compare(address.getAddressFromLisk32Address(b.address)),
+	);
+	const genesisAssets = [
+		{
+			module: new TokenModule().name,
+			data: {
+				userSubstore: input.keysList.map(a => ({
+					address: a.address,
+					tokenID,
+					availableBalance: input.tokenDistribution.toString(),
+					lockedBalances: [],
+				})),
+				supplySubstore: [
+					{
+						tokenID,
+						totalSupply: (input.tokenDistribution * BigInt(input.keysList.length)).toString(),
+					},
+				],
+				escrowSubstore: [],
+				supportedTokensSubstore: [],
+			} as Record<string, unknown>,
+			schema: tokenGenesisStoreSchema,
 		},
-	}));
-
-export const generateGenesisBlock = ({
-	defaultAccount,
-	numOfAccounts = 10,
-	numOfValidators = 103,
-	schema,
-	tokenDistribution = 10000000,
-}: generateGenesisBlockInput): generateGenesisBlockOutput => {
-	const accountSchemas = schema.account.properties;
-	const defaultAccountAssetSchema = Object.fromEntries(
-		Object.entries(defaultAccount).map(([k, v]) => [k, { default: v }]),
-	);
-	const accountSchemasWithDefaults = objects.mergeDeep(
-		{},
-		accountSchemas,
-		defaultAccountAssetSchema,
-	);
-	const accountList = new Array(numOfAccounts).fill(0).map(_x => createAccount());
-	const delegateList = new Array(numOfValidators).fill(0).map((_x, index) => ({
-		...{ username: `delegate_${index}` },
-		...createAccount(),
-	}));
-	const validAccounts = prepareNormalAccounts(accountList, tokenDistribution);
-	const validDelegateAccounts = prepareValidatorAccounts(delegateList, tokenDistribution);
-
-	const updatedGenesisBlock = createGenesisBlock({
-		initDelegates: validDelegateAccounts.map(a => a.address),
-		accounts: [...validAccounts, ...validDelegateAccounts] as Account[],
-		accountAssetSchemas: accountSchemasWithDefaults as accountAssetSchemas,
-	});
-	const genesisBlock = getGenesisBlockJSON({
-		genesisBlock: updatedGenesisBlock,
-		accountAssetSchemas: accountSchemasWithDefaults as accountAssetSchemas,
-	});
+		{
+			module: new PoSModule().name,
+			data: {
+				validators: input.keysList.map((v, i) => ({
+					address: v.address,
+					name: `genesis_${i}`,
+					blsKey: v.plain.blsKey,
+					proofOfPossession: v.plain.blsProofOfPossession,
+					generatorKey: v.plain.generatorKey,
+					lastGeneratedHeight: 0,
+					isBanned: false,
+					reportMisbehaviorHeights: [],
+					consecutiveMissedBlocks: 0,
+					commission: 0,
+					lastCommissionIncreaseHeight: 0,
+					sharingCoefficients: [],
+				})),
+				stakers: [],
+				genesisData: {
+					initRounds: 3,
+					initValidators: input.keysList.slice(0, input.numberOfValidators).map(v => v.address),
+				},
+			} as Record<string, unknown>,
+			schema: posGenesisStoreSchema,
+		},
+		{
+			module: MODULE_NAME_INTEROPERABILITY,
+			data: {
+				ownChainName: '',
+				ownChainNonce: 0,
+				chainInfos: [],
+				terminatedStateAccounts: [],
+				terminatedOutboxAccounts: [],
+			},
+			schema: genesisInteroperabilitySchema,
+		},
+	];
 
 	return {
-		genesisBlock,
-		delegateList,
-		accountList,
+		genesisAssets,
 	};
 };

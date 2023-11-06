@@ -15,20 +15,20 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Command, flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
+import { utils as cryptoUtils } from '@liskhq/lisk-cryptography';
 import { ApplicationConfig, Application, PartialApplicationConfig } from 'lisk-framework';
 import * as utils from '@liskhq/lisk-utils';
 import { flagsWithParser } from '../../utils/flags';
 
 import {
 	getDefaultPath,
-	splitPath,
 	getFullPath,
 	getConfigDirs,
-	removeConfigDir,
 	ensureConfigDir,
 	getNetworkConfigFilesPath,
+	getConfigFilesPath,
 } from '../../utils/path';
 
 const LOG_OPTIONS = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
@@ -39,7 +39,7 @@ export abstract class StartCommand extends Command {
 		'start',
 		'start --network devnet --data-path /path/to/data-dir --log debug',
 		'start --network devnet --api-ws',
-		'start --network devnet --api-ws --api-ws-port 8888',
+		'start --network devnet --api-ws --api-port 8888',
 		'start --network devnet --port 9000',
 		'start --network devnet --port 9002 --seed-peers 127.0.0.1:9001,127.0.0.1:9000',
 		'start --network testnet --overwrite-config',
@@ -53,59 +53,60 @@ export abstract class StartCommand extends Command {
 		'overwrite-config': flagParser.boolean({
 			description: 'Overwrite network configs if they exist already',
 			default: false,
-		}) as flagParser.IFlag<boolean | undefined>,
+		}),
 		port: flagParser.integer({
 			char: 'p',
 			description:
 				'Open port for the peer to peer incoming connections. Environment variable "LISK_PORT" can also be used.',
 			env: 'LISK_PORT',
-		}) as flagParser.IFlag<number | undefined>,
+		}),
 		'api-ipc': flagParser.boolean({
 			description:
 				'Enable IPC communication. This will load plugins as a child process and communicate over IPC. Environment variable "LISK_API_IPC" can also be used.',
 			env: 'LISK_API_IPC',
 			default: false,
-			exclusive: ['api-ws'],
-		}) as flagParser.IFlag<boolean>,
+		}),
 		'api-ws': flagParser.boolean({
 			description:
 				'Enable websocket communication for api-client. Environment variable "LISK_API_WS" can also be used.',
 			env: 'LISK_API_WS',
 			default: false,
-			exclusive: ['api-ipc'],
-		}) as flagParser.IFlag<boolean>,
-		'api-ws-port': flagParser.integer({
+		}),
+		'api-http': flagParser.boolean({
 			description:
-				'Port to be used for api-client websocket. Environment variable "LISK_API_WS_PORT" can also be used.',
+				'Enable HTTP communication for api-client. Environment variable "LISK_API_HTTP" can also be used.',
+			env: 'LISK_API_HTTP',
+			default: false,
+		}),
+		'api-port': flagParser.integer({
+			description:
+				'Port to be used for api-client. Environment variable "LISK_API_PORT" can also be used.',
 			env: 'LISK_API_WS_PORT',
-			dependsOn: ['api-ws'],
-		}) as flagParser.IFlag<number | undefined>,
-		'console-log': flagParser.string({
+		}),
+		'api-host': flagParser.string({
 			description:
-				'Console log level. Environment variable "LISK_CONSOLE_LOG_LEVEL" can also be used.',
-			env: 'LISK_CONSOLE_LOG_LEVEL',
-			options: LOG_OPTIONS,
-		}) as flagParser.IFlag<string | undefined>,
+				'Host to be used for api-client. Environment variable "LISK_API_HOST" can also be used.',
+			env: 'LISK_API_HOST',
+		}),
 		log: flagParser.string({
 			char: 'l',
-			description: 'File log level. Environment variable "LISK_FILE_LOG_LEVEL" can also be used.',
-			env: 'LISK_FILE_LOG_LEVEL',
+			description: 'Log level. Environment variable "LISK_LOG_LEVEL" can also be used.',
+			env: 'LISK_LOG_LEVEL',
 			options: LOG_OPTIONS,
-		}) as flagParser.IFlag<string | undefined>,
+		}),
 		'seed-peers': flagParser.string({
 			env: 'LISK_SEED_PEERS',
 			description:
 				'Seed peers to initially connect to in format of comma separated "ip:port". IP can be DNS name or IPV4 format. Environment variable "LISK_SEED_PEERS" can also be used.',
-		}) as flagParser.IFlag<string | undefined>,
+		}),
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(this.constructor as typeof StartCommand);
+		const { flags } = await this.parse(this.constructor as typeof StartCommand);
 		const dataPath = flags['data-path']
 			? flags['data-path']
 			: getDefaultPath(this.config.pjson.name);
 		this.log(`Starting Lisk ${this.config.pjson.name} at ${getFullPath(dataPath)}.`);
-		const pathConfig = splitPath(dataPath);
 
 		const defaultNetworkConfigDir = getConfigDirs(this.getApplicationConfigDir(), true);
 		if (!defaultNetworkConfigDir.includes(flags.network)) {
@@ -116,85 +117,74 @@ export abstract class StartCommand extends Command {
 			);
 		}
 
-		// Validate dataPath/config if config for other network exists, throw error and exit unless overwrite-config is specified
-		const configDir = getConfigDirs(dataPath);
-		// If config file exist, do not copy unless overwrite-config is specified
-		if (configDir.length > 1 || (configDir.length === 1 && configDir[0] !== flags.network)) {
-			if (!flags['overwrite-config']) {
+		// Read network genesis block and config from the folder
+		const {
+			basePath: destBasePath,
+			configFilePath,
+			genesisBlockFilePath,
+		} = getConfigFilesPath(dataPath);
+		const { basePath: srcBasePath, genesisBlockFilePath: srcGenesisBlockPath } =
+			getNetworkConfigFilesPath(this.getApplicationConfigDir(), flags.network, true);
+
+		// If genesis block file exist, do not copy unless overwrite-config is specified
+		if (fs.existsSync(genesisBlockFilePath)) {
+			if (
+				!cryptoUtils
+					.hash(fs.readFileSync(srcGenesisBlockPath))
+					.equals(cryptoUtils.hash(fs.readFileSync(genesisBlockFilePath))) &&
+				!flags['overwrite-config']
+			) {
 				this.error(
-					`Datapath ${dataPath} already contains configs for ${configDir.join(
-						',',
-					)}. Please use --overwrite-config to overwrite the config.`,
+					`Datapath ${dataPath} already contains configs for ${flags.network}. Please use --overwrite-config to overwrite the config.`,
 				);
 			}
-			// Remove other network configs
-			for (const configFolder of configDir) {
-				if (configFolder !== flags.network) {
-					removeConfigDir(dataPath, configFolder);
-				}
-			}
 		}
-		// If genesis block file exist, do not copy unless overwrite-config is specified
-		ensureConfigDir(dataPath, flags.network);
-
-		// Read network genesis block and config from the folder
-		const { genesisBlockFilePath, configFilePath } = getNetworkConfigFilesPath(
-			dataPath,
-			flags.network,
-		);
-		const {
-			genesisBlockFilePath: defaultGenesisBlockFilePath,
-			configFilePath: defaultConfigFilepath,
-		} = getNetworkConfigFilesPath(this.getApplicationConfigDir(), flags.network, true);
 
 		if (
-			!fs.existsSync(genesisBlockFilePath) ||
-			(fs.existsSync(genesisBlockFilePath) && flags['overwrite-config'])
+			!fs.existsSync(destBasePath) ||
+			(fs.existsSync(destBasePath) && flags['overwrite-config'])
 		) {
-			fs.copyFileSync(defaultGenesisBlockFilePath, genesisBlockFilePath);
-		}
-		if (
-			!fs.existsSync(configFilePath) ||
-			(fs.existsSync(configFilePath) && flags['overwrite-config'])
-		) {
-			fs.copyFileSync(defaultConfigFilepath, configFilePath);
+			ensureConfigDir(dataPath);
+			fs.copySync(srcBasePath, destBasePath, { overwrite: true });
 		}
 
 		// Get config from network config or config specified
-		const genesisBlock = await fs.readJSON(genesisBlockFilePath);
 		let config = await fs.readJSON(configFilePath);
 
 		if (flags.config) {
 			const customConfig: ApplicationConfig = await fs.readJSON(flags.config);
 			config = utils.objects.mergeDeep({}, config, customConfig) as ApplicationConfig;
 		}
-
-		config.rootPath = pathConfig.rootPath;
-		config.label = pathConfig.label;
-		config.version = this.config.pjson.version;
+		config.system.version = this.config.pjson.version;
+		config.system.dataPath = dataPath;
 		// Inject other properties specified
+		const modes = [];
 		if (flags['api-ipc']) {
-			config.rpc = utils.objects.mergeDeep({}, config.rpc, {
-				enable: flags['api-ipc'],
-				mode: 'ipc',
-			});
+			modes.push('ipc');
 		}
 		if (flags['api-ws']) {
+			modes.push('ws');
+		}
+		if (flags['api-http']) {
+			modes.push('http');
+		}
+		if (modes.length) {
 			config.rpc = utils.objects.mergeDeep({}, config.rpc, {
-				enable: flags['api-ws'],
-				mode: 'ws',
-				port: flags['api-ws-port'],
+				modes,
 			});
 		}
-		if (flags['console-log']) {
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			config.logger = config.logger ?? {};
-			config.logger.consoleLogLevel = flags['console-log'];
+		if (flags['api-host']) {
+			config.rpc = utils.objects.mergeDeep({}, config.rpc, {
+				host: flags['api-host'],
+			});
+		}
+		if (flags['api-port']) {
+			config.rpc = utils.objects.mergeDeep({}, config.rpc, {
+				port: flags['api-port'],
+			});
 		}
 		if (flags.log) {
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			config.logger = config.logger ?? {};
-			config.logger.fileLogLevel = flags.log;
+			config.system.logLevel = flags.log;
 		}
 		if (flags.port) {
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -219,7 +209,7 @@ export abstract class StartCommand extends Command {
 
 		// Get application and start
 		try {
-			const app = this.getApplication(genesisBlock, config);
+			const app = await this.getApplication(config);
 			await app.run();
 		} catch (errors) {
 			this.error(
@@ -230,10 +220,7 @@ export abstract class StartCommand extends Command {
 		}
 	}
 
-	abstract getApplication(
-		genesisBlock: Record<string, unknown>,
-		config: PartialApplicationConfig,
-	): Application;
+	abstract getApplication(config: PartialApplicationConfig): Promise<Application>;
 
 	abstract getApplicationConfigDir(): string;
 }

@@ -17,10 +17,13 @@
 import { cryptography } from '../../src';
 
 const {
-	getLegacyAddressAndPublicKeyFromPassphrase,
-	getLegacyAddressFromPassphrase,
-	getLegacyAddressFromPrivateKey,
-	getLegacyAddressFromPublicKey,
+	legacyAddress: {
+		getLegacyAddressAndPublicKeyFromPassphrase,
+		getLegacyAddressFromPassphrase,
+		getLegacyAddressFromPrivateKey,
+		getLegacyAddressFromPublicKey,
+		getFirstEightBytesReversed,
+	},
 } = cryptography;
 
 describe('Legacy address', () => {
@@ -35,6 +38,22 @@ describe('Legacy address', () => {
 		'hex',
 	);
 	const defaultAddress = '7115442636316065252L';
+
+	describe('#getFirstEightBytesReversed', () => {
+		const defaultStringWithMoreThanEightCharacters = '0123456789';
+		const defaultFirstEightCharactersReversed = '76543210';
+
+		it('should get the first eight bytes reversed from a Buffer', () => {
+			const bufferEntry = Buffer.from(defaultStringWithMoreThanEightCharacters);
+			const reversedAndCut = getFirstEightBytesReversed(bufferEntry);
+			expect(reversedAndCut).toEqual(Buffer.from(defaultFirstEightCharactersReversed));
+		});
+
+		it('should get the first eight bytes reversed from a string', () => {
+			const reversedAndCut = getFirstEightBytesReversed(defaultStringWithMoreThanEightCharacters);
+			expect(reversedAndCut).toEqual(Buffer.from(defaultFirstEightCharactersReversed));
+		});
+	});
 
 	describe('#getLegacyAddressAndPublicKeyFromPassphrase', () => {
 		it('should return expected address', () => {

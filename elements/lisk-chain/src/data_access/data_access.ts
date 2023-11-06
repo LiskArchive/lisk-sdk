@@ -11,46 +11,38 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 import { Database, NotFoundError } from '@liskhq/lisk-db';
-import { codec, Schema } from '@liskhq/lisk-codec';
 import { Transaction } from '../transaction';
-import { BlockHeader, Block, RawBlock, Account, BlockHeaderAsset } from '../types';
+import { RawBlock } from '../types';
+import { BlockHeader } from '../block_header';
+import { Block } from '../block';
+import { Event } from '../event';
 
 import { BlockCache } from './cache';
 import { Storage as StorageAccess } from './storage';
-import { StateStore } from '../state_store';
-import { BlockHeaderInterfaceAdapter } from './block_header_interface_adapter';
-import { blockHeaderSchema, blockSchema } from '../schema';
-import { DB_KEY_ACCOUNTS_ADDRESS } from './constants';
+import { BlockAssets } from '../block_assets';
+import { CurrentState } from '../state_store';
 
 interface DAConstructor {
 	readonly db: Database;
-	readonly registeredBlockHeaders: {
-		readonly [key: number]: Schema;
-	};
-	readonly accountSchema: Schema;
 	readonly minBlockHeaderCache: number;
 	readonly maxBlockHeaderCache: number;
+	readonly keepEventsForHeights: number;
 }
 
 export class DataAccess {
 	private readonly _storage: StorageAccess;
 	private readonly _blocksCache: BlockCache;
-	private readonly _accountSchema: Schema;
-	private readonly _blockHeaderAdapter: BlockHeaderInterfaceAdapter;
 
 	public constructor({
 		db,
-		registeredBlockHeaders,
-		accountSchema,
 		minBlockHeaderCache,
 		maxBlockHeaderCache,
+		keepEventsForHeights,
 	}: DAConstructor) {
-		this._storage = new StorageAccess(db);
+		this._storage = new StorageAccess(db, { keepEventsForHeights });
 		this._blocksCache = new BlockCache(minBlockHeaderCache, maxBlockHeaderCache);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		this._accountSchema = accountSchema;
-		this._blockHeaderAdapter = new BlockHeaderInterfaceAdapter(registeredBlockHeaders);
 	}
 
 	// BlockHeaders are all the block properties included for block signature + signature of block
@@ -92,10 +84,6 @@ export class DataAccess {
 		this._blocksCache.empty();
 	}
 
-	public getBlockHeaderAssetSchema(version: number): Schema {
-		return this._blockHeaderAdapter.getSchema(version);
-	}
-
 	public async getBlockHeaderByID(id: Buffer): Promise<BlockHeader> {
 		const cachedBlock = this._blocksCache.getByID(id);
 
@@ -104,11 +92,7 @@ export class DataAccess {
 		}
 		const blockHeaderBuffer = await this._storage.getBlockHeaderByID(id);
 
-		return this._blockHeaderAdapter.decode(blockHeaderBuffer);
-	}
-
-	public async getRawBlockHeaderByID(id: Buffer): Promise<BlockHeader> {
-		return this._getRawBlockHeaderByID(id);
+		return BlockHeader.fromBytes(blockHeaderBuffer);
 	}
 
 	public async blockHeaderExists(id: Buffer): Promise<boolean> {
@@ -135,7 +119,7 @@ export class DataAccess {
 		}
 		const blocks = await this._storage.getBlockHeadersByIDs(arrayOfBlockIds);
 
-		return blocks.map(block => this._blockHeaderAdapter.decode(block));
+		return blocks.map(block => BlockHeader.fromBytes(block));
 	}
 
 	public async getBlockHeaderByHeight(height: number): Promise<BlockHeader> {
@@ -146,7 +130,7 @@ export class DataAccess {
 		}
 		const header = await this._storage.getBlockHeaderByHeight(height);
 
-		return this._blockHeaderAdapter.decode(header);
+		return BlockHeader.fromBytes(header);
 	}
 
 	public async getBlockHeadersByHeightBetween(
@@ -161,7 +145,7 @@ export class DataAccess {
 
 		const blocks = await this._storage.getBlockHeadersByHeightBetween(fromHeight, toHeight);
 
-		return blocks.map(block => this._blockHeaderAdapter.decode(block));
+		return blocks.map(block => BlockHeader.fromBytes(block));
 	}
 
 	public async getBlockHeadersWithHeights(
@@ -175,7 +159,7 @@ export class DataAccess {
 
 		const blocks = await this._storage.getBlockHeadersWithHeights(heightList);
 
-		return blocks.map(block => this._blockHeaderAdapter.decode(block));
+		return blocks.map(block => BlockHeader.fromBytes(block));
 	}
 
 	public async getLastBlockHeader(): Promise<BlockHeader> {
@@ -188,7 +172,7 @@ export class DataAccess {
 
 		const block = await this._storage.getLastBlockHeader();
 
-		return this._blockHeaderAdapter.decode(block);
+		return BlockHeader.fromBytes(block);
 	}
 
 	public async getHighestCommonBlockID(
@@ -207,7 +191,7 @@ export class DataAccess {
 		for (const id of arrayOfBlockIds) {
 			try {
 				// it should not decode the asset since it might include the genesis block
-				const blockHeader = await this._getRawBlockHeaderByID(id);
+				const blockHeader = await this.getBlockHeaderByID(id);
 				storageBlockHeaders.push(blockHeader);
 			} catch (error) {
 				if (!(error instanceof NotFoundError)) {
@@ -224,9 +208,8 @@ export class DataAccess {
 
 	/** Begin: Blocks */
 
-	public async getBlockByID<T>(id: Buffer): Promise<Block<T>> {
+	public async getBlockByID(id: Buffer): Promise<Block> {
 		const block = await this._storage.getBlockByID(id);
-
 		return this._decodeRawBlock(block);
 	}
 
@@ -254,6 +237,12 @@ export class DataAccess {
 		return this._decodeRawBlock(block);
 	}
 
+	public async getEvents(height: number): Promise<Event[]> {
+		const events = await this._storage.getEvents(height);
+
+		return events;
+	}
+
 	public async isBlockPersisted(blockId: Buffer): Promise<boolean> {
 		const isPersisted = await this._storage.isBlockPersisted(blockId);
 
@@ -263,7 +252,7 @@ export class DataAccess {
 	public async getTempBlocks(): Promise<Block[]> {
 		const blocks = await this._storage.getTempBlocks();
 
-		return blocks.map(block => this.decode(block));
+		return blocks.map(block => Block.fromBytes(block));
 	}
 
 	public async isTempBlockEmpty(): Promise<boolean> {
@@ -277,55 +266,10 @@ export class DataAccess {
 	}
 	/** End: Blocks */
 
-	/** Begin: ChainState */
-	public async getChainState(key: string): Promise<Buffer | undefined> {
-		return this._storage.getChainState(key);
-	}
-	/** End: ChainState */
-
-	/** Begin ConsensusState */
-	public async getConsensusState(key: string): Promise<Buffer | undefined> {
-		return this._storage.getConsensusState(key);
-	}
-	public async setConsensusState(key: string, val: Buffer): Promise<void> {
-		return this._storage.setConsensusState(key, val);
-	}
-	/** End: ConsensusState */
-
-	/** Begin: Accounts */
-	public async getAccountsByPublicKey(
-		arrayOfPublicKeys: ReadonlyArray<Buffer>,
-	): Promise<Account[]> {
-		const accounts = await this._storage.getAccountsByPublicKey(arrayOfPublicKeys);
-
-		return accounts.map(account => this.decodeAccount(account));
-	}
-
-	public async getAccountByAddress<T>(address: Buffer): Promise<Account<T>> {
-		const account = await this._storage.getAccountByAddress(address);
-
-		return this.decodeAccount<T>(account);
-	}
-
-	public async getEncodedAccountByAddress(address: Buffer): Promise<Buffer> {
-		const account = await this._storage.getAccountByAddress(address);
-
-		return account;
-	}
-
-	public async getAccountsByAddress<T>(
-		arrayOfAddresses: ReadonlyArray<Buffer>,
-	): Promise<Account<T>[]> {
-		const accounts = await this._storage.getAccountsByAddress(arrayOfAddresses);
-
-		return accounts.map(account => this.decodeAccount<T>(account));
-	}
-	/** End: Accounts */
-
 	/** Begin: Transactions */
 	public async getTransactionByID(id: Buffer): Promise<Transaction> {
 		const transaction = await this._storage.getTransactionByID(id);
-		return Transaction.decode(transaction);
+		return Transaction.fromBytes(transaction);
 	}
 
 	public async getTransactionsByIDs(
@@ -333,7 +277,7 @@ export class DataAccess {
 	): Promise<Transaction[]> {
 		const transactions = await this._storage.getTransactionsByIDs(arrayOfTransactionIds);
 
-		return transactions.map(transaction => Transaction.decode(transaction));
+		return transactions.map(transaction => Transaction.fromBytes(transaction));
 	}
 
 	public async isTransactionPersisted(transactionId: Buffer): Promise<boolean> {
@@ -343,57 +287,8 @@ export class DataAccess {
 	}
 	/** End: Transactions */
 
-	public decode<T = BlockHeaderAsset>(buffer: Buffer): Block<T> {
-		const block = codec.decode<RawBlock>(blockSchema, buffer);
-		const header = this._blockHeaderAdapter.decode<T>(block.header);
-		const payload: Transaction[] = [];
-		for (const rawTx of block.payload) {
-			const tx = Transaction.decode(rawTx);
-			payload.push(tx);
-		}
-		return {
-			header,
-			payload,
-		};
-	}
-
-	public encode(block: Block<unknown>): Buffer {
-		const header = this.encodeBlockHeader(block.header);
-
-		const payload: Buffer[] = [];
-		for (const rawTx of block.payload) {
-			const tx = rawTx.getBytes();
-			payload.push(tx);
-		}
-		return codec.encode(blockSchema, { header, payload });
-	}
-
-	public decodeBlockHeader<T = BlockHeaderAsset>(buffer: Buffer): BlockHeader<T> {
-		return this._blockHeaderAdapter.decode(buffer);
-	}
-
-	public encodeBlockHeader<T = BlockHeaderAsset>(
-		blockHeader: BlockHeader<T>,
-		skipSignature = false,
-	): Buffer {
-		return this._blockHeaderAdapter.encode(blockHeader, skipSignature);
-	}
-
-	public decodeAccount<T>(buffer: Buffer): Account<T> {
-		return codec.decode<Account<T>>(this._accountSchema, buffer);
-	}
-
-	public encodeAccount<T>(account: Account<T>): Buffer {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		return codec.encode(this._accountSchema, account as any);
-	}
-
-	public decodeTransaction(buffer: Buffer): Transaction {
-		return Transaction.decode(buffer);
-	}
-
-	public encodeTransaction(tx: Transaction): Buffer {
-		return tx.getBytes();
+	public async getFinalizedHeight(): Promise<number> {
+		return this._storage.getFinalizedHeight();
 	}
 
 	/*
@@ -401,84 +296,54 @@ export class DataAccess {
 	*/
 	public async saveBlock(
 		block: Block,
-		stateStore: StateStore,
+		events: Event[],
+		state: CurrentState,
 		finalizedHeight: number,
 		removeFromTemp = false,
 	): Promise<void> {
 		const { id: blockID, height } = block.header;
-		const encodedHeader = this._blockHeaderAdapter.encode(block.header);
-		const encodedPayload = [];
-		for (const tx of block.payload) {
+		const encodedHeader = block.header.getBytes();
+
+		const encodedTransactions = [];
+		for (const tx of block.transactions) {
 			const txID = tx.id;
 			const encodedTx = tx.getBytes();
-			encodedPayload.push({ id: txID, value: encodedTx });
+			encodedTransactions.push({ id: txID, value: encodedTx });
 		}
+		const encodedEvents = events.map(e => e.getBytes());
 		await this._storage.saveBlock(
 			blockID,
 			height,
 			finalizedHeight,
 			encodedHeader,
-			encodedPayload,
-			stateStore,
+			encodedTransactions,
+			encodedEvents,
+			block.assets.getBytes(),
+			state,
 			removeFromTemp,
 		);
 	}
 
-	public async deleteBlock(
-		block: Block,
-		stateStore: StateStore,
-		saveToTemp = false,
-	): Promise<Account[]> {
+	public async deleteBlock(block: Block, state: CurrentState, saveToTemp = false): Promise<void> {
 		const { id: blockID, height } = block.header;
-		const txIDs = block.payload.map(tx => tx.id);
-		const encodedBlock = this.encode(block);
-		const diff = await this._storage.deleteBlock(
+		const txIDs = block.transactions.map(tx => tx.id);
+
+		const encodedBlock = block.getBytes();
+		await this._storage.deleteBlock(
 			blockID,
 			height,
 			txIDs,
+			block.assets.getBytes(),
 			encodedBlock,
-			stateStore,
+			state,
 			saveToTemp,
 		);
-		const updatedAccounts: Account[] = [];
-		// Diff is deleted since when saving a block, it was deleted, but when it's deleting the block, now it's creating
-		for (const created of diff.deleted) {
-			if (created.key.includes(DB_KEY_ACCOUNTS_ADDRESS)) {
-				updatedAccounts.push(this.decodeAccount(created.value));
-			}
-		}
-		for (const updated of diff.updated) {
-			if (updated.key.includes(DB_KEY_ACCOUNTS_ADDRESS)) {
-				updatedAccounts.push(this.decodeAccount(updated.value));
-			}
-		}
-		return updatedAccounts;
 	}
 
-	private _decodeRawBlock<T>(block: RawBlock): Block<T> {
-		const header = this._blockHeaderAdapter.decode<T>(block.header);
-		const payload = [];
-		for (const rawTx of block.payload) {
-			const tx = Transaction.decode(rawTx);
-			payload.push(tx);
-		}
-		return {
-			header,
-			payload,
-		};
-	}
-
-	private async _getRawBlockHeaderByID(id: Buffer): Promise<BlockHeader> {
-		const cachedBlock = this._blocksCache.getByID(id);
-
-		if (cachedBlock) {
-			return cachedBlock;
-		}
-		const blockHeaderBuffer = await this._storage.getBlockHeaderByID(id);
-
-		return {
-			...codec.decode(blockHeaderSchema, blockHeaderBuffer),
-			id,
-		};
+	private _decodeRawBlock(block: RawBlock): Block {
+		const header = BlockHeader.fromBytes(block.header);
+		const transactions = block.transactions.map(txBytes => Transaction.fromBytes(txBytes));
+		const assets = BlockAssets.fromBytes(block.assets);
+		return new Block(header, transactions, assets);
 	}
 }

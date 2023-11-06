@@ -13,32 +13,39 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { hash, getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { address, ed, utils } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
+import { NAME_REGEX, TAG_TRANSACTION, MAX_PARAMS_SIZE } from './constants';
+import { JSONObject } from './types';
 
-export interface TransactionInput {
-	readonly moduleID: number;
-	readonly assetID: number;
+export interface TransactionAttrs {
+	readonly module: string;
+	readonly command: string;
 	readonly senderPublicKey: Buffer;
 	readonly nonce: bigint;
 	readonly fee: bigint;
-	readonly asset: Buffer;
+	readonly params: Buffer;
 	readonly signatures: ReadonlyArray<Buffer>;
+	readonly id?: Buffer;
 }
+export type TransactionJSON = JSONObject<TransactionAttrs> & { id: string };
 
 export const transactionSchema = {
-	$id: 'lisk/transaction',
+	$id: '/lisk/transaction',
 	type: 'object',
-	required: ['moduleID', 'assetID', 'nonce', 'fee', 'senderPublicKey', 'asset'],
+	required: ['module', 'command', 'nonce', 'fee', 'senderPublicKey', 'params'],
 	properties: {
-		moduleID: {
-			dataType: 'uint32',
+		module: {
+			dataType: 'string',
 			fieldNumber: 1,
-			minimum: 2,
+			minLength: 1,
+			maxLength: 32,
 		},
-		assetID: {
-			dataType: 'uint32',
+		command: {
+			dataType: 'string',
 			fieldNumber: 2,
+			minLength: 1,
+			maxLength: 32,
 		},
 		nonce: {
 			dataType: 'uint64',
@@ -54,7 +61,7 @@ export const transactionSchema = {
 			minLength: 32,
 			maxLength: 32,
 		},
-		asset: {
+		params: {
 			dataType: 'bytes',
 			fieldNumber: 6,
 		},
@@ -68,80 +75,87 @@ export const transactionSchema = {
 	},
 };
 
-export const calculateMinFee = (
-	tx: Transaction,
-	minFeePerByte: number,
-	baseFees: { moduleID: number; assetID: number; baseFee: string }[],
-): bigint => {
-	const size = tx.getBytes().length;
-	const baseFee =
-		baseFees.find(bf => bf.moduleID === tx.moduleID && bf.assetID === tx.assetID)?.baseFee ?? '0';
-	return BigInt(minFeePerByte * size) + BigInt(baseFee);
-};
-
 export class Transaction {
-	public readonly moduleID: number;
-	public readonly assetID: number;
-	public readonly asset: Buffer;
+	public readonly module: string;
+	public readonly command: string;
+	public readonly params: Buffer;
 	public readonly nonce: bigint;
 	public readonly fee: bigint;
 	public readonly senderPublicKey: Buffer;
-	public readonly signatures: ReadonlyArray<Buffer>;
+	public readonly signatures: Buffer[];
 	private _id?: Buffer;
 	private _senderAddress?: Buffer;
 
-	public constructor(transaction: TransactionInput) {
-		this.moduleID = transaction.moduleID;
-		this.assetID = transaction.assetID;
-		this.asset = transaction.asset;
+	public constructor(transaction: TransactionAttrs) {
+		this.module = transaction.module;
+		this.command = transaction.command;
+		this.params = transaction.params;
 		this.nonce = transaction.nonce;
 		this.fee = transaction.fee;
 		this.senderPublicKey = transaction.senderPublicKey;
-		this.signatures = transaction.signatures;
+		this.signatures = [...transaction.signatures];
 	}
 
-	public static decode(bytes: Buffer): Transaction {
-		const tx = codec.decode<TransactionInput>(transactionSchema, bytes);
+	public static fromBytes(bytes: Buffer): Transaction {
+		const tx = codec.decode<TransactionAttrs>(transactionSchema, bytes);
+		return new Transaction(tx);
+	}
+
+	public static fromJSON(value: TransactionJSON): Transaction {
+		const tx = codec.fromJSON<TransactionAttrs>(transactionSchema, value);
 		return new Transaction(tx);
 	}
 
 	public get id(): Buffer {
 		if (!this._id) {
-			this._id = hash(this.getBytes());
+			this._id = utils.hash(this.getBytes());
 		}
 		return this._id;
 	}
 
 	public get senderAddress(): Buffer {
 		if (!this._senderAddress) {
-			this._senderAddress = getAddressFromPublicKey(this.senderPublicKey);
+			this._senderAddress = address.getAddressFromPublicKey(this.senderPublicKey);
 		}
 		return this._senderAddress;
 	}
 
 	public getBytes(): Buffer {
-		const transactionBytes = codec.encode(transactionSchema, this as Record<string, unknown>);
-
-		return transactionBytes;
+		return codec.encode(transactionSchema, this as Record<string, unknown>);
 	}
 
 	public getSigningBytes(): Buffer {
-		const transactionBytes = codec.encode(transactionSchema, ({
+		const transactionBytes = codec.encode(transactionSchema, {
 			...this,
 			signatures: [],
-		} as unknown) as Record<string, unknown>);
+		} as unknown as Record<string, unknown>);
 
 		return transactionBytes;
 	}
 
-	public validate(input: {
-		minFeePerByte: number;
-		baseFees: { moduleID: number; assetID: number; baseFee: string }[];
-	}): void {
-		const schemaErrors = validator.validate(transactionSchema, this);
-		if (schemaErrors.length > 0) {
-			throw new LiskValidationError(schemaErrors);
+	public sign(chainID: Buffer, privateKey: Buffer): void {
+		const signature = ed.signDataWithPrivateKey(
+			TAG_TRANSACTION,
+			chainID,
+			this.getSigningBytes(),
+			privateKey,
+		);
+		this.signatures.push(signature);
+	}
+
+	public validate(): void {
+		validator.validate(transactionSchema, this);
+		if (!NAME_REGEX.test(this.module)) {
+			throw new Error(`Invalid module name ${this.module}`);
 		}
+		if (!NAME_REGEX.test(this.command)) {
+			throw new Error(`Invalid command name ${this.command}`);
+		}
+
+		if (this.params.length > MAX_PARAMS_SIZE) {
+			throw new Error(`Params exceeds max size allowed ${MAX_PARAMS_SIZE}.`);
+		}
+
 		if (this.signatures.length === 0) {
 			throw new Error('Signatures must not be empty');
 		}
@@ -150,11 +164,26 @@ export class Transaction {
 				throw new Error('Signature must be empty or 64 bytes');
 			}
 		}
-		const minFee = calculateMinFee(this, input.minFeePerByte, input.baseFees);
-		if (this.fee < minFee) {
-			throw new Error(
-				`Insufficient transaction fee. Minimum required fee is: ${minFee.toString()}`,
-			);
-		}
+	}
+
+	public toJSON(): TransactionJSON {
+		return { ...codec.toJSON(transactionSchema, this._getProps()), id: this.id.toString('hex') };
+	}
+
+	public toObject(): TransactionAttrs {
+		return this._getProps();
+	}
+
+	private _getProps() {
+		return {
+			module: this.module,
+			command: this.command,
+			params: this.params,
+			nonce: this.nonce,
+			fee: this.fee,
+			senderPublicKey: this.senderPublicKey,
+			signatures: this.signatures,
+			id: this._id,
+		};
 	}
 }

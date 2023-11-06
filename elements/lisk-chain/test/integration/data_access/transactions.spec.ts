@@ -16,9 +16,9 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
 import { DataAccess } from '../../../src/data_access';
-import { defaultAccountSchema } from '../../utils/account';
-import { registeredBlockHeaders } from '../../utils/block';
 import { getTransaction } from '../../utils/transaction';
+import { concatDBKeys } from '../../../src/utils';
+import { DB_KEY_TRANSACTIONS_ID } from '../../../src/db_keys';
 
 describe('dataAccess.transactions', () => {
 	let db: Database;
@@ -31,10 +31,9 @@ describe('dataAccess.transactions', () => {
 		db = new Database(path.join(parentPath, '/test-transactions.db'));
 		dataAccess = new DataAccess({
 			db,
-			accountSchema: defaultAccountSchema,
-			registeredBlockHeaders,
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
+			keepEventsForHeights: -1,
 		});
 	});
 
@@ -42,7 +41,7 @@ describe('dataAccess.transactions', () => {
 		transactions = [getTransaction({ nonce: BigInt(1000) }), getTransaction({ nonce: BigInt(0) })];
 		const batch = new Batch();
 		for (const tx of transactions) {
-			batch.set(Buffer.from(`transactions:id:${tx.id.toString('binary')}`), tx.getBytes());
+			batch.set(concatDBKeys(DB_KEY_TRANSACTIONS_ID, tx.id), tx.getBytes());
 		}
 		await db.write(batch);
 	});
@@ -57,7 +56,6 @@ describe('dataAccess.transactions', () => {
 			try {
 				await dataAccess.getTransactionByID(Buffer.from('randomId'));
 			} catch (error) {
-				// eslint-disable-next-line jest/no-try-expect
 				expect(error).toBeInstanceOf(NotFoundError);
 			}
 		});

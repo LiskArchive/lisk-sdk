@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2022 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -11,26 +11,16 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Block } from '@liskhq/lisk-chain';
 
-export const getTotalFees = (
-	block: Block,
-	minFeePerByte: bigint,
-	baseFees: ReadonlyArray<{ assetID: number; baseFee: string; moduleID: number }>,
-): { readonly totalFee: bigint; readonly totalMinFee: bigint } =>
-	block.payload.reduce(
-		(prev, current) => {
-			const baseFee =
-				baseFees.find(
-					(fee: { moduleID: number; assetID: number }) =>
-						fee.moduleID === current.moduleID && fee.assetID === current.assetID,
-				)?.baseFee ?? BigInt(0);
-			const minFee = minFeePerByte * BigInt(current.getBytes().length) + BigInt(baseFee);
+import { CHAIN_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
+import { TokenID } from './types';
 
-			return {
-				totalFee: prev.totalFee + current.fee,
-				totalMinFee: prev.totalMinFee + minFee,
-			};
-		},
-		{ totalFee: BigInt(0), totalMinFee: BigInt(0) },
-	);
+export const splitTokenID = (tokenID: TokenID): [Buffer, Buffer] => {
+	if (tokenID.length !== TOKEN_ID_LENGTH) {
+		throw new Error(`Token ID must have length ${TOKEN_ID_LENGTH}`);
+	}
+	const chainID = tokenID.slice(0, CHAIN_ID_LENGTH);
+	const localID = tokenID.slice(CHAIN_ID_LENGTH);
+
+	return [chainID, localID];
+};

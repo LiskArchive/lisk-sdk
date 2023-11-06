@@ -12,87 +12,61 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-jest.mock('../../../../src/controller/action');
-
-// eslint-disable-next-line import/first
 import { EventCallback } from '../../../../src/controller/event';
-// eslint-disable-next-line import/first
 import { BaseChannel } from '../../../../src/controller/channels';
-// eslint-disable-next-line import/first
-import { INTERNAL_EVENTS } from '../../../../src/constants';
-// eslint-disable-next-line import/first
-import { Action } from '../../../../src/controller/action';
+import { fakeLogger } from '../../../utils/mocks';
+import { InvokeRequest } from '../../../../src/controller/channels/base_channel';
 
 class MyChannel extends BaseChannel {
 	public once(_eventName: string, _cb: EventCallback): void {}
 	public subscribe(_eventName: string, _cb: EventCallback): void {}
-	public publish(_eventName: string, _data: object): void {}
+	public unsubscribe(_eventName: string, _cb: EventCallback): void {}
+	public publish(_eventName: string, _data: Record<string, unknown>): void {}
 	public async registerToBus(_arg: any): Promise<void> {}
-	public async invoke<T>(_actionName: string, _params?: object): Promise<T> {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async invoke<T>(_req: InvokeRequest): Promise<T> {
 		return {} as T;
 	}
 }
 
 describe('Base Channel', () => {
 	// Arrange
-	const actionHandler = jest.fn();
 	const params = {
-		moduleAlias: 'alias',
+		namespace: 'name',
+		logger: fakeLogger,
 		events: ['event1', 'event2'],
-		actions: {
-			action1: actionHandler,
-			action2: actionHandler,
-			action3: actionHandler,
-		},
+		endpoints: new Map([
+			['action1', jest.fn()],
+			['action2', jest.fn()],
+			['action3', jest.fn()],
+		]),
 		options: {},
 	};
 	let baseChannel: BaseChannel;
 
 	beforeEach(() => {
 		// Act
-		baseChannel = new MyChannel(params.moduleAlias, params.events, params.actions, params.options);
+		baseChannel = new MyChannel(params.logger, params.namespace, params.events, params.endpoints);
 	});
 
 	describe('#constructor', () => {
 		it('should create the instance with given arguments.', () => {
 			// Assert
-			expect(baseChannel['moduleAlias']).toBe(params.moduleAlias);
-			expect(baseChannel['options']).toBe(params.options);
-
-			Object.keys(params.actions).forEach(action => {
-				expect(Action).toHaveBeenCalledWith(
-					null,
-					`${params.moduleAlias}:${action}`,
-					undefined,
-					actionHandler,
-				);
-			});
+			expect(baseChannel.namespace).toBe(params.namespace);
+			expect(baseChannel.endpointsList).toEqual([...params.endpoints.keys()]);
 		});
 	});
 
 	describe('getters', () => {
-		it('base.actions should contain list of Action Objects', () => {
-			// Assert
-			expect(Object.keys(baseChannel['actions'])).toHaveLength(3);
-			Object.keys(baseChannel['actions']).forEach(action => {
-				expect(baseChannel['actions'][action]).toBeInstanceOf(Action);
-			});
-		});
-
-		it('base.actionList should contain list of actions', () => {
-			// Assert
-			expect(baseChannel.actionsList).toHaveLength(3);
-			baseChannel.actionsList.forEach(action => {
-				expect(typeof action).toBe('string');
+		it('base.endpointList should contain list of endpoints', () => {
+			expect(Object.keys(baseChannel.endpointsList)).toHaveLength(3);
+			baseChannel.endpointsList.forEach(endpoint => {
+				expect(typeof endpoint).toBe('string');
 			});
 		});
 
 		it('base.eventsList be list of events', () => {
-			// Arrange & Act
-			baseChannel = new MyChannel(params.moduleAlias, params.events, params.actions);
-
-			// Assert
-			expect(baseChannel.eventsList).toHaveLength(params.events.length + INTERNAL_EVENTS.length);
+			expect(baseChannel.eventsList).toHaveLength(params.events.length);
 			baseChannel.eventsList.forEach(event => {
 				expect(typeof event).toBe('string');
 			});
@@ -100,19 +74,15 @@ describe('Base Channel', () => {
 
 		it('base.eventsList should contain internal events when skipInternalEvents option was set to FALSE', () => {
 			// Arrange & Act
-			baseChannel = new MyChannel(params.moduleAlias, params.events, params.actions, {
-				skipInternalEvents: false,
-			});
+			baseChannel = new MyChannel(params.logger, params.namespace, params.events, params.endpoints);
 
 			// Assert
-			expect(baseChannel.eventsList).toHaveLength(params.events.length + INTERNAL_EVENTS.length);
+			expect(baseChannel.eventsList).toHaveLength(params.events.length);
 		});
 
 		it('base.eventsList must NOT contain internal events when skipInternalEvents option was set TRUE', () => {
 			// Arrange & Act
-			baseChannel = new MyChannel(params.moduleAlias, params.events, params.actions, {
-				skipInternalEvents: true,
-			});
+			baseChannel = new MyChannel(params.logger, params.namespace, params.events, params.endpoints);
 
 			// Assert
 			expect(baseChannel.eventsList).toHaveLength(params.events.length);
@@ -135,7 +105,7 @@ describe('Base Channel', () => {
 
 		it('should return true when valid event name was provided.', () => {
 			// Act & Assert
-			expect(baseChannel.isValidEventName(`${params.moduleAlias}:${eventName}`)).toBe(true);
+			expect(baseChannel.isValidEventName(`${params.namespace}_${eventName}`)).toBe(true);
 		});
 	});
 
@@ -155,7 +125,7 @@ describe('Base Channel', () => {
 
 		it('should return true when valid event name was provided.', () => {
 			// Act & Assert
-			expect(baseChannel.isValidActionName(`${params.moduleAlias}:${actionName}`)).toBe(true);
+			expect(baseChannel.isValidActionName(`${params.namespace}_${actionName}`)).toBe(true);
 		});
 	});
 });

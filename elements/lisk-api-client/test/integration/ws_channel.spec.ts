@@ -20,13 +20,17 @@ import { WSChannel } from '../../src/ws_channel';
 jest.unmock('isomorphic-ws');
 
 const closeServer = async (server: WebSocket.Server | Server): Promise<void> => {
-	return new Promise((resolve, reject) => {
-		server.close(error => {
-			if (error) {
-				return reject(error);
+	if (server instanceof WebSocket.Server) {
+		for (const cli of server.clients) {
+			cli.terminate();
+		}
+	}
+	await new Promise((resolve, reject) => {
+		server.close(err => {
+			if (err) {
+				reject(err);
 			}
-
-			return resolve();
+			resolve(undefined);
 		});
 	});
 };
@@ -35,12 +39,19 @@ describe('WSChannel', () => {
 	describe('connect', () => {
 		it('should be connect to ws server', async () => {
 			const server = new WebSocket.Server({ path: '/my-path', port: 65535 });
+			await new Promise(resolve => {
+				server.on('listening', () => {
+					resolve(undefined);
+				});
+			});
 			const channel = new WSChannel('ws://127.0.0.1:65535/my-path');
 
 			try {
 				await expect(channel.connect()).resolves.toBeUndefined();
-				expect(server.clients.size).toEqual(1);
+				expect(server.clients.size).toBe(1);
 				expect([...server.clients][0].readyState).toEqual(WebSocket.OPEN);
+			} catch (err) {
+				console.error(err);
 			} finally {
 				await closeServer(server);
 			}
@@ -66,10 +77,10 @@ describe('WSChannel', () => {
 
 			try {
 				await expect(channel.connect()).rejects.toThrow('Could not connect in 2000ms');
-				expect(server.clients.size).toEqual(0);
+				expect(server.clients.size).toBe(0);
 			} finally {
-				await closeServer(server);
 				await closeServer(http);
+				await closeServer(server);
 			}
 			expect.assertions(2);
 		}, 5000);
@@ -90,7 +101,7 @@ describe('WSChannel', () => {
 
 			try {
 				await expect(channel.disconnect()).resolves.toBeUndefined();
-				// WebSocket.Server.channels are not cleaned immediately
+				// WebSocket.Server.channels are possibly not cleaned immediately
 				expect(server.clients.size).toBeLessThanOrEqual(1);
 				if (server.clients.size > 0) {
 					expect([...server.clients][0].readyState).toEqual(WebSocket.CLOSING);

@@ -11,10 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseChannel } from 'lisk-framework';
+import { BasePlugin } from 'lisk-sdk';
 import { BlockPropagationStats, PeerInfo, SharedState } from '../types';
 
-interface BlockStats {
+export interface BlockStats {
 	readonly blocks: Record<string, BlockPropagationStats>;
 	readonly averageReceivedBlocks: number;
 	readonly connectedPeers: number;
@@ -31,10 +31,10 @@ const getAverageReceivedBlocks = (blocks: { [key: string]: BlockPropagationStats
 };
 
 export const getBlockStats = async (
-	channel: BaseChannel,
+	client: BasePlugin['apiClient'],
 	state: SharedState,
 ): Promise<BlockStats> => {
-	const connectedPeers = await channel.invoke<ReadonlyArray<PeerInfo>>('app:getConnectedPeers');
+	const connectedPeers = await client.invoke<ReadonlyArray<PeerInfo>>('network_getConnectedPeers');
 
 	return {
 		blocks: state.blocks,

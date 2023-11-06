@@ -11,14 +11,64 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-export interface Asset {
-	readonly amount: bigint;
-	readonly recipientAddress: Buffer;
-	readonly data: string;
+
+import { MethodContext, ImmutableMethodContext } from '../../state_machine';
+import { CCMsg, ChannelData, OwnChainAccount } from '../interoperability/types';
+import { JSONObject } from '../../types';
+
+export type TokenID = Buffer;
+
+export interface ModuleConfig {
+	userAccountInitializationFee: bigint;
+	escrowAccountInitializationFee: bigint;
 }
 
-export interface TokenAccount {
-	token: {
-		balance: bigint;
-	};
+export type ModuleConfigJSON = JSONObject<ModuleConfig>;
+
+export interface GenesisTokenStore {
+	userSubstore: {
+		address: Buffer;
+		tokenID: Buffer;
+		availableBalance: bigint;
+		lockedBalances: {
+			module: string;
+			amount: bigint;
+		}[];
+	}[];
+	supplySubstore: {
+		tokenID: Buffer;
+		totalSupply: bigint;
+	}[];
+	escrowSubstore: {
+		escrowChainID: Buffer;
+		tokenID: Buffer;
+		amount: bigint;
+	}[];
+	supportedTokensSubstore: {
+		chainID: Buffer;
+		supportedTokenIDs: Buffer[];
+	}[];
+}
+
+export interface InteroperabilityMethod {
+	getOwnChainAccount(methodContext: ImmutableMethodContext): Promise<OwnChainAccount>;
+	send(
+		methodContext: MethodContext,
+		feeAddress: Buffer,
+		module: string,
+		crossChainCommand: string,
+		receivingChainID: Buffer,
+		fee: bigint,
+		parameters: Buffer,
+		timestamp?: number,
+	): Promise<void>;
+	error(methodContext: MethodContext, ccm: CCMsg, code: number): Promise<void>;
+	terminateChain(methodContext: MethodContext, chainID: Buffer): Promise<void>;
+	getChannel(methodContext: MethodContext, chainID: Buffer): Promise<ChannelData>;
+	getMessageFeeTokenID(methodContext: ImmutableMethodContext, chainID: Buffer): Promise<Buffer>;
+	getMessageFeeTokenIDFromCCM(methodContext: ImmutableMethodContext, ccm: CCMsg): Promise<Buffer>;
+}
+
+export interface FeeMethod {
+	payFee(methodContext: MethodContext, amount: bigint): void;
 }

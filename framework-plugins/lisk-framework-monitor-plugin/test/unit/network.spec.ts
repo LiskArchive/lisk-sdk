@@ -12,20 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { ApplicationConfigForPlugin, testing } from 'lisk-sdk';
 import { when } from 'jest-when';
-import { testing } from 'lisk-framework';
 import { PeerInfo } from '../../src/types';
 import { MonitorPlugin } from '../../src';
-import * as config from '../../src/defaults/default_config';
+import { configSchema } from '../../src/schemas';
 
-const validPluginOptions = config.defaultConfig.default;
+const appConfigForPlugin: ApplicationConfigForPlugin = {
+	...testing.fixtures.defaultConfig,
+};
+
+const validPluginOptions = configSchema.default;
 
 describe('networkStats', () => {
 	let monitorPlugin: MonitorPlugin;
-	let channelInvokeMock;
-	const {
-		mocks: { channelMock },
-	} = testing;
 
 	const connectedPeers: Partial<PeerInfo>[] = [
 		{ options: { height: 51 } },
@@ -96,23 +96,29 @@ describe('networkStats', () => {
 	};
 
 	beforeEach(async () => {
-		monitorPlugin = new MonitorPlugin(validPluginOptions as never);
-		await monitorPlugin.load(channelMock);
+		monitorPlugin = new MonitorPlugin();
+		monitorPlugin['_apiClient'] = {
+			schema: {},
+			invoke: jest.fn(),
+		};
+		await monitorPlugin.init({
+			config: validPluginOptions,
+			appConfig: appConfigForPlugin,
+			logger: testing.mocks.loggerMock,
+		});
 
-		channelInvokeMock = jest.fn();
-		channelMock.invoke = channelInvokeMock;
-		when(channelInvokeMock)
-			.calledWith('app:getNetworkStats')
+		when(jest.spyOn(monitorPlugin['apiClient'], 'invoke'))
+			.calledWith('network_getStats')
 			.mockResolvedValue(defaultNetworkStats as never)
-			.calledWith('app:getConnectedPeers')
+			.calledWith('network_getConnectedPeers')
 			.mockResolvedValue(connectedPeers as never)
-			.calledWith('app:getDisconnectedPeers')
+			.calledWith('network_getDisconnectedPeers')
 			.mockResolvedValue(disconnectedPeers as never);
 	});
 
 	it('should add new transactions to state', async () => {
 		// Act
-		const networkStats = await (monitorPlugin.actions as any).getNetworkStats();
+		const networkStats = await monitorPlugin.endpoint.getNetworkStats({} as any);
 		// Assert
 		expect(networkStats).toEqual(defaultNetworkStats);
 	});
@@ -120,9 +126,9 @@ describe('networkStats', () => {
 	it('should throw error when any channel action fails', async () => {
 		// Arrange
 		const error = new Error('Something went wrong');
-		(channelMock.invoke as any).mockRejectedValue(error);
+		(monitorPlugin['apiClient'].invoke as any).mockRejectedValue(error);
 
 		// Assert
-		await expect((monitorPlugin.actions as any).getNetworkStats()).rejects.toThrow(error.message);
+		await expect(monitorPlugin.endpoint.getNetworkStats({} as any)).rejects.toThrow(error.message);
 	});
 });
