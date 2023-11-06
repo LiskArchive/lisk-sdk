@@ -286,7 +286,7 @@ describe('MessageRecoveryCommand', () => {
 			expect(result.error?.message).toInclude(`Cross-chain message does not have a valid index.`);
 		});
 
-		it('should return error if idxs[0] <= 1', async () => {
+		it('should return error if idxs[0] === 1', async () => {
 			transactionParams.idxs = [1];
 			ccms = [ccms[0]];
 			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
@@ -396,7 +396,9 @@ describe('MessageRecoveryCommand', () => {
 			const result = await command.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(`Cross-chain message status is not valid.`);
+			expect(result.error?.message).toInclude(
+				`Cross-chain message status must be equal to value ${CCMStatusCode.OK}.`,
+			);
 		});
 
 		it('should return error if cross-chain message receiving chain ID is not valid', async () => {
@@ -468,7 +470,140 @@ describe('MessageRecoveryCommand', () => {
 			expect(result.error?.message).toInclude(`Cross-chain message sending chain is not live.`);
 		});
 
+		it('should not return error if OWN_CHAIN_ID === getMainchainID() but ccm.sendingChainID != OWN_CHAIN_ID', async () => {
+			const chainIDLocal = Buffer.from([0, 0, 0, 0]);
+			ccms = [
+				{
+					nonce: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+					sendingChainID: Buffer.from([1, 2, 3, 4]), // ***
+					receivingChainID: chainIDLocal,
+					fee: BigInt(1),
+					status: CCMStatusCode.OK,
+					params: Buffer.alloc(0),
+				},
+			];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			transactionParams.chainID = chainIDLocal; // ***
+			transactionParams.idxs = appendPrecedingToIndices([1], terminatedChainOutboxSize);
+
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainIDLocal, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 0,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+			expect(result.status).toBe(VerifyStatus.OK);
+		});
+
+		it('should not return error if OWN_CHAIN_ID !== getMainchainID() but ccm.sendingChainID === OWN_CHAIN_ID', async () => {
+			const chainIDLocal = Buffer.from([1, 2, 3, 4]);
+			ccms = [
+				{
+					nonce: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+					sendingChainID: chainIDLocal, // ***
+					receivingChainID: chainIDLocal,
+					fee: BigInt(1),
+					status: CCMStatusCode.OK,
+					params: Buffer.alloc(0),
+				},
+			];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			transactionParams.chainID = chainIDLocal; // ***
+			transactionParams.idxs = appendPrecedingToIndices([1], terminatedChainOutboxSize);
+
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainIDLocal, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 0,
+				});
+
+			const result = await command.verify(commandVerifyContext);
+			expect(result.status).toBe(VerifyStatus.OK);
+		});
+
+		it('should return error if OWN_CHAIN_ID != getMainchainID() and ccm.sendingChainID != OWN_CHAIN_ID', async () => {
+			const chainIDLocal = Buffer.from([1, 2, 3, 4]);
+			ccms = [
+				{
+					nonce: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+					sendingChainID: Buffer.from([5, 6, 7, 8]), // ***
+					receivingChainID: chainIDLocal,
+					fee: BigInt(1),
+					status: CCMStatusCode.OK,
+					params: Buffer.alloc(0),
+				},
+			];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			transactionParams.chainID = chainIDLocal; // ***
+			transactionParams.idxs = appendPrecedingToIndices([1], terminatedChainOutboxSize);
+
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(
+					createStoreGetter(commandVerifyContext.stateStore as any),
+					commandVerifyContext.params.chainID,
+					{
+						outboxRoot,
+						outboxSize: terminatedChainOutboxSize,
+						partnerChainInboxSize: 0,
+					},
+				);
+
+			const result = await command.verify(commandVerifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('Cross-chain message sending chain ID is not valid.');
+		});
+
 		it('should return status OK for valid params', async () => {
+			const chainIDLocal = Buffer.from([0, 0, 0, 0]);
+			ccms = [
+				{
+					nonce: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+					sendingChainID: Buffer.from([1, 2, 3, 4]),
+					receivingChainID: chainIDLocal,
+					fee: BigInt(1),
+					status: CCMStatusCode.OK,
+					params: Buffer.alloc(0),
+				},
+			];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			transactionParams.idxs = appendPrecedingToIndices([1], terminatedChainOutboxSize);
+
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+			commandVerifyContext.params.chainID = chainIDLocal;
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainIDLocal, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 0,
+				});
+
 			const result = await command.verify(commandVerifyContext);
 			expect(result.status).toBe(VerifyStatus.OK);
 		});
