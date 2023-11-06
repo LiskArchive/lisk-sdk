@@ -366,6 +366,42 @@ describe('MessageRecoveryCommand', () => {
 			expect(result.error?.message).toInclude(`Cross-chain message was never in the outbox.`);
 		});
 
+		it('should return error if ccm has invalid schema', async () => {
+			ccms = [
+				{
+					nonce: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+					sendingChainID: utils.intToBuffer(0, 2), // ***
+					receivingChainID: utils.intToBuffer(3, 4),
+					fee: BigInt(1),
+					status: CCMStatusCode.FAILED_CCM,
+					params: Buffer.alloc(0),
+				},
+			];
+			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+			transactionParams.crossChainMessages = [...ccmsEncoded];
+			transactionParams.idxs = appendPrecedingToIndices([1], terminatedChainOutboxSize);
+
+			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
+
+			await interopModule.stores
+				.get(TerminatedOutboxStore)
+				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainID, {
+					outboxRoot,
+					outboxSize: terminatedChainOutboxSize,
+					partnerChainInboxSize: 0,
+				});
+
+			try {
+				await command.verify(commandVerifyContext);
+			} catch (err: any) {
+				expect((err as Error).message).toInclude(
+					`Property '.sendingChainID' minLength not satisfied`,
+				);
+			}
+		});
+
 		it('should return error if ccm.status !== CCMStatusCode.OK', async () => {
 			ccms = [
 				{
