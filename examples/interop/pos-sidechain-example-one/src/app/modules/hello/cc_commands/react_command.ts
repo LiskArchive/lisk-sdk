@@ -59,21 +59,23 @@ export class ReactCCCommand extends BaseCCCommand {
 			msgReactions = { reactions: { like: [] } };
 		}
 
+		let likes = msgReactions.reactions.like;
 		// Check if the reactions is a like
 		if (reactionType === 0) {
-			const hasLiked = msgReactions.reactions.like.indexOf(ctx.transaction.senderAddress);
+			const hasLiked = likes.indexOf(ctx.transaction.senderAddress);
 			// If the sender has already liked the message
 			if (hasLiked > -1) {
 				// Remove the sender address from the likes for the message
-				msgReactions.reactions.like = msgReactions.reactions.like.splice(hasLiked, 1);
+				likes = likes.splice(hasLiked, 1);
 				// If the sender has not liked the message yet
 			} else {
 				// Add the sender address to the likes of the message
-				msgReactions.reactions.like.push(ctx.transaction.senderAddress);
+				likes.push(ctx.transaction.senderAddress);
 			}
 		} else {
 			logger.error({ reactionType }, 'invalid reaction type');
 		}
+		msgReactions.reactions.like = likes;
 		// Update the reaction store with the reactions for the specified Hello message
 		await reactionSubstore.set(ctx, messageCreatorAddress, msgReactions);
 	}

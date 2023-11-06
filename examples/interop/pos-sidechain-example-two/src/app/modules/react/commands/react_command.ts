@@ -9,13 +9,8 @@ import {
 	codec,
 } from 'lisk-sdk';
 import { CROSS_CHAIN_COMMAND_NAME_REACT } from '../constants';
-import {
-	CCReactCommandParamsSchema,
-	CCReactMessageParams,
-	CCReactMessageParamsSchema,
-	CCReactCommandParams,
-} from '../schemas';
-import { InteroperabilityMethod } from '../types';
+import { CCReactCommandParamsSchema, CCReactMessageParamsSchema } from '../schemas';
+import { CCReactMessageParams, CCReactCommandParams, InteroperabilityMethod } from '../types';
 
 export class ReactCrossChainCommand extends BaseCommand {
 	private _interoperabilityMethod!: InteroperabilityMethod;
@@ -60,7 +55,7 @@ export class ReactCrossChainCommand extends BaseCommand {
 			transaction: { senderAddress },
 		} = context;
 
-		const reactCCM: CCReactMessageParams = {
+		const ccReactMessageParams: CCReactMessageParams = {
 			reactionType: params.reactionType,
 			data: params.data,
 			helloMessageID: params.helloMessageID,
@@ -73,7 +68,7 @@ export class ReactCrossChainCommand extends BaseCommand {
 			CROSS_CHAIN_COMMAND_NAME_REACT,
 			params.receivingChainID,
 			params.messageFee,
-			codec.encode(CCReactMessageParamsSchema, reactCCM),
+			codec.encode(CCReactMessageParamsSchema, ccReactMessageParams),
 			context.header.timestamp,
 		);
 	}
