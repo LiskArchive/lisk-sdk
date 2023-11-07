@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 
 import { BaseInteroperableModule, ModuleMetadata, ModuleInitArgs } from 'lisk-sdk';
-import { ReactCrossChainCommand } from './commands/react_command';
+import { ReactCrossChainCommand } from './commands/react_cc_command';
 import { ReactEndpoint } from './endpoint';
 import { ReactMethod } from './method';
 import { ReactInteroperableMethod } from './cc_method';
