@@ -71,6 +71,10 @@ export class CommitList {
 		const index = commitList.findIndex(
 			c => c.blockID.equals(commit.blockID) && c.validatorAddress.equals(commit.validatorAddress),
 		);
+		// if the commit does not exist, do nothing
+		if (index < 0) {
+			return;
+		}
 
 		commitList.splice(index, 1);
 

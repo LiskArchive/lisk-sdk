@@ -218,13 +218,15 @@ export class BFTMethod {
 			throw new Error('Invalid certificateThreshold input.');
 		}
 
-		sortValidatorsByBLSKey(validators);
-		const validatorsHash = computeValidatorsHash(
-			validators
-				.filter(v => v.bftWeight > BigInt(0))
-				.map(v => ({ bftWeight: v.bftWeight, blsKey: v.blsKey })),
-			certificateThreshold,
-		);
+		// Prepare a separate sorted list of validators for computing validatorsHash
+		// without modifying the existing validators array
+		const validatorsWithBFTWeight = validators
+			.filter(validator => validator.bftWeight > BigInt(0))
+			.map(validator => ({ bftWeight: validator.bftWeight, blsKey: validator.blsKey }));
+		sortValidatorsByBLSKey(validatorsWithBFTWeight);
+
+		const validatorsHash = computeValidatorsHash(validatorsWithBFTWeight, certificateThreshold);
+
 		const bftParams: BFTParameters = {
 			prevoteThreshold: (BigInt(2) * aggregateBFTWeight) / BigInt(3) + BigInt(1),
 			precommitThreshold,

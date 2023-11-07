@@ -31,8 +31,9 @@ import { TerminatedStateAccount, TerminatedStateStore } from '../../stores/termi
 import { ChainAccount, StateRecoveryInitParams } from '../../types';
 import { getMainchainID } from '../../utils';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
-import { InvalidSMTVerification } from '../../events/invalid_smt_verification';
+import { InvalidSMTVerificationEvent } from '../../events/invalid_smt_verification';
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#state-recovery-initialization-command
 export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<SidechainInteroperabilityInternalMethod> {
 	public schema = stateRecoveryInitParamsSchema;
 
@@ -106,19 +107,23 @@ export class InitializeStateRecoveryCommand extends BaseInteroperabilityCommand<
 
 		const smt = new SparseMerkleTree();
 		let stateRoot: Buffer;
+		// it will help whether error is for input chainID or mainchainID
+		let msg;
 		if (terminatedStateAccountExists) {
 			const terminatedStateAccount = await terminatedStateSubstore.get(context, chainID);
 			stateRoot = terminatedStateAccount.mainchainStateRoot;
+			msg = `given chainID: ${chainID.toString('hex')}.`;
 		} else {
 			const mainchainID = getMainchainID(context.chainID);
 			const mainchainAccount = await this.stores.get(ChainAccountStore).get(context, mainchainID);
 			stateRoot = mainchainAccount.lastCertificate.stateRoot;
+			msg = `mainchainID: ${mainchainID.toString('hex')}`;
 		}
 
 		const verified = await smt.verifyInclusionProof(stateRoot, [queryKey], proofOfInclusion);
 		if (!verified) {
-			this.events.get(InvalidSMTVerification).error(context);
-			throw new Error('State recovery initialization proof of inclusion is not valid.');
+			this.events.get(InvalidSMTVerificationEvent).error(context);
+			throw new Error(`State recovery initialization proof of inclusion is not valid for ${msg}.`);
 		}
 
 		const deserializedSidechainAccount = codec.decode<ChainAccount>(

@@ -461,8 +461,8 @@ describe('initGenesisState', () => {
 	describe('_verifyTerminatedStateAccounts', () => {
 		const chainIDNotEqualToOwnChainID = Buffer.from([1, 3, 5, 7]);
 
-		it('should call _verifyTerminatedStateAccountsCommon', async () => {
-			jest.spyOn(interopMod, '_verifyTerminatedStateAccountsCommon' as any);
+		it('should call _verifyTerminatedStateAccounts', async () => {
+			jest.spyOn(interopMod, '_verifyTerminatedStateAccounts' as any);
 
 			// const chainIDDefault = getMainchainID(chainID);
 			const context = createInitGenesisStateContext(
@@ -480,7 +480,29 @@ describe('initGenesisState', () => {
 			);
 
 			await interopMod.initGenesisState(context);
-			expect(interopMod['_verifyTerminatedStateAccountsCommon']).toHaveBeenCalledTimes(1);
+			expect(interopMod['_verifyTerminatedStateAccounts']).toHaveBeenCalledTimes(1);
+		});
+
+		it('_verifyChainID the same number of times as size of terminatedStateAccounts', async () => {
+			jest.spyOn(interopMod, '_verifyChainID' as any);
+
+			// const chainIDDefault = getMainchainID(chainID);
+			const context = createInitGenesisStateContext(
+				{
+					...defaultData,
+					chainInfos: chainInfosDefault,
+					terminatedStateAccounts: [
+						{
+							chainID: Buffer.from([1, 1, 2, 3]),
+							terminatedStateAccount,
+						},
+					],
+				},
+				params,
+			);
+
+			await interopMod.initGenesisState(context);
+			expect(interopMod['_verifyChainID']).toHaveBeenCalledTimes(1);
 		});
 
 		it(`should throw error if stateAccount.chainID is equal to OWN_CHAIN_ID`, async () => {

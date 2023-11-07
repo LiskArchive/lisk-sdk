@@ -50,27 +50,22 @@ import {
 import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 import { getMainchainID } from '../../../../../../src/modules/interoperability/utils';
-import { InvalidSMTVerification } from '../../../../../../src/modules/interoperability/events/invalid_smt_verification';
+import { InvalidSMTVerificationEvent } from '../../../../../../src/modules/interoperability/events/invalid_smt_verification';
 
 describe('Sidechain InitializeStateRecoveryCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
 	type StoreMock = Mocked<SidechainInteroperabilityInternalMethod, 'createTerminatedStateAccount'>;
-	const chainAccountStoreMock = {
+	const getSetHas = () => ({
 		get: jest.fn(),
 		set: jest.fn(),
 		has: jest.fn(),
+	});
+	const chainAccountStoreMock = {
+		...getSetHas(),
 		key: Buffer.from('chainAccount', 'hex'),
 	};
-	const ownChainAccountStoreMock = {
-		get: jest.fn(),
-		set: jest.fn(),
-		has: jest.fn(),
-	};
-	const terminatedStateAccountMock = {
-		get: jest.fn(),
-		set: jest.fn(),
-		has: jest.fn(),
-	};
+	const ownChainAccountStoreMock = getSetHas();
+	const terminatedStateAccountMock = getSetHas();
 	let stateRecoveryInitCommand: InitializeStateRecoveryCommand;
 	let commandExecuteContext: CommandExecuteContext<StateRecoveryInitParams>;
 	let transaction: Transaction;
@@ -85,9 +80,16 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 	let commandVerifyContext: CommandVerifyContext<StateRecoveryInitParams>;
 	let stateStore: PrefixedStateReadWriter;
 	let mainchainAccount: ChainAccount;
+	let ownChainAccount: OwnChainAccount;
 
 	beforeEach(async () => {
 		stateRecoveryInitCommand = interopMod['_stateRecoveryInitCommand'];
+
+		ownChainAccount = {
+			name: 'sidechain',
+			chainID: utils.intToBuffer(2, 4),
+			nonce: BigInt('0'),
+		};
 
 		sidechainChainAccount = {
 			name: 'sidechain1',
@@ -179,7 +181,6 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 	});
 
 	describe('verify', () => {
-		let ownChainAccount: OwnChainAccount;
 		beforeEach(() => {
 			mainchainAccount = {
 				name: 'mainchain',
@@ -191,17 +192,9 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 				},
 				status: ChainStatus.ACTIVE,
 			};
-			ownChainAccount = {
-				name: 'sidechain',
-				chainID: utils.intToBuffer(2, 4),
-				nonce: BigInt('0'),
-			};
 			terminatedStateAccountMock.has.mockResolvedValue(true);
 			ownChainAccountStoreMock.get.mockResolvedValue(ownChainAccount);
 			chainAccountStoreMock.get.mockResolvedValue(mainchainAccount);
-			interopStoreMock = {
-				createTerminatedStateAccount: jest.fn(),
-			};
 			commandVerifyContext = transactionContext.createCommandVerifyContext<StateRecoveryInitParams>(
 				stateRecoveryInitParamsSchema,
 			);
@@ -212,11 +205,38 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 			expect(result.status).toBe(VerifyStatus.OK);
 		});
 
-		it('should return error if chain id is same as mainchain id or own chain account id', async () => {
+		it('should return error if chain id is same as mainchain id', async () => {
+			commandVerifyContext.params.chainID = getMainchainID(ownChainAccount.chainID);
+
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
+				'Chain ID is not valid.',
+			);
+		});
+
+		it('should return error if chain id is same as own chain account id', async () => {
 			commandVerifyContext.params.chainID = ownChainAccount.chainID;
 
 			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
 				'Chain ID is not valid.',
+			);
+		});
+
+		it("should not return error if terminated state account doesn't exist", async () => {
+			await terminatedStateSubstore.del(createStoreGetter(stateStore), transactionParams.chainID);
+
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).resolves.not.toThrow(
+				'Sidechain is already terminated.',
+			);
+		});
+
+		it('should not return error if terminated state account exists but not initialized', async () => {
+			await terminatedStateSubstore.set(createStoreGetter(stateStore), transactionParams.chainID, {
+				...terminatedStateAccount,
+				initialized: false,
+			});
+
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).resolves.not.toThrow(
+				'Sidechain is already terminated.',
 			);
 		});
 
@@ -265,6 +285,55 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 
 			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
 				"Lisk validator found 1 error[s]:\nProperty '.lastCertificate.stateRoot' minLength not satisfied",
+			);
+		});
+
+		it('should return error if the sidechain has ChainStatus.REGISTERED status', async () => {
+			await terminatedStateSubstore.set(createStoreGetter(stateStore), transactionParams.chainID, {
+				...terminatedStateAccount,
+				initialized: false,
+			});
+			const mainchainID = getMainchainID(transactionParams.chainID);
+			when(chainAccountStoreMock.get)
+				.calledWith(expect.anything(), mainchainID)
+				.mockResolvedValue(mainchainAccount);
+			sidechainChainAccount = {
+				name: 'sidechain1',
+				lastCertificate: {
+					height: 10,
+					stateRoot: utils.getRandomBytes(32),
+					timestamp: 100,
+					validatorsHash: utils.getRandomBytes(32),
+				},
+				status: ChainStatus.REGISTERED,
+			};
+			sidechainChainAccountEncoded = codec.encode(chainDataSchema, sidechainChainAccount);
+			transactionParams = {
+				chainID: utils.intToBuffer(3, 4),
+				bitmap: Buffer.alloc(0),
+				siblingHashes: [],
+				sidechainAccount: sidechainChainAccountEncoded,
+			};
+			encodedTransactionParams = codec.encode(stateRecoveryInitParamsSchema, transactionParams);
+			transaction = new Transaction({
+				module: MODULE_NAME_INTEROPERABILITY,
+				command: COMMAND_NAME_STATE_RECOVERY_INIT,
+				fee: BigInt(100000000),
+				nonce: BigInt(0),
+				params: encodedTransactionParams,
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [],
+			});
+			transactionContext = createTransactionContext({
+				transaction,
+				stateStore,
+			});
+			commandVerifyContext = transactionContext.createCommandVerifyContext<StateRecoveryInitParams>(
+				stateRecoveryInitParamsSchema,
+			);
+
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
+				'Sidechain has status registered.',
 			);
 		});
 
@@ -317,7 +386,7 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 			);
 		});
 
-		it('should return error if the sidechain has ChainStatus.REGISTERED status', async () => {
+		it('should not return error if the sidechain is active on the mainchain and does violate the liveness requirement', async () => {
 			await terminatedStateSubstore.set(createStoreGetter(stateStore), transactionParams.chainID, {
 				...terminatedStateAccount,
 				initialized: false,
@@ -325,16 +394,22 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 			const mainchainID = getMainchainID(transactionParams.chainID);
 			when(chainAccountStoreMock.get)
 				.calledWith(expect.anything(), mainchainID)
-				.mockResolvedValue(mainchainAccount);
+				.mockResolvedValue({
+					...mainchainAccount,
+					lastCertificate: {
+						...mainchainAccount.lastCertificate,
+						timestamp: LIVENESS_LIMIT + 50,
+					},
+				} as ChainAccount);
 			sidechainChainAccount = {
 				name: 'sidechain1',
 				lastCertificate: {
 					height: 10,
 					stateRoot: utils.getRandomBytes(32),
-					timestamp: 100,
+					timestamp: 10,
 					validatorsHash: utils.getRandomBytes(32),
 				},
-				status: ChainStatus.REGISTERED,
+				status: ChainStatus.ACTIVE,
 			};
 			sidechainChainAccountEncoded = codec.encode(chainDataSchema, sidechainChainAccount);
 			transactionParams = {
@@ -361,14 +436,14 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 				stateRecoveryInitParamsSchema,
 			);
 
-			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).rejects.toThrow(
-				'Sidechain has status registered.',
+			await expect(stateRecoveryInitCommand.verify(commandVerifyContext)).resolves.not.toThrow(
+				'Sidechain is still active and obeys the liveness requirement.',
 			);
 		});
 	});
 
 	describe('execute', () => {
-		let invalidSMTVerificationEvent: InvalidSMTVerification;
+		let invalidSMTVerificationEvent: InvalidSMTVerificationEvent;
 		beforeEach(() => {
 			mainchainAccount = {
 				name: 'mainchain',
@@ -380,9 +455,9 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 				},
 				status: ChainStatus.ACTIVE,
 			};
-			invalidSMTVerificationEvent = new InvalidSMTVerification(interopMod.name);
+			invalidSMTVerificationEvent = new InvalidSMTVerificationEvent(interopMod.name);
 			stateRecoveryInitCommand['events'].register(
-				InvalidSMTVerification,
+				InvalidSMTVerificationEvent,
 				invalidSMTVerificationEvent,
 			);
 		});
@@ -391,8 +466,9 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
 			jest.spyOn(invalidSMTVerificationEvent, 'error');
 
+			const msg = `given chainID: ${commandExecuteContext.params.chainID.toString('hex')}.`;
 			await expect(stateRecoveryInitCommand.execute(commandExecuteContext)).rejects.toThrow(
-				'State recovery initialization proof of inclusion is not valid',
+				`State recovery initialization proof of inclusion is not valid for ${msg}.`,
 			);
 			expect(interopStoreMock.createTerminatedStateAccount).not.toHaveBeenCalled();
 			expect(invalidSMTVerificationEvent.error).toHaveBeenCalled();
@@ -413,15 +489,24 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 				transactionParams.chainID,
 			);
 
+			const msg = `mainchainID: ${mainchainID.toString('hex')}`;
 			await expect(stateRecoveryInitCommand.execute(commandExecuteContext)).rejects.toThrow(
-				'State recovery initialization proof of inclusion is not valid',
+				`State recovery initialization proof of inclusion is not valid for ${msg}.`,
 			);
 			expect(interopStoreMock.createTerminatedStateAccount).not.toHaveBeenCalled();
 			expect(invalidSMTVerificationEvent.error).toHaveBeenCalled();
 		});
 
 		it('should create a terminated state account when there is none', async () => {
-			// Arrange & Assign & Act
+			const mainchainID = getMainchainID(commandExecuteContext.chainID);
+
+			when(chainAccountStoreMock.get)
+				.calledWith(expect.anything(), mainchainID)
+				.mockResolvedValue(mainchainAccount);
+
+			jest.spyOn(terminatedStateSubstore, 'has').mockResolvedValue(false);
+			jest.spyOn(stateRecoveryInitCommand['internalMethod'], 'createTerminatedStateAccount');
+
 			await stateRecoveryInitCommand.execute(commandExecuteContext);
 
 			const accountFromStore = await terminatedStateSubstore.get(
@@ -429,29 +514,44 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 				transactionParams.chainID,
 			);
 
-			// Assert
 			expect(accountFromStore).toEqual({ ...terminatedStateAccount, initialized: true });
-			expect(interopStoreMock.createTerminatedStateAccount).not.toHaveBeenCalled();
+			expect(
+				stateRecoveryInitCommand['internalMethod'].createTerminatedStateAccount,
+			).toHaveBeenCalledTimes(1);
 		});
 
 		it('should update the terminated state account when there is one', async () => {
-			// Arrange & Assign & Act
-			when(terminatedStateAccountMock.has)
-				.calledWith(expect.anything(), transactionParams.chainID)
-				.mockResolvedValue(false);
-
 			const terminatedStateStore = interopMod.stores.get(TerminatedStateStore);
-			terminatedStateStore.get = terminatedStateAccountMock.get;
-			terminatedStateAccountMock.get.mockResolvedValue(terminatedStateAccount);
+
+			jest.spyOn(stateRecoveryInitCommand['internalMethod'], 'createTerminatedStateAccount');
+			jest.spyOn(terminatedStateStore, 'get').mockResolvedValue(terminatedStateAccount);
+			jest.spyOn(terminatedStateStore, 'set');
+
 			await stateRecoveryInitCommand.execute(commandExecuteContext);
+
+			const deserializedSidechainAccount = codec.decode<ChainAccount>(
+				chainDataSchema,
+				commandExecuteContext.params.sidechainAccount,
+			);
+			expect(terminatedStateStore.set).toHaveBeenCalledWith(
+				commandExecuteContext,
+				commandExecuteContext.params.chainID,
+				{
+					stateRoot: deserializedSidechainAccount.lastCertificate.stateRoot,
+					mainchainStateRoot: EMPTY_HASH,
+					initialized: true,
+				},
+			);
 
 			const accountFromStore = await terminatedStateSubstore.get(
 				commandExecuteContext,
 				transactionParams.chainID,
 			);
-
-			// Assert
 			expect(accountFromStore).toEqual(terminatedStateAccount);
+
+			expect(
+				stateRecoveryInitCommand['internalMethod'].createTerminatedStateAccount,
+			).not.toHaveBeenCalled();
 		});
 	});
 });

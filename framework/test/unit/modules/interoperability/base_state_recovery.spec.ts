@@ -40,7 +40,7 @@ import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_
 import { createTransactionContext } from '../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { createStoreGetter } from '../../../../src/testing/utils';
-import { InvalidSMTVerification } from '../../../../src/modules/interoperability/events/invalid_smt_verification';
+import { InvalidSMTVerificationEvent } from '../../../../src/modules/interoperability/events/invalid_smt_verification';
 import { computeStorePrefix } from '../../../../src/modules/base_store';
 
 describe('RecoverStateCommand', () => {
@@ -171,7 +171,9 @@ describe('RecoverStateCommand', () => {
 			const result = await stateRecoveryCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Module is not recoverable.');
+			expect(result.error?.message).toInclude(
+				"Module is not recoverable, as it doesn't have a recover method.",
+			);
 		});
 
 		it('should return error if recovered store keys are not pairwise distinct', async () => {
@@ -180,7 +182,7 @@ describe('RecoverStateCommand', () => {
 			const result = await stateRecoveryCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Recovered store keys are not pairwise distinct.');
+			expect(result.error?.message).toInclude('Recoverable store keys are not pairwise distinct.');
 		});
 	});
 
@@ -190,7 +192,7 @@ describe('RecoverStateCommand', () => {
 		});
 
 		it('should return error if proof of inclusion is not valid', async () => {
-			const invalidSMTVerificationEvent = interopMod.events.get(InvalidSMTVerification);
+			const invalidSMTVerificationEvent = interopMod.events.get(InvalidSMTVerificationEvent);
 			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
 			jest.spyOn(invalidSMTVerificationEvent, 'error');
 
@@ -198,6 +200,12 @@ describe('RecoverStateCommand', () => {
 				'State recovery proof of inclusion is not valid',
 			);
 			expect(invalidSMTVerificationEvent.error).toHaveBeenCalled();
+		});
+
+		it(`should not throw error if recovery is available for "${moduleName}"`, async () => {
+			await expect(stateRecoveryCommand.execute(commandExecuteContext)).resolves.not.toThrow(
+				`Recovery failed for module: ${moduleName}`,
+			);
 		});
 
 		it(`should throw error if recovery not available for "${moduleName}"`, async () => {

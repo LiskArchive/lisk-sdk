@@ -101,7 +101,9 @@ export const encryptAES128GCMWithPassword = async (
 	const salt = crypto.randomBytes(SALT_BUFFER_SIZE);
 	const iv = crypto.randomBytes(IV_BUFFER_SIZE);
 	const iterations =
-		kdf === KDF.ARGON2 ? ARGON2_ITERATIONS : options?.kdfparams?.iterations ?? PBKDF2_ITERATIONS;
+		options?.kdfparams?.iterations ??
+		(kdf === KDF.ARGON2 ? ARGON2_ITERATIONS : options?.kdfparams?.iterations ?? PBKDF2_ITERATIONS);
+
 	const parallelism = options?.kdfparams?.parallelism ?? ARGON2_PARALLELISM;
 	const memorySize = options?.kdfparams?.memorySize ?? ARGON2_MEMORY;
 	let key: Buffer;

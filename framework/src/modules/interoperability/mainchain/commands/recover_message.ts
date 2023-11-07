@@ -31,7 +31,11 @@ import {
 	getEncodedCCMAndID,
 	getDecodedCCMAndID,
 } from '../../utils';
-import { CCMStatusCode, CONTEXT_STORE_KEY_CCM_PROCESSING } from '../../constants';
+import {
+	CCMStatusCode,
+	CONTEXT_STORE_KEY_CCM_PROCESSING,
+	EVENT_TOPIC_CCM_EXECUTION,
+} from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
 import { TerminatedOutboxAccount, TerminatedOutboxStore } from '../../stores/terminated_outbox';
 import {
@@ -39,7 +43,7 @@ import {
 	CcmProcessedEvent,
 	CCMProcessedResult,
 } from '../../events/ccm_processed';
-import { InvalidRMTVerification } from '../../events/invalid_rmt_verification';
+import { InvalidRMTVerificationEvent } from '../../events/invalid_rmt_verification';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0054.md#message-recovery-command
 export class RecoverMessageCommand extends BaseInteroperabilityCommand<MainchainInteroperabilityInternalMethod> {
@@ -188,7 +192,7 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 		);
 
 		if (!isVerified) {
-			this.events.get(InvalidRMTVerification).error(context);
+			this.events.get(InvalidRMTVerificationEvent).error(context);
 
 			throw new Error('Message recovery proof of inclusion is not valid.');
 		}
@@ -203,7 +207,9 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			const ctx: CrossChainMessageContext = {
 				...context,
 				ccm,
-				eventQueue: context.eventQueue.getChildQueue(ccmID),
+				eventQueue: context.eventQueue.getChildQueue(
+					Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
+				),
 			};
 			let recoveredCCM: CCMsg;
 			// If the sending chain is the mainchain, recover the CCM.

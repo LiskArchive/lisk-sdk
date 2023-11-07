@@ -14,7 +14,7 @@
 
 import { ImmutableMethodContext } from '../../state_machine';
 import { DECIMAL_PERCENT_FACTOR } from './constants';
-import { ModuleConfig, PoSMethod } from './types';
+import { ModuleConfig, ValidatorsMethod } from './types';
 
 export const getMinimalRewardActiveValidators = (
 	moduleConfig: ModuleConfig,
@@ -23,15 +23,16 @@ export const getMinimalRewardActiveValidators = (
 	(defaultReward * BigInt(moduleConfig.factorMinimumRewardActiveValidators)) /
 	DECIMAL_PERCENT_FACTOR;
 
-export const getStakeRewardActiveValidators = (
+export const getStakeRewardActiveValidators = async (
 	context: ImmutableMethodContext,
-	posMethod: PoSMethod,
+	validatorMethod: ValidatorsMethod,
 	defaultReward: bigint,
 	minimalRewardActiveValidators: bigint,
 ) => {
-	const numberOfActiveValidators = posMethod.getNumberOfActiveValidators(context);
-	const totalRewardActiveValidators = defaultReward * BigInt(numberOfActiveValidators);
-	return (
-		totalRewardActiveValidators - BigInt(numberOfActiveValidators) * minimalRewardActiveValidators
+	const { validators } = await validatorMethod.getValidatorsParams(context);
+	const numberOfActiveValidators = validators.reduce(
+		(prev, curr) => (curr.bftWeight > BigInt(0) ? prev + 1 : prev),
+		0,
 	);
+	return BigInt(numberOfActiveValidators) * (defaultReward - minimalRewardActiveValidators);
 };

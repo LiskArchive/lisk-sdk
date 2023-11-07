@@ -36,16 +36,16 @@ import {
 	GetUnlockHeightResponse,
 	GetValidatorsByStakeRequest,
 	ModuleConfig,
-	ModuleConfigJSON,
 	TokenMethod,
 	StakerData,
 	StakerDataJSON,
 	GetExpectedSharedRewardsRequest,
 	PunishmentLockingPeriods,
+	GetConstantsResponse,
 } from './types';
 import { getPunishTime, getWaitTime, isCertificateGenerated, calculateStakeRewards } from './utils';
 import { GenesisDataStore } from './stores/genesis';
-import { EMPTY_KEY } from './constants';
+import { COMMISSION, EMPTY_KEY } from './constants';
 import { EligibleValidator, EligibleValidatorsStore } from './stores/eligible_validators';
 import {
 	getClaimableRewardsRequestSchema,
@@ -154,7 +154,7 @@ export class PoSEndpoint extends BaseEndpoint {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getConstants(): Promise<ModuleConfigJSON> {
+	public async getConstants(): Promise<GetConstantsResponse> {
 		return {
 			factorSelfStakes: this._moduleConfig.factorSelfStakes,
 			maxLengthName: this._moduleConfig.maxLengthName,
@@ -180,6 +180,7 @@ export class PoSEndpoint extends BaseEndpoint {
 			reportMisbehaviorReward: this._moduleConfig.reportMisbehaviorReward.toString(),
 			reportMisbehaviorLimitBanned: this._moduleConfig.reportMisbehaviorLimitBanned,
 			weightScaleFactor: this._moduleConfig.weightScaleFactor.toString(),
+			defaultCommission: COMMISSION,
 		};
 	}
 

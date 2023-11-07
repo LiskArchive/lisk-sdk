@@ -15,7 +15,7 @@
 import { address as cryptoAddress, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { math } from '@liskhq/lisk-utils';
-import { defaultConfig, EMPTY_KEY } from '../../../../src/modules/pos/constants';
+import { COMMISSION, defaultConfig, EMPTY_KEY } from '../../../../src/modules/pos/constants';
 import { PoSEndpoint } from '../../../../src/modules/pos/endpoint';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
@@ -306,6 +306,7 @@ describe('PosModuleEndpoint', () => {
 				...defaultConfig,
 				roundLength: defaultConfig.numberActiveValidators + defaultConfig.numberStandbyValidators,
 				posTokenID: config.posTokenID.toString('hex'),
+				defaultCommission: COMMISSION,
 			});
 		});
 	});
