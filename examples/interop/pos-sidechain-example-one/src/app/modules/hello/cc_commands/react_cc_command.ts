@@ -2,7 +2,7 @@
 
 import { BaseCCCommand, CrossChainMessageContext, codec, cryptography, db } from 'lisk-sdk';
 import { CCReactMessageParamsSchema, CCReactMessageParams } from '../schemas';
-import { MAX_RESERVED_ERROR_STATUS, CROSS_CHAIN_COMMAND_NAME_REACT } from '../constants';
+import { MAX_RESERVED_ERROR_STATUS, CROSS_CHAIN_COMMAND_REACT } from '../constants';
 import { ReactionStore, ReactionStoreData } from '../stores/reaction';
 import { MessageStore } from '../stores/message';
 
@@ -10,7 +10,7 @@ export class ReactCCCommand extends BaseCCCommand {
 	public schema = CCReactMessageParamsSchema;
 
 	public get name(): string {
-		return CROSS_CHAIN_COMMAND_NAME_REACT;
+		return CROSS_CHAIN_COMMAND_REACT;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
