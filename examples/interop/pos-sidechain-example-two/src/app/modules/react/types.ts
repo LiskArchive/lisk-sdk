@@ -9,15 +9,11 @@ import {
 export type TokenID = Buffer;
 // Parameters of the reactCrossChain CCM
 export interface CCReactMessageParams {
-	/**
-	 * A number indicating the type of the reaction.
-	 */
+	// A number indicating the type of the reaction.
 	reactionType: number;
-	/**
-	 * ID of the Hello message being reacted to.
-	 */
+	// ID of the Hello message being reacted to.
 	helloMessageID: string;
-	/** Optional field for data / messages. */
+	// Optional field for data / messages.
 	data: string;
 }
 

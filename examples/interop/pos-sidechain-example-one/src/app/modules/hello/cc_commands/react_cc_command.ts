@@ -39,6 +39,7 @@ export class ReactCCCommand extends BaseCCCommand {
 		logger.info(params, 'parameters');
 		// Get helloMessageID and reactionType from the parameters
 		const { helloMessageID, reactionType } = params;
+		const { senderAddress } = ctx.transaction;
 		const reactionSubstore = this.stores.get(ReactionStore);
 		const messageCreatorAddress = cryptography.address.getAddressFromLisk32Address(helloMessageID);
 		let msgReactions: ReactionStoreData;
@@ -56,26 +57,26 @@ export class ReactCCCommand extends BaseCCCommand {
 				{ helloMessageID, crossChainCommand: this.name },
 				`No entry exists for given helloMessageID ${helloMessageID}. Creating a default entry.`,
 			);
-			msgReactions = { reactions: { like: [] } };
+			msgReactions = { reactions: { likes: [] } };
 		}
 
-		let likes = msgReactions.reactions.like;
+		let { likes } = msgReactions.reactions;
 		// Check if the reactions is a like
 		if (reactionType === 0) {
-			const hasLiked = likes.indexOf(ctx.transaction.senderAddress);
+			const likedPos = likes.indexOf(senderAddress);
 			// If the sender has already liked the message
-			if (hasLiked > -1) {
+			if (likedPos > -1) {
 				// Remove the sender address from the likes for the message
-				likes = likes.splice(hasLiked, 1);
+				likes = likes.splice(likedPos, 1);
 				// If the sender has not liked the message yet
 			} else {
 				// Add the sender address to the likes of the message
-				likes.push(ctx.transaction.senderAddress);
+				likes.push(senderAddress);
 			}
 		} else {
 			logger.error({ reactionType }, 'invalid reaction type');
 		}
-		msgReactions.reactions.like = likes;
+		msgReactions.reactions.likes = likes;
 		// Update the reaction store with the reactions for the specified Hello message
 		await reactionSubstore.set(ctx, messageCreatorAddress, msgReactions);
 	}

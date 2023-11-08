@@ -1,7 +1,7 @@
 // Schema for the parameters of the reactCrossChain CCM
 export const CCReactMessageParamsSchema = {
 	// The unique identifier of the schema.
-	$id: '/lisk/react/ccmParams',
+	$id: '/lisk/react/ccReactMessageParams',
 	type: 'object',
 	// The required parameters for the CCM.
 	required: ['reactionType', 'helloMessageID', 'data'],
@@ -27,7 +27,7 @@ export const CCReactMessageParamsSchema = {
 // Schema for the parameters of the react reactCrossChain command
 export const CCReactCommandParamsSchema = {
 	// The unique identifier of the schema.
-	$id: '/lisk/react/ccCommandParams',
+	$id: '/lisk/react/ccReactCommandParams',
 	type: 'object',
 	// The required parameters for the command.
 	required: ['reactionType', 'helloMessageID', 'receivingChainID', 'data', 'messageFee'],
