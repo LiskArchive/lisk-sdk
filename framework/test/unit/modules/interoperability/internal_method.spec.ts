@@ -13,7 +13,7 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { utils as cryptoUtils } from '@liskhq/lisk-cryptography';
+import { bls, utils as cryptoUtils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
@@ -303,10 +303,6 @@ describe('Base interoperability internal method', () => {
 				root: updatedOutboxTree.root,
 			});
 		});
-	});
-
-	describe('sendInternal', () => {
-		// TODO: Add missing tests
 	});
 
 	describe('createTerminatedOutboxAccount', () => {
@@ -1590,11 +1586,6 @@ describe('Base interoperability internal method', () => {
 			);
 
 			expect(interopMod.events.get(InvalidCertificateSignatureEvent).add).toHaveBeenCalledTimes(1);
-
-			// TODO: verifyWeightedAggSig should be expected to be called with the certificate threshold stored in the validators store for sendingChainID
-			// TODO: not with txParams.certificateThreshold.
-
-			// TODO: Should also test EVENT_NAME_INVALID_CERTIFICATE_SIGNATURE
 		});
 
 		it('should resolve when verifyWeightedAggSig return true', async () => {
@@ -1608,6 +1599,34 @@ describe('Base interoperability internal method', () => {
 			expect(validator.validate).toHaveBeenCalledWith(
 				certificateSchema,
 				expect.toBeObject() as Certificate,
+			);
+		});
+
+		it('should resolve correctly when validators store is NOT sorted', async () => {
+			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
+
+			await interopMod.stores
+				.get(ChainValidatorsStore)
+				.set(methodContext, txParams.sendingChainID, {
+					...chainValidators,
+					activeValidators: [...activeValidators].sort(() => Math.random() - 0.5), // Shuffle activeValidators
+				});
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyCertificateSignature(methodContext, txParams),
+			).resolves.toBeUndefined();
+
+			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
+
+			expect(bls.verifyWeightedAggSig).toHaveBeenCalledWith(
+				activeValidators.map(activeValidator => activeValidator.blsKey),
+				expect.anything(),
+				expect.anything(),
+				expect.anything(),
+				expect.anything(),
+				expect.anything(),
+				activeValidators.map(activeValidator => activeValidator.bftWeight),
+				expect.anything(),
 			);
 		});
 	});
@@ -1859,25 +1878,31 @@ describe('Base interoperability internal method', () => {
 				.spyOn(regularMerkleTree, 'calculateRootFromRightWitness')
 				.mockReturnValue(channelData.partnerChainOutboxRoot);
 
+			const params = {
+				...crossChainUpdateParams,
+				inboxUpdate: {
+					crossChainMessages: [],
+					messageWitnessHashes: [],
+					outboxRootWitness: {
+						bitmap: Buffer.alloc(0),
+						siblingHashes: [],
+					},
+				},
+				certificate: Buffer.alloc(0),
+			};
 			await expect(
 				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(
 					commandExecuteContext as any,
-					{
-						...crossChainUpdateParams,
-						inboxUpdate: {
-							crossChainMessages: [],
-							messageWitnessHashes: [],
-							outboxRootWitness: {
-								bitmap: Buffer.alloc(0),
-								siblingHashes: [],
-							},
-						},
-						certificate: Buffer.alloc(0),
-					},
+					params,
 				),
 			).resolves.toBeUndefined();
 
-			// TODO: checked that calculateRootFromRightWitness is called with the correct arguments.
+			// TODO [DONE]: checked that calculateRootFromRightWitness is called with the correct arguments.
+			expect(regularMerkleTree.calculateRootFromRightWitness).toHaveBeenCalledWith(
+				channelData.inbox.size,
+				channelData.inbox.appendPath,
+				params.inboxUpdate.messageWitnessHashes,
+			);
 		});
 
 		it('should resolve when certificate provides valid inclusion proof', async () => {
@@ -1894,7 +1919,8 @@ describe('Base interoperability internal method', () => {
 				),
 			).resolves.toBeUndefined();
 
-			// TODO: Explicitly state: outboxKey = Buffer.concat([Buffer.from('83ed0d25', 'hex'), Buffer.from('0000', 'hex'), cryptoUtils.hash(OWN_CHAIN_ID)])
+			// TODO [DONE]: Explicitly state: outboxKey = Buffer.concat([Buffer.from('83ed0d25', 'hex'), Buffer.from('0000', 'hex'), cryptoUtils.hash(OWN_CHAIN_ID)])
+			// outboxKey = STORE_PREFIX_INTEROPERABILITY + SUBSTORE_PREFIX_OUTBOX_ROOT + sha256(OWN_CHAIN_ID)
 			const outboxKey = Buffer.concat([
 				interopMod.stores.get(OutboxRootStore).key,
 				cryptoUtils.hash(ownChainAccount.chainID),
@@ -1918,7 +1944,12 @@ describe('Base interoperability internal method', () => {
 				expect.toBeObject() as Certificate,
 			);
 
-			// TODO: checked that calculateRootFromRightWitness is called with the correct arguments.
+			// TODO [DONE]: checked that calculateRootFromRightWitness is called with the correct arguments.
+			expect(regularMerkleTree.calculateRootFromRightWitness).toHaveBeenCalledWith(
+				updatedInboxTree.size,
+				updatedInboxTree.appendPath,
+				crossChainUpdateParams.inboxUpdate.messageWitnessHashes,
+			);
 		});
 
 		// TODO: There should be some test(s) where inboxUpdate.crossChainMessages is non empty
