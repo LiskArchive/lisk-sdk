@@ -123,6 +123,7 @@ export abstract class BaseCrossChainUpdateCommand<
 		}
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#beforecrosschainmessagesexecution
 	protected async beforeCrossChainMessagesExecution(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 		isMainchain: boolean,
@@ -219,7 +220,8 @@ export abstract class BaseCrossChainUpdateCommand<
 		}
 	}
 
-	protected async afterCrossChainMessagesExecute(
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#aftercrosschainmessagesexecution
+	protected async afterCrossChainMessagesExecution(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	) {
 		const { params } = context;
