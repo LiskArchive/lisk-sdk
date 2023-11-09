@@ -507,34 +507,6 @@ describe('MessageRecoveryCommand', () => {
 		});
 
 		it('should return status OK for valid params', async () => {
-			const chainIDLocal = Buffer.from([0, 0, 0, 0]);
-			ccms = [
-				{
-					nonce: BigInt(0),
-					module: MODULE_NAME_INTEROPERABILITY,
-					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
-					sendingChainID: Buffer.from([1, 2, 3, 4]),
-					receivingChainID: chainIDLocal,
-					fee: BigInt(1),
-					status: CCMStatusCode.OK,
-					params: Buffer.alloc(0),
-				},
-			];
-			ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
-			transactionParams.crossChainMessages = [...ccmsEncoded];
-			transactionParams.idxs = appendPrecedingToIndices([1], terminatedChainOutboxSize);
-
-			commandVerifyContext = createCommandVerifyContext(transaction, transactionParams);
-			commandVerifyContext.params.chainID = chainIDLocal;
-
-			await interopModule.stores
-				.get(TerminatedOutboxStore)
-				.set(createStoreGetter(commandVerifyContext.stateStore as any), chainIDLocal, {
-					outboxRoot,
-					outboxSize: terminatedChainOutboxSize,
-					partnerChainInboxSize: 0,
-				});
-
 			const result = await command.verify(commandVerifyContext);
 			expect(result.status).toBe(VerifyStatus.OK);
 		});
