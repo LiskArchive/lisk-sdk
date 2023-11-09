@@ -767,7 +767,10 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should terminate the chain and log an event when verifyRoutingRules throws error', async () => {
-			jest.spyOn(command, 'verifyRoutingRules' as any);
+			// we want to return error in all cases
+			jest.spyOn(command, 'verifyRoutingRules' as any).mockImplementation(() => {
+				throw new Error('blah');
+			});
 
 			const ccm = {
 				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
@@ -803,7 +806,17 @@ describe('BaseCrossChainUpdateCommand', () => {
 				command['beforeCrossChainMessagesExecution'](executeContext, true),
 			).resolves.toEqual([[], false]);
 
-			expect(command['verifyRoutingRules']).toHaveBeenCalled(); // ***
+			expect(command['verifyRoutingRules']).toHaveBeenCalledWith(
+				ccm,
+				executeContext.params,
+				executeContext.chainID,
+				true,
+			); // ***
+
+			// let's make sure it indeed throws expected error
+			expect(() => {
+				command['verifyRoutingRules'](ccm, executeContext.params, executeContext.chainID, true);
+			}).toThrow('blah');
 
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
 				expect.anything(),
