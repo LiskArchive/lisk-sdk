@@ -163,14 +163,6 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 					error: new Error('Cross-chain message sending chain is not live.'),
 				};
 			}
-
-			// Check that sending chain is valid. This check is relevant only in case direct sidechain channels are enabled
-			if (!chainID.equals(getMainchainID(chainID)) && !ccm.sendingChainID.equals(chainID)) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error('Cross-chain message sending chain ID is not valid.'),
-				};
-			}
 		}
 
 		return {
