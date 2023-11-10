@@ -83,6 +83,8 @@ class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInter
 }
 
 describe('BaseCrossChainUpdateCommand', () => {
+	let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
+	let stateStore: PrefixedStateReadWriter;
 	const interopsModule = new MainchainInteroperabilityModule();
 	const senderPublicKey = utils.getRandomBytes(32);
 	const messageFeeTokenID = Buffer.alloc(8, 0);
@@ -212,6 +214,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 	beforeEach(() => {
 		const interopModule = new MainchainInteroperabilityModule();
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		ccMethods = new Map();
 		ccMethods.set(
 			'token',
@@ -268,7 +271,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 	});
 
 	describe('verifyCommon', () => {
-		let stateStore: PrefixedStateReadWriter;
 		let verifyContext: CommandVerifyContext<CrossChainUpdateTransactionParams>;
 
 		const ownChainAccount: OwnChainAccount = {
@@ -296,7 +298,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 		].sort((v1, v2) => v2.blsKey.compare(v1.blsKey)); // unsorted list
 
 		beforeEach(async () => {
-			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			verifyContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -530,12 +531,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	});
 
 	describe('verifyCertificateSignatureAndPartnerChainOutboxRoot', () => {
-		let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
-		let stateStore: PrefixedStateReadWriter;
-
 		beforeEach(async () => {
-			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -635,12 +631,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	// otherwise, they can fail due to some other check
 	// also, we can simplify test cases by giving only one CCM to params.inboxUpdate.crossChainMessages array
 	describe('beforeCrossChainMessagesExecution', () => {
-		let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
-		let stateStore: PrefixedStateReadWriter;
-
 		beforeEach(async () => {
-			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -840,11 +831,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	});
 
 	describe('verifyRoutingRules', () => {
-		let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
-		let stateStore: PrefixedStateReadWriter;
-
 		beforeEach(async () => {
-			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -1029,7 +1016,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 	});
 
 	describe('afterCrossChainMessagesExecution', () => {
-		let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
 		let chainValidatorsStore: ChainValidatorsStore;
 
 		beforeEach(() => {
@@ -1602,10 +1588,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 		const ccmStatus = CCMStatusCode.MODULE_NOT_SUPPORTED;
 		const ccmProcessedEventCode = CCMProcessedCode.MODULE_NOT_SUPPORTED;
 		const ccmSize = 100;
-		let stateStore: PrefixedStateReadWriter;
 
 		beforeEach(async () => {
-			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			await interopsModule.stores.get(OwnChainAccountStore).set(stateStore, EMPTY_BYTES, {
 				chainID: Buffer.from('11111111', 'hex'),
 				name: 'ownChain',
