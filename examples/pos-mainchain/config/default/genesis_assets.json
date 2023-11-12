@@ -1042,6 +1042,93 @@
 			}
 		},
 		{
+			"module": "nft",
+			"data": {
+				"nftSubstore": [],
+				"supportedNFTsSubstore": []
+			},
+			"schema": {
+				"$id": "/nft/module/genesis",
+				"type": "object",
+				"required": ["nftSubstore", "supportedNFTsSubstore"],
+				"properties": {
+					"nftSubstore": {
+						"type": "array",
+						"fieldNumber": 1,
+						"items": {
+							"type": "object",
+							"required": ["nftID", "owner", "attributesArray"],
+							"properties": {
+								"nftID": {
+									"dataType": "bytes",
+									"minLength": 16,
+									"maxLength": 16,
+									"fieldNumber": 1
+								},
+								"owner": {
+									"dataType": "bytes",
+									"fieldNumber": 2
+								},
+								"attributesArray": {
+									"type": "array",
+									"fieldNumber": 3,
+									"items": {
+										"type": "object",
+										"required": ["module", "attributes"],
+										"properties": {
+											"module": {
+												"dataType": "string",
+												"minLength": 1,
+												"maxLength": 32,
+												"pattern": "^[a-zA-Z0-9]*$",
+												"fieldNumber": 1
+											},
+											"attributes": {
+												"dataType": "bytes",
+												"fieldNumber": 2
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"supportedNFTsSubstore": {
+						"type": "array",
+						"fieldNumber": 2,
+						"items": {
+							"type": "object",
+							"required": ["chainID", "supportedCollectionIDArray"],
+							"properties": {
+								"chainID": {
+									"dataType": "bytes",
+									"minLength": 4,
+									"maxLength": 4,
+									"fieldNumber": 1
+								},
+								"supportedCollectionIDArray": {
+									"type": "array",
+									"fieldNumber": 2,
+									"items": {
+										"type": "object",
+										"required": ["collectionID"],
+										"properties": {
+											"collectionID": {
+												"dataType": "bytes",
+												"minLength": 4,
+												"maxLength": 4,
+												"fieldNumber": 1
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		{
 			"module": "pos",
 			"data": {
 				"validators": [

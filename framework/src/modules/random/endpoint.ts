@@ -32,7 +32,7 @@ import {
 	setHashOnionUsageRequest,
 } from './schemas';
 import { ValidatorRevealsStore } from './stores/validator_reveals';
-import { getSeedRevealValidity } from './utils';
+import { isSeedValidInput } from './utils';
 import { HashOnionStore } from './stores/hash_onion';
 import { UsedHashOnionStoreObject, UsedHashOnionsStore } from './stores/used_hash_onions';
 
@@ -48,10 +48,11 @@ export class RandomEndpoint extends BaseEndpoint {
 		const { validatorReveals } = await randomDataStore.get(ctx, EMPTY_KEY);
 
 		return {
-			valid: getSeedRevealValidity(
+			valid: isSeedValidInput(
 				cryptography.address.getAddressFromLisk32Address(generatorAddress),
 				Buffer.from(seedReveal, 'hex'),
 				validatorReveals,
+				false,
 			),
 		};
 	}

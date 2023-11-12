@@ -57,7 +57,7 @@ const getGenesisBlockAttrs = () => ({
 	maxHeightGenerated: 0,
 	validatorsHash: utils.hash(Buffer.alloc(0)),
 	aggregateCommit: {
-		height: 0,
+		height: 1009988,
 		aggregationBits: Buffer.alloc(0),
 		certificateSignature: EMPTY_BUFFER,
 	},
@@ -81,8 +81,10 @@ const blockHeaderProps = [
 	'previousBlockID',
 	'generatorAddress',
 	'transactionRoot',
+	'eventRoot',
 	'assetRoot',
 	'stateRoot',
+	'impliesMaxPrevotes',
 	'maxHeightPrevoted',
 	'maxHeightGenerated',
 	'validatorsHash',
@@ -143,6 +145,7 @@ describe('block_header', () => {
 				expect(blockHeader.validatorsHash).toEqual(data.validatorsHash);
 				expect(blockHeader.aggregateCommit).toEqual(data.aggregateCommit);
 				expect(blockHeader.maxHeightPrevoted).toEqual(data.maxHeightPrevoted);
+				expect(blockHeader.impliesMaxPrevotes).toEqual(data.impliesMaxPrevotes);
 				expect(blockHeader.maxHeightGenerated).toEqual(data.maxHeightGenerated);
 				expect(blockHeader.assetRoot).toEqual(data.assetRoot);
 				expect(blockHeader.transactionRoot).toEqual(data.transactionRoot);
@@ -212,6 +215,14 @@ describe('block_header', () => {
 		});
 
 		describe('validateGenesis', () => {
+			it('should not throw when genesis block is valid', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({
+					...block,
+				});
+
+				expect(() => blockHeader.validateGenesis()).not.toThrow();
+			});
 			it('should throw error if previousBlockID is not 32 bytes', () => {
 				const block = getGenesisBlockAttrs();
 				const blockHeader = new BlockHeader({
@@ -245,6 +256,15 @@ describe('block_header', () => {
 
 				expect(() => blockHeader.validateGenesis()).toThrow(
 					'Genesis block header transaction root must be empty hash',
+				);
+			});
+
+			it('should throw error if maxHeightGenerated is not zero', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({ ...block, maxHeightGenerated: 10 });
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header maxHeightGenerated must equal 0',
 				);
 			});
 
@@ -293,6 +313,18 @@ describe('block_header', () => {
 
 				expect(() => blockHeader.validateGenesis()).toThrow(
 					'Genesis block header aggregateCommit.aggregationBits must be empty bytes',
+				);
+			});
+
+			it('should throw error if impliesMaxPrevotes is false', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({
+					...block,
+					impliesMaxPrevotes: false,
+				});
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header impliesMaxPrevotes must be true',
 				);
 			});
 

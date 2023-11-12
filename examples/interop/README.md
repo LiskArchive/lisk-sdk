@@ -52,7 +52,8 @@ Install and build `pos-sidechain-example-two`
 
 #### Run apps using pm2
 
-Install [pm2](https://pm2.keymetrics.io/) if not installed using `npm install pm2 -g`
+- Install [pm2](https://pm2.keymetrics.io/) if not installed using `npm install pm2 -g`
+- Install []`ts-node`](https://www.npmjs.com/package/ts-node) globally
 
 Run 2 instances mainchain node
 
@@ -79,8 +80,8 @@ Interact with applications using `pm2`
 #### Register chains
 
 - Run `ts-node pos-mainchain-fast/config/scripts/sidechain_registration.ts` to register all the sidechains on the mainchain node.
-- Run `ts-node pos-sidechain-example-one/config/scripts/mainchain_registration.ts` to register sidechain `sidechain_example_one` on mainchain.
-- Run `ts-node pos-sidechain-example-two/config/scripts/mainchain_registration.ts` to register sidechain `sidechain_example_two` on mainchain.
+- Run `ts-node pos-sidechain-example-one/config/scripts/mainchain_registration.ts` to register mainchain on sidechain `sidechain_example_one`.
+- Run `ts-node pos-sidechain-example-two/config/scripts/mainchain_registration.ts` to register mainchain on sidechain `sidechain_example_two`.
 
 #### Check chain status
 
@@ -89,7 +90,12 @@ Interact with applications using `pm2`
 
 Now observe logs, initially it will log `No valid CCU can be generated for the height: ${newBlockHeader.height}` until first finalized height is reached.
 
-When the finalized height is reached, check chain status as described above and it should update lastCertificate height > 0 and status to 1 which means the CCU was sent successfully and chain is active now.
+When the finalized height is reached, check chain status as described above and it should update lastCertificate `height > 0` and status to `1` which means the CCU was sent successfully and chain is active now.
+
+### Authorize ChainConnector plugin to sign and send CCU(Cross-Chain Update) transactions
+
+Run below command inside each application folder.
+`./bin/run endpoint:invoke 'chainConnector_authorize' '{"password": "lisk" }'`
 
 #### Cross Chain transfers
 

@@ -131,7 +131,7 @@ describe('token module', () => {
 		const escrowStore = tokenModule.stores.get(EscrowStore);
 		await escrowStore.set(
 			methodContext,
-			Buffer.concat([defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH), defaultTokenID]),
+			Buffer.concat([defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH), defaultTokenID]),
 			{ amount: defaultEscrowAmount },
 		);
 	});
@@ -202,7 +202,7 @@ describe('token module', () => {
 			await expect(
 				method.getEscrowedAmount(
 					methodContext,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					defaultForeignTokenID,
 				),
 			).rejects.toThrow('Only native token can have escrow amount');
@@ -218,7 +218,7 @@ describe('token module', () => {
 			await expect(
 				method.getEscrowedAmount(
 					methodContext,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					Buffer.from([0, 0, 0, 1, 0, 0, 0, 1]),
 				),
 			).resolves.toBe(BigInt(0));
@@ -228,7 +228,7 @@ describe('token module', () => {
 			await expect(
 				method.getEscrowedAmount(
 					methodContext,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					defaultTokenID,
 				),
 			).resolves.toEqual(defaultEscrowAmount);
@@ -239,22 +239,36 @@ describe('token module', () => {
 		const tokenID = Buffer.concat([ownChainID, Buffer.alloc(4, 255)]);
 
 		it('should reject if token is not native', async () => {
-			await expect(
-				method.initializeToken(methodContext, Buffer.from([2, 0, 0, 0, 0, 0, 0, 0])),
-			).rejects.toThrow('Only native token can be initialized');
+			try {
+				await method.initializeToken(methodContext, Buffer.from([2, 0, 0, 0, 0, 0, 0, 0]));
+			} catch (e: any) {
+				expect(e.message).toBe('Only native token can be initialized.');
+				checkEventResult(
+					methodContext.eventQueue,
+					InitializeTokenEvent,
+					TokenEventResult.TOKEN_ID_NOT_NATIVE,
+				);
+			}
 		});
 
 		it('should reject if there is no available local ID', async () => {
-			const supplyStore = tokenModule.stores.get(SupplyStore);
-			await supplyStore.set(methodContext, tokenID, {
-				totalSupply: defaultTotalSupply,
-			});
-			await expect(method.initializeToken(methodContext, tokenID)).rejects.toThrow(
-				'The specified token ID is not available',
-			);
+			try {
+				const supplyStore = tokenModule.stores.get(SupplyStore);
+				await supplyStore.set(methodContext, tokenID, {
+					totalSupply: defaultTotalSupply,
+				});
+				await method.initializeToken(methodContext, tokenID);
+			} catch (e: any) {
+				expect(e.message).toBe('The specified token ID is not available.');
+				checkEventResult(
+					methodContext.eventQueue,
+					InitializeTokenEvent,
+					TokenEventResult.TOKEN_ID_NOT_AVAILABLE,
+				);
+			}
 		});
 
-		it('log initialize token event', async () => {
+		it('logs initialize token event', async () => {
 			await method.initializeToken(methodContext, tokenID);
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			checkEventResult(methodContext.eventQueue, InitializeTokenEvent, TokenEventResult.SUCCESSFUL);
@@ -293,7 +307,7 @@ describe('token module', () => {
 			);
 		});
 
-		it('should reject if supply exceed max balance', async () => {
+		it('should reject if supply exceeds maximum range allowed', async () => {
 			await expect(
 				method.mint(
 					methodContext,
@@ -497,7 +511,7 @@ describe('token module', () => {
 			await expect(
 				method.initializeEscrowAccount(
 					methodContext,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					defaultTokenID,
 				),
 			).resolves.toBeUndefined();
@@ -664,7 +678,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt('100'),
@@ -730,7 +744,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					newAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt('100'),
@@ -769,7 +783,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					newAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt('100'),
@@ -798,7 +812,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					newAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt('100'),
@@ -833,7 +847,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					unknownToken,
 					BigInt(100000),
@@ -873,7 +887,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt('100000'),
@@ -887,7 +901,7 @@ describe('token module', () => {
 			const escrowStore = tokenModule.stores.get(EscrowStore);
 			const { amount } = await escrowStore.get(
 				methodContext,
-				escrowStore.getKey(defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH), defaultTokenID),
+				escrowStore.getKey(defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH), defaultTokenID),
 			);
 			expect(amount).toEqual(defaultEscrowAmount + BigInt('100000'));
 			checkEventResult(
@@ -903,7 +917,7 @@ describe('token module', () => {
 			await method.transferCrossChain(
 				methodContext,
 				defaultAddress,
-				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+				defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 				recipient,
 				defaultTokenID,
 				BigInt('100000'),
@@ -916,7 +930,7 @@ describe('token module', () => {
 				defaultAddress,
 				'token',
 				CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+				defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 				BigInt('10000'),
 				codec.encode(crossChainTransferMessageParams, {
 					tokenID: defaultTokenID,
@@ -938,7 +952,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt(0),
@@ -953,7 +967,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt(-1),
@@ -968,7 +982,7 @@ describe('token module', () => {
 				method.transferCrossChain(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt('100000'),
@@ -1179,7 +1193,7 @@ describe('token module', () => {
 				method.payMessageFee(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					BigInt(-1),
 				),
 			).rejects.toThrow('Invalid Message Fee');
@@ -1190,7 +1204,7 @@ describe('token module', () => {
 				method.payMessageFee(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					defaultAccount.availableBalance + BigInt(1),
 				),
 			).rejects.toThrow('does not have sufficient balance');
@@ -1201,14 +1215,14 @@ describe('token module', () => {
 				method.payMessageFee(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					BigInt(100),
 				),
 			).resolves.toBeUndefined();
 			const escrowStore = tokenModule.stores.get(EscrowStore);
 			const { amount } = await escrowStore.get(
 				methodContext,
-				escrowStore.getKey(defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH), defaultTokenID),
+				escrowStore.getKey(defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH), defaultTokenID),
 			);
 			expect(amount).toEqual(defaultEscrowAmount + BigInt('100'));
 		});
@@ -1218,7 +1232,7 @@ describe('token module', () => {
 				method.payMessageFee(
 					methodContext,
 					defaultAddress,
-					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH),
 					BigInt(100),
 				),
 			).resolves.toBeUndefined();
@@ -1230,8 +1244,10 @@ describe('token module', () => {
 
 	describe('supportAllTokens', () => {
 		it('should call support all token', async () => {
+			const supportAllSpy = jest.spyOn(tokenModule.stores.get(SupportedTokensStore), 'supportAll');
 			await expect(method.supportAllTokens(methodContext)).resolves.toBeUndefined();
 
+			expect(supportAllSpy).toHaveBeenCalledOnce();
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
 				new AllTokensSupportedEvent('token').name,
@@ -1241,9 +1257,13 @@ describe('token module', () => {
 
 	describe('removeAllTokensSupport', () => {
 		it('should call remove support all token', async () => {
-			await tokenModule.stores.get(SupportedTokensStore).supportAll(methodContext);
+			const supportedTokensStore = tokenModule.stores.get(SupportedTokensStore);
+
+			await supportedTokensStore.supportAll(methodContext);
+			const removeAllSpy = jest.spyOn(supportedTokensStore, 'removeAll');
 			await expect(method.removeAllTokensSupport(methodContext)).resolves.toBeUndefined();
 
+			expect(removeAllSpy).toHaveBeenCalledOnce();
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
 				new AllTokensSupportRemovedEvent('token').name,
@@ -1371,10 +1391,15 @@ describe('token module', () => {
 
 	describe('supportTokenID', () => {
 		it('should call support token', async () => {
+			const supportTokenSpy = jest.spyOn(
+				tokenModule.stores.get(SupportedTokensStore),
+				'supportToken',
+			);
 			await expect(
 				method.supportTokenID(methodContext, Buffer.from([1, 2, 3, 4, 0, 0, 0, 0])),
 			).resolves.toBeUndefined();
 
+			expect(supportTokenSpy).toHaveBeenCalledOnce();
 			expect(methodContext.eventQueue.getEvents()).toHaveLength(1);
 			expect(methodContext.eventQueue.getEvents()[0].toObject().name).toEqual(
 				new TokenIDSupportedEvent('token').name,
@@ -1481,7 +1506,7 @@ describe('token module', () => {
 	});
 
 	describe('escrowSubstoreExists', () => {
-		const escrowChainID = defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH);
+		const escrowChainID = defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH);
 
 		it('should return false if escrow subStore does not exist for the given chain id and token id', async () => {
 			const escrowStore = tokenModule.stores.get(EscrowStore);
@@ -1495,6 +1520,16 @@ describe('token module', () => {
 			await expect(
 				method.escrowSubstoreExists(methodContext, escrowChainID, defaultTokenID),
 			).resolves.toBeTrue();
+		});
+	});
+
+	describe('isTokenIDAvailable', () => {
+		it('should return true if provided tokenID exists in SupplyStore', async () => {
+			await expect(method.isTokenSupported(methodContext, defaultTokenID)).resolves.toBeTrue();
+		});
+
+		it('should return false if provided tokenID does not exist in SupplyStore', async () => {
+			await expect(method.isTokenSupported(methodContext, Buffer.alloc(8, 1))).resolves.toBeFalse();
 		});
 	});
 });

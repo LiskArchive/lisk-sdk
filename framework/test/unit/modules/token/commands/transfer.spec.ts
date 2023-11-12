@@ -183,7 +183,7 @@ describe('Transfer command', () => {
 			).rejects.toThrow(`balance ${availableBalance} is not sufficient for ${amount}`);
 		});
 
-		it('should pass if balance for the provided tokenID is sufficient', async () => {
+		it('should pass if parameters are valid and balance for the provided tokenID is sufficient', async () => {
 			const amount = BigInt(100000000);
 
 			jest.spyOn(command['_method'], 'getAvailableBalance').mockResolvedValue(amount);

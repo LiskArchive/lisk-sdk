@@ -79,7 +79,11 @@ type ModulesMetadata = [
 	});
 
 	console.log(
-		`Sent cross chain transfer transaction (amount: ${params.amount}, recipientAddress: ${recipientLSKAddress}) to send of sidechain (sendingChainID: ${params.receivingChainID}) node ${nodeAlias}. Result from transaction pool is: `,
+		`Sent cross chain transfer transaction (amount: ${
+			params.amount
+		}, recipientAddress: ${recipientLSKAddress}) to sidechain (receivingChainID: ${params.receivingChainID.toString(
+			'hex',
+		)}) node ${nodeAlias}. Result from transaction pool is: `,
 		result,
 	);
 

@@ -261,15 +261,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 			throw new Error(`ownChainName must be equal to ${CHAIN_NAME_MAINCHAIN}.`);
 		}
 
-		// if chainInfos is empty, then ownChainNonce == 0
-		// If chainInfos is non-empty, ownChainNonce > 0
-		if (chainInfos.length === 0 && ownChainNonce !== BigInt(0)) {
-			throw new Error(`ownChainNonce must be 0 if chainInfos is empty.`);
-		} else if (chainInfos.length !== 0 && ownChainNonce <= BigInt(0)) {
-			throw new Error(`ownChainNonce must be positive if chainInfos is not empty.`);
-		}
-
-		this._verifyChainInfos(ctx, chainInfos, terminatedStateAccounts);
+		this._verifyChainInfos(ctx, chainInfos, ownChainNonce, terminatedStateAccounts);
 		this._verifyTerminatedStateAccounts(chainInfos, terminatedStateAccounts, mainchainID);
 		this._verifyTerminatedOutboxAccounts(
 			chainInfos,
@@ -284,8 +276,17 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 	private _verifyChainInfos(
 		ctx: GenesisBlockExecuteContext,
 		chainInfos: ChainInfo[],
+		ownChainNonce: bigint,
 		terminatedStateAccounts: TerminatedStateAccountWithChainID[],
 	) {
+		// if chainInfos is empty, then ownChainNonce == 0
+		// If chainInfos is non-empty, ownChainNonce > 0
+		if (chainInfos.length === 0 && ownChainNonce !== BigInt(0)) {
+			throw new Error(`ownChainNonce must be 0 if chainInfos is empty.`);
+		} else if (chainInfos.length !== 0 && ownChainNonce <= 0) {
+			throw new Error(`ownChainNonce must be positive if chainInfos is not empty.`);
+		}
+
 		// Each entry chainInfo in chainInfos has a unique chainInfo.chainID
 		const chainIDs = chainInfos.map(info => info.chainID);
 		if (!objectUtils.bufferArrayUniqueItems(chainIDs)) {
@@ -424,9 +425,9 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				terminatedStateAccounts.find(a => a.chainID.equals(outboxAccount.chainID)) === undefined
 			) {
 				throw new Error(
-					`Each entry outboxAccount in terminatedOutboxAccounts must have a corresponding entry in terminatedStateAccount. outboxAccount with chainID: ${outboxAccount.chainID.toString(
+					`outboxAccount with chainID: ${outboxAccount.chainID.toString(
 						'hex',
-					)} does not exist in terminatedStateAccounts`,
+					)} must have a corresponding entry in terminatedStateAccounts.`,
 				);
 			}
 		}

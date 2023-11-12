@@ -414,7 +414,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				});
 		});
 
-		it('should verify verifyCommon is called', async () => {
+		it('should check if verifyCommon is called', async () => {
 			jest.spyOn(mainchainCCUUpdateCommand, 'verifyCommon' as any);
 
 			await expect(mainchainCCUUpdateCommand.verify(verifyContext)).resolves.toEqual({
@@ -422,6 +422,23 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			});
 
 			expect(mainchainCCUUpdateCommand['verifyCommon']).toHaveBeenCalled();
+		});
+
+		it('should call isLive with 3 params', async () => {
+			jest.spyOn(mainchainCCUUpdateCommand['internalMethod'], 'isLive');
+
+			await expect(
+				mainchainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: { ...params } as any,
+				}),
+			).resolves.toEqual({ status: VerifyStatus.OK });
+
+			expect(mainchainCCUUpdateCommand['internalMethod'].isLive).toHaveBeenCalledWith(
+				verifyContext,
+				verifyContext.params.sendingChainID,
+				verifyContext.header.timestamp,
+			);
 		});
 
 		it(`should not verify liveness condition when sendingChainAccount.status == ${ChainStatus.REGISTERED} and inboxUpdate is empty`, async () => {

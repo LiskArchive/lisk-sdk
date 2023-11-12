@@ -68,7 +68,7 @@ export class GenerationContext {
 				this._stateStore.getStore(moduleID, storePrefix),
 			stateStore: this._stateStore,
 			getOffchainStore: (moduleID: Buffer, subStorePrefix: Buffer) =>
-				this._generatorStore.getStore(moduleID, subStorePrefix.readUInt16BE(0)),
+				this._generatorStore.getStore(moduleID, subStorePrefix),
 			header: this._header,
 			assets: this._assets,
 			chainID: this._chainID,

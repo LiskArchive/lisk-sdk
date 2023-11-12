@@ -171,7 +171,9 @@ describe('RecoverStateCommand', () => {
 			const result = await stateRecoveryCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Module is not recoverable.');
+			expect(result.error?.message).toInclude(
+				"Module is not recoverable, as it doesn't have a recover method.",
+			);
 		});
 
 		it('should return error if recovered store keys are not pairwise distinct', async () => {
@@ -180,7 +182,7 @@ describe('RecoverStateCommand', () => {
 			const result = await stateRecoveryCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Recovered store keys are not pairwise distinct.');
+			expect(result.error?.message).toInclude('Recoverable store keys are not pairwise distinct.');
 		});
 	});
 
@@ -198,6 +200,12 @@ describe('RecoverStateCommand', () => {
 				'State recovery proof of inclusion is not valid',
 			);
 			expect(invalidSMTVerificationEvent.error).toHaveBeenCalled();
+		});
+
+		it(`should not throw error if recovery is available for "${moduleName}"`, async () => {
+			await expect(stateRecoveryCommand.execute(commandExecuteContext)).resolves.not.toThrow(
+				`Recovery failed for module: ${moduleName}`,
+			);
 		});
 
 		it(`should throw error if recovery not available for "${moduleName}"`, async () => {

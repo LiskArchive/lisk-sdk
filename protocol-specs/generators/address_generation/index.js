@@ -35,7 +35,7 @@ const GENERATOR = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3];
 
 const getBinaryAddress = publicKey => {
 	const publicKeyBuffer = Buffer.from(publicKey, 'hex');
-	return utils.hash(publicKeyBuffer).slice(0, 20);
+	return utils.hash(publicKeyBuffer).subarray(0, 20);
 };
 
 const polymod = uint5Array => {

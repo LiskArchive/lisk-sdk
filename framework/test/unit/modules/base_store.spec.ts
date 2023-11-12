@@ -85,6 +85,10 @@ describe('BaseStore', () => {
 
 			await expect(store.has(context, key)).resolves.toBeTrue();
 		});
+
+		it('should return false when key does not exist', async () => {
+			await expect(store.has(context, key)).resolves.toBeFalse();
+		});
 	});
 
 	describe('set', () => {

@@ -51,6 +51,7 @@ describe('PoSMethod', () => {
 	const tokenMethod: any = { lock: jest.fn() };
 
 	const address = utils.getRandomBytes(20);
+	const invalidAddress = Buffer.alloc(0);
 	const stakerData = {
 		stakes: [
 			{
@@ -150,6 +151,14 @@ describe('PoSMethod', () => {
 				expect(stakerDataReturned).toStrictEqual(stakerData);
 			});
 		});
+
+		describe('when input address is invalid', () => {
+			it('should throw error', async () => {
+				await expect(posMethod.getStaker(methodContext, invalidAddress)).rejects.toThrow(
+					invalidAddress.toString('hex'),
+				);
+			});
+		});
 	});
 
 	describe('getValidator', () => {
@@ -159,6 +168,14 @@ describe('PoSMethod', () => {
 				const validatorDataReturned = await posMethod.getValidator(methodContext, address);
 
 				expect(validatorDataReturned).toStrictEqual(validatorData);
+			});
+		});
+
+		describe('when input address is invalid', () => {
+			it('should throw error', async () => {
+				await expect(posMethod.getValidator(methodContext, invalidAddress)).rejects.toThrow(
+					invalidAddress.toString('hex'),
+				);
 			});
 		});
 	});
@@ -357,7 +374,7 @@ describe('PoSMethod', () => {
 			const eligibleValidators = await pos.stores
 				.get(EligibleValidatorsStore)
 				.getAll(methodContext);
-			expect(eligibleValidators.find(v => v.key.slice(8).equals(address))).toBeDefined();
+			expect(eligibleValidators.find(v => v.key.subarray(8).equals(address))).toBeDefined();
 		});
 
 		it('should reject changing status if the validator does not exist', async () => {
