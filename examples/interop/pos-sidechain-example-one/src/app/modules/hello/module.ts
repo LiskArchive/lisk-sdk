@@ -16,7 +16,7 @@ import {
 	VerificationResult,
 } from 'lisk-sdk';
 import { CreateHelloCommand } from './commands/create_hello_command';
-import { ReactCCCommand } from './cc_commands/react_command';
+import { ReactCCCommand } from './cc_commands/react_cc_command';
 import { HelloEndpoint } from './endpoint';
 import { NewHelloEvent } from './events/new_hello';
 import { HelloMethod } from './method';

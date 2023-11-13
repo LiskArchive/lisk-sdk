@@ -2,7 +2,7 @@ import { BaseStore } from 'lisk-sdk';
 
 export interface ReactionStoreData {
 	reactions: {
-		like: Buffer[];
+		likes: Buffer[];
 	};
 }
 
@@ -15,7 +15,7 @@ export const reactionStoreSchema = {
 			type: 'object',
 			fieldNumber: 1,
 			properties: {
-				like: {
+				likes: {
 					type: 'array',
 					fieldNumber: 1,
 					items: {
