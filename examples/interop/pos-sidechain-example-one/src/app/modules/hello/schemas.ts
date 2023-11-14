@@ -1,7 +1,3 @@
-export interface CreateHelloParams {
-	message: string;
-}
-
 export const createHelloSchema = {
 	$id: 'hello/createHello-params',
 	title: 'CreateHelloCommand transaction parameter for the Hello module',
@@ -77,32 +73,14 @@ export const getHelloRequestSchema = {
 	},
 };
 
-/**
- * Parameters of the reactCrossChain CCM
- */
-export interface CCReactMessageParams {
-	/**
-	 * A number indicating the type of the reaction.
-	 */
-	reactionType: number;
-	/**
-	 * ID of the message.
-	 */
-	helloMessageID: string;
-	/** Optional field for data / messages. */
-	data: string;
-}
-
-/**
- * Schema for the parameters of the reactCrossChain CCM
- */
+// Schema for the parameters of the crossChainReact CCM
 export const CCReactMessageParamsSchema = {
-	/** The unique identifier of the schema. */
-	$id: '/lisk/hello/ccReactParams',
+	// The unique identifier of the schema.
+	$id: '/lisk/react/ccReactMessageParams',
 	type: 'object',
-	/** The required parameters for the command. */
+	// The required parameters for the CCM.
 	required: ['reactionType', 'helloMessageID', 'data'],
-	/** A list describing the available parameters for the command. */
+	// A list describing the required parameters for the CCM.
 	properties: {
 		reactionType: {
 			dataType: 'uint32',

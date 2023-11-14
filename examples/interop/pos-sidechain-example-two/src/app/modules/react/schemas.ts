@@ -1,4 +1,4 @@
-// Schema for the parameters of the reactCrossChain CCM
+// Schema for the parameters of the crossChainReact CCM
 export const CCReactMessageParamsSchema = {
 	// The unique identifier of the schema.
 	$id: '/lisk/react/ccReactMessageParams',
@@ -24,7 +24,7 @@ export const CCReactMessageParamsSchema = {
 	},
 };
 
-// Schema for the parameters of the react reactCrossChain command
+// Schema for the parameters of the react crossChainReact command
 export const CCReactCommandParamsSchema = {
 	// The unique identifier of the schema.
 	$id: '/lisk/react/ccReactCommandParams',

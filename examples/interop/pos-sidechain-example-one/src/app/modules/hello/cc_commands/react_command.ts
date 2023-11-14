@@ -1,12 +1,13 @@
 /* eslint-disable class-methods-use-this */
 
 import { BaseCCCommand, CrossChainMessageContext, codec, cryptography, db } from 'lisk-sdk';
-import { CCReactMessageParamsSchema, CCReactMessageParams } from '../schemas';
+import { CCReactMessageParamsSchema } from '../schemas';
+import { CCReactMessageParams } from '../types';
 import { MAX_RESERVED_ERROR_STATUS, CROSS_CHAIN_COMMAND_REACT } from '../constants';
 import { ReactionStore, ReactionStoreData } from '../stores/reaction';
 import { MessageStore } from '../stores/message';
 
-export class ReactCCCommand extends BaseCCCommand {
+export class ReactCommand extends BaseCCCommand {
 	public schema = CCReactMessageParamsSchema;
 
 	public get name(): string {
