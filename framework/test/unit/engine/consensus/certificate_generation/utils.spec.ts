@@ -217,6 +217,19 @@ describe('utils', () => {
 			expect(isVerifiedSignature).toBeTrue();
 		});
 
+		it('should return false for invalid certificate aggregationBits length', () => {
+			signedCertificate.aggregationBits = Buffer.alloc(0);
+
+			const isVerifiedSignature = verifyAggregateCertificateSignature(
+				validators,
+				threshold,
+				chainID,
+				signedCertificate,
+			);
+
+			expect(isVerifiedSignature).toBeFalse();
+		});
+
 		it('should return false for one unmatching publicKey in keysList', () => {
 			validators[102].blsKey = utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH);
 
