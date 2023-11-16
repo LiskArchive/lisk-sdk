@@ -53,7 +53,7 @@
 		"@liskhq/lisk-transactions": "^6.1.0-rc.0",
 		"@liskhq/lisk-utils": "^0.4.0-rc.0",
 		"@liskhq/lisk-validator": "^0.9.0-rc.0",
-		"axios": "1.2.0",
+		"axios": "1.6.0",
 		"express": "4.18.2",
 		"lisk-sdk": "^6.1.0-rc.0",
 		"react": "^17.0.1",
