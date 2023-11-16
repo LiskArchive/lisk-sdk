@@ -706,7 +706,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				{
 					ccm: EmptyCCM,
 					result: CCMProcessedResult.DISCARDED,
-					code: CCMProcessedCode.INVALID_CCM_DECODING_EXCEPTION, // ***
+					code: CCMProcessedCode.INVALID_CCM_DECODING_EXCEPTION,
 				},
 			);
 		});
@@ -752,7 +752,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				{
 					ccm: { ...EmptyCCM, params: EMPTY_BYTES },
 					result: CCMProcessedResult.DISCARDED,
-					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION, // ***
+					code: CCMProcessedCode.INVALID_CCM_VALIDATION_EXCEPTION,
 				},
 			);
 		});
@@ -802,7 +802,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				executeContext.params,
 				executeContext.chainID,
 				true,
-			); // ***
+			);
 
 			// let's make sure it indeed throws expected error
 			expect(() => {
@@ -830,7 +830,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				{
 					ccm,
 					result: CCMProcessedResult.DISCARDED,
-					code: CCMProcessedCode.INVALID_CCM_ROUTING_EXCEPTION, // ***
+					code: CCMProcessedCode.INVALID_CCM_ROUTING_EXCEPTION,
 				},
 			);
 
@@ -919,7 +919,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					// must be same as defaultSendingChainID to pass `!ccm.sendingChainID.equals(params.sendingChainID)`
 					sendingChainID: defaultSendingChainID,
 					// will fail for `CCMStatusCode.CHANNEL_UNAVAILABLE`
-					status: CCMStatusCode.CHANNEL_UNAVAILABLE, // ***
+					status: CCMStatusCode.CHANNEL_UNAVAILABLE,
 				};
 
 				executeContext = createTransactionContext({
