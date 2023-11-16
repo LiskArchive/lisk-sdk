@@ -16,7 +16,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
-import { MerkleTree } from '@liskhq/lisk-tree';
+import { MerkleTree, regularMerkleTree } from '@liskhq/lisk-tree';
 import { Proof } from '@liskhq/lisk-tree/dist-node/merkle_tree/types';
 import {
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
@@ -574,61 +574,114 @@ describe('MessageRecoveryCommand', () => {
 
 			await expect(command.execute(commandExecuteContext)).resolves.toBeUndefined();
 
-			for (const crossChainMessage of commandExecuteContext.params.crossChainMessages) {
-				const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
-				const ctx: CrossChainMessageContext = {
-					...commandExecuteContext,
-					ccm,
-					eventQueue: commandExecuteContext.eventQueue.getChildQueue(
-						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, utils.hash(crossChainMessage)]),
-					),
-				};
-
-				expect(command['_applyRecovery']).toHaveBeenCalledWith(ctx);
-				expect(commandExecuteContext.contextStore.set).toHaveBeenNthCalledWith(
-					1,
-					CONTEXT_STORE_KEY_CCM_PROCESSING,
-					true,
-				);
-				expect(commandExecuteContext.contextStore.set).toHaveBeenNthCalledWith(
-					2,
-					CONTEXT_STORE_KEY_CCM_PROCESSING,
-					false,
-				);
-			}
-
-			expect(interopModule.stores.get(TerminatedOutboxStore).set).toHaveBeenCalledTimes(1);
-		});
-
-		it('should call forwardRecovery when sending chain is not mainchain', async () => {
-			await expect(command.execute(commandExecuteContext)).resolves.toBeUndefined();
-
-			for (const crossChainMessage of commandExecuteContext.params.crossChainMessages) {
-				const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
-				const ctx: CrossChainMessageContext = {
-					...commandExecuteContext,
-					ccm,
-					eventQueue: commandExecuteContext.eventQueue.getChildQueue(
-						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, utils.hash(crossChainMessage)]),
-					),
-				};
-
-				expect(command['_forwardRecovery']).toHaveBeenCalledWith(ctx);
-			}
-
-			const terminatedOutboxStore = command['stores'].get(TerminatedOutboxStore);
-			jest.spyOn(terminatedOutboxStore, 'set');
-
-			expect(terminatedOutboxStore.set).toHaveBeenCalledTimes(1);
 			expect(commandExecuteContext.contextStore.set).toHaveBeenNthCalledWith(
 				1,
 				CONTEXT_STORE_KEY_CCM_PROCESSING,
 				true,
 			);
+
+			const recoveredCCMs: Buffer[] = [];
+			for (const crossChainMessage of commandExecuteContext.params.crossChainMessages) {
+				const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
+				const ctx: CrossChainMessageContext = {
+					...commandExecuteContext,
+					ccm,
+					eventQueue: commandExecuteContext.eventQueue.getChildQueue(
+						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, utils.hash(crossChainMessage)]),
+					),
+				};
+
+				const recoveredCCM = await command['_applyRecovery'](ctx);
+				recoveredCCMs.push(codec.encode(ccmSchema, recoveredCCM));
+
+				expect(command['_applyRecovery']).toHaveBeenCalledWith(ctx);
+			}
+
 			expect(commandExecuteContext.contextStore.set).toHaveBeenNthCalledWith(
 				2,
 				CONTEXT_STORE_KEY_CCM_PROCESSING,
 				false,
+			);
+
+			const terminatedOutboxSubstore = interopModule.stores.get(TerminatedOutboxStore);
+			jest.spyOn(terminatedOutboxSubstore, 'set');
+
+			expect(terminatedOutboxSubstore.set).toHaveBeenCalledTimes(1);
+
+			const terminatedOutboxAccount = await terminatedOutboxSubstore.get(
+				commandExecuteContext,
+				commandExecuteContext.params.chainID,
+			);
+			const proofLocal = {
+				size: terminatedOutboxAccount.outboxSize,
+				idxs: commandExecuteContext.params.idxs,
+				siblingHashes: commandExecuteContext.params.siblingHashes,
+			};
+			terminatedOutboxAccount.outboxRoot = regularMerkleTree.calculateRootFromUpdateData(
+				recoveredCCMs.map(ccm => utils.hash(ccm)),
+				{ ...proofLocal, indexes: proofLocal.idxs },
+			);
+			expect(terminatedOutboxSubstore.set).toHaveBeenCalledWith(
+				commandExecuteContext,
+				commandExecuteContext.params.chainID,
+				terminatedOutboxAccount,
+			);
+		});
+
+		it('should call forwardRecovery when sending chain is not mainchain', async () => {
+			await expect(command.execute(commandExecuteContext)).resolves.toBeUndefined();
+
+			expect(commandExecuteContext.contextStore.set).toHaveBeenNthCalledWith(
+				1,
+				CONTEXT_STORE_KEY_CCM_PROCESSING,
+				true,
+			);
+
+			const recoveredCCMs: Buffer[] = [];
+			for (const crossChainMessage of commandExecuteContext.params.crossChainMessages) {
+				const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
+				const ctx: CrossChainMessageContext = {
+					...commandExecuteContext,
+					ccm,
+					eventQueue: commandExecuteContext.eventQueue.getChildQueue(
+						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, utils.hash(crossChainMessage)]),
+					),
+				};
+
+				const recoveredCCM = await command['_forwardRecovery'](ctx);
+				recoveredCCMs.push(codec.encode(ccmSchema, recoveredCCM));
+
+				expect(command['_forwardRecovery']).toHaveBeenCalledWith(ctx);
+			}
+
+			expect(commandExecuteContext.contextStore.set).toHaveBeenNthCalledWith(
+				2,
+				CONTEXT_STORE_KEY_CCM_PROCESSING,
+				false,
+			);
+
+			const terminatedOutboxSubstore = command['stores'].get(TerminatedOutboxStore);
+			const terminatedOutboxAccount = await terminatedOutboxSubstore.get(
+				commandExecuteContext,
+				commandExecuteContext.params.chainID,
+			);
+			jest.spyOn(terminatedOutboxSubstore, 'set');
+
+			expect(terminatedOutboxSubstore.set).toHaveBeenCalledTimes(1);
+
+			const proofLocal = {
+				size: terminatedOutboxAccount.outboxSize,
+				idxs: commandExecuteContext.params.idxs,
+				siblingHashes: commandExecuteContext.params.siblingHashes,
+			};
+			terminatedOutboxAccount.outboxRoot = regularMerkleTree.calculateRootFromUpdateData(
+				recoveredCCMs.map(ccm => utils.hash(ccm)),
+				{ ...proofLocal, indexes: proofLocal.idxs },
+			);
+			expect(terminatedOutboxSubstore.set).toHaveBeenCalledWith(
+				commandExecuteContext,
+				commandExecuteContext.params.chainID,
+				terminatedOutboxAccount,
 			);
 		});
 	});
