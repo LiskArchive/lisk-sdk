@@ -809,13 +809,22 @@ describe('BaseCrossChainUpdateCommand', () => {
 				command['verifyRoutingRules'](ccm, executeContext.params, executeContext.chainID, true);
 			}).toThrow('blah');
 
+			const ccmBytes = executeContext.params.inboxUpdate.crossChainMessages[0];
+			const ccmID = getIDFromCCMBytes(ccmBytes);
+			const ccmContext = {
+				...executeContext,
+				eventQueue: executeContext.eventQueue.getChildQueue(
+					Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
+				),
+			};
+
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				expect.anything(),
-				params.sendingChainID,
+				ccmContext,
+				executeContext.params.sendingChainID,
 			);
 
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
-				expect.anything(),
+				ccmContext,
 				executeContext.params.sendingChainID,
 				ccm.receivingChainID,
 				{
@@ -824,6 +833,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 					code: CCMProcessedCode.INVALID_CCM_ROUTING_EXCEPTION, // ***
 				},
 			);
+
 			expect(executeContext.eventQueue['_defaultTopics'][0]).toEqual(
 				Buffer.concat([EVENT_TOPIC_TRANSACTION_EXECUTION, executeContext.transaction.id]),
 			);
