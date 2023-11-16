@@ -2,7 +2,7 @@
 
 import { BaseCCCommand, CrossChainMessageContext, codec, cryptography, db } from 'lisk-sdk';
 import { CCReactMessageParamsSchema, CCReactMessageParams } from '../schemas';
-import { MAX_RESERVED_ERROR_STATUS, CROSS_CHAIN_COMMAND_NAME_REACT } from '../constants';
+import { MAX_RESERVED_ERROR_STATUS, CROSS_CHAIN_COMMAND_REACT } from '../constants';
 import { ReactionStore, ReactionStoreData } from '../stores/reaction';
 import { MessageStore } from '../stores/message';
 
@@ -10,7 +10,7 @@ export class ReactCCCommand extends BaseCCCommand {
 	public schema = CCReactMessageParamsSchema;
 
 	public get name(): string {
-		return CROSS_CHAIN_COMMAND_NAME_REACT;
+		return CROSS_CHAIN_COMMAND_REACT;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -39,6 +39,7 @@ export class ReactCCCommand extends BaseCCCommand {
 		logger.info(params, 'parameters');
 		// Get helloMessageID and reactionType from the parameters
 		const { helloMessageID, reactionType } = params;
+		const { senderAddress } = ctx.transaction;
 		const reactionSubstore = this.stores.get(ReactionStore);
 		const messageCreatorAddress = cryptography.address.getAddressFromLisk32Address(helloMessageID);
 		let msgReactions: ReactionStoreData;
@@ -56,24 +57,26 @@ export class ReactCCCommand extends BaseCCCommand {
 				{ helloMessageID, crossChainCommand: this.name },
 				`No entry exists for given helloMessageID ${helloMessageID}. Creating a default entry.`,
 			);
-			msgReactions = { reactions: { like: [] } };
+			msgReactions = { reactions: { likes: [] } };
 		}
 
+		let { likes } = msgReactions.reactions;
 		// Check if the reactions is a like
 		if (reactionType === 0) {
-			const hasLiked = msgReactions.reactions.like.indexOf(ctx.transaction.senderAddress);
+			const likedPos = likes.indexOf(senderAddress);
 			// If the sender has already liked the message
-			if (hasLiked > -1) {
+			if (likedPos > -1) {
 				// Remove the sender address from the likes for the message
-				msgReactions.reactions.like = msgReactions.reactions.like.splice(hasLiked, 1);
+				likes = likes.splice(likedPos, 1);
 				// If the sender has not liked the message yet
 			} else {
 				// Add the sender address to the likes of the message
-				msgReactions.reactions.like.push(ctx.transaction.senderAddress);
+				likes.push(senderAddress);
 			}
 		} else {
 			logger.error({ reactionType }, 'invalid reaction type');
 		}
+		msgReactions.reactions.likes = likes;
 		// Update the reaction store with the reactions for the specified Hello message
 		await reactionSubstore.set(ctx, messageCreatorAddress, msgReactions);
 	}
