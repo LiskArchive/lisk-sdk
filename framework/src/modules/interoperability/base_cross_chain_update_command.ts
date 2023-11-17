@@ -196,6 +196,7 @@ export abstract class BaseCrossChainUpdateCommand<
 		return [ccms, true];
 	}
 
+	// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#verifyroutingrules
 	protected verifyRoutingRules(
 		ccm: CCMsg,
 		ccuParams: CrossChainUpdateTransactionParams,

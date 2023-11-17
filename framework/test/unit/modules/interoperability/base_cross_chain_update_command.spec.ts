@@ -947,6 +947,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		});
 
 		it('should return error when CCM is not directed to the sidechain', () => {
+			const sidechainID = Buffer.from([1, 2, 3, 4]);
 			const ccm = {
 				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				fee: BigInt(0),
@@ -960,7 +961,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			};
 
 			executeContext = createTransactionContext({
-				chainID,
+				chainID: sidechainID,
 				stateStore,
 				transaction: new Transaction({
 					...defaultTransaction,
@@ -982,7 +983,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			}
 		});
 
-		it('should return error  when receiving chain is the same as sending chain', () => {
+		it('should return error when receiving chain is the same as sending chain', () => {
 			const sendingChainID = chainID;
 			const ccm = {
 				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
