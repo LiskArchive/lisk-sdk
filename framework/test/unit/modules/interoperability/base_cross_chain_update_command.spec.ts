@@ -868,84 +868,82 @@ describe('BaseCrossChainUpdateCommand', () => {
 				.set(stateStore, defaultSendingChainID, partnerChannel);
 		});
 
-		describe('isMainchain', () => {
-			it('should return error when CCM sending chain and ccu sending chain is not the same', () => {
-				const ccm = {
-					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
-					fee: BigInt(0),
-					module: MODULE_NAME_INTEROPERABILITY,
-					nonce: BigInt(1),
-					params: utils.getRandomBytes(10),
-					// must be same as `context.chainID` to pass `!context.chainID.equals(ccm.receivingChainID)` check
-					receivingChainID: chainID,
-					// this will fail for `!ccm.sendingChainID.equals(params.sendingChainID)`
-					// params.sendingChainID is `defaultSendingChainID` (line 158)
-					sendingChainID: Buffer.from([1, 2, 3, 4]),
-					status: CCMStatusCode.OK,
-				};
+		it('should return error when CCM sending chain and ccu sending chain is not the same', () => {
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+				fee: BigInt(0),
+				module: MODULE_NAME_INTEROPERABILITY,
+				nonce: BigInt(1),
+				params: utils.getRandomBytes(10),
+				// must be same as `context.chainID` to pass `!context.chainID.equals(ccm.receivingChainID)` check
+				receivingChainID: chainID,
+				// this will fail for `!ccm.sendingChainID.equals(params.sendingChainID)`
+				// params.sendingChainID is `defaultSendingChainID` (line 158)
+				sendingChainID: Buffer.from([1, 2, 3, 4]),
+				status: CCMStatusCode.OK,
+			};
 
-				executeContext = createTransactionContext({
-					chainID,
-					stateStore,
-					transaction: new Transaction({
-						...defaultTransaction,
-						command: command.name,
-						params: codec.encode(crossChainUpdateTransactionParams, {
-							...params,
-							inboxUpdate: {
-								...params.inboxUpdate,
-								crossChainMessages: [codec.encode(ccmSchema, ccm)],
-							},
-						}),
+			executeContext = createTransactionContext({
+				chainID,
+				stateStore,
+				transaction: new Transaction({
+					...defaultTransaction,
+					command: command.name,
+					params: codec.encode(crossChainUpdateTransactionParams, {
+						...params,
+						inboxUpdate: {
+							...params.inboxUpdate,
+							crossChainMessages: [codec.encode(ccmSchema, ccm)],
+						},
 					}),
-				}).createCommandExecuteContext(command.schema);
+				}),
+			}).createCommandExecuteContext(command.schema);
 
-				try {
-					command['verifyRoutingRules'](ccm, executeContext.params, executeContext.chainID, true);
-				} catch (err: any) {
-					expect((err as Error).message).toBe('CCM is not from the sending chain.');
-				}
-			});
+			try {
+				command['verifyRoutingRules'](ccm, executeContext.params, executeContext.chainID, true);
+			} catch (err: any) {
+				expect((err as Error).message).toBe('CCM is not from the sending chain.');
+			}
+		});
 
-			it('should return error when ccm status is CCMStatusCode.CHANNEL_UNAVAILABLE', () => {
-				const ccm = {
-					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
-					fee: BigInt(0),
-					module: MODULE_NAME_INTEROPERABILITY,
-					nonce: BigInt(1),
-					params: utils.getRandomBytes(10),
-					// must be same as `context.chainID` to pass `!context.chainID.equals(ccm.receivingChainID)`
-					receivingChainID: chainID,
-					// must be same as defaultSendingChainID to pass `!ccm.sendingChainID.equals(params.sendingChainID)`
-					sendingChainID: defaultSendingChainID,
-					// will fail for `CCMStatusCode.CHANNEL_UNAVAILABLE`
-					status: CCMStatusCode.CHANNEL_UNAVAILABLE,
-				};
+		it('should return error when ccm status is CCMStatusCode.CHANNEL_UNAVAILABLE', () => {
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+				fee: BigInt(0),
+				module: MODULE_NAME_INTEROPERABILITY,
+				nonce: BigInt(1),
+				params: utils.getRandomBytes(10),
+				// must be same as `context.chainID` to pass `!context.chainID.equals(ccm.receivingChainID)`
+				receivingChainID: chainID,
+				// must be same as defaultSendingChainID to pass `!ccm.sendingChainID.equals(params.sendingChainID)`
+				sendingChainID: defaultSendingChainID,
+				// will fail for `CCMStatusCode.CHANNEL_UNAVAILABLE`
+				status: CCMStatusCode.CHANNEL_UNAVAILABLE,
+			};
 
-				executeContext = createTransactionContext({
-					chainID,
-					stateStore,
-					transaction: new Transaction({
-						...defaultTransaction,
-						command: command.name,
-						params: codec.encode(crossChainUpdateTransactionParams, {
-							...params,
-							inboxUpdate: {
-								...params.inboxUpdate,
-								crossChainMessages: [codec.encode(ccmSchema, ccm)],
-							},
-						}),
+			executeContext = createTransactionContext({
+				chainID,
+				stateStore,
+				transaction: new Transaction({
+					...defaultTransaction,
+					command: command.name,
+					params: codec.encode(crossChainUpdateTransactionParams, {
+						...params,
+						inboxUpdate: {
+							...params.inboxUpdate,
+							crossChainMessages: [codec.encode(ccmSchema, ccm)],
+						},
 					}),
-				}).createCommandExecuteContext(command.schema);
+				}),
+			}).createCommandExecuteContext(command.schema);
 
-				try {
-					command['verifyRoutingRules'](ccm, executeContext.params, executeContext.chainID, true);
-				} catch (err: any) {
-					expect((err as Error).message).toBe(
-						'CCM status channel unavailable can only be set on the mainchain.',
-					);
-				}
-			});
+			try {
+				command['verifyRoutingRules'](ccm, executeContext.params, executeContext.chainID, true);
+			} catch (err: any) {
+				expect((err as Error).message).toBe(
+					'CCM status channel unavailable can only be set on the mainchain.',
+				);
+			}
 		});
 
 		it('should return error when CCM is not directed to the sidechain', () => {
@@ -1018,7 +1016,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			}).createCommandExecuteContext(command.schema);
 
 			try {
-				command['verifyRoutingRules'](ccm, executeContext.params, executeContext.chainID, true);
+				command['verifyRoutingRules'](ccm, executeContext.params, executeContext.chainID, false);
 			} catch (err: any) {
 				expect((err as Error).message).toBe('Sending and receiving chains must differ.');
 			}
