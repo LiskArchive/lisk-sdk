@@ -983,45 +983,56 @@ describe('BaseCrossChainUpdateCommand', () => {
 			}
 		});
 
-		it('should return error when receiving chain is the same as sending chain', () => {
-			const sendingChainID = chainID;
-			const ccm = {
-				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
-				fee: BigInt(0),
-				module: MODULE_NAME_INTEROPERABILITY,
-				nonce: BigInt(1),
-				params: utils.getRandomBytes(10),
-				// must be same as `context.chainID` to pass `!context.chainID.equals(ccm.receivingChainID)` check
-				receivingChainID: chainID,
-				// will fail for `Sending and receiving chains must differ`
-				sendingChainID: chainID,
-				status: CCMStatusCode.OK,
-			};
+		it.each([
+			['true', 1],
+			['false', 0],
+		])(
+			'should return error when receiving chain is the same as sending chain && isMainchain = %s',
+			(_s, isMainchain) => {
+				const sendingChainID = chainID;
+				const ccm = {
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+					fee: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					nonce: BigInt(1),
+					params: utils.getRandomBytes(10),
+					// must be same as `context.chainID` to pass `!context.chainID.equals(ccm.receivingChainID)` check
+					receivingChainID: chainID,
+					// will fail for `Sending and receiving chains must differ`
+					sendingChainID: chainID,
+					status: CCMStatusCode.OK,
+				};
 
-			executeContext = createTransactionContext({
-				chainID: sendingChainID,
-				stateStore,
-				transaction: new Transaction({
-					...defaultTransaction,
-					command: command.name,
-					params: codec.encode(crossChainUpdateTransactionParams, {
-						...params,
-						inboxUpdate: {
-							...params.inboxUpdate,
-							crossChainMessages: [codec.encode(ccmSchema, ccm)],
-						},
-						// this is needed to pass `!ccm.sendingChainID.equals(params.sendingChainID)` check (previous test)
-						sendingChainID,
+				executeContext = createTransactionContext({
+					chainID: sendingChainID,
+					stateStore,
+					transaction: new Transaction({
+						...defaultTransaction,
+						command: command.name,
+						params: codec.encode(crossChainUpdateTransactionParams, {
+							...params,
+							inboxUpdate: {
+								...params.inboxUpdate,
+								crossChainMessages: [codec.encode(ccmSchema, ccm)],
+							},
+							// this is needed to pass `!ccm.sendingChainID.equals(params.sendingChainID)` check (previous test)
+							sendingChainID,
+						}),
 					}),
-				}),
-			}).createCommandExecuteContext(command.schema);
+				}).createCommandExecuteContext(command.schema);
 
-			try {
-				command['verifyRoutingRules'](ccm, executeContext.params, executeContext.chainID, false);
-			} catch (err: any) {
-				expect((err as Error).message).toBe('Sending and receiving chains must differ.');
-			}
-		});
+				try {
+					command['verifyRoutingRules'](
+						ccm,
+						executeContext.params,
+						executeContext.chainID,
+						Boolean(isMainchain),
+					);
+				} catch (err: any) {
+					expect((err as Error).message).toBe('Sending and receiving chains must differ.');
+				}
+			},
+		);
 	});
 
 	describe('afterCrossChainMessagesExecution', () => {
