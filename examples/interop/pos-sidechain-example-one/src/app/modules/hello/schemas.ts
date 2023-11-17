@@ -76,7 +76,7 @@ export const getHelloRequestSchema = {
 // Schema for the parameters of the crossChainReact CCM
 export const CCReactMessageParamsSchema = {
 	// The unique identifier of the schema.
-	$id: '/lisk/react/ccReactMessageParams',
+	$id: '/lisk/hello/ccReactMessageParams',
 	type: 'object',
 	// The required parameters for the CCM.
 	required: ['reactionType', 'helloMessageID', 'data'],
