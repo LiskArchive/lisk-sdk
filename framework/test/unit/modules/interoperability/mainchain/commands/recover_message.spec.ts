@@ -32,6 +32,7 @@ import {
 	CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	MODULE_NAME_INTEROPERABILITY,
+	EVENT_TOPIC_CCM_EXECUTION,
 } from '../../../../../../src/modules/interoperability/constants';
 import { RecoverMessageCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/recover_message';
 import {
@@ -48,7 +49,10 @@ import {
 	createCrossChainMessageContext,
 	createTransactionContext,
 } from '../../../../../../src/testing';
-import { getMainchainID } from '../../../../../../src/modules/interoperability/utils';
+import {
+	getMainchainID,
+	getDecodedCCMAndID,
+} from '../../../../../../src/modules/interoperability/utils';
 import { TerminatedOutboxStore } from '../../../../../../src/modules/interoperability/stores/terminated_outbox';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
 import {
@@ -581,7 +585,17 @@ describe('MessageRecoveryCommand', () => {
 
 			const recoveredCCMs: Buffer[] = [];
 			for (const crossChainMessage of commandExecuteContext.params.crossChainMessages) {
-				const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
+				const { decodedCCM: ccm, ccmID } = getDecodedCCMAndID(crossChainMessage);
+				const ctx: CrossChainMessageContext = {
+					...commandExecuteContext,
+					ccm,
+					eventQueue: commandExecuteContext.eventQueue.getChildQueue(
+						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
+					),
+				};
+
+				expect(command['_applyRecovery']).toHaveBeenCalledWith(ctx);
+
 				const recoveredCCM: CCMsg = {
 					...ccm,
 					status: CCMStatusCode.RECOVERED,
@@ -589,8 +603,6 @@ describe('MessageRecoveryCommand', () => {
 					receivingChainID: ccm.sendingChainID,
 				};
 				recoveredCCMs.push(codec.encode(ccmSchema, recoveredCCM));
-
-				expect(command['_applyRecovery']).toHaveBeenCalled();
 			}
 
 			expect(commandExecuteContext.contextStore.set).toHaveBeenNthCalledWith(
@@ -635,16 +647,24 @@ describe('MessageRecoveryCommand', () => {
 
 			const recoveredCCMs: Buffer[] = [];
 			for (const crossChainMessage of commandExecuteContext.params.crossChainMessages) {
-				const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
+				const { decodedCCM: ccm, ccmID } = getDecodedCCMAndID(crossChainMessage);
+				const ctx: CrossChainMessageContext = {
+					...commandExecuteContext,
+					ccm,
+					eventQueue: commandExecuteContext.eventQueue.getChildQueue(
+						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
+					),
+				};
+
+				expect(command['_forwardRecovery']).toHaveBeenCalledWith(ctx);
+
 				const recoveredCCM: CCMsg = {
-					...ccm,
+					...ctx.ccm,
 					status: CCMStatusCode.RECOVERED,
-					sendingChainID: ccm.receivingChainID,
-					receivingChainID: ccm.sendingChainID,
+					sendingChainID: ctx.ccm.receivingChainID,
+					receivingChainID: ctx.ccm.sendingChainID,
 				};
 				recoveredCCMs.push(codec.encode(ccmSchema, recoveredCCM));
-
-				expect(command['_forwardRecovery']).toHaveBeenCalled();
 			}
 
 			expect(commandExecuteContext.contextStore.set).toHaveBeenNthCalledWith(
