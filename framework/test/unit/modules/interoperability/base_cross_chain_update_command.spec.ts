@@ -74,6 +74,7 @@ import {
 } from '../../../../src/modules/interoperability/stores/own_chain_account';
 import { createStoreGetter } from '../../../../src/testing/utils';
 import { EVENT_TOPIC_TRANSACTION_EXECUTION } from '../../../../src/state_machine/constants';
+import { TransactionContext } from '../../../../src/state_machine';
 
 class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -207,6 +208,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	};
 
 	let context: CrossChainMessageContext;
+	let defaultTransactionContext: TransactionContext;
 	let command: CrossChainUpdateCommand;
 	let ccMethods: Map<string, BaseCCMethod>;
 	let ccCommands: Map<string, BaseCCCommand[]>;
@@ -268,6 +270,16 @@ describe('BaseCrossChainUpdateCommand', () => {
 		context = createCrossChainMessageContext({
 			ccm: defaultCCM,
 		});
+
+		defaultTransactionContext = createTransactionContext({
+			chainID,
+			stateStore,
+			transaction: new Transaction({
+				...defaultTransaction,
+				command: command.name,
+				params: codec.encode(crossChainUpdateTransactionParams, params),
+			}),
+		});
 	});
 
 	describe('verifyCommon', () => {
@@ -298,15 +310,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		].sort((v1, v2) => v2.blsKey.compare(v1.blsKey)); // unsorted list
 
 		beforeEach(async () => {
-			verifyContext = createTransactionContext({
-				chainID,
-				stateStore,
-				transaction: new Transaction({
-					...defaultTransaction,
-					command: command.name,
-					params: codec.encode(crossChainUpdateTransactionParams, params),
-				}),
-			}).createCommandVerifyContext(command.schema);
+			verifyContext = defaultTransactionContext.createCommandVerifyContext(command.schema);
 
 			await command['stores']
 				.get(ChainValidatorsStore)
@@ -632,16 +636,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 	// also, we can simplify test cases by giving only one CCM to params.inboxUpdate.crossChainMessages array
 	describe('beforeCrossChainMessagesExecution', () => {
 		beforeEach(async () => {
-			executeContext = createTransactionContext({
-				chainID,
-				stateStore,
-				transaction: new Transaction({
-					...defaultTransaction,
-					command: command.name,
-					params: codec.encode(crossChainUpdateTransactionParams, params),
-				}),
-			}).createCommandExecuteContext(command.schema);
-
 			jest.spyOn(interopsModule.events.get(CcmProcessedEvent), 'log');
 
 			await interopsModule.stores
@@ -842,16 +836,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 	describe('verifyRoutingRules', () => {
 		beforeEach(async () => {
-			executeContext = createTransactionContext({
-				chainID,
-				stateStore,
-				transaction: new Transaction({
-					...defaultTransaction,
-					command: command.name,
-					params: codec.encode(crossChainUpdateTransactionParams, params),
-				}),
-			}).createCommandExecuteContext(command.schema);
-
 			jest.spyOn(interopsModule.events.get(CcmProcessedEvent), 'log');
 
 			await interopsModule.stores
