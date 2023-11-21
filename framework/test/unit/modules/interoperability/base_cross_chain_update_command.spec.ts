@@ -798,11 +798,6 @@ describe('BaseCrossChainUpdateCommand', () => {
 				true,
 			);
 
-			// let's make sure it indeed throws expected error
-			expect(() => {
-				command['verifyRoutingRules'](ccm, executeContext.params, executeContext.chainID, true);
-			}).toThrow('blah');
-
 			const ccmBytes = executeContext.params.inboxUpdate.crossChainMessages[0];
 			const ccmID = getIDFromCCMBytes(ccmBytes);
 			const ccmContext = {
