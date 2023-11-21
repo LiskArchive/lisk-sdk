@@ -31,7 +31,6 @@ import {
 	CONTEXT_STORE_KEY_CCM_PROCESSING,
 	CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
-	EVENT_TOPIC_CCM_EXECUTION,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { RecoverMessageCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/recover_message';
@@ -583,18 +582,15 @@ describe('MessageRecoveryCommand', () => {
 			const recoveredCCMs: Buffer[] = [];
 			for (const crossChainMessage of commandExecuteContext.params.crossChainMessages) {
 				const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
-				const ctx: CrossChainMessageContext = {
-					...commandExecuteContext,
-					ccm,
-					eventQueue: commandExecuteContext.eventQueue.getChildQueue(
-						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, utils.hash(crossChainMessage)]),
-					),
+				const recoveredCCM: CCMsg = {
+					...ccm,
+					status: CCMStatusCode.RECOVERED,
+					sendingChainID: ccm.receivingChainID,
+					receivingChainID: ccm.sendingChainID,
 				};
-
-				const recoveredCCM = await command['_applyRecovery'](ctx);
 				recoveredCCMs.push(codec.encode(ccmSchema, recoveredCCM));
 
-				expect(command['_applyRecovery']).toHaveBeenCalledWith(ctx);
+				expect(command['_applyRecovery']).toHaveBeenCalled();
 			}
 
 			expect(commandExecuteContext.contextStore.set).toHaveBeenNthCalledWith(
@@ -640,18 +636,15 @@ describe('MessageRecoveryCommand', () => {
 			const recoveredCCMs: Buffer[] = [];
 			for (const crossChainMessage of commandExecuteContext.params.crossChainMessages) {
 				const ccm = codec.decode<CCMsg>(ccmSchema, crossChainMessage);
-				const ctx: CrossChainMessageContext = {
-					...commandExecuteContext,
-					ccm,
-					eventQueue: commandExecuteContext.eventQueue.getChildQueue(
-						Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, utils.hash(crossChainMessage)]),
-					),
+				const recoveredCCM: CCMsg = {
+					...ccm,
+					status: CCMStatusCode.RECOVERED,
+					sendingChainID: ccm.receivingChainID,
+					receivingChainID: ccm.sendingChainID,
 				};
-
-				const recoveredCCM = await command['_forwardRecovery'](ctx);
 				recoveredCCMs.push(codec.encode(ccmSchema, recoveredCCM));
 
-				expect(command['_forwardRecovery']).toHaveBeenCalledWith(ctx);
+				expect(command['_forwardRecovery']).toHaveBeenCalled();
 			}
 
 			expect(commandExecuteContext.contextStore.set).toHaveBeenNthCalledWith(
