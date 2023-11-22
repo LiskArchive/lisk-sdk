@@ -100,7 +100,7 @@ describe('CommitPool', () => {
 		});
 	});
 
-	describe('job', () => {
+	describe('_job', () => {
 		const dbMock = {
 			get: jest.fn(),
 			put: jest.fn(),
@@ -236,20 +236,21 @@ describe('CommitPool', () => {
 		});
 
 		it(`should not clean commits for the heights ${maxHeightPrecommitted} - ${COMMIT_RANGE_STORED} until currentHeight and bftParams does not exist for height`, async () => {
+			const testHeight = maxHeightPrecommitted - COMMIT_RANGE_STORED;
 			// // Update current height so that commits will always be in the future
-			chain.lastBlock = { header: { height: 1019 } };
+			chain.lastBlock = { header: { height: maxHeightPrecommitted + 19 } };
 
 			// it should not be deleted by the height
 			commitPool['_nonGossipedCommits'].add({
 				blockID: utils.getRandomBytes(32),
 				certificateSignature: utils.getRandomBytes(96),
-				height: 900,
+				height: testHeight,
 				validatorAddress: utils.getRandomBytes(20),
 			});
 			commitPool['_gossipedCommits'].add({
 				blockID: utils.getRandomBytes(32),
 				certificateSignature: utils.getRandomBytes(96),
-				height: 900,
+				height: testHeight,
 				validatorAddress: utils.getRandomBytes(20),
 			});
 			// Assert
@@ -269,20 +270,21 @@ describe('CommitPool', () => {
 			// Act
 			await commitPool['_job'](context);
 			// Assert
-			// nonGossiped commits are moved to gossiped commits
+			// nonGossiped commits are moved to gossiped commits after posting to network
 			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(0);
 			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(10);
 		});
 
 		it(`should not clean commits for the heights lower than  ${maxHeightPrecommitted} - ${COMMIT_RANGE_STORED} until currentHeight and bftParams does not exist for height`, async () => {
+			const testHeight = maxHeightPrecommitted - COMMIT_RANGE_STORED - 1;
 			// // Update current height so that commits will always be in the future
-			chain.lastBlock = { header: { height: 1019 } };
+			chain.lastBlock = { header: { height: maxHeightPrecommitted + 19 } };
 
 			// it should not be deleted by the height
 			commitPool['_nonGossipedCommits'].add({
 				blockID: utils.getRandomBytes(32),
 				certificateSignature: utils.getRandomBytes(96),
-				height: 500,
+				height: testHeight,
 				validatorAddress: utils.getRandomBytes(20),
 			});
 			commitPool['_nonGossipedCommits'].add({
@@ -294,7 +296,7 @@ describe('CommitPool', () => {
 			commitPool['_gossipedCommits'].add({
 				blockID: utils.getRandomBytes(32),
 				certificateSignature: utils.getRandomBytes(96),
-				height: 500,
+				height: testHeight,
 				validatorAddress: utils.getRandomBytes(20),
 			});
 			// Assert
@@ -314,7 +316,7 @@ describe('CommitPool', () => {
 			// Act
 			await commitPool['_job'](context);
 			// Assert
-			// nonGossiped commits at maxHeightPrecommitted - 1 is not deleted and broadcasted aka moved to gossiped commits
+			// nonGossiped commits at maxHeightPrecommitted - 1 is not deleted and broadcasted and moved to gossiped commits
 			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(0);
 			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(1);
 		});
@@ -1046,7 +1048,7 @@ describe('CommitPool', () => {
 			expect(isCommitVerified).toBeTrue();
 		});
 
-		it('should return false when aggregate commit is <= maxHeightCertified', async () => {
+		it('should return false when aggregate commit <= maxHeightCertified', async () => {
 			bftMethod.getBFTHeights.mockReturnValue({
 				maxHeightCertified: 1080,
 				maxHeightPrecommitted: 1100,
@@ -1081,7 +1083,7 @@ describe('CommitPool', () => {
 			expect(isCommitVerified).toBeFalse();
 		});
 
-		it('should return true when aggregationBits empty and certificateSignature is empty and aggregateCommit.height == getBFTHeights().maxHeightCertified', async () => {
+		it('should return true when aggregationBits empty and certificateSignature is empty and aggregateCommit.height === getBFTHeights().maxHeightCertified', async () => {
 			aggregateCommit = {
 				aggregationBits: Buffer.alloc(0),
 				certificateSignature: Buffer.alloc(0),
