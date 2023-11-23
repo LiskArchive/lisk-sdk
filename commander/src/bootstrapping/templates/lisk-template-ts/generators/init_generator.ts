@@ -102,6 +102,8 @@ export default class InitGenerator extends Generator {
 			this.answers.chainID,
 			'--output',
 			'config/default',
+			'--label',
+			this.answers.name,
 		]);
 		// create passphrase to generate all the keys
 		const passphrase = Mnemonic.generateMnemonic(256);
