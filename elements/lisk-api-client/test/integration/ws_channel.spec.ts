@@ -15,7 +15,7 @@
 import { createServer, Server } from 'http';
 import * as WebSocket from 'isomorphic-ws';
 import { Socket } from 'net';
-import { WSChannel } from '../../src/ws_channel';
+import { WSChannel, CONNECTION_TIMEOUT, RESPONSE_TIMEOUT } from '../../src/ws_channel';
 
 jest.unmock('isomorphic-ws');
 
@@ -58,32 +58,38 @@ describe('WSChannel', () => {
 			expect.assertions(3);
 		});
 
-		it('should timeout if ws server not responding', async () => {
-			const http = createServer();
-			const server = new WebSocket.Server({ path: '/my-path', noServer: true });
+		it(
+			'should timeout if ws server not responding',
+			async () => {
+				const http = createServer();
+				const server = new WebSocket.Server({ path: '/my-path', noServer: true });
 
-			// https://github.com/websockets/ws/issues/377#issuecomment-462152231
-			http.on('upgrade', (request, socket, head) => {
-				setTimeout(() => {
-					server.handleUpgrade(request, socket as Socket, head, ws => {
-						server.emit('connection', ws, request);
-					});
-				}, 3000);
-			});
+				// https://github.com/websockets/ws/issues/377#issuecomment-462152231
+				http.on('upgrade', (request, socket, head) => {
+					setTimeout(() => {
+						server.handleUpgrade(request, socket as Socket, head, ws => {
+							server.emit('connection', ws, request);
+						});
+					}, CONNECTION_TIMEOUT + 1000);
+				});
 
-			http.listen(65535);
+				http.listen(65535);
 
-			const channel = new WSChannel('ws://127.0.0.1:65535/my-path');
+				const channel = new WSChannel('ws://127.0.0.1:65535/my-path');
 
-			try {
-				await expect(channel.connect()).rejects.toThrow('Could not connect in 2000ms');
-				expect(server.clients.size).toBe(0);
-			} finally {
-				await closeServer(http);
-				await closeServer(server);
-			}
-			expect.assertions(2);
-		}, 5000);
+				try {
+					await expect(channel.connect()).rejects.toThrow(
+						`Could not connect in ${CONNECTION_TIMEOUT}ms`,
+					);
+					expect(server.clients.size).toBe(0);
+				} finally {
+					await closeServer(http);
+					await closeServer(server);
+				}
+				expect.assertions(2);
+			},
+			RESPONSE_TIMEOUT,
+		);
 
 		it('should throw error if server is not running', async () => {
 			const channel = new WSChannel('ws://127.0.0.1:65534/my-path');
