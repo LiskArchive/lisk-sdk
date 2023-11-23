@@ -54,8 +54,8 @@ export class HashCommand extends Command {
 		const dbHash = crypto.createHash('sha256');
 
 		const hash: Buffer = await new Promise((resolve, reject) => {
-			stream.on('data', (chunk: Buffer) => {
-				dbHash.update(chunk);
+			stream.on('data', ({ value }: { key: Buffer; value: Buffer }) => {
+				dbHash.update(value);
 			});
 
 			stream.on('error', error => {
