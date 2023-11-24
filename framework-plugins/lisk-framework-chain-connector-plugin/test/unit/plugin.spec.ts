@@ -1064,7 +1064,7 @@ describe('ChainConnectorPlugin', () => {
 					.mockResolvedValue(initializationFees);
 			});
 
-			it('should return config.ccuFee + additionalFee when ccuFee exists', async () => {
+			it('should return config.ccuFee + additionalFee when config.ccuFee exists', async () => {
 				await initChainConnectorPlugin(chainConnectorPlugin, defaultConfig);
 				await expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).resolves.toBe(
 					BigInt(defaultCCUFee) + initializationFees.userAccount,
@@ -1094,7 +1094,7 @@ describe('ChainConnectorPlugin', () => {
 					});
 			});
 
-			it('should return config.ccuFee when ccuFee exists', async () => {
+			it('should return config.ccuFee when config.ccuFee exists', async () => {
 				await initChainConnectorPlugin(chainConnectorPlugin, defaultConfig);
 				await expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).resolves.toBe(
 					BigInt(defaultCCUFee),
@@ -1803,6 +1803,11 @@ describe('ChainConnectorPlugin', () => {
 				})
 				.calledWith('auth_getAuthAccount', expect.anything())
 				.mockResolvedValue({ nonce: '3' });
+			when(sendingChainAPIClientMock.invoke)
+				.calledWith('token_hasUserAccount', expect.anything())
+				.mockResolvedValue({
+					exists: true,
+				});
 
 			await chainConnectorPlugin['_submitCCU'](sampleCCUParams);
 		});
@@ -1821,7 +1826,22 @@ describe('ChainConnectorPlugin', () => {
 			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledWith('txpool_postTransaction', {
 				transaction: expect.any(String),
 			});
-			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledTimes(3);
+			expect(sendingChainAPIClientMock.invoke).toHaveBeenNthCalledWith(
+				1,
+				'auth_getAuthAccount',
+				expect.anything(),
+			);
+			expect(sendingChainAPIClientMock.invoke).toHaveBeenNthCalledWith(2, 'system_getNodeInfo');
+			expect(sendingChainAPIClientMock.invoke).toHaveBeenNthCalledWith(
+				3,
+				'token_hasUserAccount',
+				expect.anything(),
+			);
+			expect(sendingChainAPIClientMock.invoke).toHaveBeenNthCalledWith(
+				4,
+				'txpool_postTransaction',
+				expect.anything(),
+			);
 		});
 	});
 });

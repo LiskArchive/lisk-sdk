@@ -29,7 +29,6 @@
 		"chainConnector": {
 			"receivingChainID": "04000001",
 			"encryptedPrivateKey": "kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=aa92aefc87797b8e107e0ebc8f863333b8dbc173b7d6e75b0f3ca1f5113d64050247a2c79679840193ea564a34c80f7e3d8ff77d5a9a2cd7e9c1e912e707b38206d4700485013ae14e33db2e31f4f0cfeee5fdbe4e2356cce179819f87da348cf2fe057f6e320b809db3ffdad7cbae86c568184caebe3ba44edb49c59e263012&mac=e4d31ce6274e3dd83c70732f9965846114d53e07e831b1f5bb9a841e1731d85a&salt=a3fd8ab81c91b9b5&iv=c3028fe54417f71e1caba5727be0040d&tag=f97a0df7b6349f90310ebf3eed4dde42&iterations=1&parallelism=4&memorySize=2097023",
-			"ccuFee": "0",
 			"receivingChainIPCPath": "~/.lisk/pos-sidechain-example-one",
 			"registrationHeight": 10
 		}
