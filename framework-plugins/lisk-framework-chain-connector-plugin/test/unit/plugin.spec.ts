@@ -153,6 +153,24 @@ describe('ChainConnectorPlugin', () => {
 		'6c5e2b24ff1cc99da7a49bd28420b93b2a91e2e2a3b0a0ce07676966b707d3c2859bbd02747cf8e26dab592c02155dfddd4a16b0fe83fd7e7ffaec0b5391f3f7';
 	const defaultPassword = '123';
 	const defaultCCUFee = '500000';
+	const sampleCCUParams: CrossChainUpdateTransactionParams = {
+		sendingChainID: Buffer.from('04000001', 'hex'),
+		activeValidatorsUpdate: {
+			bftWeightsUpdate: [],
+			bftWeightsUpdateBitmap: EMPTY_BYTES,
+			blsKeysUpdate: [],
+		},
+		certificate: EMPTY_BYTES,
+		certificateThreshold: BigInt(1),
+		inboxUpdate: {
+			crossChainMessages: [],
+			messageWitnessHashes: [],
+			outboxRootWitness: {
+				bitmap: EMPTY_BYTES,
+				siblingHashes: [],
+			},
+		},
+	};
 
 	const getApiClientMock = () => ({
 		disconnect: jest.fn(),
@@ -552,28 +570,9 @@ describe('ChainConnectorPlugin', () => {
 
 	describe('_newBlockHandler', () => {
 		let block: Block;
-		let sampleCCUParams: CrossChainUpdateTransactionParams;
 		let sampleNextCertificate: Certificate;
 
 		beforeEach(async () => {
-			sampleCCUParams = {
-				sendingChainID: Buffer.from('04000001', 'hex'),
-				activeValidatorsUpdate: {
-					bftWeightsUpdate: [],
-					bftWeightsUpdateBitmap: EMPTY_BYTES,
-					blsKeysUpdate: [],
-				},
-				certificate: EMPTY_BYTES,
-				certificateThreshold: BigInt(1),
-				inboxUpdate: {
-					crossChainMessages: [],
-					messageWitnessHashes: [],
-					outboxRootWitness: {
-						bitmap: EMPTY_BYTES,
-						siblingHashes: [],
-					},
-				},
-			};
 			block = await testing.createBlock({
 				chainID: Buffer.from('00001111', 'hex'),
 				privateKey: Buffer.from(
@@ -1039,7 +1038,7 @@ describe('ChainConnectorPlugin', () => {
 			command: COMMAND_NAME_SUBMIT_MAINCHAIN_CCU,
 			nonce: BigInt(0),
 			senderPublicKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
-			params: cryptography.utils.getRandomBytes(100),
+			params: sampleCCUParams,
 			signatures: [],
 		};
 
@@ -1733,7 +1732,6 @@ describe('ChainConnectorPlugin', () => {
 	});
 
 	describe('_submitCCU', () => {
-		const ccuParams = cryptography.utils.getRandomBytes(100);
 		beforeEach(async () => {
 			jest
 				.spyOn(apiClient, 'createIPCClient')
@@ -1752,7 +1750,7 @@ describe('ChainConnectorPlugin', () => {
 				.calledWith('auth_getAuthAccount', expect.anything())
 				.mockResolvedValue({ nonce: '3' });
 
-			await chainConnectorPlugin['_submitCCU'](ccuParams);
+			await chainConnectorPlugin['_submitCCU'](sampleCCUParams);
 		});
 
 		it('should get the chainID from the node', () => {

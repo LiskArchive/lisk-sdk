@@ -169,7 +169,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		if (this.config.ccuFee && this.config.ccuFee !== '0') {
 			return BigInt(this.config.ccuFee);
 		}
-		return transactions.computeMinFee(tx);
+		return transactions.computeMinFee(tx, ccuParamsSchema);
 	}
 
 	private async _newBlockReceivingChainHandler(_?: Record<string, unknown>) {
@@ -275,7 +275,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 			if (computedCCUParams) {
 				try {
-					await this._submitCCU(codec.encode(ccuParamsSchema, computedCCUParams.ccuParams));
+					await this._submitCCU(computedCCUParams.ccuParams);
 					// If CCU was sent successfully then save the lastSentCCM if any
 					// TODO: Add function to check on the receiving chain whether last sent CCM was accepted or not
 					if (computedCCUParams.lastCCMToBeSent) {
@@ -817,7 +817,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 	}
 
-	private async _submitCCU(ccuParams: Buffer): Promise<void> {
+	private async _submitCCU(ccuParams: CrossChainUpdateTransactionParams): Promise<void> {
 		if (!this._chainConnectorStore.privateKey) {
 			throw new Error('There is no key enabled to submit CCU');
 		}
@@ -843,13 +843,16 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			command: targetCommand,
 			nonce: BigInt(nonce),
 			senderPublicKey: relayerPublicKey,
-			params: ccuParams,
+			params: codec.encode(ccuParamsSchema, ccuParams),
 			signatures: [],
 		};
 
 		const tx = new Transaction({
 			...txWithoutFee,
-			fee: this._getCcuFee(txWithoutFee),
+			fee: this._getCcuFee({
+				...txWithoutFee,
+				params: ccuParams,
+			}),
 		});
 
 		tx.sign(chainID, this._chainConnectorStore.privateKey);
