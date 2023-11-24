@@ -165,11 +165,34 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this._chainConnectorStore.close();
 	}
 
-	public _getCcuFee(tx: Record<string, unknown>): bigint {
-		if (this.config.ccuFee && this.config.ccuFee !== '0') {
-			return BigInt(this.config.ccuFee);
+	public async _getCcuFee(tx: Record<string, unknown>): Promise<bigint> {
+		let additionalFee = BigInt(0);
+
+		const userBalance = await this._receivingChainClient.invoke<{ exists: boolean }>(
+			'token_hasUserAccount',
+			{
+				address: address.getLisk32AddressFromAddress(tx.senderPublicKey as Buffer),
+				tokenID: `${this._receivingChainID.toString('hex')}00000000`,
+			},
+		);
+
+		if (!userBalance.exists) {
+			const fee = await this._receivingChainClient.invoke<{
+				userAccount: string;
+				escrowAccount: string;
+			}>('token_getInitializationFees');
+			additionalFee += BigInt(fee.userAccount);
 		}
-		return transactions.computeMinFee(tx, ccuParamsSchema);
+
+		const ccuFee = BigInt(this.config.ccuFee ?? '0') + additionalFee;
+		const computedMinFee = transactions.computeMinFee(tx, ccuParamsSchema, {
+			additionalFee,
+		});
+
+		if (ccuFee > computedMinFee) {
+			return ccuFee;
+		}
+		return computedMinFee;
 	}
 
 	private async _newBlockReceivingChainHandler(_?: Record<string, unknown>) {
@@ -849,7 +872,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		const tx = new Transaction({
 			...txWithoutFee,
-			fee: this._getCcuFee({
+			fee: await this._getCcuFee({
 				...txWithoutFee,
 				params: ccuParams,
 			}),

@@ -1043,20 +1043,74 @@ describe('ChainConnectorPlugin', () => {
 			signatures: [],
 		};
 
-		it('should return config.ccuFee when it exists', async () => {
-			await initChainConnectorPlugin(chainConnectorPlugin, defaultConfig);
-			expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).toBe(BigInt(defaultCCUFee));
+		beforeEach(() => {
+			chainConnectorPlugin['_receivingChainClient'] = receivingChainAPIClientMock;
 		});
 
-		it('should calculate by `computeMinFee` when config.ccuFee does not exist', async () => {
-			await initChainConnectorPlugin(chainConnectorPlugin, {
-				...defaultConfig,
-				ccuFee: '0',
+		describe('userAddress does not exist in receivingChain', () => {
+			const initializationFees = {
+				userAccount: BigInt('1000000000'),
+				escrowAccount: BigInt('2000000000'),
+			};
+
+			beforeEach(() => {
+				when(receivingChainAPIClientMock.invoke)
+					.calledWith('token_hasUserAccount', expect.anything())
+					.mockResolvedValue({
+						exists: false,
+					});
+				when(receivingChainAPIClientMock.invoke)
+					.calledWith('token_getInitializationFees')
+					.mockResolvedValue(initializationFees);
 			});
 
-			expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).toBe(
-				transactions.computeMinFee(transactionTemplate, ccuParamsSchema),
-			);
+			it('should return config.ccuFee + additionalFee when ccuFee exists', async () => {
+				await initChainConnectorPlugin(chainConnectorPlugin, defaultConfig);
+				await expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).resolves.toBe(
+					BigInt(defaultCCUFee) + initializationFees.userAccount,
+				);
+			});
+
+			it('should calculate by `computeMinFee` + additionalFee when config.ccuFee does not exist', async () => {
+				await initChainConnectorPlugin(chainConnectorPlugin, {
+					...defaultConfig,
+					ccuFee: '0',
+				});
+
+				await expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).resolves.toBe(
+					transactions.computeMinFee(transactionTemplate, ccuParamsSchema, {
+						additionalFee: initializationFees.userAccount,
+					}),
+				);
+			});
+		});
+
+		describe('userAddress exists in receivingChain', () => {
+			beforeEach(() => {
+				when(receivingChainAPIClientMock.invoke)
+					.calledWith('token_hasUserAccount', expect.anything())
+					.mockResolvedValue({
+						exists: true,
+					});
+			});
+
+			it('should return config.ccuFee when ccuFee exists', async () => {
+				await initChainConnectorPlugin(chainConnectorPlugin, defaultConfig);
+				await expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).resolves.toBe(
+					BigInt(defaultCCUFee),
+				);
+			});
+
+			it('should calculate by `computeMinFee` when config.ccuFee does not exist', async () => {
+				await initChainConnectorPlugin(chainConnectorPlugin, {
+					...defaultConfig,
+					ccuFee: '0',
+				});
+
+				await expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).resolves.toBe(
+					transactions.computeMinFee(transactionTemplate, ccuParamsSchema),
+				);
+			});
 		});
 	});
 	describe('_computeCCUParams', () => {
