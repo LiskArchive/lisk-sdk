@@ -31,6 +31,7 @@ import {
 	Certificate,
 	BFTHeights,
 	transactions,
+	ccuParamsSchema,
 } from 'lisk-sdk';
 import { when } from 'jest-when';
 import {
@@ -1048,14 +1049,13 @@ describe('ChainConnectorPlugin', () => {
 		});
 
 		it('should calculate by `computeMinFee` when config.ccuFee does not exist', async () => {
-			const txWithoutFee = {
+			await initChainConnectorPlugin(chainConnectorPlugin, {
 				...defaultConfig,
 				ccuFee: '0',
-			};
+			});
 
-			await initChainConnectorPlugin(chainConnectorPlugin, txWithoutFee);
-			expect(chainConnectorPlugin['_getCcuFee'](txWithoutFee)).toBe(
-				transactions.computeMinFee(txWithoutFee),
+			expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).toBe(
+				transactions.computeMinFee(transactionTemplate, ccuParamsSchema),
 			);
 		});
 	});
