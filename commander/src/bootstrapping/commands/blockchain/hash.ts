@@ -68,7 +68,7 @@ export class HashCommand extends Command {
 		});
 
 		this.debug('Hash generation completed.');
-
 		this.log(hash.toString('hex'));
+		db.close();
 	}
 }
