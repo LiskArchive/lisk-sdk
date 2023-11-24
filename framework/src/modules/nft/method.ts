@@ -49,6 +49,9 @@ import { SetAttributesEvent } from './events/set_attributes';
 import { NotFoundError } from './error';
 import { UnlockEvent } from './events/unlock';
 
+/**
+ * Methods of the NFT Module.
+ */
 export class NFTMethod extends BaseMethod {
 	private _config!: ModuleConfig;
 	private _internalMethod!: InternalMethod;
@@ -63,6 +66,13 @@ export class NFTMethod extends BaseMethod {
 		this._feeMethod = feeMethod;
 	}
 
+	/**
+	 * Gets the chain ID of an NFT.
+	 *
+	 * @param nftID Unique identifier of the NFT
+	 *
+	 * @returns The ID of the chain the NFT belongs to.
+	 */
 	public getChainID(nftID: Buffer): Buffer {
 		if (nftID.length !== LENGTH_NFT_ID) {
 			throw new Error(`NFT ID must have length ${LENGTH_NFT_ID}`);
@@ -71,10 +81,24 @@ export class NFTMethod extends BaseMethod {
 		return nftID.subarray(0, LENGTH_CHAIN_ID);
 	}
 
+	/**
+	 * Checks whether a provided NFT is escrowed, e.g. the NFT is a native NFT that has been sent cross-chain to a foreign chain.
+	 *
+	 * @param nft The NFT to be checked
+	 *
+	 * @returns `true`, if the NFT is escrowed, `false` if not.
+	 */
 	public isNFTEscrowed(nft: NFT): boolean {
 		return nft.owner.length !== LENGTH_ADDRESS;
 	}
 
+	/**
+	 * Checks whether a provided NFT is {@link lock | locked} or not.
+	 *
+	 * @param nft The NFT to be checked
+	 *
+	 * @returns `true` if the NFT is locked, `false` if not.
+	 */
 	public isNFTLocked(nft: NFT): boolean {
 		if (!nft.lockingModule) {
 			return false;
@@ -83,6 +107,14 @@ export class NFTMethod extends BaseMethod {
 		return nft.lockingModule !== NFT_NOT_LOCKED;
 	}
 
+	/**
+	 * Gets a specific NFT.
+	 *
+	 * @param methodContext immutable method context
+	 * @param nftID ID of the NFT
+	 *
+	 * @returns The requested {@link NFT}.
+	 */
 	public async getNFT(methodContext: ImmutableMethodContext, nftID: Buffer): Promise<NFT> {
 		const nftStore = this.stores.get(NFTStore);
 		const nftExists = await nftStore.has(methodContext, nftID);

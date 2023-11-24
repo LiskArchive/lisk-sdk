@@ -68,6 +68,9 @@ import {
 	MODULE_NAME_NFT,
 } from './constants';
 
+/**
+ * The `NFTModule` is used in the Lisk ecosystem for creating, destroying NFTs (non-fungible token), and transferring them in the ecosystem.
+ */
 export class NFTModule extends BaseInteroperableModule {
 	public method = new NFTMethod(this.stores, this.events);
 	public endpoint = new NFTEndpoint(this.stores, this.offchainStores);
@@ -84,6 +87,9 @@ export class NFTModule extends BaseInteroperableModule {
 
 	public commands = [this._transferCommand, this._ccTransferCommand];
 
+	/**
+	 * Blockchain {@link this.events | Events} and Stores of the module are registered in the constructor of a module, for later use in the module.
+	 */
 	public constructor() {
 		super();
 		this.events.register(TransferEvent, new TransferEvent(this.name));
@@ -124,6 +130,15 @@ export class NFTModule extends BaseInteroperableModule {
 		return MODULE_NAME_NFT;
 	}
 
+	/**
+	 * Adds dependencies from other modules.
+	 *
+	 * This method should be called where the module is registered to the app (generally in the `app.ts` or `modules.ts` file).
+	 *
+	 * @param interoperabilityMethod {@link SidechainInteroperabilityMethod}
+	 * @param feeMethod
+	 * @param tokenMethod
+	 */
 	public addDependencies(
 		interoperabilityMethod: InteroperabilityMethod,
 		feeMethod: FeeMethod,
@@ -181,6 +196,13 @@ export class NFTModule extends BaseInteroperableModule {
 		};
 	}
 
+	/**
+	 * Provides the genesis and module specific config options.
+	 *
+	 * Called during the lifecycle of the module once per node start up.
+	 *
+	 * @param args
+	 */
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const ownChainID = Buffer.from(args.genesisConfig.chainID, 'hex');

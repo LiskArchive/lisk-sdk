@@ -30,31 +30,52 @@ import { BaseMethod } from './base_method';
 import { InsertAssetContext } from '../state_machine/types';
 import { NamedRegistry } from './named_registry';
 
+/**
+ * Arguments used during module initialization.
+ */
 export interface ModuleInitArgs {
+	// Genesis config options
 	genesisConfig: Omit<GenesisConfig, 'modules'>;
+	// Module-specific config options
 	moduleConfig: Record<string, unknown>;
 }
 
 export interface ModuleMetadata {
+	// A list of Endpoints of the respective module.
 	endpoints: {
+		// The name of the endpoint.
 		name: string;
+		// Required parameters for the endpoint.
 		request?: Schema;
+		// A schema of the expected response to a request to the endpoint.
 		response?: Schema;
 	}[];
+	// A list of Blockchain Events that are emitted by the module.
 	events: {
+		// The event name.
 		name: string;
+		// The event data.
 		data: Schema;
 	}[];
+	// The list of Commands belonging to the module.
 	commands: {
+		// The command name.
 		name: string;
+		// The parameters of the command.
 		params: Schema;
 	}[];
+	// The schemas to decode block assets that are relevant to the module.
 	assets: {
+		// The block version.
 		version: number;
+		// The asset schema.
 		data: Schema;
 	}[];
+	// The data stores of the module.
 	stores: {
+		// The store key.
 		key: string;
+		// The store schema.
 		data?: Schema;
 	}[];
 }
@@ -70,25 +91,55 @@ export abstract class BaseModule {
 	public stores: NamedRegistry = new NamedRegistry();
 	public offchainStores: NamedRegistry = new NamedRegistry();
 
+	/**
+	 * The module name is the unique identifier for the module.
+	 *
+	 * The module name is automatically calculated from the class name of the module:
+	 * The `Module` suffix of the class name is removed, and the first character is converted to lowercase.
+	 */
 	public get name(): string {
 		const name = this.constructor.name.replace('Module', '');
 		return name.charAt(0).toLowerCase() + name.substr(1);
 	}
 
 	public abstract endpoint: BaseEndpoint;
+
+	/**
+	 * A method is an interface for module-to-module communication, and can perform state mutations on the blockchain.
+	 *
+	 * To get or set module-specific data in the blockchain, methods are either called by other modules or by the module itself.
+	 * For example, the `transfer()` method from the Token module is called by a module, if it needs to transfer tokens from one account to the other.
+	 */
 	public abstract method: BaseMethod;
 
+	/**
+	 * If a module needs to access certain configuration options, it is required to validate and cache the respective configurations in the `init()` method of a module.
+	 *
+	 * The init() function is called for every registered module once, when the client is started.
+	 *
+	 * @param args
+	 */
 	public async init?(args: ModuleInitArgs): Promise<void>;
 	public async insertAssets?(context: InsertAssetContext): Promise<void>;
 	public async verifyAssets?(context: BlockVerifyContext): Promise<void>;
 	public async verifyTransaction?(context: TransactionVerifyContext): Promise<VerificationResult>;
 	public async beforeCommandExecute?(context: TransactionExecuteContext): Promise<void>;
 	public async afterCommandExecute?(context: TransactionExecuteContext): Promise<void>;
+
+	/**
+	 * The hook `initGenesisState()` is called at the beginning of the genesis block execution.
+	 * Each module must initialize its state using an associated block asset.
+	 *
+	 * @param context
+	 */
 	public async initGenesisState?(context: GenesisBlockExecuteContext): Promise<void>;
 	public async finalizeGenesisState?(context: GenesisBlockExecuteContext): Promise<void>;
 	public async beforeTransactionsExecute?(context: BlockExecuteContext): Promise<void>;
 	public async afterTransactionsExecute?(context: BlockAfterExecuteContext): Promise<void>;
 
+	/**
+	 * The metadata of a module provides information about the module to external services like UIs.
+	 */
 	public abstract metadata(): ModuleMetadata;
 
 	protected baseMetadata() {
