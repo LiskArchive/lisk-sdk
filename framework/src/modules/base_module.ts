@@ -34,14 +34,14 @@ import { NamedRegistry } from './named_registry';
  * Arguments used during module initialization.
  */
 export interface ModuleInitArgs {
-	// Genesis config options
+	/** Genesis config options */
 	genesisConfig: Omit<GenesisConfig, 'modules'>;
-	// Module-specific config options
+	/** Module-specific config options */
 	moduleConfig: Record<string, unknown>;
 }
 
 export interface ModuleMetadata {
-	// A list of Endpoints of the respective module.
+	/** A list of Endpoints of the respective module. */
 	endpoints: {
 		// The name of the endpoint.
 		name: string;
@@ -50,28 +50,28 @@ export interface ModuleMetadata {
 		// A schema of the expected response to a request to the endpoint.
 		response?: Schema;
 	}[];
-	// A list of Blockchain Events that are emitted by the module.
+	/** A list of Blockchain Events that are emitted by the module. */
 	events: {
 		// The event name.
 		name: string;
 		// The event data.
 		data: Schema;
 	}[];
-	// The list of Commands belonging to the module.
+	/** The list of Commands belonging to the module. */
 	commands: {
 		// The command name.
 		name: string;
 		// The parameters of the command.
 		params: Schema;
 	}[];
-	// The schemas to decode block assets that are relevant to the module.
+	/** The schemas to decode block assets that are relevant to the module. */
 	assets: {
 		// The block version.
 		version: number;
 		// The asset schema.
 		data: Schema;
 	}[];
-	// The data stores of the module.
+	/** The data stores of the module. */
 	stores: {
 		// The store key.
 		key: string;
