@@ -53,6 +53,7 @@ describe('blockchain:hash', () => {
 					},
 				]),
 			),
+			close: jest.fn(),
 		} as never);
 		jest.spyOn(appUtils, 'getPid').mockReturnValue(pid);
 	});
