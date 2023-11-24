@@ -30,6 +30,7 @@ import {
 	CrossChainUpdateTransactionParams,
 	Certificate,
 	BFTHeights,
+	transactions,
 } from 'lisk-sdk';
 import { when } from 'jest-when';
 import {
@@ -42,6 +43,7 @@ import {
 	CCM_PROCESSED,
 	CCU_TOTAL_CCM_SIZE,
 	EMPTY_BYTES,
+	COMMAND_NAME_SUBMIT_MAINCHAIN_CCU,
 } from '../../src/constants';
 import { getSampleCCM } from '../utils/sampleCCM';
 import * as plugins from '../../src/chain_connector_plugin';
@@ -150,7 +152,7 @@ describe('ChainConnectorPlugin', () => {
 	const defaultPrivateKey =
 		'6c5e2b24ff1cc99da7a49bd28420b93b2a91e2e2a3b0a0ce07676966b707d3c2859bbd02747cf8e26dab592c02155dfddd4a16b0fe83fd7e7ffaec0b5391f3f7';
 	const defaultPassword = '123';
-	const defaultCCUFee = '100000000';
+	const defaultCCUFee = '500000';
 
 	const getApiClientMock = () => ({
 		disconnect: jest.fn(),
@@ -1031,6 +1033,33 @@ describe('ChainConnectorPlugin', () => {
 		});
 	});
 
+	describe('_getCcuFee', () => {
+		const transactionTemplate = {
+			module: MODULE_NAME_INTEROPERABILITY,
+			command: COMMAND_NAME_SUBMIT_MAINCHAIN_CCU,
+			nonce: BigInt(0),
+			senderPublicKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+			params: cryptography.utils.getRandomBytes(100),
+			signatures: [],
+		};
+
+		it('should return config.ccuFee when it exists', async () => {
+			await initChainConnectorPlugin(chainConnectorPlugin, defaultConfig);
+			expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).toBe(BigInt(defaultCCUFee));
+		});
+
+		it('should calculate by `computeMinFee` when config.ccuFee does not exist', async () => {
+			const txWithoutFee = {
+				...defaultConfig,
+				ccuFee: '0',
+			};
+
+			await initChainConnectorPlugin(chainConnectorPlugin, txWithoutFee);
+			expect(chainConnectorPlugin['_getCcuFee'](txWithoutFee)).toBe(
+				transactions.computeMinFee(txWithoutFee),
+			);
+		});
+	});
 	describe('_computeCCUParams', () => {
 		let sampleCCMsWithEvents: CCMsFromEvents[];
 		let sampleBlockHeaders: BlockHeader[];

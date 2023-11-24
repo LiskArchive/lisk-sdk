@@ -45,7 +45,7 @@
 		"chainConnector": {
 			"receivingChainID": "04000000",
 			"encryptedPrivateKey": "kdf=argon2id&cipher=aes-128-gcm&version=1&ciphertext=c91b8dc71310bd3cdb28061ed3cad59044e16c7ecce1fc22259428c83314d8f55d4b32c1ee1fec519fdb614b52ef3f9388ae0da092b1caf0d519ed33a1d63d4105e366e8bf44f857252e738f19b5befc047acebc9a69cc196cac8521a9e64ecee93520c5ac04e124229a33e8dff97f13d78b4980cbe74d09596f37b299373729&mac=fea49a78aaa02d2c1fdc075737ab63be41e0f7f4beda7bacfda39acfbcc70647&salt=55107ca75dbf6f50&iv=bf7696ce4e1a0a64cf88af35f7028aae&tag=411573e9fdf474df43b022d321219b7d&iterations=1&parallelism=4&memorySize=2097023",
-			"ccuFee": "500000000",
+			"ccuFee": "500000",
 			"receivingChainIPCPath": "~/.lisk/mainchain-node-one",
 			"registrationHeight": 10
 		},

@@ -37,6 +37,7 @@ import {
 	AggregateCommit,
 	ChannelDataJSON,
 	Certificate,
+	transactions,
 } from 'lisk-sdk';
 import { calculateActiveValidatorsUpdate } from './active_validators_update';
 import {
@@ -162,6 +163,13 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		this._chainConnectorStore.close();
+	}
+
+	public _getCcuFee(tx: Record<string, unknown>): bigint {
+		if (this.config.ccuFee && this.config.ccuFee !== '0') {
+			return BigInt(this.config.ccuFee);
+		}
+		return transactions.computeMinFee(tx);
 	}
 
 	private async _newBlockReceivingChainHandler(_?: Record<string, unknown>) {
@@ -830,15 +838,20 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		);
 		const chainID = Buffer.from(chainIDStr, 'hex');
 
-		const tx = new Transaction({
+		const txWithoutFee = {
 			module: MODULE_NAME_INTEROPERABILITY,
 			command: targetCommand,
 			nonce: BigInt(nonce),
 			senderPublicKey: relayerPublicKey,
-			fee: BigInt(this.config.ccuFee),
 			params: ccuParams,
 			signatures: [],
+		};
+
+		const tx = new Transaction({
+			...txWithoutFee,
+			fee: this._getCcuFee(txWithoutFee),
 		});
+
 		tx.sign(chainID, this._chainConnectorStore.privateKey);
 		let result: { transactionId: string };
 		if (this._isSaveCCU) {
