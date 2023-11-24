@@ -73,6 +73,7 @@ import {
 	chainAccountDataJSONToObj,
 	channelDataJSONToObj,
 	getMainchainID,
+	getTokenIDLSK,
 	proveResponseJSONToObj,
 } from './utils';
 
@@ -171,8 +172,11 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		const userBalance = await this._receivingChainClient.invoke<{ exists: boolean }>(
 			'token_hasUserAccount',
 			{
-				address: address.getLisk32AddressFromAddress(tx.senderPublicKey as Buffer),
-				tokenID: `${this._receivingChainID.toString('hex')}00000000`,
+				address: address.getLisk32AddressFromAddress(
+					address.getAddressFromPublicKey(tx.senderPublicKey as Buffer),
+				),
+				// It is always LSK token
+				tokenID: `${getTokenIDLSK(this._receivingChainID).toString('hex')}`,
 			},
 		);
 
