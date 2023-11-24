@@ -69,6 +69,11 @@ export class NFTMethod extends BaseMethod {
 	/**
 	 * Gets the chain ID of an NFT.
 	 *
+	 * @example
+	 *  ```ts
+	 *  getChainID(nftID);
+	 *  ```
+	 *
 	 * @param nftID Unique identifier of the NFT
 	 *
 	 * @returns The ID of the chain the NFT belongs to.
@@ -83,6 +88,11 @@ export class NFTMethod extends BaseMethod {
 
 	/**
 	 * Checks whether a provided NFT is escrowed, e.g. the NFT is a native NFT that has been sent cross-chain to a foreign chain.
+	 *
+	 * @example
+	 *  ```ts
+	 *  isNFTEscrowed(nft);
+	 *  ```
 	 *
 	 * @param nft The NFT to be checked
 	 *

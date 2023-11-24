@@ -14,3 +14,4 @@
 
 export { NFTModule } from './module';
 export { NFTMethod } from './method';
+export { NFT, InteroperabilityMethod } from './types';

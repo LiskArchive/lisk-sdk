@@ -86,9 +86,28 @@ export type ModuleMetadataJSON = ModuleMetadata & { name: string };
  * The `BaseModule` represents Lisk modules by providing a generic interface, from which each module extends from.
  */
 export abstract class BaseModule {
+	/**
+	 * A command is a group of state-transition logic triggered by a transaction and is identified by the module and command name of the transaction.
+	 */
 	public commands: BaseCommand[] = [];
+	/**
+	 * Blockchain events, or module events, are logs of events that occur in the blockchain network during block execution.
+	 * Events occur per block, and are stored in the respective block header, from where they can be queried.
+	 */
 	public events: NamedRegistry = new NamedRegistry();
+	/**
+	 * A module can define one or multiple on-chain stores, to store data in the blockchain, i.e. to include it in the blockchain state.
+	 *
+	 * For example, data such as account balances, validator’s names, and multisignature keys are values that are stored in the on-chain module store.
+	 */
 	public stores: NamedRegistry = new NamedRegistry();
+	/**
+	 * In a module, the off-chain store is available in: insertAssets & Endpoints.
+	 *
+	 * It complements the on-chain module store, by allowing to store various additional data in the blockchain client, that does not need to be included in the on-chain store.
+	 *
+	 * The data stored in the off-chain store is not part of the blockchain protocol, and it may differ from machine to machine.
+	 */
 	public offchainStores: NamedRegistry = new NamedRegistry();
 
 	/**
@@ -102,6 +121,13 @@ export abstract class BaseModule {
 		return name.charAt(0).toLowerCase() + name.substr(1);
 	}
 
+	/**
+	 * An endpoint is an interface between a module and an external system. Lisk endpoints support RPC communication.
+	 * The module-specific RPC endpoints can be invoked by external services, like UIs, to get relevant data from the application.
+	 *
+	 * Endpoints allow us to conveniently get data from the blockchain.
+	 * It is never possible to set data / mutate the state via module endpoints.
+	 */
 	public abstract endpoint: BaseEndpoint;
 
 	/**

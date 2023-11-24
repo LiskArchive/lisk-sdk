@@ -76,7 +76,7 @@ export {
 	TOKEN_ID_LENGTH,
 	MAX_DATA_LENGTH,
 } from './modules/token';
-export { NFTModule, NFTMethod } from './modules/nft';
+export { NFTModule, NFTMethod, NFT, InteroperabilityMethod } from './modules/nft';
 export {
 	PoSMethod,
 	PoSModule,
@@ -145,6 +145,7 @@ export {
 	BaseCCCommand,
 	BaseCCMethod,
 	BaseInteroperableModule,
+	BaseInteroperabilityMethod,
 	CrossChainMessageContext,
 	CCCommandExecuteContext,
 	ImmutableCrossChainMessageContext,

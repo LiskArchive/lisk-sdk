@@ -88,7 +88,7 @@ export class NFTModule extends BaseInteroperableModule {
 	public commands = [this._transferCommand, this._ccTransferCommand];
 
 	/**
-	 * Blockchain {@link this.events | Events} and Stores of the module are registered in the constructor of a module, for later use in the module.
+	 * Blockchain {@link events | Events} and Stores of the module are registered in the constructor of a module, for later use in the module.
 	 */
 	public constructor() {
 		super();
@@ -135,9 +135,9 @@ export class NFTModule extends BaseInteroperableModule {
 	 *
 	 * This method should be called where the module is registered to the app (generally in the `app.ts` or `modules.ts` file).
 	 *
-	 * @param interoperabilityMethod {@link SidechainInteroperabilityMethod}
-	 * @param feeMethod
-	 * @param tokenMethod
+	 * @param interoperabilityMethod {@link InteroperabilityMethod}
+	 * @param feeMethod {@link FeeMethod}
+	 * @param tokenMethod {@link TokenMethod}
 	 */
 	public addDependencies(
 		interoperabilityMethod: InteroperabilityMethod,
