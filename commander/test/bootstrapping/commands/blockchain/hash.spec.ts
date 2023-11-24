@@ -46,7 +46,14 @@ describe('blockchain:hash', () => {
 		};
 		jest.spyOn(crypto, 'createHash').mockReturnValue(hashStub as never);
 		jest.spyOn(dbUtils, 'getBlockchainDB').mockReturnValue({
-			createReadStream: jest.fn().mockReturnValue(Readable.from([hashBuffer])),
+			createReadStream: jest.fn().mockReturnValue(
+				Readable.from([
+					{
+						value: hashBuffer,
+					},
+				]),
+			),
+			close: jest.fn(),
 		} as never);
 		jest.spyOn(appUtils, 'getPid').mockReturnValue(pid);
 	});
