@@ -1,3 +1,20 @@
+const reactionType = {
+	dataType: 'uint32',
+	fieldNumber: 1,
+};
+
+const helloMessageID = {
+	dataType: 'string',
+	fieldNumber: 2,
+};
+
+const data = {
+	dataType: 'string',
+	fieldNumber: 3,
+	minLength: 0,
+	maxLength: 64,
+};
+
 // Schema for the parameters of the crossChainReact CCM
 export const CCReactMessageParamsSchema = {
 	// The unique identifier of the schema.
@@ -7,20 +24,9 @@ export const CCReactMessageParamsSchema = {
 	required: ['reactionType', 'helloMessageID', 'data'],
 	// A list describing the required parameters for the CCM.
 	properties: {
-		reactionType: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		helloMessageID: {
-			dataType: 'string',
-			fieldNumber: 2,
-		},
-		data: {
-			dataType: 'string',
-			fieldNumber: 3,
-			minLength: 0,
-			maxLength: 64,
-		},
+		reactionType,
+		helloMessageID,
+		data,
 	},
 };
 
@@ -33,20 +39,9 @@ export const CCReactCommandParamsSchema = {
 	required: ['reactionType', 'helloMessageID', 'receivingChainID', 'data', 'messageFee'],
 	// A list describing the available parameters for the command.
 	properties: {
-		reactionType: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		helloMessageID: {
-			dataType: 'string',
-			fieldNumber: 2,
-		},
-		data: {
-			dataType: 'string',
-			fieldNumber: 3,
-			minLength: 0,
-			maxLength: 64,
-		},
+		reactionType,
+		helloMessageID,
+		data,
 		receivingChainID: {
 			dataType: 'bytes',
 			fieldNumber: 4,

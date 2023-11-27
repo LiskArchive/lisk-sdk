@@ -7,7 +7,7 @@ import { MAX_RESERVED_ERROR_STATUS, CROSS_CHAIN_COMMAND_REACT } from '../constan
 import { ReactionStore, ReactionStoreData } from '../stores/reaction';
 import { MessageStore } from '../stores/message';
 
-export class ReactCommand extends BaseCCCommand {
+export class ReactCCCommand extends BaseCCCommand {
 	public schema = CCReactMessageParamsSchema;
 
 	public get name(): string {
@@ -22,9 +22,12 @@ export class ReactCommand extends BaseCCCommand {
 			throw new Error('Invalid CCM status code.');
 		}
 
-		const params = codec.decode<CCReactMessageParams>(CCReactMessageParamsSchema, ccm.params);
+		const ccReactMessageParams = codec.decode<CCReactMessageParams>(
+			CCReactMessageParamsSchema,
+			ccm.params,
+		);
 		const messageCreatorAddress = cryptography.address.getAddressFromLisk32Address(
-			params.helloMessageID,
+			ccReactMessageParams.helloMessageID,
 		);
 		if (!(await this.stores.get(MessageStore).has(ctx, messageCreatorAddress))) {
 			throw new Error('Message ID does not exists.');
@@ -32,26 +35,36 @@ export class ReactCommand extends BaseCCCommand {
 	}
 
 	public async execute(ctx: CrossChainMessageContext): Promise<void> {
-		const { ccm, logger } = ctx;
+		const { ccm, logger, transaction } = ctx;
 		logger.info('Executing React CCM');
-		// const { sendingChainID, status, receivingChainID } = ccm;
-		// Decode the provided CCM parameters
-		const params = codec.decode<CCReactMessageParams>(CCReactMessageParamsSchema, ccm.params);
-		logger.info(params, 'parameters');
-		// Get helloMessageID and reactionType from the parameters
-		const { helloMessageID, reactionType } = params;
-		const { senderAddress } = ctx.transaction;
-		const reactionSubstore = this.stores.get(ReactionStore);
-		const messageCreatorAddress = cryptography.address.getAddressFromLisk32Address(helloMessageID);
-		let msgReactions: ReactionStoreData;
 
+		// Decode the provided CCM parameters
+		const ccReactMessageParams = codec.decode<CCReactMessageParams>(
+			CCReactMessageParamsSchema,
+			ccm.params,
+		);
+		logger.info(ccReactMessageParams, 'parameters');
+
+		// Get helloMessageID and reactionType from the parameters
+		const { helloMessageID, reactionType } = ccReactMessageParams;
+		const { senderAddress } = transaction;
+		const reactionSubstore = this.stores.get(ReactionStore);
+		const msgCreatorAddress = cryptography.address.getAddressFromLisk32Address(helloMessageID);
+
+		let msgReactions: ReactionStoreData;
 		// Get existing reactions for a Hello message, or initialize an empty reaction object, if none exists,yet.
 		try {
-			msgReactions = await reactionSubstore.get(ctx, messageCreatorAddress);
+			msgReactions = await reactionSubstore.get(ctx, msgCreatorAddress);
 		} catch (error) {
 			if (!(error instanceof db.NotFoundError)) {
-				logger.info({ helloMessageID, crossChainCommand: this.name }, (error as Error).message);
-				logger.error({ error }, 'Error when getting the reaction substore');
+				logger.error(
+					{
+						helloMessageID,
+						crossChainCommand: this.name,
+						error,
+					},
+					'Error when getting the reaction substore',
+				);
 				throw error;
 			}
 			logger.info(
@@ -77,8 +90,9 @@ export class ReactCommand extends BaseCCCommand {
 		} else {
 			logger.error({ reactionType }, 'invalid reaction type');
 		}
+
 		msgReactions.reactions.likes = likes;
 		// Update the reaction store with the reactions for the specified Hello message
-		await reactionSubstore.set(ctx, messageCreatorAddress, msgReactions);
+		await reactionSubstore.set(ctx, msgCreatorAddress, msgReactions);
 	}
 }

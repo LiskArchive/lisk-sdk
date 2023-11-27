@@ -14,9 +14,10 @@ import {
 	TransactionVerifyContext,
 	utils,
 	VerificationResult,
+	VerifyStatus,
 } from 'lisk-sdk';
 import { CreateHelloCommand } from './commands/create_hello_command';
-import { ReactCommand } from './cc_commands/react_command';
+import { ReactCCCommand } from './cc_commands/react_cc_command';
 import { HelloEndpoint } from './endpoint';
 import { NewHelloEvent } from './events/new_hello';
 import { HelloMethod } from './method';
@@ -42,7 +43,7 @@ export class HelloModule extends BaseInteroperableModule {
 	public endpoint = new HelloEndpoint(this.stores, this.offchainStores);
 	public method = new HelloMethod(this.stores, this.events);
 	public commands = [new CreateHelloCommand(this.stores, this.events)];
-	public reactCCCommand = new ReactCommand(this.stores, this.events);
+	public reactCCCommand = new ReactCCCommand(this.stores, this.events);
 	public crossChainMethod = new HelloInteroperableMethod(this.stores, this.events);
 	public crossChainCommand = [this.reactCCCommand];
 
@@ -115,7 +116,7 @@ export class HelloModule extends BaseInteroperableModule {
 	public async verifyTransaction(_context: TransactionVerifyContext): Promise<VerificationResult> {
 		// verify transaction will be called multiple times in the transaction pool
 		const result = {
-			status: 1,
+			status: VerifyStatus.OK,
 		};
 		return result;
 	}

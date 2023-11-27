@@ -44,6 +44,7 @@ export class CrossChainReactCommand extends BaseCommand {
 				error: err as Error,
 			};
 		}
+
 		return {
 			status: VerifyStatus.OK,
 		};
