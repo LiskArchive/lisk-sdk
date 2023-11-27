@@ -16,7 +16,12 @@ import { BaseModule } from '../base_module';
 import { BaseCCCommand } from './base_cc_command';
 import { BaseCCMethod } from './base_cc_method';
 
+/**
+ * The BaseInteroperableModule represents Lisk modules with cross-chain commands by providing a generic interface, from which each interoperable module extends from.
+ */
 export abstract class BaseInteroperableModule extends BaseModule {
+	/** A list of the cross-chain commands of the module */
 	public crossChainCommand: BaseCCCommand[] = [];
+	/** Methods related to cross-chain communication */
 	public abstract crossChainMethod: BaseCCMethod;
 }

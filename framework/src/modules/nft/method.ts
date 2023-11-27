@@ -105,6 +105,11 @@ export class NFTMethod extends BaseMethod {
 	/**
 	 * Checks whether a provided NFT is {@link lock | locked} or not.
 	 *
+	 * @example
+	 *  ```ts
+	 *  isNFTLocked(nft);
+	 *  ```
+	 *
 	 * @param nft The NFT to be checked
 	 *
 	 * @returns `true` if the NFT is locked, `false` if not.
@@ -119,6 +124,11 @@ export class NFTMethod extends BaseMethod {
 
 	/**
 	 * Gets a specific NFT.
+	 *
+	 * @example
+	 *  ```ts
+	 *  getNFT(methodContext,nftID);
+	 *  ```
 	 *
 	 * @param methodContext immutable method context
 	 * @param nftID ID of the NFT
@@ -149,6 +159,20 @@ export class NFTMethod extends BaseMethod {
 		return data;
 	}
 
+	/**
+	 * Destroys the specified NFT.
+	 * The NFT will be removed from the NFT substore and cannot be retrieved, except in the case of destroying NFT on a foreign chain:
+	 * the information about the NFT (e.g., the attributes) will still be available in the corresponding escrow entry of the NFT substore in the native chain.
+	 *
+	 * @example
+	 *  ```ts
+	 *  destroy(methodContext,address,nftID);
+	 *  ```
+	 *
+	 * @param methodContext method context
+	 * @param address Address of the account who initiated the destruction
+	 * @param nftID ID of the NFT to be destroyed
+	 */
 	public async destroy(
 		methodContext: MethodContext,
 		address: Buffer,
@@ -223,9 +247,35 @@ export class NFTMethod extends BaseMethod {
 		});
 	}
 
+	/**
+	 * Gets the ID of the collection of an NFT.
+	 *
+	 * @example
+	 *  ```ts
+	 *  getCollectionID(nftID);
+	 *  ```
+	 *
+	 * @param nftID ID of an NFT
+	 *
+	 * @returns The collection ID of the NFT.
+	 */
 	public getCollectionID(nftID: Buffer): Buffer {
 		return nftID.subarray(LENGTH_CHAIN_ID, LENGTH_CHAIN_ID + LENGTH_COLLECTION_ID);
 	}
+
+	/**
+	 * Checks whether the NFT is supported by the network, or not.
+	 *
+	 * @example
+	 *  ```ts
+	 *  isNFTSupported(methodContext,nftID);
+	 *  ```
+	 *
+	 * @param methodContext Immutable method context
+	 * @param nftID ID of an NFT
+	 *
+	 * @returns `true` if the NFT is supported, `false` if not.
+	 */
 
 	public async isNFTSupported(
 		methodContext: ImmutableMethodContext,
@@ -264,6 +314,19 @@ export class NFTMethod extends BaseMethod {
 		return false;
 	}
 
+	/**
+	 * Returns the next free index inside an NFT collection.
+	 *
+	 * @example
+	 *  ```ts
+	 *  getNextAvailableIndex(methodContext,collectionID);
+	 *  ```
+	 *
+	 * @param methodContext method context
+	 * @param collectionID ID of an NFT collection
+	 *
+	 * @returns Index of the next free slot inside an NFT collection.
+	 */
 	public async getNextAvailableIndex(
 		methodContext: MethodContext,
 		collectionID: Buffer,
@@ -291,6 +354,20 @@ export class NFTMethod extends BaseMethod {
 		return index + BigInt(1);
 	}
 
+	/**
+	 * Mints a new NFT.
+	 * The NFT will always be native to the chain creating it.
+	 *
+	 * @example
+	 *  ```ts
+	 *  create(methodContext,address,collectionID,attributesArray);
+	 *  ```
+	 *
+	 * @param methodContext Method context
+	 * @param address Address of the NFT owner
+	 * @param collectionID ID of the collection the NFT belongs to
+	 * @param attributesArray Attributes of the NFT
+	 */
 	public async create(
 		methodContext: MethodContext,
 		address: Buffer,
@@ -314,6 +391,22 @@ export class NFTMethod extends BaseMethod {
 		});
 	}
 
+	/**
+	 * This function locks an NFT to a given module.
+	 * A locked NFT cannot be transferred (within the chain or across chains).
+	 * This can be useful, for example, when the NFT is used as a deposit for a service.
+	 * Module is specified both when locking and unlocking the NFT, thus preventing NFTs being accidentally locked and unlocked by different modules.
+	 * Note that an NFT can not be locked to the NFT module.
+	 *
+	 * @example
+	 *  ```ts
+	 *  lock(methodContext,module,nftID);
+	 *  ```
+	 *
+	 * @param methodContext Method context
+	 * @param module The module locking the NFT
+	 * @param nftID ID of the NFT to be locked
+	 */
 	public async lock(methodContext: MethodContext, module: string, nftID: Buffer): Promise<void> {
 		if (module === NFT_NOT_LOCKED) {
 			throw new Error('Cannot be locked by NFT module');
@@ -375,6 +468,18 @@ export class NFTMethod extends BaseMethod {
 		});
 	}
 
+	/**
+	 * This function is used to unlock an NFT that was {@link lock | locked} to a module.
+	 *
+	 * @example
+	 *  ```ts
+	 *  unlock(methodContext,module,nftID);
+	 *  ```
+	 *
+	 * @param methodContext Method context
+	 * @param module The module unlocking the NFT
+	 * @param nftID ID of the NFT to be unlocked
+	 */
 	public async unlock(methodContext: MethodContext, module: string, nftID: Buffer): Promise<void> {
 		let nft;
 		try {

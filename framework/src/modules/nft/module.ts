@@ -69,7 +69,9 @@ import {
 } from './constants';
 
 /**
- * The `NFTModule` is used in the Lisk ecosystem for creating, destroying NFTs (non-fungible token), and transferring them in the ecosystem.
+ * The `NFTModule` is used for creating, destroying NFTs (non-fungible tokens), and transferring them in the Lisk ecosystem.
+ *
+ * @see [LIP 0052 - Introduce NFT module](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0052.md)
  */
 export class NFTModule extends BaseInteroperableModule {
 	public method = new NFTMethod(this.stores, this.events);
@@ -196,13 +198,6 @@ export class NFTModule extends BaseInteroperableModule {
 		};
 	}
 
-	/**
-	 * Provides the genesis and module specific config options.
-	 *
-	 * Called during the lifecycle of the module once per node start up.
-	 *
-	 * @param args
-	 */
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const ownChainID = Buffer.from(args.genesisConfig.chainID, 'hex');

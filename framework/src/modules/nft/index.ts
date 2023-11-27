@@ -13,5 +13,11 @@
  */
 
 export { NFTModule } from './module';
+export { TransferParams, TransferCommand } from './commands/transfer';
+export {
+	TransferCrossChainParams,
+	TransferCrossChainCommand,
+} from './commands/transfer_cross_chain';
+export { CrossChainTransferCommand } from './cc_commands/cc_transfer';
 export { NFTMethod } from './method';
 export { NFT, InteroperabilityMethod } from './types';
