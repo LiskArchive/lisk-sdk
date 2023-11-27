@@ -83,6 +83,12 @@ export {
 	NFTAttributes,
 	InternalMethod,
 	InteroperabilityMethod,
+	LENGTH_COLLECTION_ID,
+	LENGTH_NFT_ID,
+	LENGTH_INDEX,
+	MODULE_NAME_NFT,
+	FEE_CREATE_NFT,
+	NftEventResult,
 } from './modules/nft';
 export {
 	PoSMethod,

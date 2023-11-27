@@ -23,3 +23,11 @@ export { NFTMethod } from './method';
 export { InternalMethod } from './internal_method';
 export { NFTAttributes } from './stores/nft';
 export { NFT, InteroperabilityMethod } from './types';
+export {
+	LENGTH_COLLECTION_ID,
+	LENGTH_NFT_ID,
+	LENGTH_INDEX,
+	MODULE_NAME_NFT,
+	FEE_CREATE_NFT,
+	NftEventResult,
+} from './constants';
