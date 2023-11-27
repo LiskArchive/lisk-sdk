@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
 import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseMethod } from '../base_method';
@@ -61,6 +60,12 @@ export class NFTMethod extends BaseMethod {
 		this._config = config;
 	}
 
+	/**
+	 * Adds dependencies from other module methods.
+	 *
+	 * @param internalMethod
+	 * @param feeMethod {@link FeeMethod}
+	 */
 	public addDependencies(internalMethod: InternalMethod, feeMethod: FeeMethod) {
 		this._internalMethod = internalMethod;
 		this._feeMethod = feeMethod;
@@ -541,6 +546,19 @@ export class NFTMethod extends BaseMethod {
 		});
 	}
 
+	/**
+	 * This function is used to transfer ownership of NFTs within one chain.
+	 *
+	 * @example
+	 *  ```ts
+	 *  transfer(methodContext,senderAddress,recipientAddress,nftID);
+	 *  ```
+	 *
+	 * @param methodContext Method context
+	 * @param senderAddress Address of the current owner of the NFT
+	 * @param recipientAddress Address of the new owner of the NFT
+	 * @param nftID ID of the NFT to be transferred
+	 */
 	public async transfer(
 		methodContext: MethodContext,
 		senderAddress: Buffer,
@@ -568,6 +586,23 @@ export class NFTMethod extends BaseMethod {
 		await this._internalMethod.transfer(methodContext, recipientAddress, nftID);
 	}
 
+	/**
+	 * This function is used to transfer ownership of NFTs across chains in the Lisk ecosystem.
+	 *
+	 * @example
+	 *  ```ts
+	 *  transferCrossChain(methodContext,senderAddress,recipientAddress,nftID,receivingChainID,messageFee,data,includeAttributes);
+	 *  ```
+	 *
+	 * @param methodContext Method context
+	 * @param senderAddress Address of the current owner of the NFT
+	 * @param recipientAddress Address of the new owner of the NFT
+	 * @param nftID ID of the NFT to be transferred
+	 * @param receivingChainID ID of the chain where the NFT is being transferred to
+	 * @param messageFee Fee for the CCM
+	 * @param data Message field
+	 * @param includeAttributes Boolean, if the attributes of the NFT should be included in the transfer
+	 */
 	public async transferCrossChain(
 		methodContext: MethodContext,
 		senderAddress: Buffer,
@@ -618,6 +653,16 @@ export class NFTMethod extends BaseMethod {
 		);
 	}
 
+	/**
+	 * This function updates the supported NFTs substore to support all NFTs of the Lisk ecosystem.
+	 *
+	 * @example
+	 *  ```ts
+	 *  supportAllNFTs(methodContext);
+	 *  ```
+	 *
+	 * @param methodContext
+	 */
 	public async supportAllNFTs(methodContext: MethodContext): Promise<void> {
 		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
 
@@ -640,6 +685,16 @@ export class NFTMethod extends BaseMethod {
 		this.events.get(AllNFTsSupportedEvent).log(methodContext);
 	}
 
+	/**
+	 * This function removes support for all non-native NFTs.
+	 *
+	 * @example
+	 *  ```ts
+	 *  removeSupportAllNFTs(methodContext);
+	 *  ```
+	 *
+	 * @param methodContext
+	 */
 	public async removeSupportAllNFTs(methodContext: MethodContext): Promise<void> {
 		const supportedNFTsStore = this.stores.get(SupportedNFTsStore);
 
@@ -654,6 +709,17 @@ export class NFTMethod extends BaseMethod {
 		this.events.get(AllNFTsSupportRemovedEvent).log(methodContext);
 	}
 
+	/**
+	 * This function updates the supported NFTs substore to support all non-native NFTs of a specified foreign chain.
+	 *
+	 * @example
+	 *  ```ts
+	 *  supportAllNFTsFromChain(methodContext,chainID);
+	 *  ```
+	 *
+	 * @param methodContext Method context
+	 * @param chainID ID of a chain
+	 */
 	public async supportAllNFTsFromChain(
 		methodContext: MethodContext,
 		chainID: Buffer,
@@ -686,6 +752,17 @@ export class NFTMethod extends BaseMethod {
 		this.events.get(AllNFTsFromChainSupportedEvent).log(methodContext, chainID);
 	}
 
+	/**
+	 * This function removes support for all non-native NFTs of a specified foreign chain.
+	 *
+	 * @example
+	 *  ```ts
+	 *  removeSupportAllNFTsFromChain(methodContext,chainID);
+	 *  ```
+	 *
+	 * @param methodContext
+	 * @param chainID ID of a chain
+	 */
 	public async removeSupportAllNFTsFromChain(
 		methodContext: MethodContext,
 		chainID: Buffer,
@@ -713,6 +790,18 @@ export class NFTMethod extends BaseMethod {
 		this.events.get(AllNFTsFromChainSupportRemovedEvent).log(methodContext, chainID);
 	}
 
+	/**
+	 * This function updates the supported NFTs substore to support all non-native NFTs of a specified collection.
+	 *
+	 * @example
+	 *  ```ts
+	 *  supportAllNFTsFromCollection(methodContext,chainID,collectionID);
+	 *  ```
+	 *
+	 * @param methodContext Method context
+	 * @param chainID The chain ID the NFT collection belongs to
+	 * @param collectionID The NFT collection to be supported
+	 */
 	public async supportAllNFTsFromCollection(
 		methodContext: MethodContext,
 		chainID: Buffer,
@@ -773,6 +862,18 @@ export class NFTMethod extends BaseMethod {
 		});
 	}
 
+	/**
+	 * This function removes support for all non-native NFTs of a specified collection.
+	 *
+	 * @example
+	 *  ```ts
+	 *  removeSupportAllNFTsFromCollection(methodContext,chainID,collectionID);
+	 *  ```
+	 *
+	 * @param methodContext Method context
+	 * @param chainID The chain ID the NFT collection belongs to
+	 * @param collectionID The NFT collection to be un-supported
+	 */
 	public async removeSupportAllNFTsFromCollection(
 		methodContext: MethodContext,
 		chainID: Buffer,
@@ -826,6 +927,21 @@ export class NFTMethod extends BaseMethod {
 		});
 	}
 
+	/**
+	 * This function recovers an NFT escrowed to a terminated chain.
+	 * It should only be called by the {@link BaseInteroperabilityModule | Interoperability module} to trigger the recovery of NFTs escrowed to terminated chains.
+	 *
+	 * @example
+	 *  ```ts
+	 *  recover(methodContext,terminatedChainID,substorePrefix,nftID,nft);
+	 *  ```
+	 *
+	 * @param methodContext Method context
+	 * @param terminatedChainID ID of the terminated chain
+	 * @param substorePrefix Prefix of the NFT substore
+	 * @param nftID ID of the nft to recover
+	 * @param nft The NFT to recover
+	 */
 	public async recover(
 		methodContext: MethodContext,
 		terminatedChainID: Buffer,
@@ -943,6 +1059,21 @@ export class NFTMethod extends BaseMethod {
 		});
 	}
 
+	/**
+	 * This function is used to modify the attributes of NFTs.
+	 * Each custom module can define the rules surrounding modifying NFT attributes and should call this function.
+	 * This function will be executed even if the NFT is locked.
+	 *
+	 * @example
+	 *  ```ts
+	 *  setAttributes(methodContext,module,nftID,attributes);
+	 *  ```
+	 *
+	 * @param methodContext Method context
+	 * @param module Name of the module updating the NFT attributes
+	 * @param nftID ID of an NFT
+	 * @param attributes Attributes to add to the NFT
+	 */
 	public async setAttributes(
 		methodContext: MethodContext,
 		module: string,

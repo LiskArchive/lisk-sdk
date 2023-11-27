@@ -14,6 +14,7 @@
 
 export { BaseCCCommand } from './base_cc_command';
 export { BaseInteroperableModule } from './base_interoperable_module';
+export { BaseInteroperabilityModule } from './base_interoperability_module';
 export { BaseInteroperabilityMethod } from './base_interoperability_method';
 export { BaseCCMethod } from './base_cc_method';
 export { getMainchainID } from './utils';
