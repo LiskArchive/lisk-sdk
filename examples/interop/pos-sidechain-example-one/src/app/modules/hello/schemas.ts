@@ -1,5 +1,5 @@
 export const createHelloSchema = {
-	$id: 'hello/createHello-params',
+	$id: 'hello/createHello',
 	title: 'CreateHelloCommand transaction parameter for the Hello module',
 	type: 'object',
 	required: ['message'],
@@ -38,7 +38,7 @@ export const configSchema = {
 };
 
 export const getHelloCounterResponseSchema = {
-	$id: 'modules/hello/endpoint/getHelloCounter',
+	$id: 'modules/hello/endpoint/getHelloCounterResponse',
 	type: 'object',
 	required: ['counter'],
 	properties: {
@@ -50,7 +50,7 @@ export const getHelloCounterResponseSchema = {
 };
 
 export const getHelloResponseSchema = {
-	$id: 'modules/hello/endpoint/getHello',
+	$id: 'modules/hello/endpoint/getHelloResponse',
 	type: 'object',
 	required: ['message'],
 	properties: {
