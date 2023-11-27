@@ -1,7 +1,7 @@
 {
 	"$schema": "https://typedoc.org/schema.json",
 	"includeVersion": true,
-	"entryPoints": ["src/index.ts"],
+	"entryPoints": ["src/index.ts", "src/modules/nft/index.ts"],
 	"readme": "./README.md",
 	"tsconfig": "./tsconfig.json"
 }

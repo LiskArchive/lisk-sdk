@@ -81,6 +81,7 @@ export {
 	NFTMethod,
 	NFT,
 	NFTAttributes,
+	TransferCrossChainParams,
 	InternalMethod,
 	InteroperabilityMethod,
 	LENGTH_COLLECTION_ID,
