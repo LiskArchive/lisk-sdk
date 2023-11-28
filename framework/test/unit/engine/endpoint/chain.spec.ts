@@ -67,6 +67,7 @@ describe('Chain endpoint', () => {
 					getEvents: jest.fn(),
 					getBlockByID: jest.fn(),
 					getBlockByHeight: jest.fn(),
+					getBlocksByHeightBetween: jest.fn(),
 				},
 			} as any,
 			bftMethod: {
@@ -338,6 +339,32 @@ describe('Chain endpoint', () => {
 			await expect(endpoint.getBlockByHeight(createRequestContext({ height: 1 }))).resolves.toEqual(
 				block.toJSON(),
 			);
+		});
+	});
+
+	describe('getBlocksByHeightBetween', () => {
+		it('should throw if provided heights are invalid', async () => {
+			await expect(
+				endpoint.getBlocksByHeightBetween(
+					createRequestContext({ from: 'incorrect height', to: 10 }),
+				),
+			).rejects.toThrow('Invalid parameters. from and to must be a number.');
+
+			await expect(
+				endpoint.getBlocksByHeightBetween(
+					createRequestContext({ from: 1, to: 'incorrect height' }),
+				),
+			).rejects.toThrow('Invalid parameters. from and to must be a number.');
+		});
+
+		it('should return a collection of blocks', async () => {
+			jest
+				.spyOn(endpoint['_chain'].dataAccess, 'getBlocksByHeightBetween')
+				.mockResolvedValue([block]);
+
+			await expect(
+				endpoint.getBlocksByHeightBetween(createRequestContext({ from: 1, to: 10 })),
+			).resolves.toEqual([block.toJSON()]);
 		});
 	});
 });
