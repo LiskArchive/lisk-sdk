@@ -137,6 +137,13 @@ Run below command inside each application folder.
 
 #### Other options
 
-There are `genesis_assets_103_validators.json` file under config folder of each app. You can also use this genesis-assets if you want to run an application for 103 validators. In order to do so follow these steps:
+There are `genesis_assets_103_validators.json` file under config folder of each app. You can also use this
+genesis-assets if you want to run an application for 103 validators. In order to do so follow these steps:
 
-- Update genesis block using command: `./bin/run genesis-block:create --output config/default/ --assets-file config/default/genesis_assets_103_validators.json`
+- Update genesis block using
+  command: `./bin/run genesis-block:create --output config/default/ --assets-file config/default/genesis_assets_103_validators.json`
+
+## Learn More
+
+[Here](https://github.com/LiskHQ/lisk-docs/blob/7a7c1606c688f8cd91b50d0ddc199907c6b4f759/docs/modules/ROOT/images/build-blockchain/interop-example.png)
+is reference to diagram explaining interop setup nicely.
