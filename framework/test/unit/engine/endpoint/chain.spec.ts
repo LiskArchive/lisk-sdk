@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Event, StateStore } from '@liskhq/lisk-chain';
+import { Block, BlockAssets, BlockHeader, Event, StateStore } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { Batch, Database, InMemoryDatabase } from '@liskhq/lisk-db';
 import {
@@ -30,13 +30,40 @@ describe('Chain endpoint', () => {
 	let stateStore: StateStore;
 	let endpoint: ChainEndpoint;
 	let db: InMemoryDatabase;
-
+	const blockAsset = new BlockAssets();
+	const getBlockAttrs = () => ({
+		version: 1,
+		timestamp: 1009988,
+		height: 1009988,
+		previousBlockID: Buffer.from('4a462ea57a8c9f72d866c09770e5ec70cef18727', 'hex'),
+		stateRoot: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
+		transactionRoot: Buffer.from('b27ca21f40d44113c2090ca8f05fb706c54e87dd', 'hex'),
+		assetRoot: Buffer.from('b27ca21f40d44113c2090ca8f05fb706c54e87dd', 'hex'),
+		eventRoot: Buffer.from(
+			'30dda4fbc395828e5a9f2f8824771e434fce4945a1e7820012440d09dd1e2b6d',
+			'hex',
+		),
+		generatorAddress: Buffer.from('be63fb1c0426573352556f18b21efd5b6183c39c', 'hex'),
+		maxHeightPrevoted: 1000988,
+		maxHeightGenerated: 1000988,
+		impliesMaxPrevotes: true,
+		validatorsHash: utils.hash(Buffer.alloc(0)),
+		aggregateCommit: {
+			height: 0,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+		},
+		signature: Buffer.from('6da88e2fd4435e26e02682435f108002ccc3ddd5', 'hex'),
+	});
+	const blockHeader = new BlockHeader(getBlockAttrs());
+	const block = new Block(blockHeader, [], blockAsset);
 	beforeEach(() => {
 		stateStore = new StateStore(new InMemoryDatabase());
 		endpoint = new ChainEndpoint({
 			chain: {
 				dataAccess: {
 					getEvents: jest.fn(),
+					getBlockByID: jest.fn(),
 				},
 			} as any,
 			bftMethod: {
@@ -227,6 +254,25 @@ describe('Chain endpoint', () => {
 			const { list } = await endpoint.getGeneratorList(createRequestContext({}));
 
 			expect(list[1].nextAllocatedTime - list[0].nextAllocatedTime).toBe(DEFAULT_INTERVAL);
+		});
+	});
+
+	describe('getBlockByID', () => {
+		it('should throw if provided block id is not valid', async () => {
+			await expect(
+				endpoint.getBlockByID(createRequestContext({ id: 'invalid id' })),
+			).rejects.toThrow();
+		});
+
+		it('should return the block if provided id is valid', async () => {
+			jest.spyOn(endpoint['_chain'].dataAccess, 'getBlockByID').mockResolvedValue(block);
+			await expect(
+				endpoint.getBlockByID(
+					createRequestContext({
+						id: '215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b',
+					}),
+				),
+			).resolves.toEqual(block.toJSON());
 		});
 	});
 });
