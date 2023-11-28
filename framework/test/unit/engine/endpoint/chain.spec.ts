@@ -69,6 +69,7 @@ describe('Chain endpoint', () => {
 					getBlockByHeight: jest.fn(),
 					getBlocksByHeightBetween: jest.fn(),
 				},
+				lastBlock: block,
 			} as any,
 			bftMethod: {
 				getSlotNumber: jest.fn().mockReturnValue(0),
@@ -365,6 +366,12 @@ describe('Chain endpoint', () => {
 			await expect(
 				endpoint.getBlocksByHeightBetween(createRequestContext({ from: 1, to: 10 })),
 			).resolves.toEqual([block.toJSON()]);
+		});
+	});
+
+	describe('getLastBlock', () => {
+		it('should return the last block', () => {
+			expect(endpoint.getLastBlock()).toEqual(block.toJSON());
 		});
 	});
 });
