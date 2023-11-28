@@ -66,6 +66,7 @@ describe('Chain endpoint', () => {
 				dataAccess: {
 					getEvents: jest.fn(),
 					getBlockByID: jest.fn(),
+					getBlockByHeight: jest.fn(),
 				},
 			} as any,
 			bftMethod: {
@@ -321,6 +322,22 @@ describe('Chain endpoint', () => {
 			await expect(
 				endpoint.getBlocksByIDs(createRequestContext({ ids: [validBlockID] })),
 			).resolves.toEqual([block.toJSON()]);
+		});
+	});
+
+	describe('getBlockByHeight', () => {
+		it('should throw if provided height is invalid', async () => {
+			await expect(
+				endpoint.getBlockByHeight(createRequestContext({ height: 'incorrect height' })),
+			).rejects.toThrow('Invalid parameters. height must be a number.');
+		});
+
+		it('should rerturn a block if the provided height is valid', async () => {
+			jest.spyOn(endpoint['_chain'].dataAccess, 'getBlockByHeight').mockResolvedValue(block);
+
+			await expect(endpoint.getBlockByHeight(createRequestContext({ height: 1 }))).resolves.toEqual(
+				block.toJSON(),
+			);
 		});
 	});
 });
