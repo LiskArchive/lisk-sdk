@@ -14,7 +14,7 @@
 
 import { Block, BlockAssets, BlockHeader, Event, StateStore } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
-import { Batch, Database, InMemoryDatabase } from '@liskhq/lisk-db';
+import { Batch, Database, InMemoryDatabase, NotFoundError } from '@liskhq/lisk-db';
 import {
 	EMPTY_KEY,
 	MODULE_STORE_PREFIX_BFT,
@@ -57,6 +57,8 @@ describe('Chain endpoint', () => {
 	});
 	const blockHeader = new BlockHeader(getBlockAttrs());
 	const block = new Block(blockHeader, [], blockAsset);
+	const validBlockID = '215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b';
+
 	beforeEach(() => {
 		stateStore = new StateStore(new InMemoryDatabase());
 		endpoint = new ChainEndpoint({
@@ -261,7 +263,7 @@ describe('Chain endpoint', () => {
 		it('should throw if provided block id is not valid', async () => {
 			await expect(
 				endpoint.getBlockByID(createRequestContext({ id: 'invalid id' })),
-			).rejects.toThrow();
+			).rejects.toThrow('Invalid parameters. id must be a valid hex string.');
 		});
 
 		it('should return the block if provided id is valid', async () => {
@@ -269,10 +271,56 @@ describe('Chain endpoint', () => {
 			await expect(
 				endpoint.getBlockByID(
 					createRequestContext({
-						id: '215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b',
+						id: validBlockID,
 					}),
 				),
 			).resolves.toEqual(block.toJSON());
+		});
+	});
+
+	describe('getBlocksByIDs', () => {
+		it('should throw if the provided block ids is an empty array or not a valid array', async () => {
+			await expect(endpoint.getBlocksByIDs(createRequestContext({ ids: [] }))).rejects.toThrow(
+				'Invalid parameters. ids must be a non empty array.',
+			);
+
+			await expect(
+				endpoint.getBlocksByIDs(createRequestContext({ ids: 'not an array' })),
+			).rejects.toThrow('Invalid parameters. ids must be a non empty array.');
+		});
+
+		it('should throw if any of the provided block ids is not valid', async () => {
+			await expect(
+				endpoint.getBlocksByIDs(createRequestContext({ ids: [validBlockID, 'invalid id'] })),
+			).rejects.toThrow('Invalid parameters. id must a valid hex string.');
+		});
+
+		it('should return empty result if the provided block ids are not found', async () => {
+			jest.spyOn(endpoint['_chain'].dataAccess, 'getBlockByID').mockImplementation(() => {
+				throw new NotFoundError();
+			});
+
+			await expect(
+				endpoint.getBlocksByIDs(createRequestContext({ ids: [validBlockID] })),
+			).resolves.toEqual([]);
+		});
+
+		it('should throw if dataAccess throws an error other than NotFoundError', async () => {
+			jest.spyOn(endpoint['_chain'].dataAccess, 'getBlockByID').mockImplementation(() => {
+				throw new Error();
+			});
+
+			await expect(
+				endpoint.getBlocksByIDs(createRequestContext({ ids: [validBlockID] })),
+			).rejects.toThrow();
+		});
+
+		it('should return a collection of blocks', async () => {
+			jest.spyOn(endpoint['_chain'].dataAccess, 'getBlockByID').mockResolvedValue(block);
+
+			await expect(
+				endpoint.getBlocksByIDs(createRequestContext({ ids: [validBlockID] })),
+			).resolves.toEqual([block.toJSON()]);
 		});
 	});
 });
