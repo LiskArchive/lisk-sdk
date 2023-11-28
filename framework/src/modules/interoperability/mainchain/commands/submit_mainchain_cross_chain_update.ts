@@ -128,7 +128,7 @@ export class SubmitMainchainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			context.contextStore.delete(CONTEXT_STORE_KEY_CCM_PROCESSING);
 		}
 
-		await this.afterCrossChainMessagesExecute(context);
+		await this.afterCrossChainMessagesExecution(context);
 	}
 
 	private async _beforeCrossChainMessageForwarding(

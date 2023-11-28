@@ -26,7 +26,6 @@ import { getIDFromCCMBytes } from '../../utils';
 import { SidechainInteroperabilityInternalMethod } from '../internal_method';
 
 // https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#sidechaincrosschainupdate
-
 export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdateCommand<SidechainInteroperabilityInternalMethod> {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
@@ -81,6 +80,6 @@ export class SubmitSidechainCrossChainUpdateCommand extends BaseCrossChainUpdate
 			context.contextStore.delete(CONTEXT_STORE_KEY_CCM_PROCESSING);
 		}
 
-		await this.afterCrossChainMessagesExecute(context);
+		await this.afterCrossChainMessagesExecution(context);
 	}
 }
