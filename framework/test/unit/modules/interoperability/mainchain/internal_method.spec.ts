@@ -145,7 +145,6 @@ describe('Mainchain interoperability internal method', () => {
 			expect(isLive).toBe(false);
 		});
 
-		// TODO [DONE]: A test is missing for the case where the chain account exists, status is ACTIVE and liveness requirement IS fulfilled.
 		it(`should return true when chain account exists, status is ${ChainStatus.ACTIVE} and liveness requirement IS fulfilled`, async () => {
 			await chainDataSubstore.set(context, chainID, {
 				...chainAccount,

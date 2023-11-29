@@ -100,8 +100,6 @@ describe('Sidechain interoperability store', () => {
 			expect(isLive).toBe(false);
 		});
 
-		// TODO [DONE]: Tests are missing for status is ACTIVE, expectation: true
-		// TODO [DONE]: Tests are missing for status is REGISTERED, expectation: true
 		it('should return true if status is ACTIVE or REGISTERED', async () => {
 			for (const status of [ChainStatus.ACTIVE, ChainStatus.REGISTERED]) {
 				await chainDataSubstore.set(context, chainID, {
@@ -114,7 +112,6 @@ describe('Sidechain interoperability store', () => {
 			}
 		});
 
-		// TODO [DONE]: For clarity, it would be good to change this description to "should return true if chain account and terminated chain account do not exist".
 		it('should return true if chain account and terminated chain account do not exist', async () => {
 			const isLive = await sidechainInteroperabilityInternalMethod.isLive(context, chainID);
 

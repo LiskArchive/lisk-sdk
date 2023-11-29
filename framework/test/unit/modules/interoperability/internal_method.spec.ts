@@ -243,8 +243,6 @@ describe('Base interoperability internal method', () => {
 				inbox: updatedInboxTree,
 			});
 
-			// TODO: [DONE] tree corresponding to chainID was updated
-			// TODO: [DONE] regularMerkleTree.calculateMerkleRoot was called with the expected arguments (sha256(appendData)).
 			const { inbox } = await channelDataSubstore.get(methodContext, chainID);
 			expect(inbox.size).toBe(originalInbox.size + 1);
 
@@ -273,9 +271,6 @@ describe('Base interoperability internal method', () => {
 				outbox: updatedOutboxTree,
 			});
 
-			// TODO: [DONE] tree corresponding to chainID was updated
-			// TODO: [DONE] regularMerkleTree.calculateMerkleRoot was called with the expected arguments (sha256(appendData)).
-
 			const { outbox } = await channelDataSubstore.get(methodContext, chainID);
 			expect(outbox.size).toBe(originalOutbox.size + 1);
 
@@ -296,8 +291,6 @@ describe('Base interoperability internal method', () => {
 			expect(outboxRootSubstore.set).toHaveBeenCalledWith(expect.anything(), chainID, {
 				root: updatedOutboxTree.root,
 			});
-
-			// TODO: [DONE] to test that the channel substore was updated
 
 			const { outbox } = await channelDataSubstore.get(methodContext, chainID);
 			expect(outbox.size).toBe(outboxTree.size + 1);
@@ -399,9 +392,6 @@ describe('Base interoperability internal method', () => {
 				},
 			);
 
-			// TODO: [DONE] Check chainAccount(chainID).status was set to CHAIN_STATUS_TERMINATED
-			// TODO: [DONE] Check the entry for the key chainID was removed from the outbox root substore.
-
 			expect(chainDataSubstore.set).toHaveBeenCalledWith(crossChainMessageContext, chainId, {
 				...chainAccount,
 				status: ChainStatus.TERMINATED,
@@ -428,18 +418,13 @@ describe('Base interoperability internal method', () => {
 				initialized: true,
 			});
 
-			// TODO: [DONE] Check chainAccount(chainID).status was set to CHAIN_STATUS_TERMINATED
 			expect(chainDataSubstore.set).toHaveBeenCalledWith(crossChainMessageContext, chainId, {
 				...chainAccount,
 				status: ChainStatus.TERMINATED,
 			});
 
-			// TODO: [DONE] Check the entry for the key chainID was removed from the outbox root substore
 			expect(outboxRootSubstore.del).toHaveBeenCalledWith(crossChainMessageContext, chainId);
-			// TODO: [DONE] Check an EVENT_NAME_CHAIN_ACCOUNT_UPDATED event was created
 			expect(chainAccountUpdatedEvent.log).toHaveBeenCalled();
-
-			// TODO: [DONE] Check an EVENT_NAME_TERMINATED_STATE_CREATED event was created.
 			expect(terminatedStateCreatedEvent.log).toHaveBeenCalled();
 		});
 
@@ -457,7 +442,6 @@ describe('Base interoperability internal method', () => {
 				),
 			).rejects.toThrow('Chain to be terminated is not valid');
 
-			// TODO: [DONE] Check test that the corresponding terminated state account was NOT created.
 			await expect(terminatedStateSubstore.has(crossChainMessageContext, chainIdNew)).resolves.toBe(
 				false,
 			);
@@ -576,7 +560,6 @@ describe('Base interoperability internal method', () => {
 				),
 			).toBeUndefined();
 
-			// TODO: [DONE]called with correct arguments
 			expect(mainchainInteroperabilityInternalMethod.sendInternal).toHaveBeenCalledWith(
 				crossChainMessageContext,
 				EMPTY_FEE_ADDRESS,
@@ -773,7 +756,7 @@ describe('Base interoperability internal method', () => {
 				name: 'chain1',
 				status: 1,
 			};
-			// TODO: [DONE] Use defaultCertificate
+
 			await interopMod.stores
 				.get(ChainAccountStore)
 				.set(storeContext, ccuParams.sendingChainID, certificate);
@@ -866,7 +849,6 @@ describe('Base interoperability internal method', () => {
 	});
 
 	describe('verifyValidatorsUpdate', () => {
-		// TODO: [DONE] Test is missing where the length of bftWeightsUpdateBitmap is too large, e.g. bftWeightsUpdateBitmap be equal to Buffer.from([0], [7])
 		it('should reject if length of bftWeightsUpdateBitmap is too large', async () => {
 			const ccu = {
 				...ccuParams,
@@ -896,7 +878,6 @@ describe('Base interoperability internal method', () => {
 			).rejects.toThrow(`Invalid bftWeightsUpdateBitmap. Expected length ${expectedBitmapLength}.`);
 		});
 
-		// TODO: [DONE] Test the validator list returned by calculateNewActiveValidators is empty
 		it('should reject if the validator list returned by calculateNewActiveValidators is empty', async () => {
 			const ccu = {
 				...ccuParams,
@@ -927,7 +908,6 @@ describe('Base interoperability internal method', () => {
 			);
 		});
 
-		// TODO: [DONE] Test is missing where the validator list returned by calculateNewActiveValidators has more than MAX_NUM_VALIDATORS entries
 		it('should reject if the validator list returned by calculateNewActiveValidators has more than MAX_NUM_VALIDATORS entries', async () => {
 			const ccu = {
 				...ccuParams,
@@ -1290,7 +1270,6 @@ describe('Base interoperability internal method', () => {
 			);
 		});
 
-		// TODO: [DONE] In at least one of the tests, it should be checked that calculateNewActiveValidators was called with the correct arguments.
 		it('should resolve if updates are valid', async () => {
 			const ccu = {
 				...ccuParams,
@@ -1339,7 +1318,6 @@ describe('Base interoperability internal method', () => {
 	});
 
 	describe('verifyCertificate', () => {
-		// TODO: [DONE] Use correct length
 		const txParams: CrossChainUpdateTransactionParams = {
 			certificate: Buffer.alloc(0),
 			activeValidatorsUpdate: {
@@ -1378,7 +1356,6 @@ describe('Base interoperability internal method', () => {
 				});
 		});
 
-		// TODO: [DONE] However, there should be an additional test where the schema is not followed, e.g. by an incorrect length of a property, and verifyCertificate should fail due to this
 		it('should reject when certificate height is lower than last certificate height', async () => {
 			const certificate: Certificate = {
 				...defaultCertificate,
@@ -1450,9 +1427,6 @@ describe('Base interoperability internal method', () => {
 
 		// (1): validatorsHash in certificate and state store are equal
 		// (2): there is a proper validators update in the CCU
-		// TODO: Replace by: chainAccount(ccu.params.sendingChainID) should exist
-		// TODO: [DONE] 1. (1) is fulfilled, Expectation: verifyCertificate passes.
-		// TODO: [DONE] 2. (1) not fulfilled, (2) fulfilled, Expectation: verifyCertificate passes
 		it('should resolve when validatorsHash in certificate and state store are equal', async () => {
 			const certificate: Certificate = {
 				...defaultCertificate,
@@ -1487,7 +1461,7 @@ describe('Base interoperability internal method', () => {
 			);
 		});
 
-		it('should resolve when validatorsHash are NOT equal, but validators are updated', async () => {
+		it('should resolve when validatorsHash is NOT equal, but validators are updated', async () => {
 			const certificate: Certificate = {
 				...defaultCertificate,
 				timestamp: 1000,
@@ -1528,7 +1502,6 @@ describe('Base interoperability internal method', () => {
 		});
 	});
 
-	// TODO: [DONE] test where the validator list in the validators store is NOT sorted
 	describe('verifyCertificateSignature', () => {
 		const activeValidators = [
 			{ blsKey: cryptoUtils.getRandomBytes(48), bftWeight: BigInt(1) },
@@ -1912,7 +1885,6 @@ describe('Base interoperability internal method', () => {
 				),
 			).resolves.toBeUndefined();
 
-			// TODO [DONE]: checked that calculateRootFromRightWitness is called with the correct arguments.
 			expect(regularMerkleTree.calculateRootFromRightWitness).toHaveBeenCalledWith(
 				channelData.inbox.size,
 				channelData.inbox.appendPath,
@@ -1934,7 +1906,6 @@ describe('Base interoperability internal method', () => {
 				),
 			).resolves.toBeUndefined();
 
-			// TODO [DONE]: Explicitly state: outboxKey = Buffer.concat([Buffer.from('83ed0d25', 'hex'), Buffer.from('0000', 'hex'), cryptoUtils.hash(OWN_CHAIN_ID)])
 			// outboxKey = STORE_PREFIX_INTEROPERABILITY + SUBSTORE_PREFIX_OUTBOX_ROOT + sha256(OWN_CHAIN_ID)
 			// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#verifypartnerchainoutboxroot
 			const outboxKey = Buffer.concat([
@@ -1961,7 +1932,6 @@ describe('Base interoperability internal method', () => {
 				expect.toBeObject() as Certificate,
 			);
 
-			// TODO [DONE]: checked that calculateRootFromRightWitness is called with the correct arguments.
 			expect(regularMerkleTree.calculateRootFromRightWitness).toHaveBeenCalledWith(
 				updatedInboxTree.size,
 				updatedInboxTree.appendPath,
@@ -1969,8 +1939,34 @@ describe('Base interoperability internal method', () => {
 			);
 		});
 
-		// TODO: There should be some test(s) where inboxUpdate.crossChainMessages is non empty
-		// TODO: checked that regularMerkleTree.calculateMerkleRoot is called for every ccm and that it is called with the correct arguments
-		// TODO: i.e. calculateMerkleRoot must be called two times
+		it('should resolve correctly when crossChainMessages is non-empty', async () => {
+			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
+			jest
+				.spyOn(regularMerkleTree, 'calculateRootFromRightWitness')
+				.mockReturnValue(channelData.partnerChainOutboxRoot);
+
+			const params = {
+				...crossChainUpdateParams,
+				inboxUpdate: {
+					crossChainMessages: [cryptoUtils.getRandomBytes(32), cryptoUtils.getRandomBytes(32)],
+					messageWitnessHashes: [cryptoUtils.getRandomBytes(32)],
+					outboxRootWitness: {
+						bitmap: Buffer.alloc(0),
+						siblingHashes: [],
+					},
+				},
+				certificate: Buffer.alloc(0),
+			};
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(
+					commandExecuteContext as any,
+					params,
+				),
+			).resolves.toBeUndefined();
+
+			expect(regularMerkleTree.calculateMerkleRoot).toHaveBeenCalledTimes(
+				params.inboxUpdate.crossChainMessages.length,
+			);
+		});
 	});
 });
