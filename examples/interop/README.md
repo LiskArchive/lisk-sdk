@@ -116,7 +116,7 @@ Run below command inside each application folder.
 
 ##### Transfer sidechain two to sidechain one
 
-- Run `ts-node pos-sidechain-example-one/config/scripts/transfer_sidechain_one.ts` from `interop` folder.
+- Run `ts-node pos-sidechain-example-two/config/scripts/transfer_sidechain_one.ts` from `interop` folder.
 - Check balance for `lskxvesvwgxpdnhp4rdukmsx42teehpxkeod7xv7f` using `token_getBalances` RPC on sidechain one.
 
 ##### Transfer sidechain one to sidechain two
