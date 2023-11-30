@@ -410,4 +410,34 @@ describe('Chain endpoint', () => {
 			).resolves.toEqual(transaction.toJSON());
 		});
 	});
+
+	describe('getTransactionsByIDs', () => {
+		it('should throw if provided ids is empty or not an array', async () => {
+			await expect(
+				endpoint.getTransactionsByIDs(createRequestContext({ ids: [] })),
+			).rejects.toThrow('Invalid parameters. ids must be a non empty array');
+
+			await expect(
+				endpoint.getTransactionsByIDs(createRequestContext({ ids: 'invalid id' })),
+			).rejects.toThrow('Invalid parameters. ids must be a non empty array');
+		});
+
+		it('should throw if any of the provided ids are not valid', async () => {
+			await expect(
+				endpoint.getTransactionsByIDs(createRequestContext({ ids: [validBlockID, 'invalid ID'] })),
+			).rejects.toThrow('Invalid parameters. id must be a valid hex string.');
+		});
+
+		it('should return a collection of transactions', async () => {
+			jest
+				.spyOn(endpoint['_chain'].dataAccess, 'getTransactionByID')
+				.mockResolvedValue(transaction);
+
+			await expect(
+				endpoint.getTransactionsByIDs(
+					createRequestContext({ ids: [transaction.id.toString('hex')] }),
+				),
+			).resolves.toEqual([transaction.toJSON()]);
+		});
+	});
 });
