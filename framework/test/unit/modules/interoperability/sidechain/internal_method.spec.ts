@@ -100,7 +100,19 @@ describe('Sidechain interoperability store', () => {
 			expect(isLive).toBe(false);
 		});
 
-		it('should return true if chain is not terminated', async () => {
+		it('should return true if status is ACTIVE or REGISTERED', async () => {
+			for (const status of [ChainStatus.ACTIVE, ChainStatus.REGISTERED]) {
+				await chainDataSubstore.set(context, chainID, {
+					...chainAccount,
+					status,
+				});
+				const isLive = await sidechainInteroperabilityInternalMethod.isLive(context, chainID);
+
+				expect(isLive).toBe(true);
+			}
+		});
+
+		it('should return true if chain account and terminated chain account do not exist', async () => {
 			const isLive = await sidechainInteroperabilityInternalMethod.isLive(context, chainID);
 
 			expect(isLive).toBe(true);
