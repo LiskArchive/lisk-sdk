@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseMethod } from '..';
+import { BaseMethod } from '../base_method';
 import { BeforeCCMForwardingContext, CrossChainMessageContext, RecoverContext } from './types';
 
 /**

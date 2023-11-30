@@ -19,7 +19,9 @@ export {
 	TransferCrossChainCommand,
 } from './commands/transfer_cross_chain';
 export { CrossChainTransferCommand } from './cc_commands/cc_transfer';
+export { NFTInteroperableMethod } from './cc_method';
 export { NFTMethod } from './method';
+export { NFTEndpoint } from './endpoint';
 export { InternalMethod } from './internal_method';
 export { NFTAttributes } from './stores/nft';
 export { NFT, InteroperabilityMethod } from './types';

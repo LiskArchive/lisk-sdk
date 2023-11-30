@@ -28,6 +28,10 @@ export interface TransferParams {
 	data: string;
 }
 
+/**
+ * The Transfer command of the NFT modules transfers an NFT from one account to another.
+ *
+ */
 export class TransferCommand extends BaseCommand {
 	public schema = transferParamsSchema;
 	private _internalMethod!: InternalMethod;

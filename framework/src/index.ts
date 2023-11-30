@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
 export {
 	Transaction,
 	TransactionJSON,
@@ -26,24 +25,6 @@ export {
 	BlockAssetJSON,
 	standardEventDataSchema,
 } from '@liskhq/lisk-chain';
-export {
-	BaseModule,
-	BaseMethod,
-	BaseCommand,
-	BaseEndpoint,
-	BaseEvent,
-	BaseOffchainStore,
-	BaseStore,
-	EventQueuer,
-	ImmutableOffchainStoreGetter,
-	ImmutableStoreGetter,
-	OffchainStoreGetter,
-	StoreGetter,
-	ModuleMetadata,
-	ModuleMetadataJSON,
-	ModuleInitArgs,
-	BaseInternalMethod,
-} from './modules';
 export { Application } from './application';
 export { systemDirs } from './system_dirs';
 export { BasePlugin, PluginInitContext } from './plugins/base_plugin';
@@ -53,126 +34,7 @@ export type { BaseChannel } from './controller/channels';
 export type { EventsDefinition, EventCallback } from './controller/event';
 export * as testing from './testing';
 export * from './types';
-export { ValidatorsMethod, ValidatorsModule } from './modules/validators';
-export {
-	AuthMethod,
-	AuthModule,
-	multisigRegMsgSchema,
-	genesisAuthStoreSchema as authGenesisStoreSchema,
-} from './modules/auth';
-export {
-	TokenMethod,
-	TokenModule,
-	TransferCommand,
-	TransferCrossChainCommand,
-	CrossChainTransferCommand,
-	TokenInteroperableMethod,
-	TokenEndpoint,
-	TransferParams,
-	CCTransferParams,
-	genesisTokenStoreSchema as tokenGenesisStoreSchema,
-	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-	LOCAL_ID_LENGTH,
-	TOKEN_ID_LENGTH,
-	MAX_DATA_LENGTH,
-} from './modules/token';
-export {
-	NFTModule,
-	NFTMethod,
-	NFT,
-	NFTAttributes,
-	TransferCrossChainParams,
-	InternalMethod,
-	InteroperabilityMethod,
-	LENGTH_COLLECTION_ID,
-	LENGTH_NFT_ID,
-	LENGTH_INDEX,
-	MODULE_NAME_NFT,
-	FEE_CREATE_NFT,
-	NftEventResult,
-} from './modules/nft';
-export {
-	PoSMethod,
-	PoSModule,
-	ValidatorRegistrationCommand,
-	ReportMisbehaviorCommand,
-	UnlockCommand,
-	UpdateGeneratorKeyCommand,
-	StakeCommand,
-	genesisStoreSchema as posGenesisStoreSchema,
-} from './modules/pos';
-export {
-	SubmitMainchainCrossChainUpdateCommand,
-	MainchainInteroperabilityMethod,
-	MainchainInteroperabilityModule,
-	RecoverMessageCommand,
-	RegisterMainchainCommand,
-	SubmitSidechainCrossChainUpdateCommand,
-	SidechainInteroperabilityMethod,
-	SidechainInteroperabilityModule,
-	RegisterSidechainCommand,
-	InitializeStateRecoveryCommand,
-	RecoverStateCommand,
-	TerminateSidechainForLivenessCommand,
-	CCMsg,
-	ChainAccount,
-	ChainAccountJSON,
-	ChannelData,
-	ChannelDataJSON,
-	Inbox,
-	InboxJSON,
-	Outbox,
-	OutboxJSON,
-	InboxUpdate,
-	CrossChainUpdateTransactionParams,
-	ActiveValidator,
-	ActiveValidatorsUpdate,
-	OutboxRootWitness,
-	LIVENESS_LIMIT,
-	MESSAGE_TAG_CERTIFICATE,
-	MODULE_NAME_INTEROPERABILITY,
-	MAX_CCM_SIZE,
-	EMPTY_BYTES,
-	ChainStatus,
-	ccmSchema,
-	OwnChainAccount,
-	OwnChainAccountJSON,
-	LastCertificate,
-	LastCertificateJSON,
-	CcmProcessedEventData,
-	CcmSendSuccessEventData,
-	CCMProcessedCode,
-	CCMProcessedResult,
-	ccuParamsSchema,
-	sidechainRegParams,
-	mainchainRegParams,
-	messageRecoveryParamsSchema,
-	messageRecoveryInitializationParamsSchema,
-	registrationCCMParamsSchema,
-	sidechainTerminatedCCMParamsSchema,
-	validatorsHashInputSchema,
-	registrationSignatureMessageSchema,
-	stateRecoveryParamsSchema,
-	stateRecoveryInitParamsSchema,
-	terminateSidechainForLivenessParamsSchema,
-	genesisInteroperabilitySchema,
-	BaseCCCommand,
-	BaseCCMethod,
-	BaseInteroperableModule,
-	BaseInteroperabilityModule,
-	BaseInteroperabilityMethod,
-	CrossChainMessageContext,
-	CCCommandExecuteContext,
-	ImmutableCrossChainMessageContext,
-	getMainchainID,
-	RecoverContext,
-} from './modules/interoperability';
-export { RewardMethod, RewardModule } from './modules/reward';
-export { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_reward';
-export { FeeMethod, FeeModule } from './modules/fee';
-export { RandomMethod, RandomModule } from './modules/random';
-export { PoAModule, PoAMethod } from './modules/poa';
-export { NamedRegistry } from './modules/named_registry';
+export * as Modules from './modules';
 export {
 	GenesisBlockExecuteContext,
 	InsertAssetContext,
@@ -201,15 +63,5 @@ export {
 	unsignedCertificateSchema,
 } from './engine/consensus';
 export { applicationConfigSchema } from './schema';
-export {
-	BLS_PUBLIC_KEY_LENGTH,
-	BLS_SIGNATURE_LENGTH,
-	NUMBER_ACTIVE_VALIDATORS_MAINCHAIN,
-	MESSAGE_TAG_CHAIN_REG,
-	MIN_CHAIN_NAME_LENGTH,
-	MAX_CHAIN_NAME_LENGTH,
-	MAX_NUM_VALIDATORS,
-	CHAIN_ID_LENGTH,
-} from './modules/interoperability/constants';
 export { Proof, QueryProof, ProveResponse, Validator as BFTValidator } from './abi/abi';
 export { areDistinctHeadersContradicting } from './engine/bft';

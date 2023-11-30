@@ -24,3 +24,15 @@ export {
 	ImmutableOffchainStoreGetter,
 } from './base_offchain_store';
 export { BaseEvent, EventQueuer } from './base_event';
+export * as Fee from './fee';
+export * as Token from './token';
+export * as NFT from './nft';
+export * as Interoperability from './interoperability';
+export * as PoS from './pos';
+export * as Reward from './reward';
+export * as DynamicReward from './dynamic_reward';
+export * as Random from './random';
+export * as PoA from './poa';
+export * as NamedRegistry from './named_registry';
+export * as Validators from './validators';
+export * as Auth from './auth';

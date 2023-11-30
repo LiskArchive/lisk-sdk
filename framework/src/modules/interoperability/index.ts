@@ -52,13 +52,7 @@ export {
 	RecoverContext,
 } from './types';
 // Common
-export {
-	LIVENESS_LIMIT,
-	MESSAGE_TAG_CERTIFICATE,
-	MODULE_NAME_INTEROPERABILITY,
-	MAX_CCM_SIZE,
-	EMPTY_BYTES,
-} from './constants';
+export * from './constants';
 export { ChainStatus } from './stores/chain_account';
 export {
 	ccmSchema,

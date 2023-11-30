@@ -90,7 +90,7 @@ export class NFTModule extends BaseInteroperableModule {
 	public commands = [this._transferCommand, this._ccTransferCommand];
 
 	/**
-	 * Blockchain {@link events | Events} and Stores of the module are registered in the constructor of a module, for later use in the module.
+	 * Blockchain {@link events | Events} and {@link stores | Stores} of the module are registered in the constructor of a module, for later use in the module.
 	 */
 	public constructor() {
 		super();
@@ -128,6 +128,9 @@ export class NFTModule extends BaseInteroperableModule {
 		this.stores.register(SupportedNFTsStore, new SupportedNFTsStore(this.name, 3));
 	}
 
+	/**
+	 * @returns {@link MODULE_NAME_NFT}
+	 */
 	public get name(): string {
 		return MODULE_NAME_NFT;
 	}
