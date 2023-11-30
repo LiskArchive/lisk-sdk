@@ -53,6 +53,7 @@ import { LegacyChainHandler } from './legacy/legacy_chain_handler';
 import { LegacyEndpoint } from './legacy/endpoint';
 import { defaultMetrics } from './metrics/metrics';
 import { backupDatabase } from '../utils/backup';
+import { StateMachine } from '../state_machine';
 
 const isEmpty = (value: unknown): boolean => {
 	switch (typeof value) {
@@ -87,6 +88,7 @@ export const BLOCKCHAIN_DB_NAME = 'blockchain.db';
 export class Engine {
 	private readonly _abi: ABI;
 	private readonly _config: EngineConfig;
+	private readonly _stateMachine: StateMachine | undefined;
 	private _consensus!: Consensus;
 	private _generator!: Generator;
 	private _network!: Network;
@@ -101,9 +103,10 @@ export class Engine {
 	private _legacyDB!: Database;
 	private _chainID!: Buffer;
 
-	public constructor(abi: ABI, config: EngineConfig) {
+	public constructor(abi: ABI, config: EngineConfig, stateMachine?: StateMachine) {
 		this._abi = abi;
 		this._config = config;
+		this._stateMachine = stateMachine;
 	}
 
 	public async generateBlock(input: BlockGenerateInput): Promise<Block> {
@@ -173,6 +176,7 @@ export class Engine {
 			bft: this._bftModule,
 			config: this._config,
 			network: this._network,
+			stateMachine: this._stateMachine,
 		});
 		this._legacyChainHandler = new LegacyChainHandler({
 			legacyConfig: this._config.legacy,

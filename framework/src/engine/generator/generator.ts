@@ -75,6 +75,7 @@ import { isEmptyConsensusUpdate } from '../consensus';
 import { getPathFromDataPath } from '../../utils/path';
 import { defaultMetrics } from '../metrics/metrics';
 import { SingleCommitHandler } from './single_commit_handler';
+import { StateMachine } from '../../state_machine';
 
 interface GeneratorArgs {
 	config: EngineConfig;
@@ -83,6 +84,7 @@ interface GeneratorArgs {
 	bft: BFTModule;
 	abi: ABI;
 	network: Network;
+	stateMachine: StateMachine | undefined;
 }
 
 interface GeneratorInitArgs {
@@ -127,6 +129,7 @@ export class Generator {
 		this._pool = new TransactionPool({
 			maxPayloadLength: args.config.genesis.maxTransactionsSize,
 			verifyTransaction: async (transaction: Transaction) => this._verifyTransaction(transaction),
+			stateMachine: args.stateMachine,
 		});
 		this._config = args.config;
 		this._blockTime = args.config.genesis.blockTime;

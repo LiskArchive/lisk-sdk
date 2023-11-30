@@ -329,7 +329,7 @@ export class Application {
 				chainID: Buffer.from(this.config.genesis.chainID, 'hex'),
 			});
 			await this._abiHandler.cacheGenesisState();
-			this._engineProcess = new Engine(this._abiHandler, this.config);
+			this._engineProcess = new Engine(this._abiHandler, this.config, this._stateMachine);
 			await this._engineProcess.start();
 			await this._controller.start();
 			for (const method of this._controller.getEndpoints()) {

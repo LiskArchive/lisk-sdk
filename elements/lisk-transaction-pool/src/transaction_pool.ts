@@ -26,6 +26,10 @@ const debug = createDebug('lisk:transaction_pool');
 
 type VerifyFunction = (transaction: Transaction) => Promise<TransactionStatus>;
 
+interface StateMachineWithLockOnly {
+	executeLock: boolean;
+}
+
 export interface TransactionPoolConfig {
 	readonly maxTransactions?: number;
 	readonly maxTransactionsPerAccount?: number;
@@ -34,6 +38,7 @@ export interface TransactionPoolConfig {
 	readonly transactionReorganizationInterval?: number;
 	readonly minReplacementFeeDifference?: bigint;
 	readonly maxPayloadLength: number;
+	readonly stateMachine: StateMachineWithLockOnly | undefined;
 	verifyTransaction(transaction: Transaction): Promise<number>;
 }
 
@@ -70,6 +75,7 @@ export class TransactionPool {
 	private readonly _reorganizeJob: Job<void>;
 	private readonly _feePriorityQueue: dataStructures.MinHeap<Buffer, bigint>;
 	private readonly _expireJob: Job<void>;
+	private readonly _stateMachine: StateMachineWithLockOnly | undefined;
 
 	public constructor(config: TransactionPoolConfig) {
 		this.events = new EventEmitter();
@@ -94,6 +100,7 @@ export class TransactionPool {
 			this._transactionReorganizationInterval,
 		);
 		this._expireJob = new Job(async () => this._expire(), DEFAULT_EXPIRE_INTERVAL);
+		this._stateMachine = config.stateMachine;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -376,6 +383,10 @@ export class TransactionPool {
 		/*
 			Promote transactions and remove invalid and subsequent transactions by nonce
 		*/
+		if (this._stateMachine?.executeLock) {
+			return;
+		}
+
 		for (const txList of this._transactionList.values()) {
 			const promotableTransactions = txList.getPromotable();
 			// If no promotable transactions, check next list

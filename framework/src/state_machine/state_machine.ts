@@ -31,6 +31,7 @@ export class StateMachine {
 
 	private _logger!: Logger;
 	private _initialized = false;
+	private _executeLock = false;
 
 	public registerModule(mod: BaseModule): void {
 		this._validateExisting(mod);
@@ -151,6 +152,8 @@ export class StateMachine {
 	}
 
 	public async executeTransaction(ctx: TransactionContext): Promise<TransactionExecutionResult> {
+		this._executeLock = true;
+
 		let status = TransactionExecutionResult.OK;
 		const transactionContext = ctx.createTransactionExecuteContext();
 		const eventQueueSnapshotID = ctx.eventQueue.createSnapshot();
@@ -221,6 +224,7 @@ export class StateMachine {
 			[Buffer.concat([EVENT_TOPIC_TRANSACTION_EXECUTION, ctx.transaction.id])],
 		);
 
+		this._executeLock = false;
 		return status;
 	}
 
@@ -268,6 +272,10 @@ export class StateMachine {
 			return existingModule;
 		}
 		return undefined;
+	}
+
+	public get executeLock(): boolean {
+		return this._executeLock;
 	}
 
 	private _getCommand(module: string, command: string): BaseCommand {
