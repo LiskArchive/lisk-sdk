@@ -12,7 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Block, BlockAssets, BlockHeader, Event, StateStore } from '@liskhq/lisk-chain';
+import {
+	Block,
+	BlockAssets,
+	BlockHeader,
+	Event,
+	StateStore,
+	Transaction,
+} from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { Batch, Database, InMemoryDatabase, NotFoundError } from '@liskhq/lisk-db';
 import {
@@ -59,6 +66,16 @@ describe('Chain endpoint', () => {
 	const block = new Block(blockHeader, [], blockAsset);
 	const validBlockID = '215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b';
 
+	const transaction = new Transaction({
+		module: 'token',
+		command: 'transfer',
+		fee: BigInt(613000),
+		params: utils.getRandomBytes(100),
+		nonce: BigInt(2),
+		senderPublicKey: utils.getRandomBytes(32),
+		signatures: [utils.getRandomBytes(64)],
+	});
+
 	beforeEach(() => {
 		stateStore = new StateStore(new InMemoryDatabase());
 		endpoint = new ChainEndpoint({
@@ -68,6 +85,7 @@ describe('Chain endpoint', () => {
 					getBlockByID: jest.fn(),
 					getBlockByHeight: jest.fn(),
 					getBlocksByHeightBetween: jest.fn(),
+					getTransactionByID: jest.fn(),
 				},
 				lastBlock: block,
 			} as any,
@@ -372,6 +390,24 @@ describe('Chain endpoint', () => {
 	describe('getLastBlock', () => {
 		it('should return the last block', () => {
 			expect(endpoint.getLastBlock()).toEqual(block.toJSON());
+		});
+	});
+
+	describe('getTransactionByID', () => {
+		it('should throw if provided id is not valid', async () => {
+			await expect(
+				endpoint.getTransactionByID(createRequestContext({ id: 'invalid id' })),
+			).rejects.toThrow('Invalid parameters. id must be a valid hex string.');
+		});
+
+		it('should return a transaction if provided id is valid', async () => {
+			jest
+				.spyOn(endpoint['_chain'].dataAccess, 'getTransactionByID')
+				.mockResolvedValue(transaction);
+
+			await expect(
+				endpoint.getTransactionByID(createRequestContext({ id: transaction.id.toString('hex') })),
+			).resolves.toEqual(transaction.toJSON());
 		});
 	});
 });
