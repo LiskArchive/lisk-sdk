@@ -459,4 +459,24 @@ describe('Chain endpoint', () => {
 			).resolves.toEqual(block.transactions.map(t => t.toJSON()));
 		});
 	});
+
+	describe('getAssetsByHeight', () => {
+		it('should throw if provided height is invalid', async () => {
+			await expect(
+				endpoint.getAssetsByHeight(createRequestContext({ height: 'invalid height' })),
+			).rejects.toThrow('Invalid parameters. height must be zero or a positive number.');
+
+			await expect(
+				endpoint.getAssetsByHeight(createRequestContext({ height: -1 })),
+			).rejects.toThrow('Invalid parameters. height must be zero or a positive number.');
+		});
+
+		it('should return block assests at the provided height', async () => {
+			jest.spyOn(endpoint['_chain'].dataAccess, 'getBlockByHeight').mockResolvedValue(block);
+
+			await expect(
+				endpoint.getAssetsByHeight(createRequestContext({ height: 1 })),
+			).resolves.toEqual(block.assets.toJSON());
+		});
+	});
 });
