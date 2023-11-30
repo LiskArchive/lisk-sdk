@@ -37,6 +37,15 @@ describe('Chain endpoint', () => {
 	let stateStore: StateStore;
 	let endpoint: ChainEndpoint;
 	let db: InMemoryDatabase;
+	const transaction = new Transaction({
+		module: 'token',
+		command: 'transfer',
+		fee: BigInt(613000),
+		params: utils.getRandomBytes(100),
+		nonce: BigInt(2),
+		senderPublicKey: utils.getRandomBytes(32),
+		signatures: [utils.getRandomBytes(64)],
+	});
 	const blockAsset = new BlockAssets();
 	const getBlockAttrs = () => ({
 		version: 1,
@@ -63,18 +72,8 @@ describe('Chain endpoint', () => {
 		signature: Buffer.from('6da88e2fd4435e26e02682435f108002ccc3ddd5', 'hex'),
 	});
 	const blockHeader = new BlockHeader(getBlockAttrs());
-	const block = new Block(blockHeader, [], blockAsset);
+	const block = new Block(blockHeader, [transaction], blockAsset);
 	const validBlockID = '215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b';
-
-	const transaction = new Transaction({
-		module: 'token',
-		command: 'transfer',
-		fee: BigInt(613000),
-		params: utils.getRandomBytes(100),
-		nonce: BigInt(2),
-		senderPublicKey: utils.getRandomBytes(32),
-		signatures: [utils.getRandomBytes(64)],
-	});
 
 	beforeEach(() => {
 		stateStore = new StateStore(new InMemoryDatabase());
@@ -438,6 +437,26 @@ describe('Chain endpoint', () => {
 					createRequestContext({ ids: [transaction.id.toString('hex')] }),
 				),
 			).resolves.toEqual([transaction.toJSON()]);
+		});
+	});
+
+	describe('getTransactionsByHeight', () => {
+		it('should throw if provided height is invalid', async () => {
+			await expect(
+				endpoint.getTransactionsByHeight(createRequestContext({ height: 'invalid height' })),
+			).rejects.toThrow('Invalid parameters. height must be zero or a positive number.');
+
+			await expect(
+				endpoint.getTransactionsByHeight(createRequestContext({ height: -1 })),
+			).rejects.toThrow('Invalid parameters. height must be zero or a positive number.');
+		});
+
+		it('should return a collection of transactions in the block at the provided height', async () => {
+			jest.spyOn(endpoint['_chain'].dataAccess, 'getBlockByHeight').mockResolvedValue(block);
+
+			await expect(
+				endpoint.getTransactionsByHeight(createRequestContext({ height: 1 })),
+			).resolves.toEqual(block.transactions.map(t => t.toJSON()));
 		});
 	});
 });
