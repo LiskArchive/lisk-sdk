@@ -31,6 +31,7 @@ import {
 import { bftParametersSchema, bftVotesSchema } from '../../../../src/engine/bft/schemas';
 import { ChainEndpoint } from '../../../../src/engine/endpoint/chain';
 import { createRequestContext } from '../../../utils/mocks/endpoint';
+import * as bftUtils from '../../../../src/engine/bft/utils';
 
 describe('Chain endpoint', () => {
 	const DEFAULT_INTERVAL = 10;
@@ -47,7 +48,7 @@ describe('Chain endpoint', () => {
 		signatures: [utils.getRandomBytes(64)],
 	});
 	const blockAsset = new BlockAssets();
-	const getBlockAttrs = () => ({
+	const getBlockAttrs = (attrs?: Record<string, unknown>) => ({
 		version: 1,
 		timestamp: 1009988,
 		height: 1009988,
@@ -70,6 +71,7 @@ describe('Chain endpoint', () => {
 			certificateSignature: Buffer.alloc(0),
 		},
 		signature: Buffer.from('6da88e2fd4435e26e02682435f108002ccc3ddd5', 'hex'),
+		...attrs,
 	});
 	const blockHeader = new BlockHeader(getBlockAttrs());
 	const block = new Block(blockHeader, [transaction], blockAsset);
@@ -477,6 +479,55 @@ describe('Chain endpoint', () => {
 			await expect(
 				endpoint.getAssetsByHeight(createRequestContext({ height: 1 })),
 			).resolves.toEqual(block.assets.toJSON());
+		});
+	});
+
+	describe('areHeadersContradicting', () => {
+		it('should if provided parameters are not valid', async () => {
+			await expect(
+				endpoint.areHeadersContradicting(
+					createRequestContext({
+						header1: 'header1',
+						header2: blockHeader.getBytes().toString('hex'),
+					}),
+				),
+			).rejects.toThrow(`'.header1' must match format "hex"`);
+
+			await expect(
+				endpoint.areHeadersContradicting(
+					createRequestContext({
+						header1: block.getBytes().toString('hex'),
+						header2: blockHeader.getBytes().toString(),
+					}),
+				),
+			).rejects.toThrow(`'.header2' must match format "hex"`);
+		});
+
+		it('should invalidate if both headers have same id', async () => {
+			await expect(
+				endpoint.areHeadersContradicting(
+					createRequestContext({
+						header1: blockHeader.getBytes().toString('hex'),
+						header2: blockHeader.getBytes().toString('hex'),
+					}),
+				),
+			).resolves.toEqual({ valid: false });
+		});
+
+		it('should invoke areDistinctHeadersContradicting for the provided headers', async () => {
+			const contradictingBlockHeader = new BlockHeader(getBlockAttrs({ version: 2 }));
+
+			jest.spyOn(bftUtils, 'areDistinctHeadersContradicting').mockReturnValue(false);
+			await expect(
+				endpoint.areHeadersContradicting(
+					createRequestContext({
+						header1: blockHeader.getBytes().toString('hex'),
+						header2: contradictingBlockHeader.getBytes().toString('hex'),
+					}),
+				),
+			).resolves.toEqual({ valid: false });
+
+			expect(bftUtils.areDistinctHeadersContradicting).toHaveBeenCalledTimes(1);
 		});
 	});
 });
