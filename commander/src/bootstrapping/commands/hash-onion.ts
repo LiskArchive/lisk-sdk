@@ -14,12 +14,10 @@
  */
 
 import { Command, Flags as flagParser } from '@oclif/core';
-import * as fs from 'fs-extra';
-import * as path from 'path';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as validator from '@liskhq/lisk-validator';
 import { flagsWithParser } from '../../utils/flags';
-import { OWNER_READ_WRITE } from '../../constants';
+import { handleOutputFlag } from '../../utils/output';
 
 export class HashOnionCommand extends Command {
 	static description = 'Create hash onions to be used by the forger.';
@@ -60,11 +58,6 @@ export class HashOnionCommand extends Command {
 			throw new Error('Count flag must be an integer and greater than 0.');
 		}
 
-		if (output) {
-			const { dir } = path.parse(output);
-			fs.ensureDirSync(dir);
-		}
-
 		const seed = cryptography.utils.generateHashOnionSeed();
 
 		const hashBuffers = cryptography.utils.hashOnion(seed, count, distance);
@@ -73,11 +66,8 @@ export class HashOnionCommand extends Command {
 		const result = { count, distance, hashes };
 
 		if (output) {
-			if (pretty) {
-				fs.writeJSONSync(output, result, { spaces: ' ', mode: OWNER_READ_WRITE });
-			} else {
-				fs.writeJSONSync(output, result, { mode: OWNER_READ_WRITE });
-			}
+			const res = await handleOutputFlag(output, result, 'hash-onion');
+			this.log(res);
 		} else {
 			this.printJSON(result, pretty);
 		}

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /*
  * Copyright © 2022 Lisk Foundation
  *
@@ -13,11 +14,9 @@
  *
  */
 import { encrypt } from '@liskhq/lisk-cryptography';
-import * as fs from 'fs-extra';
-import * as path from 'path';
 import { flagsWithParser } from '../../../utils/flags';
 import { BaseIPCClientCommand } from '../base_ipc_client';
-import { OWNER_READ_WRITE } from '../../../constants';
+import { handleOutputFlag } from '../../../utils/output';
 
 interface EncryptedMessageObject {
 	readonly version: string;
@@ -66,22 +65,19 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 		...BaseIPCClientCommand.flags,
 		output: {
 			...flagsWithParser.output,
-			required: true,
 		},
 	};
 
 	async run(): Promise<void> {
 		const { flags } = await this.parse(ExportCommand);
+
 		if (!this._client) {
 			this.error('APIClient is not initialized.');
 		}
 
-		const { dir } = path.parse(flags.output as string);
-		fs.ensureDirSync(dir);
-
 		const response = await this._client.invoke<GetKeysResponse>('generator_getAllKeys');
 
-		const keys = response.keys.map(k => {
+		const keys = response?.keys.map(k => {
 			if (k.type === 'encrypted') {
 				return {
 					address: k.address,
@@ -94,6 +90,9 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 			};
 		});
 
-		fs.writeJSONSync(flags.output as string, { keys }, { spaces: ' ', mode: OWNER_READ_WRITE });
+		if (flags.output) {
+			const res = await handleOutputFlag(flags.output, { keys }, 'keys');
+			this.log(res);
+		}
 	}
 }
