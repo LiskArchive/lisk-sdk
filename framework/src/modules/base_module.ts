@@ -15,7 +15,11 @@
 
 import { Schema } from '@liskhq/lisk-codec';
 import { GenesisConfig } from '../types';
+import { BaseCommand } from './base_command';
+import { BaseEndpoint } from './base_endpoint';
+import { BaseMethod } from './base_method';
 import {
+	InsertAssetContext,
 	BlockAfterExecuteContext,
 	BlockExecuteContext,
 	GenesisBlockExecuteContext,
@@ -23,11 +27,7 @@ import {
 	TransactionVerifyContext,
 	BlockVerifyContext,
 	VerificationResult,
-} from '../state_machine';
-import { BaseCommand } from './base_command';
-import { BaseEndpoint } from './base_endpoint';
-import { BaseMethod } from './base_method';
-import { InsertAssetContext } from '../state_machine/types';
+} from '../state_machine/types';
 import { NamedRegistry } from './named_registry';
 
 /**

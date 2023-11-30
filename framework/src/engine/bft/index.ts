@@ -12,7 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+export * from './constants';
 export { BFTModule } from './module';
 export type { BFTMethod } from './method';
+export * from './schemas';
+export { BFTHeights } from './types';
 export { computeValidatorsHash, areDistinctHeadersContradicting } from './utils';
-export { BFTParameters } from './schemas';

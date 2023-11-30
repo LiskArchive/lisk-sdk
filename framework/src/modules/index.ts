@@ -12,18 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { BaseInternalMethod } from './BaseInternalMethod';
-export { BaseModule, ModuleMetadata, ModuleMetadataJSON, ModuleInitArgs } from './base_module';
-export { BaseCommand } from './base_command';
-export { BaseMethod } from './base_method';
-export { BaseEndpoint } from './base_endpoint';
-export { BaseStore, StoreGetter, ImmutableStoreGetter } from './base_store';
-export {
-	BaseOffchainStore,
-	OffchainStoreGetter,
-	ImmutableOffchainStoreGetter,
-} from './base_offchain_store';
-export { BaseEvent, EventQueuer } from './base_event';
+export * from './BaseInternalMethod';
+export * from './base_module';
+export * from './base_command';
+export * from './base_method';
+export * from './base_endpoint';
+export * from './base_store';
+export * from './base_offchain_store';
+export * from './named_registry';
+export * from './base_event';
 export * as Fee from './fee';
 export * as Token from './token';
 export * as NFT from './nft';
@@ -33,6 +30,5 @@ export * as Reward from './reward';
 export * as DynamicReward from './dynamic_reward';
 export * as Random from './random';
 export * as PoA from './poa';
-export * as NamedRegistry from './named_registry';
 export * as Validators from './validators';
 export * as Auth from './auth';

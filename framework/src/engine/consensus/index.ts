@@ -13,13 +13,16 @@
  */
 
 export { Consensus } from './consensus';
+export * from './constants';
 export {
-	CONSENSUS_EVENT_BLOCK_BROADCAST,
-	CONSENSUS_EVENT_FORK_DETECTED,
-	CONSENSUS_EVENT_BLOCK_DELETE,
-	CONSENSUS_EVENT_BLOCK_NEW,
-} from './constants';
-export { BFTHeights } from '../bft/types';
+	BFTHeader,
+	ActiveValidator,
+	PkSigPair,
+	AggregateCommit,
+	CommitPool,
+	ValidatorUpdate,
+} from './types';
+export * from './schema';
 export { isEmptyConsensusUpdate } from './utils';
 export {
 	computeUnsignedCertificateFromBlockHeader,

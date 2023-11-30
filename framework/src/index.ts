@@ -20,48 +20,25 @@ export {
 	signingBlockHeaderSchema,
 	Block,
 	BlockJSON,
-	BlockHeader,
 	BlockHeaderJSON,
 	BlockAssetJSON,
 	standardEventDataSchema,
 } from '@liskhq/lisk-chain';
 export { Application } from './application';
 export { systemDirs } from './system_dirs';
-export { BasePlugin, PluginInitContext } from './plugins/base_plugin';
-export { BasePluginEndpoint } from './plugins/base_plugin_endpoint';
-export { IPCChannel } from './controller/channels';
-export type { BaseChannel } from './controller/channels';
-export type { EventsDefinition, EventCallback } from './controller/event';
+export * from './plugins';
+export * as Controller from './controller';
 export * as testing from './testing';
-export * from './types';
 export * as Modules from './modules';
-export {
-	GenesisBlockExecuteContext,
-	InsertAssetContext,
-	MethodContext,
-	ImmutableMethodContext,
-	CommandExecuteContext,
-	CommandVerifyContext,
-	VerificationResult,
-	VerifyStatus,
-	TransactionVerifyContext,
-	TransactionExecuteContext,
-	BlockVerifyContext,
-	BlockExecuteContext,
-	BlockAfterExecuteContext,
-} from './state_machine/types';
-export { TransactionExecutionResult, TransactionVerifyResult } from './abi/constants';
-export { AggregateCommit } from './engine/consensus/types';
-export { BFTHeights } from './engine/bft/types';
-export { BFTParameters } from './engine/bft/schemas';
-export {
-	computeUnsignedCertificateFromBlockHeader,
-	Certificate,
-	UnsignedCertificate,
-	aggregateCommitSchema,
-	certificateSchema,
-	unsignedCertificateSchema,
-} from './engine/consensus';
+export * as StateMachine from './state_machine';
+export * as Engine from './engine';
+export * from './types';
 export { applicationConfigSchema } from './schema';
-export { Proof, QueryProof, ProveResponse, Validator as BFTValidator } from './abi/abi';
-export { areDistinctHeadersContradicting } from './engine/bft';
+export {
+	TransactionExecutionResult,
+	TransactionVerifyResult,
+	Proof,
+	QueryProof,
+	ProveResponse,
+	Validator as BFTValidator,
+} from './abi';

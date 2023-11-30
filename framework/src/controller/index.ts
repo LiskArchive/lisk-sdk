@@ -12,5 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { Controller } from './controller';
-export { InMemoryChannel, IPCChannel } from './channels';
+export * from './controller';
+export * from './channels';
+export * from './event';
