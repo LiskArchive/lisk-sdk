@@ -16,7 +16,6 @@ import {
 	BasePluginEndpoint,
 	PluginEndpointContext,
 	chain,
-	BlockHeader,
 	BlockHeaderJSON,
 	validator as liskValidator,
 } from 'lisk-sdk';
@@ -61,7 +60,7 @@ export class Endpoint extends BasePluginEndpoint {
 	public async getBlockHeaders(_context: PluginEndpointContext): Promise<BlockHeaderJSON[]> {
 		const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
 
-		return blockHeaders.map(blockHeader => new BlockHeader(blockHeader).toJSON());
+		return blockHeaders.map(blockHeader => new chain.BlockHeader(blockHeader).toJSON());
 	}
 
 	public async getCrossChainMessages(

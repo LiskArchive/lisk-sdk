@@ -12,16 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ccmSchema, codec, tree } from 'lisk-sdk';
+import { Modules, codec, tree } from 'lisk-sdk';
 import { CCMsFromEvents, LastSentCCMWithHeight } from './types';
 
 /**
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#messagewitnesshashes
- * 
+ *
  * Calculates messageWitnessHashes if there are any pending ccms as well as it filters out ccms
  * based on last sent ccm nonce.
  * Also, it checks whether a list of ccm can fit into a CCU based on maxCCUSize
- * 
+ *
  * @param sendingChainChannelInfo Channel info of the sendingChain stored on receivingChain
  * @param ccmsToBeIncluded Filtered list of CCMs that can be included for a given certificate
  * @param lastSentCCMInfo Last send CCM info which is used to filter out ccms
@@ -60,7 +60,7 @@ export const calculateMessageWitnesses = (
 				}
 			}
 			if (inboxSizeOnReceivingChain < outboxSizeOnSendingChain) {
-				const ccmBytes = codec.encode(ccmSchema, ccm);
+				const ccmBytes = codec.encode(Modules.Interoperability.ccmSchema, ccm);
 				totalSize += ccmBytes.length;
 				if (totalSize < maxCCUSize) {
 					includedSerializedCCMs.push(ccmBytes);

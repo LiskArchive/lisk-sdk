@@ -18,7 +18,7 @@ import {
 	Application,
 	blockHeaderSchema,
 	blockSchema,
-	ModuleMetadataJSON,
+	Modules,
 	PartialApplicationConfig,
 	RegisteredSchema,
 	transactionSchema,
@@ -58,7 +58,7 @@ interface SignFlags {
 const signTransaction = async (
 	flags: SignFlags,
 	registeredSchema: RegisteredSchema,
-	metadata: ModuleMetadataJSON[],
+	metadata: Modules.ModuleMetadataJSON[],
 	transactionHexStr: string,
 	chainID: string | undefined,
 	keys: Keys,
@@ -106,7 +106,7 @@ const signTransaction = async (
 const signTransactionOffline = async (
 	flags: SignFlags,
 	registeredSchema: RegisteredSchema,
-	metadata: ModuleMetadataJSON[],
+	metadata: Modules.ModuleMetadataJSON[],
 	transactionHexStr: string,
 ): Promise<Record<string, unknown>> => {
 	const mandatoryKeys = flags['mandatory-keys'];
@@ -133,7 +133,7 @@ const signTransactionOnline = async (
 	flags: SignFlags,
 	client: apiClient.APIClient,
 	registeredSchema: RegisteredSchema,
-	metadata: ModuleMetadataJSON[],
+	metadata: Modules.ModuleMetadataJSON[],
 	transactionHexStr: string,
 ) => {
 	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
@@ -191,7 +191,7 @@ export abstract class SignCommand extends Command {
 
 	protected _client: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 	protected _schema!: RegisteredSchema;
-	protected _metadata!: ModuleMetadataJSON[];
+	protected _metadata!: Modules.ModuleMetadataJSON[];
 	protected _dataPath!: string;
 
 	async run(): Promise<void> {

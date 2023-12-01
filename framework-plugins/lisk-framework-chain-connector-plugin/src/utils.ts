@@ -12,19 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	AggregateCommit,
-	ChainAccount,
-	ChainAccountJSON,
-	ChannelData,
-	ChannelDataJSON,
-	Inbox,
-	InboxJSON,
-	Outbox,
-	OutboxJSON,
-	BFTParameters,
-	ProveResponse,
-} from 'lisk-sdk';
+import { Engine, Modules, ProveResponse } from 'lisk-sdk';
 
 import {
 	BFTParametersJSON,
@@ -36,7 +24,7 @@ import {
 
 import { CHAIN_ID_LENGTH } from './constants';
 
-interface BFTParametersWithoutGeneratorKey extends Omit<BFTParameters, 'validators'> {
+interface BFTParametersWithoutGeneratorKey extends Omit<Engine.BFTParameters, 'validators'> {
 	validators: {
 		address: Buffer;
 		bftWeight: bigint;
@@ -50,7 +38,7 @@ export const getMainchainID = (chainID: Buffer): Buffer => {
 	return Buffer.concat([networkID, Buffer.alloc(CHAIN_ID_LENGTH - 1, 0)]);
 };
 
-export const aggregateCommitToJSON = (aggregateCommit: AggregateCommit) => ({
+export const aggregateCommitToJSON = (aggregateCommit: Engine.AggregateCommit) => ({
 	height: aggregateCommit.height,
 	aggregationBits: aggregateCommit.aggregationBits.toString('hex'),
 	certificateSignature: aggregateCommit.certificateSignature.toString('hex'),
@@ -90,16 +78,16 @@ export const validatorsHashPreimagetoJSON = (validatorsHashPreimage: ValidatorsD
 	return validatorsHashPreimageJSON;
 };
 
-export const channelDataToJSON = (channelData: ChannelData) => {
+export const channelDataToJSON = (channelData: Modules.Interoperability.ChannelData) => {
 	const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot, minReturnFeePerByte } =
 		channelData;
-	const inboxJSON: InboxJSON = {
+	const inboxJSON: Modules.Interoperability.InboxJSON = {
 		appendPath: inbox.appendPath.map(ap => ap.toString('hex')),
 		root: inbox.root.toString('hex'),
 		size: inbox.size,
 	};
 
-	const outboxJSON: OutboxJSON = {
+	const outboxJSON: Modules.Interoperability.OutboxJSON = {
 		appendPath: outbox.appendPath.map(ap => ap.toString('hex')),
 		root: outbox.root.toString('hex'),
 		size: outbox.size,
@@ -114,17 +102,19 @@ export const channelDataToJSON = (channelData: ChannelData) => {
 	};
 };
 
-export const channelDataJSONToObj = (channelData: ChannelDataJSON): ChannelData => {
+export const channelDataJSONToObj = (
+	channelData: Modules.Interoperability.ChannelDataJSON,
+): Modules.Interoperability.ChannelData => {
 	const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot, minReturnFeePerByte } =
 		channelData;
 
-	const inboxJSON: Inbox = {
+	const inboxJSON: Modules.Interoperability.Inbox = {
 		appendPath: inbox.appendPath.map(ap => Buffer.from(ap, 'hex')),
 		root: Buffer.from(inbox.root, 'hex'),
 		size: inbox.size,
 	};
 
-	const outboxJSON: Outbox = {
+	const outboxJSON: Modules.Interoperability.Outbox = {
 		appendPath: outbox.appendPath.map(ap => Buffer.from(ap, 'hex')),
 		root: Buffer.from(outbox.root, 'hex'),
 		size: outbox.size,
@@ -139,7 +129,9 @@ export const channelDataJSONToObj = (channelData: ChannelDataJSON): ChannelData 
 	};
 };
 
-export const chainAccountDataJSONToObj = (chainAccountJSON: ChainAccountJSON): ChainAccount => {
+export const chainAccountDataJSONToObj = (
+	chainAccountJSON: Modules.Interoperability.ChainAccountJSON,
+): Modules.Interoperability.ChainAccount => {
 	const { lastCertificate } = chainAccountJSON;
 	return {
 		...chainAccountJSON,

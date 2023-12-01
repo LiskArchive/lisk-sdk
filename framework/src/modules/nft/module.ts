@@ -69,7 +69,31 @@ import {
 } from './constants';
 
 /**
+ * ## Description
  * The `NFTModule` is used for creating, destroying NFTs (non-fungible tokens), and transferring them in the Lisk ecosystem.
+ *
+ * ## Not a stand-alone module
+ * The NFT module is not intended to be used as stand-alone module.
+ * Instead, it should be used inside other modules, that intend to implement features related to NFTs.
+ * Other modules can use the provided {@link method | methods} of the NFT module, to implement custom commands for minting and destroying NFTs in the network.
+ * This allows to define the specific details about how NFT are created, and who is allowed to mint them.
+ *
+ * ## NFT Identifier
+ * To identify NFTs in the Lisk ecosystem, we introduce the `nftID`, a unique NFT identifier in the ecosystem.
+ * It is a 16 bytes long concatenation of the 4 bytes long `chainID`, the chain ID of the chain creating the NFT, the 4 bytes long `collectionID`, chosen when the NFT is created, and a 8 bytes long serialization of an index integer, automatically assigned at the NFT creation.
+ *
+ * This allows chains to define multiple sets of NFTs, each identified by their respective collection. Each collection can then easily have its own attributes schema and custom logic.
+ * For example, an art NFT exchange could have a different collection per artist, index being then a unique integer associated with each art piece of this artist.
+ *
+ * ## Attributes
+ * Each NFT is stored with an array of attributes specified by various modules, with each attribute property being a byte sequence that is not deserialized by the NFT module.
+ * Each custom module using NFTs should define schemas to serialize and deserialize their attributes property of NFTs.
+ *
+ * Note that the attributes properties are not limited in size by default, which can potentially cause the CCM {@link validateFormat} failure during the cross-chain NFT transfer.
+ *
+ * When an NFT is sent to another chain, the attributes properties of the NFT can be modified according to specifications set on the receiving chain.
+ * When the NFT is received back on its native chain, the returned modified attributes are disregarded and the original attributes are restored, as currently defined by {@link getNewAttributes} function.
+ * If needed, custom modules can implement a more fine-grained approach towards the attributes that are modified cross-chain.
  *
  * @see [LIP 0052 - Introduce NFT module](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0052.md)
  */

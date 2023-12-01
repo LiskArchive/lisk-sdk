@@ -29,8 +29,17 @@ export interface TransferParams {
 }
 
 /**
- * The Transfer command of the NFT modules transfers an NFT from one account to another.
+ * The Transfer command transfers an NFT from one account to another.
  *
+ * ## Parameters
+ * - `nftID`: number (16 byte long)
+ * - `recipientAddress`: string (Lisk32 address)
+ * - `data`: string (Optional transfer message)
+ *
+ * @example
+ *  ```sh
+ *  ./bin/run transaction:create nft transfer 10000000 --params='{"nftID":"01000000000000010000000000000001","recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"Congratulations on completing the course!"}'
+ *  ```
  */
 export class TransferCommand extends BaseCommand {
 	public schema = transferParamsSchema;

@@ -15,13 +15,7 @@
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
-import {
-	cryptography,
-	codec,
-	chain,
-	db as liskDB,
-	areDistinctHeadersContradicting,
-} from 'lisk-sdk';
+import { cryptography, codec, chain, db as liskDB, Engine } from 'lisk-sdk';
 
 const { BlockHeader } = chain;
 const { utils } = cryptography;
@@ -129,7 +123,7 @@ export const getContradictingBlockHeader = async (
 			continue;
 		}
 
-		const isContradicting = areDistinctHeadersContradicting(header, blockHeader);
+		const isContradicting = Engine.areDistinctHeadersContradicting(header, blockHeader);
 
 		if (isContradicting) {
 			return header;

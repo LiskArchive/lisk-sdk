@@ -12,4 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { createLogger, Logger } from './logger';
+export * from './logger';

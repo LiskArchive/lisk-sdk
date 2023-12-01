@@ -12,23 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	AggregateCommit,
-	BFTHeights,
-	Certificate,
-	chain,
-	computeUnsignedCertificateFromBlockHeader,
-	LastCertificate,
-} from 'lisk-sdk';
+import { Engine, chain, Modules } from 'lisk-sdk';
 import { BlockHeader, ValidatorsData } from './types';
 
 /**
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0061.md#getcertificatefromaggregatecommit
  */
 export const getCertificateFromAggregateCommit = (
-	aggregateCommit: AggregateCommit,
+	aggregateCommit: Engine.AggregateCommit,
 	blockHeaders: BlockHeader[],
-): Certificate => {
+): Engine.Certificate => {
 	const blockHeader = blockHeaders.find(header => header.height === aggregateCommit.height);
 
 	if (!blockHeader) {
@@ -38,7 +31,7 @@ export const getCertificateFromAggregateCommit = (
 	}
 
 	return {
-		...computeUnsignedCertificateFromBlockHeader(new chain.BlockHeader(blockHeader)),
+		...Engine.computeUnsignedCertificateFromBlockHeader(new chain.BlockHeader(blockHeader)),
 		aggregationBits: aggregateCommit.aggregationBits,
 		signature: aggregateCommit.certificateSignature,
 	};
@@ -51,7 +44,7 @@ export const checkChainOfTrust = (
 	lastValidatorsHash: Buffer,
 	blsKeyToBFTWeight: Record<string, bigint>,
 	lastCertificateThreshold: bigint,
-	aggregateCommit: AggregateCommit,
+	aggregateCommit: Engine.AggregateCommit,
 	blockHeaders: BlockHeader[],
 	validatorsHashPreimage: ValidatorsData[],
 ): boolean => {
@@ -101,11 +94,11 @@ export const checkChainOfTrust = (
  */
 export const getNextCertificateFromAggregateCommits = (
 	blockHeaders: BlockHeader[],
-	aggregateCommits: AggregateCommit[],
+	aggregateCommits: Engine.AggregateCommit[],
 	validatorsHashPreimage: ValidatorsData[],
-	bftHeights: BFTHeights,
-	lastCertificate: LastCertificate,
-): Certificate | undefined => {
+	bftHeights: Engine.BFTHeights,
+	lastCertificate: Modules.Interoperability.LastCertificate,
+): Engine.Certificate | undefined => {
 	const blockHeaderAtLastCertifiedHeight = blockHeaders.find(
 		header => header.height === lastCertificate.height,
 	);

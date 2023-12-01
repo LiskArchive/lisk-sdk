@@ -27,6 +27,7 @@ export {
 export { Application } from './application';
 export { systemDirs } from './system_dirs';
 export * from './plugins';
+export * from './logger';
 export * as Controller from './controller';
 export * as testing from './testing';
 export * as Modules from './modules';

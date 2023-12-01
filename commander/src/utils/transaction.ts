@@ -16,14 +16,14 @@ import * as liskApiClient from '@liskhq/lisk-api-client';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { TransactionJSON } from '@liskhq/lisk-chain';
-import { ModuleMetadataJSON, RegisteredSchema } from 'lisk-framework';
+import { Modules, RegisteredSchema } from 'lisk-framework';
 
 import { Schema } from '../types';
 import { getDefaultPath } from './path';
 import { isApplicationRunning } from './application';
 
 export const getParamsSchema = (
-	metadata: ModuleMetadataJSON[],
+	metadata: Modules.ModuleMetadataJSON[],
 	module: string,
 	command: string,
 ): Schema => {
@@ -40,7 +40,7 @@ export const getParamsSchema = (
 
 export const decodeTransaction = (
 	schema: RegisteredSchema,
-	metadata: ModuleMetadataJSON[],
+	metadata: Modules.ModuleMetadataJSON[],
 	transactionHexStr: string,
 ) => {
 	const transactionBytes = Buffer.from(transactionHexStr, 'hex');
@@ -60,7 +60,7 @@ export const decodeTransaction = (
 
 export const encodeTransaction = (
 	schema: RegisteredSchema,
-	metadata: ModuleMetadataJSON[],
+	metadata: Modules.ModuleMetadataJSON[],
 	transaction: Record<string, unknown>,
 	apiClient?: liskApiClient.APIClient,
 ): Buffer => {
@@ -79,7 +79,7 @@ export const encodeTransaction = (
 
 export const encodeTransactionJSON = (
 	schema: RegisteredSchema,
-	metadata: ModuleMetadataJSON[],
+	metadata: Modules.ModuleMetadataJSON[],
 	transaction: Record<string, unknown>,
 	apiClient?: liskApiClient.APIClient,
 ): Buffer => {
@@ -101,7 +101,7 @@ export const encodeTransactionJSON = (
 
 export const transactionToJSON = (
 	schema: RegisteredSchema,
-	metadata: ModuleMetadataJSON[],
+	metadata: Modules.ModuleMetadataJSON[],
 	transaction: Record<string, unknown>,
 	apiClient?: liskApiClient.APIClient,
 ): Record<string, unknown> => {

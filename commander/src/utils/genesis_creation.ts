@@ -15,14 +15,7 @@
  */
 import { Schema } from '@liskhq/lisk-codec';
 import { address } from '@liskhq/lisk-cryptography';
-import {
-	genesisInteroperabilitySchema,
-	MODULE_NAME_INTEROPERABILITY,
-	posGenesisStoreSchema,
-	PoSModule,
-	tokenGenesisStoreSchema,
-	TokenModule,
-} from 'lisk-framework';
+import { Modules } from 'lisk-framework';
 
 export const genesisAssetsSchema = {
 	$id: '/genesis/asset/0',
@@ -91,7 +84,7 @@ export const generateGenesisBlockDefaultPoSAssets = (input: GenesisBlockDefaultA
 	);
 	const genesisAssets = [
 		{
-			module: new TokenModule().name,
+			module: new Modules.Token.TokenModule().name,
 			data: {
 				userSubstore: input.keysList.map(a => ({
 					address: a.address,
@@ -108,10 +101,10 @@ export const generateGenesisBlockDefaultPoSAssets = (input: GenesisBlockDefaultA
 				escrowSubstore: [],
 				supportedTokensSubstore: [],
 			} as Record<string, unknown>,
-			schema: tokenGenesisStoreSchema,
+			schema: Modules.Token.genesisTokenStoreSchema,
 		},
 		{
-			module: new PoSModule().name,
+			module: new Modules.PoS.PoSModule().name,
 			data: {
 				validators: input.keysList.map((v, i) => ({
 					address: v.address,
@@ -133,10 +126,10 @@ export const generateGenesisBlockDefaultPoSAssets = (input: GenesisBlockDefaultA
 					initValidators: input.keysList.slice(0, input.numberOfValidators).map(v => v.address),
 				},
 			} as Record<string, unknown>,
-			schema: posGenesisStoreSchema,
+			schema: Modules.PoS.genesisStoreSchema,
 		},
 		{
-			module: MODULE_NAME_INTEROPERABILITY,
+			module: Modules.Interoperability.MODULE_NAME_INTEROPERABILITY,
 			data: {
 				ownChainName: '',
 				ownChainNonce: 0,
@@ -144,7 +137,7 @@ export const generateGenesisBlockDefaultPoSAssets = (input: GenesisBlockDefaultA
 				terminatedStateAccounts: [],
 				terminatedOutboxAccounts: [],
 			},
-			schema: genesisInteroperabilitySchema,
+			schema: Modules.Interoperability.genesisInteroperabilitySchema,
 		},
 	];
 
