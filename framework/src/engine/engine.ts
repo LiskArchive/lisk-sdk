@@ -88,7 +88,7 @@ export const BLOCKCHAIN_DB_NAME = 'blockchain.db';
 export class Engine {
 	private readonly _abi: ABI;
 	private readonly _config: EngineConfig;
-	private readonly _stateMachine: StateMachine | undefined;
+	private readonly _stateMachine: StateMachine;
 	private _consensus!: Consensus;
 	private _generator!: Generator;
 	private _network!: Network;
@@ -103,7 +103,7 @@ export class Engine {
 	private _legacyDB!: Database;
 	private _chainID!: Buffer;
 
-	public constructor(abi: ABI, config: EngineConfig, stateMachine?: StateMachine) {
+	public constructor(abi: ABI, config: EngineConfig, stateMachine: StateMachine) {
 		this._abi = abi;
 		this._config = config;
 		this._stateMachine = stateMachine;

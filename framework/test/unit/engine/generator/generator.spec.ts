@@ -38,6 +38,7 @@ import { testing } from '../../../../src';
 import { GeneratorStore } from '../../../../src/engine/generator/generator_store';
 import { CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED } from '../../../../src/engine/consensus/constants';
 import { SingleCommitHandler } from '../../../../src/engine/generator/single_commit_handler';
+import { StateMachine } from '../../../../src/state_machine';
 
 describe('generator', () => {
 	const logger = fakeLogger;
@@ -160,6 +161,7 @@ describe('generator', () => {
 					},
 				},
 			},
+			stateMachine: new StateMachine(),
 		});
 		jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(testing.fixtures.keysList));
 	});

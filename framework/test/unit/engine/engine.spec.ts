@@ -35,6 +35,7 @@ import {
 import { defaultConfig } from '../../../src/testing/fixtures';
 import { createFakeBlockHeader } from '../../fixtures';
 import { LegacyChainHandler } from '../../../src/engine/legacy/legacy_chain_handler';
+import { StateMachine } from '../../../src/state_machine';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
@@ -74,17 +75,21 @@ describe('engine', () => {
 		jest.spyOn(Generator.prototype, 'init').mockResolvedValue(); // init tested via generator.spec
 		jest.spyOn(jobHandlers.Scheduler.prototype, 'start').mockResolvedValue();
 
-		engine = new Engine(abi, {
-			...defaultConfig,
-			genesis: {
-				...defaultConfig.genesis,
-				block: {
-					blob: new Block(createFakeBlockHeader(), [], new BlockAssets())
-						.getBytes()
-						.toString('hex'),
+		engine = new Engine(
+			abi,
+			{
+				...defaultConfig,
+				genesis: {
+					...defaultConfig.genesis,
+					block: {
+						blob: new Block(createFakeBlockHeader(), [], new BlockAssets())
+							.getBytes()
+							.toString('hex'),
+					},
 				},
 			},
-		});
+			new StateMachine(),
+		);
 		engine['_chainID'] = Buffer.from('100000000', 'hex');
 	});
 
@@ -113,21 +118,25 @@ describe('engine', () => {
 
 		it('should initialize legacy chain handler and start syncing blocks if config is set to true', async () => {
 			await engine.stop();
-			engine = new Engine(abi, {
-				...defaultConfig,
-				genesis: {
-					...defaultConfig.genesis,
-					block: {
-						blob: new Block(createFakeBlockHeader(), [], new BlockAssets())
-							.getBytes()
-							.toString('hex'),
+			engine = new Engine(
+				abi,
+				{
+					...defaultConfig,
+					genesis: {
+						...defaultConfig.genesis,
+						block: {
+							blob: new Block(createFakeBlockHeader(), [], new BlockAssets())
+								.getBytes()
+								.toString('hex'),
+						},
+					},
+					legacy: {
+						sync: true,
+						brackets: [],
 					},
 				},
-				legacy: {
-					sync: true,
-					brackets: [],
-				},
-			});
+				new StateMachine(),
+			);
 			engine['_chainID'] = Buffer.from('100000000', 'hex');
 			await engine.start();
 

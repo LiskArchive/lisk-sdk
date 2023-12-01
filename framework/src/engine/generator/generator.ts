@@ -84,7 +84,7 @@ interface GeneratorArgs {
 	bft: BFTModule;
 	abi: ABI;
 	network: Network;
-	stateMachine: StateMachine | undefined;
+	stateMachine: StateMachine;
 }
 
 interface GeneratorInitArgs {

@@ -250,7 +250,7 @@ export const getBlockProcessingEnv = async (
 	});
 	appConfig.genesis.block.blob = genesisBlock.getBytes().toString('hex');
 	appConfig.generator.keys.fromFile = path.join(__dirname, './fixtures/keys_fixture.json');
-	const engine = new Engine(abiHandler, appConfig);
+	const engine = new Engine(abiHandler, appConfig, stateMachine);
 	await engine['_init']();
 	engine['_logger'] = logger;
 	engine['_consensus']['_logger'] = logger;

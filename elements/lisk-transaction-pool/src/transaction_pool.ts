@@ -38,7 +38,7 @@ export interface TransactionPoolConfig {
 	readonly transactionReorganizationInterval?: number;
 	readonly minReplacementFeeDifference?: bigint;
 	readonly maxPayloadLength: number;
-	readonly stateMachine: StateMachineWithLockOnly | undefined;
+	readonly stateMachine: StateMachineWithLockOnly;
 	verifyTransaction(transaction: Transaction): Promise<number>;
 }
 
@@ -75,7 +75,7 @@ export class TransactionPool {
 	private readonly _reorganizeJob: Job<void>;
 	private readonly _feePriorityQueue: dataStructures.MinHeap<Buffer, bigint>;
 	private readonly _expireJob: Job<void>;
-	private readonly _stateMachine: StateMachineWithLockOnly | undefined;
+	private readonly _stateMachine: StateMachineWithLockOnly;
 
 	public constructor(config: TransactionPoolConfig) {
 		this.events = new EventEmitter();
@@ -383,7 +383,9 @@ export class TransactionPool {
 		/*
 			Promote transactions and remove invalid and subsequent transactions by nonce
 		*/
-		if (this._stateMachine?.executeLock) {
+
+		// If executeTransaction is running at StateMachine, skip _reorganize
+		if (this._stateMachine.executeLock) {
 			return;
 		}
 

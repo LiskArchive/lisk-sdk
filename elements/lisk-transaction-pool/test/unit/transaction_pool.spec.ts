@@ -19,8 +19,13 @@ import { TransactionPool } from '../../src/transaction_pool';
 import { Transaction, Status, TransactionStatus } from '../../src/types';
 import { generateRandomPublicKeys } from '../utils/cryptography';
 
+class MockStateMachine {
+	public executeLock = false;
+}
+
 describe('TransactionPool class', () => {
 	let transactionPool: TransactionPool;
+	const stateMachine = new MockStateMachine();
 
 	beforeEach(() => {
 		jest.useFakeTimers();
@@ -28,8 +33,10 @@ describe('TransactionPool class', () => {
 			verifyTransaction: jest.fn().mockResolvedValue(TransactionStatus.PROCESSABLE),
 			transactionReorganizationInterval: 1,
 			maxPayloadLength: 15360,
+			stateMachine,
 		});
 		jest.spyOn(transactionPool.events, 'emit');
+		stateMachine.executeLock = false;
 	});
 
 	describe('constructor', () => {
@@ -53,6 +60,7 @@ describe('TransactionPool class', () => {
 					minEntranceFeePriority: BigInt(10),
 					transactionExpiryTime: 60 * 60 * 1000, // 1 hours in ms
 					maxPayloadLength: 15360,
+					stateMachine,
 				});
 
 				expect((transactionPool as any)._maxTransactions).toBe(2048);
@@ -331,6 +339,7 @@ describe('TransactionPool class', () => {
 				verifyTransaction: jest.fn(),
 				minEntranceFeePriority: BigInt(400),
 				maxPayloadLength: 15360,
+				stateMachine,
 			});
 			const lowFeeTrx = {
 				id: Buffer.from('1'),
@@ -357,6 +366,7 @@ describe('TransactionPool class', () => {
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
 				maxPayloadLength: 15360,
+				stateMachine,
 			});
 
 			const tempVerifyTransactionsStub = jest.fn();
@@ -410,6 +420,7 @@ describe('TransactionPool class', () => {
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
 				maxPayloadLength: 15360,
+				stateMachine,
 			});
 
 			txGetBytesStub = jest.fn();
@@ -474,6 +485,7 @@ describe('TransactionPool class', () => {
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
 				maxPayloadLength: 15360,
+				stateMachine,
 			});
 			(transactionPool['_verifyFunction'] as jest.Mock).mockResolvedValue(
 				TransactionStatus.PROCESSABLE,
@@ -519,6 +531,7 @@ describe('TransactionPool class', () => {
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
 				maxPayloadLength: 15360,
+				stateMachine,
 			});
 
 			const tempVerifyTransactionsStub = jest.fn();
@@ -684,6 +697,7 @@ describe('TransactionPool class', () => {
 				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
 				maxPayloadLength: 15360,
+				stateMachine,
 			});
 			jest.spyOn(transactionPool.events, 'emit');
 			await transactionPool.add(transactions[0]);
@@ -759,6 +773,7 @@ describe('TransactionPool class', () => {
 				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
 				maxPayloadLength: 15360,
+				stateMachine,
 			});
 			jest.spyOn(transactionPool.events, 'emit');
 			await transactionPool.add(transactionsFromSender1[0]);
@@ -841,6 +856,7 @@ describe('TransactionPool class', () => {
 				verifyTransaction: jest.fn().mockResolvedValue(TransactionStatus.PROCESSABLE),
 				transactionReorganizationInterval: 1,
 				maxPayloadLength: 15360,
+				stateMachine,
 			});
 			await transactionPool.add(transactionsFromSender1[0]);
 			await transactionPool.add(transactionsFromSender1[1]);
@@ -859,6 +875,14 @@ describe('TransactionPool class', () => {
 			transactionPool.remove(transactionsFromSender1[2]);
 			transactionPool.remove(transactionsFromSender2[0]);
 			transactionPool.stop();
+		});
+
+		it('should skip reorganize when executeLock is true (i.e. executeTransaction is running)', () => {
+			stateMachine.executeLock = true;
+			jest.advanceTimersByTime(2);
+
+			// Number of times `add` is called, since `add` also calls _verifyFunction
+			expect(transactionPool['_verifyFunction']).toHaveBeenCalledTimes(4);
 		});
 
 		it('should not promote unprocessable transactions to processable transactions', () => {

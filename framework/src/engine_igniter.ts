@@ -16,6 +16,7 @@ import { Engine } from './engine';
 import { ABIClient } from './abi_handler/abi_client';
 import { createLogger } from './logger';
 import { EngineConfig } from './types';
+import { StateMachine } from './state_machine';
 
 const socketPath: string = process.argv[2];
 const configIndex = process.argv.findIndex(arg => arg === '--config' || arg === '-c');
@@ -37,7 +38,7 @@ const abiLogger = createLogger({
 
 let started = false;
 const client = new ABIClient(abiLogger, socketPath);
-const engine = new Engine(client, config);
+const engine = new Engine(client, config, new StateMachine());
 client
 	.start()
 	.then(async () => {
