@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCommand, CommandExecuteContext, NFTMethod } from 'lisk-sdk';
+import { StateMachine, Modules } from 'lisk-sdk';
 import { destroyNftParamsSchema } from '../schema';
 
 interface Params {
@@ -20,15 +20,15 @@ interface Params {
 	nftID: Buffer;
 }
 
-export class DestroyNftCommand extends BaseCommand {
-	private _nftMethod!: NFTMethod;
+export class DestroyNftCommand extends Modules.BaseCommand {
+	private _nftMethod!: Modules.NFT.NFTMethod;
 	public schema = destroyNftParamsSchema;
 
-	public init(args: { nftMethod: NFTMethod }): void {
+	public init(args: { nftMethod: Modules.NFT.NFTMethod }): void {
 		this._nftMethod = args.nftMethod;
 	}
 
-	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
+	public async execute(context: StateMachine.CommandExecuteContext<Params>): Promise<void> {
 		const { params } = context;
 
 		await this._nftMethod.destroy(context.getMethodContext(), params.address, params.nftID);
