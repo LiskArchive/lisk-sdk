@@ -1,3 +1,3 @@
-import { BaseCCMethod } from 'lisk-sdk';
+import { Modules } from 'lisk-sdk';
 
-export class HelloInteroperableMethod extends BaseCCMethod {}
+export class HelloInteroperableMethod extends Modules.Interoperability.BaseCCMethod {}

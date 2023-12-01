@@ -1,11 +1,8 @@
 /* eslint-disable class-methods-use-this */
 
 import {
-	BaseCommand,
-	CommandVerifyContext,
-	CommandExecuteContext,
-	VerificationResult,
-	VerifyStatus,
+	Modules,
+	StateMachine,
 	codec,
 } from 'lisk-sdk';
 import { CROSS_CHAIN_COMMAND_NAME_REACT } from '../constants';
@@ -17,7 +14,7 @@ import {
 } from '../schemas';
 import { InteroperabilityMethod } from '../types';
 
-export class ReactCrossChainCommand extends BaseCommand {
+export class ReactCrossChainCommand extends Modules.BaseCommand {
 	private _interoperabilityMethod!: InteroperabilityMethod;
 	public schema = CCReactCommandParamsSchema;
 
@@ -31,8 +28,8 @@ export class ReactCrossChainCommand extends BaseCommand {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(
-		context: CommandVerifyContext<CCReactCommandParams>,
-	): Promise<VerificationResult> {
+		context: StateMachine.CommandVerifyContext<CCReactCommandParams>,
+	): Promise<StateMachine.VerificationResult> {
 		const { params, logger } = context;
 
 		logger.info('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
@@ -45,16 +42,16 @@ export class ReactCrossChainCommand extends BaseCommand {
 			}
 		} catch (err) {
 			return {
-				status: VerifyStatus.FAIL,
+				status: StateMachine.VerifyStatus.FAIL,
 				error: err as Error,
 			};
 		}
 		return {
-			status: VerifyStatus.OK,
+			status: StateMachine.VerifyStatus.OK,
 		};
 	}
 
-	public async execute(context: CommandExecuteContext<CCReactCommandParams>): Promise<void> {
+	public async execute(context: StateMachine.CommandExecuteContext<CCReactCommandParams>): Promise<void> {
 		const {
 			params,
 			transaction: { senderAddress },

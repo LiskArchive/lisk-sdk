@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore } from 'lisk-sdk';
+import { Modules } from 'lisk-sdk';
 
 export interface CounterStoreData {
 	counter: number;
@@ -31,6 +31,6 @@ export const counterStoreSchema = {
 	},
 };
 
-export class CounterStore extends BaseStore<CounterStoreData> {
+export class CounterStore extends Modules.BaseStore<CounterStoreData> {
 	public schema = counterStoreSchema;
 }

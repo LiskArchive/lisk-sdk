@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseEvent } from 'lisk-sdk';
+import { Modules } from 'lisk-sdk';
 
 export const newHelloEventSchema = {
 	$id: '/hello/events/new_hello',
@@ -34,6 +34,6 @@ export interface NewHelloEventData {
 	message: string;
 }
 
-export class NewHelloEvent extends BaseEvent<NewHelloEventData> {
+export class NewHelloEvent extends Modules.BaseEvent<NewHelloEventData> {
 	public schema = newHelloEventSchema;
 }

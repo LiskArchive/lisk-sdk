@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCCMethod } from 'lisk-sdk';
+import { Modules } from 'lisk-sdk';
 
-export class ReactInteroperableMethod extends BaseCCMethod {}
+export class ReactInteroperableMethod extends Modules.Interoperability.BaseCCMethod {}

@@ -2,18 +2,9 @@
 
 import {
 	validator,
-	BaseInteroperableModule,
-	BlockAfterExecuteContext,
-	BlockExecuteContext,
-	BlockVerifyContext,
-	GenesisBlockExecuteContext,
-	InsertAssetContext,
-	ModuleInitArgs,
-	ModuleMetadata,
-	TransactionExecuteContext,
-	TransactionVerifyContext,
+	StateMachine,
+	Modules,
 	utils,
-	VerificationResult,
 } from 'lisk-sdk';
 import { CreateHelloCommand } from './commands/create_hello_command';
 import { ReactCCCommand } from './cc_commands/react_command';
@@ -29,7 +20,7 @@ import {
 import { CounterStore } from './stores/counter';
 import { MessageStore } from './stores/message';
 import { ReactionStore, reactionStoreSchema } from './stores/reaction';
-import { ModuleConfigJSON } from './types';
+import { ModuleConfig } from './types';
 import { HelloInteroperableMethod } from './cc_method';
 
 export const defaultConfig = {
@@ -38,7 +29,7 @@ export const defaultConfig = {
 	blacklist: ['illegalWord1'],
 };
 
-export class HelloModule extends BaseInteroperableModule {
+export class HelloModule extends Modules.Interoperability.BaseInteroperableModule {
 	public endpoint = new HelloEndpoint(this.stores, this.offchainStores);
 	public method = new HelloMethod(this.stores, this.events);
 	public commands = [new CreateHelloCommand(this.stores, this.events)];
@@ -55,7 +46,7 @@ export class HelloModule extends BaseInteroperableModule {
 		this.events.register(NewHelloEvent, new NewHelloEvent(this.name));
 	}
 
-	public metadata(): ModuleMetadata {
+	public metadata(): Modules.ModuleMetadata {
 		return {
 			endpoints: [
 				{
@@ -88,13 +79,13 @@ export class HelloModule extends BaseInteroperableModule {
 
 	// Lifecycle hooks
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async init(args: ModuleInitArgs): Promise<void> {
+	public async init(args: Modules.ModuleInitArgs): Promise<void> {
 		// Get the module config defined in the config.json file
 		const { moduleConfig } = args;
 		// Overwrite the default module config with values from config.json, if set
-		const config = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfigJSON;
+		const config: ModuleConfig = utils.objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
 		// Validate the provided config with the config schema
-		validator.validator.validate<ModuleConfigJSON>(configSchema, config);
+		validator.validator.validate<ModuleConfig>(configSchema, config);
 		// Call the command init() method with config values as parameters
 		this.commands[0].init(config).catch(err => {
 			// eslint-disable-next-line no-console
@@ -102,17 +93,17 @@ export class HelloModule extends BaseInteroperableModule {
 		});
 	}
 
-	public async insertAssets(_context: InsertAssetContext) {
+	public async insertAssets(_context: StateMachine.InsertAssetContext) {
 		// initialize block generation, add asset
 	}
 
-	public async verifyAssets(_context: BlockVerifyContext): Promise<void> {
+	public async verifyAssets(_context: StateMachine.BlockVerifyContext): Promise<void> {
 		// verify block
 	}
 
 	// Lifecycle hooks
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async verifyTransaction(_context: TransactionVerifyContext): Promise<VerificationResult> {
+	public async verifyTransaction(_context: StateMachine.TransactionVerifyContext): Promise<StateMachine.VerificationResult> {
 		// verify transaction will be called multiple times in the transaction pool
 		const result = {
 			status: 1,
@@ -121,20 +112,20 @@ export class HelloModule extends BaseInteroperableModule {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async beforeCommandExecute(_context: TransactionExecuteContext): Promise<void> {}
+	public async beforeCommandExecute(_context: StateMachine.TransactionExecuteContext): Promise<void> {}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async afterCommandExecute(_context: TransactionExecuteContext): Promise<void> {}
+	public async afterCommandExecute(_context: StateMachine.TransactionExecuteContext): Promise<void> {}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async initGenesisState(_context: GenesisBlockExecuteContext): Promise<void> {}
+	public async initGenesisState(_context: StateMachine.GenesisBlockExecuteContext): Promise<void> {}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async finalizeGenesisState(_context: GenesisBlockExecuteContext): Promise<void> {}
+	public async finalizeGenesisState(_context: StateMachine.GenesisBlockExecuteContext): Promise<void> {}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async beforeTransactionsExecute(_context: BlockExecuteContext): Promise<void> {}
+	public async beforeTransactionsExecute(_context: StateMachine.BlockExecuteContext): Promise<void> {}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async afterTransactionsExecute(_context: BlockAfterExecuteContext): Promise<void> {}
+	public async afterTransactionsExecute(_context: StateMachine.BlockAfterExecuteContext): Promise<void> {}
 }

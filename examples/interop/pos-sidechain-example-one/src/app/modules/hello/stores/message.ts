@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseStore } from 'lisk-sdk';
+import { Modules } from 'lisk-sdk';
 
 export interface MessageStoreData {
 	message: string;
@@ -29,6 +29,6 @@ export const messageStoreSchema = {
 	},
 };
 
-export class MessageStore extends BaseStore<MessageStoreData> {
+export class MessageStore extends Modules.BaseStore<MessageStoreData> {
 	public schema = messageStoreSchema;
 }

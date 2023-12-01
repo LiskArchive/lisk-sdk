@@ -1,9 +1,9 @@
-import { BaseEndpoint, ModuleEndpointContext, cryptography } from 'lisk-sdk';
+import { Modules, ModuleEndpointContext, cryptography } from 'lisk-sdk';
 import { counterKey, CounterStore, CounterStoreData } from './stores/counter';
 import { MessageStore, MessageStoreData } from './stores/message';
 import { ReactionStore, ReactionStoreData } from './stores/reaction';
 
-export class HelloEndpoint extends BaseEndpoint {
+export class HelloEndpoint extends Modules.BaseEndpoint {
 	public async getHelloCounter(ctx: ModuleEndpointContext): Promise<CounterStoreData> {
 		const counterSubStore = this.stores.get(CounterStore);
 

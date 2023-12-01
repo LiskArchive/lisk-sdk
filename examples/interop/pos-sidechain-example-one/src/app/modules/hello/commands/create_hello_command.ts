@@ -1,11 +1,8 @@
 /* eslint-disable class-methods-use-this */
 
 import {
-	BaseCommand,
-	CommandVerifyContext,
-	CommandExecuteContext,
-	VerificationResult,
-	VerifyStatus,
+	Modules,
+	StateMachine,
 } from 'lisk-sdk';
 import { createHelloSchema } from '../schemas';
 import { MessageStore } from '../stores/message';
@@ -17,7 +14,7 @@ interface Params {
 	message: string;
 }
 
-export class CreateHelloCommand extends BaseCommand {
+export class CreateHelloCommand extends Modules.BaseCommand {
 	public schema = createHelloSchema;
 	private _blacklist!: string[];
 
@@ -32,8 +29,8 @@ export class CreateHelloCommand extends BaseCommand {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
-		let validation: VerificationResult;
+	public async verify(context: StateMachine.CommandVerifyContext<Params>): Promise<StateMachine.VerificationResult> {
+		let validation: StateMachine.VerificationResult;
 		const wordList = context.params.message.split(' ');
 		const found = this._blacklist.filter(value => wordList.includes(value));
 		if (found.length > 0) {
@@ -42,13 +39,13 @@ export class CreateHelloCommand extends BaseCommand {
 		} else {
 			context.logger.info('==== NOT FOUND: Message contains no blacklisted words ====');
 			validation = {
-				status: VerifyStatus.OK,
+				status: StateMachine.VerifyStatus.OK,
 			};
 		}
 		return validation;
 	}
 
-	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
+	public async execute(context: StateMachine.CommandExecuteContext<Params>): Promise<void> {
 		// 1. Get account data of the sender of the Hello transaction.
 		const { senderAddress } = context.transaction;
 		// 2. Get message and counter stores.

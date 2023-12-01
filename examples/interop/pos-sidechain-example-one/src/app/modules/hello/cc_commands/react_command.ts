@@ -1,12 +1,12 @@
 /* eslint-disable class-methods-use-this */
 
-import { BaseCCCommand, CrossChainMessageContext, codec, cryptography, db } from 'lisk-sdk';
+import { Modules, codec, cryptography, db } from 'lisk-sdk';
 import { CCReactMessageParamsSchema, CCReactMessageParams } from '../schemas';
 import { MAX_RESERVED_ERROR_STATUS, CROSS_CHAIN_COMMAND_NAME_REACT } from '../constants';
 import { ReactionStore, ReactionStoreData } from '../stores/reaction';
 import { MessageStore } from '../stores/message';
 
-export class ReactCCCommand extends BaseCCCommand {
+export class ReactCCCommand extends Modules.Interoperability.BaseCCCommand {
 	public schema = CCReactMessageParamsSchema;
 
 	public get name(): string {
@@ -14,7 +14,7 @@ export class ReactCCCommand extends BaseCCCommand {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async verify(ctx: CrossChainMessageContext): Promise<void> {
+	public async verify(ctx: Modules.Interoperability.CrossChainMessageContext): Promise<void> {
 		const { ccm } = ctx;
 
 		if (ccm.status > MAX_RESERVED_ERROR_STATUS) {
@@ -30,7 +30,7 @@ export class ReactCCCommand extends BaseCCCommand {
 		}
 	}
 
-	public async execute(ctx: CrossChainMessageContext): Promise<void> {
+	public async execute(ctx: Modules.Interoperability.CrossChainMessageContext): Promise<void> {
 		const { ccm, logger } = ctx;
 		logger.info('Executing React CCM');
 		// const { sendingChainID, status, receivingChainID } = ccm;
