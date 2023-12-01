@@ -483,7 +483,7 @@ describe('Chain endpoint', () => {
 	});
 
 	describe('areHeadersContradicting', () => {
-		it('should if provided parameters are not valid', async () => {
+		it('should throw if provided parameters are not valid', async () => {
 			await expect(
 				endpoint.areHeadersContradicting(
 					createRequestContext({
