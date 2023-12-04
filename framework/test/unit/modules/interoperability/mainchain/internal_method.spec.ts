@@ -144,5 +144,20 @@ describe('Mainchain interoperability internal method', () => {
 
 			expect(isLive).toBe(false);
 		});
+
+		it(`should return true when chain account exists, status is ${ChainStatus.ACTIVE} and liveness requirement IS fulfilled`, async () => {
+			await chainDataSubstore.set(context, chainID, {
+				...chainAccount,
+				status: ChainStatus.ACTIVE,
+			});
+
+			const isLive = await mainchainInteroperabilityInternalMethod.isLive(
+				context,
+				chainID,
+				timestamp,
+			);
+
+			expect(isLive).toBe(true);
+		});
 	});
 });
