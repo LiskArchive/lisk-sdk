@@ -34,6 +34,24 @@ describe('event', () => {
 		it('should create eventObject from encoded bytes', () => {
 			expect(Event.fromBytes(encodedEvent).toObject()).toEqual(eventObj);
 		});
+
+		it('should throw an error if the input buffer is empty', () => {
+			expect(() => Event.fromBytes(Buffer.alloc(0))).toThrow(
+				'Message does not contain a property for fieldNumber: 1.',
+			);
+		});
+
+		it('should throw an error if the input buffer is not a valid Event object', () => {
+			expect(() => Event.fromBytes(Buffer.alloc(1))).toThrow(
+				'Invalid field number while decoding.',
+			);
+		});
+
+		it('should throw an error if the input buffer is missing a required property', () => {
+			const value = Buffer.from('...');
+
+			expect(() => Event.fromBytes(value)).toThrow('Value yields unsupported wireType');
+		});
 	});
 
 	describe('id', () => {
@@ -81,6 +99,30 @@ describe('event', () => {
 				const topicIndex = indexNum - (eventObj.index << 2);
 				expect(topicIndex).toEqual(i);
 			}
+		});
+
+		it('should throw an error when topics is not an array', () => {
+			const event = { ...eventObj, topics: 'not an array' };
+
+			expect(() => Event.fromBytes(codec.encode(eventSchema, event))).toThrow(
+				`The "list[1]" argument must be an instance of Buffer or Uint8Array. Received type string ('n')`,
+			);
+		});
+
+		it('should throw an error when topics contains non-buffer elements', () => {
+			const event = { ...eventObj, topics: ['not a buffer'] };
+
+			expect(() => Event.fromBytes(codec.encode(eventSchema, event))).toThrow(
+				`The "list[1]" argument must be an instance of Buffer or Uint8Array. Received type string ('not a buffer')`,
+			);
+		});
+
+		it('should throw an error when data is not a buffer', () => {
+			const event = { ...eventObj, data: 'not a buffer' };
+
+			expect(() => Event.fromBytes(codec.encode(eventSchema, event))).toThrow(
+				`The "list[1]" argument must be an instance of Buffer or Uint8Array. Received type string ('not a buffer')`,
+			);
 		});
 	});
 
