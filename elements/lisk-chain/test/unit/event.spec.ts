@@ -22,7 +22,7 @@ import { EVENT_TOPIC_HASH_LENGTH_BYTES, EVENT_TOTAL_INDEX_LENGTH_BYTES } from '.
 describe('event', () => {
 	const eventObj = {
 		module: 'token',
-		name: 'Token Event Name',
+		name: 'TokenEventName',
 		topics: [utils.getRandomBytes(32), utils.getRandomBytes(20), utils.getRandomBytes(2)],
 		index: 4,
 		height: 10,
@@ -89,7 +89,7 @@ describe('event', () => {
 			const event = Event.fromBytes(encodedEvent).toJSON();
 			expect(event).toEqual({
 				module: 'token',
-				name: 'Token Event Name',
+				name: 'TokenEventName',
 				index: 4,
 				height: 10,
 				topics: eventObj.topics.map(t => t.toString('hex')),
