@@ -20,7 +20,6 @@ import * as readerUtils from '../../../../src/utils/reader';
 import { CreateCommand } from '../../../../src/bootstrapping/commands/keys/create';
 import { getConfig } from '../../../helpers/config';
 import { Awaited } from '../../../types';
-// import { OWNER_READ_WRITE } from '../../../../src/constants';
 import * as outputUtils from '../../../../src/utils/output';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
