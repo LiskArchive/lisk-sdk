@@ -41,7 +41,7 @@ export class HelloModule extends Modules.Interoperability.BaseInteroperableModul
 		this.events.register(NewHelloEvent, new NewHelloEvent(this.name));
 	}
 
-	public metadata(): Modules.ModuleMetadata {
+	public metadata() {
 		return {
 			endpoints: [
 				{
