@@ -12,9 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Event, StateStore } from '@liskhq/lisk-chain';
+import {
+	Block,
+	BlockAssets,
+	BlockHeader,
+	Event,
+	StateStore,
+	Transaction,
+} from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
-import { Batch, Database, InMemoryDatabase } from '@liskhq/lisk-db';
+import { Batch, Database, InMemoryDatabase, NotFoundError } from '@liskhq/lisk-db';
 import {
 	EMPTY_KEY,
 	MODULE_STORE_PREFIX_BFT,
@@ -24,12 +31,51 @@ import {
 import { bftParametersSchema, bftVotesSchema } from '../../../../src/engine/bft/schemas';
 import { ChainEndpoint } from '../../../../src/engine/endpoint/chain';
 import { createRequestContext } from '../../../utils/mocks/endpoint';
+import * as bftUtils from '../../../../src/engine/bft/utils';
 
 describe('Chain endpoint', () => {
 	const DEFAULT_INTERVAL = 10;
 	let stateStore: StateStore;
 	let endpoint: ChainEndpoint;
 	let db: InMemoryDatabase;
+	const transaction = new Transaction({
+		module: 'token',
+		command: 'transfer',
+		fee: BigInt(613000),
+		params: utils.getRandomBytes(100),
+		nonce: BigInt(2),
+		senderPublicKey: utils.getRandomBytes(32),
+		signatures: [utils.getRandomBytes(64)],
+	});
+	const blockAsset = new BlockAssets();
+	const getBlockAttrs = (attrs?: Record<string, unknown>) => ({
+		version: 1,
+		timestamp: 1009988,
+		height: 1009988,
+		previousBlockID: Buffer.from('4a462ea57a8c9f72d866c09770e5ec70cef18727', 'hex'),
+		stateRoot: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
+		transactionRoot: Buffer.from('b27ca21f40d44113c2090ca8f05fb706c54e87dd', 'hex'),
+		assetRoot: Buffer.from('b27ca21f40d44113c2090ca8f05fb706c54e87dd', 'hex'),
+		eventRoot: Buffer.from(
+			'30dda4fbc395828e5a9f2f8824771e434fce4945a1e7820012440d09dd1e2b6d',
+			'hex',
+		),
+		generatorAddress: Buffer.from('be63fb1c0426573352556f18b21efd5b6183c39c', 'hex'),
+		maxHeightPrevoted: 1000988,
+		maxHeightGenerated: 1000988,
+		impliesMaxPrevotes: true,
+		validatorsHash: utils.hash(Buffer.alloc(0)),
+		aggregateCommit: {
+			height: 0,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+		},
+		signature: Buffer.from('6da88e2fd4435e26e02682435f108002ccc3ddd5', 'hex'),
+		...attrs,
+	});
+	const blockHeader = new BlockHeader(getBlockAttrs());
+	const block = new Block(blockHeader, [transaction], blockAsset);
+	const validBlockID = '215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452b';
 
 	beforeEach(() => {
 		stateStore = new StateStore(new InMemoryDatabase());
@@ -37,7 +83,12 @@ describe('Chain endpoint', () => {
 			chain: {
 				dataAccess: {
 					getEvents: jest.fn(),
+					getBlockByID: jest.fn(),
+					getBlockByHeight: jest.fn(),
+					getBlocksByHeightBetween: jest.fn(),
+					getTransactionByID: jest.fn(),
 				},
+				lastBlock: block,
 			} as any,
 			bftMethod: {
 				getSlotNumber: jest.fn().mockReturnValue(0),
@@ -227,6 +278,256 @@ describe('Chain endpoint', () => {
 			const { list } = await endpoint.getGeneratorList(createRequestContext({}));
 
 			expect(list[1].nextAllocatedTime - list[0].nextAllocatedTime).toBe(DEFAULT_INTERVAL);
+		});
+	});
+
+	describe('getBlockByID', () => {
+		it('should throw if provided block id is not valid', async () => {
+			await expect(
+				endpoint.getBlockByID(createRequestContext({ id: 'invalid id' })),
+			).rejects.toThrow('Invalid parameters. id must be a valid hex string.');
+		});
+
+		it('should return the block if provided id is valid', async () => {
+			jest.spyOn(endpoint['_chain'].dataAccess, 'getBlockByID').mockResolvedValue(block);
+			await expect(
+				endpoint.getBlockByID(
+					createRequestContext({
+						id: validBlockID,
+					}),
+				),
+			).resolves.toEqual(block.toJSON());
+		});
+	});
+
+	describe('getBlocksByIDs', () => {
+		it('should throw if the provided block ids is an empty array or not a valid array', async () => {
+			await expect(endpoint.getBlocksByIDs(createRequestContext({ ids: [] }))).rejects.toThrow(
+				'Invalid parameters. ids must be a non empty array.',
+			);
+
+			await expect(
+				endpoint.getBlocksByIDs(createRequestContext({ ids: 'not an array' })),
+			).rejects.toThrow('Invalid parameters. ids must be a non empty array.');
+		});
+
+		it('should throw if any of the provided block ids is not valid', async () => {
+			await expect(
+				endpoint.getBlocksByIDs(createRequestContext({ ids: [validBlockID, 'invalid id'] })),
+			).rejects.toThrow('Invalid parameters. id must a valid hex string.');
+		});
+
+		it('should return empty result if the provided block ids are not found', async () => {
+			jest.spyOn(endpoint['_chain'].dataAccess, 'getBlockByID').mockImplementation(() => {
+				throw new NotFoundError();
+			});
+
+			await expect(
+				endpoint.getBlocksByIDs(createRequestContext({ ids: [validBlockID] })),
+			).resolves.toEqual([]);
+		});
+
+		it('should throw if dataAccess throws an error other than NotFoundError', async () => {
+			jest.spyOn(endpoint['_chain'].dataAccess, 'getBlockByID').mockImplementation(() => {
+				throw new Error();
+			});
+
+			await expect(
+				endpoint.getBlocksByIDs(createRequestContext({ ids: [validBlockID] })),
+			).rejects.toThrow();
+		});
+
+		it('should return a collection of blocks', async () => {
+			jest.spyOn(endpoint['_chain'].dataAccess, 'getBlockByID').mockResolvedValue(block);
+
+			await expect(
+				endpoint.getBlocksByIDs(createRequestContext({ ids: [validBlockID] })),
+			).resolves.toEqual([block.toJSON()]);
+		});
+	});
+
+	describe('getBlockByHeight', () => {
+		it('should throw if provided height is invalid', async () => {
+			await expect(
+				endpoint.getBlockByHeight(createRequestContext({ height: 'incorrect height' })),
+			).rejects.toThrow('Invalid parameters. height must be a number.');
+		});
+
+		it('should rerturn a block if the provided height is valid', async () => {
+			jest.spyOn(endpoint['_chain'].dataAccess, 'getBlockByHeight').mockResolvedValue(block);
+
+			await expect(endpoint.getBlockByHeight(createRequestContext({ height: 1 }))).resolves.toEqual(
+				block.toJSON(),
+			);
+		});
+	});
+
+	describe('getBlocksByHeightBetween', () => {
+		it('should throw if provided heights are invalid', async () => {
+			await expect(
+				endpoint.getBlocksByHeightBetween(
+					createRequestContext({ from: 'incorrect height', to: 10 }),
+				),
+			).rejects.toThrow('Invalid parameters. from and to must be a number.');
+
+			await expect(
+				endpoint.getBlocksByHeightBetween(
+					createRequestContext({ from: 1, to: 'incorrect height' }),
+				),
+			).rejects.toThrow('Invalid parameters. from and to must be a number.');
+		});
+
+		it('should return a collection of blocks', async () => {
+			jest
+				.spyOn(endpoint['_chain'].dataAccess, 'getBlocksByHeightBetween')
+				.mockResolvedValue([block]);
+
+			await expect(
+				endpoint.getBlocksByHeightBetween(createRequestContext({ from: 1, to: 10 })),
+			).resolves.toEqual([block.toJSON()]);
+		});
+	});
+
+	describe('getLastBlock', () => {
+		it('should return the last block', () => {
+			expect(endpoint.getLastBlock()).toEqual(block.toJSON());
+		});
+	});
+
+	describe('getTransactionByID', () => {
+		it('should throw if provided id is not valid', async () => {
+			await expect(
+				endpoint.getTransactionByID(createRequestContext({ id: 'invalid id' })),
+			).rejects.toThrow('Invalid parameters. id must be a valid hex string.');
+		});
+
+		it('should return a transaction if provided id is valid', async () => {
+			jest
+				.spyOn(endpoint['_chain'].dataAccess, 'getTransactionByID')
+				.mockResolvedValue(transaction);
+
+			await expect(
+				endpoint.getTransactionByID(createRequestContext({ id: transaction.id.toString('hex') })),
+			).resolves.toEqual(transaction.toJSON());
+		});
+	});
+
+	describe('getTransactionsByIDs', () => {
+		it('should throw if provided ids is empty or not an array', async () => {
+			await expect(
+				endpoint.getTransactionsByIDs(createRequestContext({ ids: [] })),
+			).rejects.toThrow('Invalid parameters. ids must be a non empty array');
+
+			await expect(
+				endpoint.getTransactionsByIDs(createRequestContext({ ids: 'invalid id' })),
+			).rejects.toThrow('Invalid parameters. ids must be a non empty array');
+		});
+
+		it('should throw if any of the provided ids are not valid', async () => {
+			await expect(
+				endpoint.getTransactionsByIDs(createRequestContext({ ids: [validBlockID, 'invalid ID'] })),
+			).rejects.toThrow('Invalid parameters. id must be a valid hex string.');
+		});
+
+		it('should return a collection of transactions', async () => {
+			jest
+				.spyOn(endpoint['_chain'].dataAccess, 'getTransactionByID')
+				.mockResolvedValue(transaction);
+
+			await expect(
+				endpoint.getTransactionsByIDs(
+					createRequestContext({ ids: [transaction.id.toString('hex')] }),
+				),
+			).resolves.toEqual([transaction.toJSON()]);
+		});
+	});
+
+	describe('getTransactionsByHeight', () => {
+		it('should throw if provided height is invalid', async () => {
+			await expect(
+				endpoint.getTransactionsByHeight(createRequestContext({ height: 'invalid height' })),
+			).rejects.toThrow('Invalid parameters. height must be zero or a positive number.');
+
+			await expect(
+				endpoint.getTransactionsByHeight(createRequestContext({ height: -1 })),
+			).rejects.toThrow('Invalid parameters. height must be zero or a positive number.');
+		});
+
+		it('should return a collection of transactions in the block at the provided height', async () => {
+			jest.spyOn(endpoint['_chain'].dataAccess, 'getBlockByHeight').mockResolvedValue(block);
+
+			await expect(
+				endpoint.getTransactionsByHeight(createRequestContext({ height: 1 })),
+			).resolves.toEqual(block.transactions.map(t => t.toJSON()));
+		});
+	});
+
+	describe('getAssetsByHeight', () => {
+		it('should throw if provided height is invalid', async () => {
+			await expect(
+				endpoint.getAssetsByHeight(createRequestContext({ height: 'invalid height' })),
+			).rejects.toThrow('Invalid parameters. height must be zero or a positive number.');
+
+			await expect(
+				endpoint.getAssetsByHeight(createRequestContext({ height: -1 })),
+			).rejects.toThrow('Invalid parameters. height must be zero or a positive number.');
+		});
+
+		it('should return block assests at the provided height', async () => {
+			jest.spyOn(endpoint['_chain'].dataAccess, 'getBlockByHeight').mockResolvedValue(block);
+
+			await expect(
+				endpoint.getAssetsByHeight(createRequestContext({ height: 1 })),
+			).resolves.toEqual(block.assets.toJSON());
+		});
+	});
+
+	describe('areHeadersContradicting', () => {
+		it('should throw if provided parameters are not valid', async () => {
+			await expect(
+				endpoint.areHeadersContradicting(
+					createRequestContext({
+						header1: 'header1',
+						header2: blockHeader.getBytes().toString('hex'),
+					}),
+				),
+			).rejects.toThrow(`'.header1' must match format "hex"`);
+
+			await expect(
+				endpoint.areHeadersContradicting(
+					createRequestContext({
+						header1: block.getBytes().toString('hex'),
+						header2: blockHeader.getBytes().toString(),
+					}),
+				),
+			).rejects.toThrow(`'.header2' must match format "hex"`);
+		});
+
+		it('should invalidate if both headers have same id', async () => {
+			await expect(
+				endpoint.areHeadersContradicting(
+					createRequestContext({
+						header1: blockHeader.getBytes().toString('hex'),
+						header2: blockHeader.getBytes().toString('hex'),
+					}),
+				),
+			).resolves.toEqual({ valid: false });
+		});
+
+		it('should invoke areDistinctHeadersContradicting for the provided headers', async () => {
+			const contradictingBlockHeader = new BlockHeader(getBlockAttrs({ version: 2 }));
+
+			jest.spyOn(bftUtils, 'areDistinctHeadersContradicting').mockReturnValue(false);
+			await expect(
+				endpoint.areHeadersContradicting(
+					createRequestContext({
+						header1: blockHeader.getBytes().toString('hex'),
+						header2: contradictingBlockHeader.getBytes().toString('hex'),
+					}),
+				),
+			).resolves.toEqual({ valid: false });
+
+			expect(bftUtils.areDistinctHeadersContradicting).toHaveBeenCalledTimes(1);
 		});
 	});
 });
