@@ -112,31 +112,31 @@ export class HelloModule extends Modules.Interoperability.BaseInteroperableModul
 		return result;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async beforeCommandExecute(
 		_context: StateMachine.TransactionExecuteContext,
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
 	): Promise<void> {}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async afterCommandExecute(
 		_context: StateMachine.TransactionExecuteContext,
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
 	): Promise<void> {}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async initGenesisState(_context: StateMachine.GenesisBlockExecuteContext): Promise<void> {}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async finalizeGenesisState(
 		_context: StateMachine.GenesisBlockExecuteContext,
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
 	): Promise<void> {}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async beforeTransactionsExecute(
 		_context: StateMachine.BlockExecuteContext,
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
 	): Promise<void> {}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async afterTransactionsExecute(
 		_context: StateMachine.BlockAfterExecuteContext,
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
 	): Promise<void> {}
 }
