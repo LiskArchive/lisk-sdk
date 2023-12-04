@@ -1,10 +1,6 @@
 /* eslint-disable class-methods-use-this */
 
-import {
-	Modules,
-	StateMachine,
-	codec,
-} from 'lisk-sdk';
+import { Modules, StateMachine, codec } from 'lisk-sdk';
 import { CROSS_CHAIN_COMMAND_NAME_REACT } from '../constants';
 import {
 	CCReactCommandParamsSchema,
@@ -51,7 +47,9 @@ export class ReactCrossChainCommand extends Modules.BaseCommand {
 		};
 	}
 
-	public async execute(context: StateMachine.CommandExecuteContext<CCReactCommandParams>): Promise<void> {
+	public async execute(
+		context: StateMachine.CommandExecuteContext<CCReactCommandParams>,
+	): Promise<void> {
 		const {
 			params,
 			transaction: { senderAddress },

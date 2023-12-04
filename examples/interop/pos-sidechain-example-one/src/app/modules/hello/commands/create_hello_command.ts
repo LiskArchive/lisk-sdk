@@ -1,9 +1,6 @@
 /* eslint-disable class-methods-use-this */
 
-import {
-	Modules,
-	StateMachine,
-} from 'lisk-sdk';
+import { Modules, StateMachine } from 'lisk-sdk';
 import { createHelloSchema } from '../schemas';
 import { MessageStore } from '../stores/message';
 import { counterKey, CounterStore, CounterStoreData } from '../stores/counter';
@@ -29,7 +26,9 @@ export class CreateHelloCommand extends Modules.BaseCommand {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async verify(context: StateMachine.CommandVerifyContext<Params>): Promise<StateMachine.VerificationResult> {
+	public async verify(
+		context: StateMachine.CommandVerifyContext<Params>,
+	): Promise<StateMachine.VerificationResult> {
 		let validation: StateMachine.VerificationResult;
 		const wordList = context.params.message.split(' ');
 		const found = this._blacklist.filter(value => wordList.includes(value));
