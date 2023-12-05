@@ -14,17 +14,17 @@
  */
 
 import { Mnemonic } from '@liskhq/lisk-passphrase';
-import { Command } from '@oclif/core';
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import { flagsWithParser } from '../../../utils/flags';
-import { OWNER_READ_WRITE } from '../../../constants';
+import { Command, Flags as flagParser } from '@oclif/core';
+import { handleOutputFlag } from '../../../utils/output';
 
 export class CreateCommand extends Command {
 	static description = 'Returns a randomly generated 24 words mnemonic passphrase.';
 	static examples = ['passphrase:create', 'passphrase:create --output /mypath/passphrase.json'];
 	static flags = {
-		output: flagsWithParser.output,
+		output: flagParser.string({
+			char: 'o',
+			description: 'The output directory. Default will set to current working directory.',
+		}),
 	};
 
 	async run(): Promise<void> {
@@ -32,15 +32,11 @@ export class CreateCommand extends Command {
 			flags: { output },
 		} = await this.parse(CreateCommand);
 
-		if (output) {
-			const { dir } = path.parse(output);
-			fs.ensureDirSync(dir);
-		}
-
 		const passphrase = Mnemonic.generateMnemonic(256);
 
 		if (output) {
-			fs.writeJSONSync(output, { passphrase }, { spaces: ' ', mode: OWNER_READ_WRITE });
+			const res = await handleOutputFlag(output, { passphrase }, 'passphrase');
+			this.log(res);
 		} else {
 			this.log(JSON.stringify({ passphrase }, undefined, '  '));
 		}

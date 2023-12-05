@@ -24,6 +24,7 @@ import { ExportCommand } from '../../../../src/bootstrapping/commands/keys/expor
 import { getConfig } from '../../../helpers/config';
 import { Awaited } from '../../../types';
 import { OWNER_READ_WRITE, plainGeneratorKeysSchema } from '../../../../src/constants';
+import * as outputUtils from '../../../../src/utils/output';
 
 describe('keys:export', () => {
 	const defaultPassword = 'elephant tree paris dragon chair galaxy';
@@ -59,7 +60,6 @@ describe('keys:export', () => {
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(appUtils, 'isApplicationRunning').mockReturnValue(true);
-		jest.spyOn(fs, 'ensureDirSync').mockReturnValue();
 		jest.spyOn(fs, 'writeJSONSync').mockReturnValue();
 		invokeMock = jest.fn();
 		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({
@@ -68,9 +68,79 @@ describe('keys:export', () => {
 		} as never);
 	});
 
-	describe('when exporting without a file path flag', () => {
-		it('should throw an error', async () => {
-			await expect(ExportCommand.run([], config)).rejects.toThrow('Missing required flag output');
+	describe('run', () => {
+		describe('when calling the handleOutputFlag', () => {
+			it('should call handleOutputFlag with the correct params', async () => {
+				when(invokeMock)
+					.calledWith('generator_getAllKeys')
+					.mockResolvedValue({
+						keys: [
+							{
+								address,
+								type: 'plain',
+								data: defaultKeysJSON,
+							},
+						],
+					});
+
+				fileData = {
+					keys: [
+						{
+							address,
+							plain: defaultKeysJSON,
+						},
+					],
+				};
+
+				jest
+					.spyOn(outputUtils, 'handleOutputFlag')
+					.mockImplementation(async () =>
+						Promise.resolve('Successfully written data to /my/path/keys.json'),
+					);
+
+				await ExportCommand.run(['--output=/my/path/keys.json'], config);
+
+				expect(outputUtils.handleOutputFlag).toHaveBeenCalledWith(
+					'/my/path/keys.json',
+					fileData,
+					'keys',
+				);
+			});
+
+			it('should throw an error when handleOutputFlag errs', async () => {
+				when(invokeMock)
+					.calledWith('generator_getAllKeys')
+					.mockResolvedValue({
+						keys: [
+							{
+								address,
+								type: 'plain',
+								data: defaultKeysJSON,
+							},
+						],
+					});
+
+				fileData = {
+					keys: [
+						{
+							address,
+							plain: defaultKeysJSON,
+						},
+					],
+				};
+
+				jest
+					.spyOn(outputUtils, 'handleOutputFlag')
+					.mockImplementation(async () =>
+						Promise.reject(
+							new Error('Error writing data to /my/path/keys.json: Error: write error'),
+						),
+					);
+
+				await expect(ExportCommand.run(['--output=/my/path/keys.json'], config)).rejects.toThrow(
+					'Error writing data to /my/path/keys.json: Error: write error',
+				);
+			});
 		});
 	});
 
@@ -80,22 +150,26 @@ describe('keys:export', () => {
 				'passphrase',
 				"m/25519'/134'/0'/0'",
 			);
+
 			const blsPrivateKey = await bls.getPrivateKeyFromPhraseAndPath(
 				'passphrase',
 				'm/12381/134/0/0',
 			);
+
 			defaultKeys = {
 				generatorKey: ed.getPublicKeyFromPrivateKey(generatorPrivateKey),
 				generatorPrivateKey,
 				blsPrivateKey,
 				blsKey: bls.getPublicKeyFromPrivateKey(blsPrivateKey),
 			};
+
 			defaultKeysJSON = {
 				generatorKey: defaultKeys.generatorKey.toString('hex'),
 				generatorPrivateKey: defaultKeys.generatorPrivateKey.toString('hex'),
 				blsPrivateKey: defaultKeys.blsPrivateKey.toString('hex'),
 				blsKey: defaultKeys.blsKey.toString('hex'),
 			};
+
 			defaultEncryptedKeys = {
 				address: Buffer.from('9cabee3d27426676b852ce6b804cb2fdff7cd0b5', 'hex'),
 				type: 'encrypted',
@@ -124,6 +198,7 @@ describe('keys:export', () => {
 							},
 						],
 					});
+
 				fileData = {
 					keys: [
 						{
@@ -132,9 +207,9 @@ describe('keys:export', () => {
 						},
 					],
 				};
+
 				await ExportCommand.run(['--output=/my/path/keys.json'], config);
-				expect(fs.ensureDirSync).toHaveBeenCalledTimes(1);
-				expect(fs.ensureDirSync).toHaveBeenCalledWith('/my/path');
+
 				expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
 				expect(fs.writeJSONSync).toHaveBeenCalledWith('/my/path/keys.json', fileData, {
 					spaces: ' ',
@@ -156,6 +231,7 @@ describe('keys:export', () => {
 							},
 						],
 					});
+
 				fileData = {
 					keys: [
 						{
@@ -164,9 +240,9 @@ describe('keys:export', () => {
 						},
 					],
 				};
+
 				await ExportCommand.run(['--output=/my/path/keys.json', '--data-path=/my/app/'], config);
-				expect(fs.ensureDirSync).toHaveBeenCalledTimes(1);
-				expect(fs.ensureDirSync).toHaveBeenCalledWith('/my/path');
+
 				expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
 				expect(fs.writeJSONSync).toHaveBeenCalledWith('/my/path/keys.json', fileData, {
 					spaces: ' ',
