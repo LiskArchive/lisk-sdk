@@ -19,7 +19,7 @@ import * as fs from 'fs-extra';
 import { CreateCommand } from '../../../../src/bootstrapping/commands/passphrase/create';
 import { getConfig } from '../../../helpers/config';
 import { Awaited } from '../../../types';
-import { OWNER_READ_WRITE } from '../../../../src/constants';
+import * as outputUtils from '../../../../src/utils/output';
 
 describe('passphrase:create command', () => {
 	const consoleWarnSpy = jest.spyOn(console, 'warn');
@@ -53,13 +53,20 @@ describe('passphrase:create command', () => {
 
 	describe('keys:create --output /tmp/passphrase.json', () => {
 		it('should create valid passphrase', async () => {
+			jest
+				.spyOn(outputUtils, 'handleOutputFlag')
+				.mockImplementation(async () =>
+					Promise.resolve('Successfully written data to /my/path/passphrase.json'),
+				);
+
 			await CreateCommand.run(['--output=/tmp/passphrase.json'], config);
 
-			expect(fs.ensureDirSync).toHaveBeenCalledWith('/tmp');
-			expect(fs.writeJSONSync).toHaveBeenCalledWith('/tmp/passphrase.json', expect.anything(), {
-				spaces: ' ',
-				mode: OWNER_READ_WRITE,
-			});
+			expect(outputUtils.handleOutputFlag).toHaveBeenCalledTimes(1);
+			expect(outputUtils.handleOutputFlag).toHaveBeenCalledWith(
+				'/tmp/passphrase.json',
+				{ passphrase: expect.any(String) },
+				'passphrase',
+			);
 		});
 	});
 });

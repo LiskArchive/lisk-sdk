@@ -12,7 +12,7 @@ import { CROSS_CHAIN_COMMAND_REACT } from '../constants';
 import { CCReactCommandParamsSchema, CCReactMessageParamsSchema } from '../schemas';
 import { CCReactMessageParams, CCReactCommandParams, InteroperabilityMethod } from '../types';
 
-export class ReactCrossChainCommand extends BaseCommand {
+export class CrossChainReactCommand extends BaseCommand {
 	private _interoperabilityMethod!: InteroperabilityMethod;
 	public schema = CCReactCommandParamsSchema;
 
@@ -44,6 +44,7 @@ export class ReactCrossChainCommand extends BaseCommand {
 				error: err as Error,
 			};
 		}
+
 		return {
 			status: VerifyStatus.OK,
 		};

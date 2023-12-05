@@ -16,11 +16,10 @@
 import { codec } from '@liskhq/lisk-codec';
 import { bls, address as addressUtil, ed, encrypt, legacy } from '@liskhq/lisk-cryptography';
 import { Command, Flags as flagParser } from '@oclif/core';
-import * as fs from 'fs-extra';
-import * as path from 'path';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt, getPasswordFromPrompt } from '../../../utils/reader';
-import { OWNER_READ_WRITE, plainGeneratorKeysSchema } from '../../../constants';
+import { plainGeneratorKeysSchema } from '../../../constants';
+import { handleOutputFlag } from '../../../utils/output';
 
 export class CreateCommand extends Command {
 	static description = 'Return keys corresponding to the given passphrase.';
@@ -37,7 +36,10 @@ export class CreateCommand extends Command {
 	];
 
 	static flags = {
-		output: flagsWithParser.output,
+		output: flagParser.string({
+			char: 'o',
+			description: 'The output directory. Default will set to current working directory.',
+		}),
 		passphrase: flagsWithParser.passphrase,
 		'no-encrypt': flagParser.boolean({
 			char: 'n',
@@ -79,10 +81,6 @@ export class CreateCommand extends Command {
 			},
 		} = await this.parse(CreateCommand);
 
-		if (output) {
-			const { dir } = path.parse(output);
-			fs.ensureDirSync(dir);
-		}
 		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 		let password = '';
 		if (!noEncrypt) {
@@ -156,7 +154,8 @@ export class CreateCommand extends Command {
 		}
 
 		if (output) {
-			fs.writeJSONSync(output, { keys }, { spaces: ' ', mode: OWNER_READ_WRITE });
+			const res = await handleOutputFlag(output, { keys }, 'keys');
+			this.log(res);
 		} else {
 			this.log(JSON.stringify({ keys }, undefined, '  '));
 		}

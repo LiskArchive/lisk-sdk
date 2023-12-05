@@ -14,12 +14,10 @@
  */
 
 import { Command, Flags as flagParser } from '@oclif/core';
-import * as fs from 'fs-extra';
-import * as path from 'path';
 import { encryptPassphrase } from '../../../utils/commons';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt, getPasswordFromPrompt } from '../../../utils/reader';
-import { OWNER_READ_WRITE } from '../../../constants';
+import { handleOutputFlag } from '../../../utils/output';
 
 const outputPublicKeyOptionDescription =
 	'Includes the public key in the output. This option is provided for the convenience of node operators.';
@@ -41,7 +39,10 @@ export class EncryptCommand extends Command {
 		'output-public-key': flagParser.boolean({
 			description: outputPublicKeyOptionDescription,
 		}),
-		output: flagsWithParser.output,
+		output: flagParser.string({
+			char: 'o',
+			description: 'The output directory. Default will set to current working directory.',
+		}),
 	};
 
 	async run(): Promise<void> {
@@ -54,17 +55,13 @@ export class EncryptCommand extends Command {
 			},
 		} = await this.parse(EncryptCommand);
 
-		if (output) {
-			const { dir } = path.parse(output);
-			fs.ensureDirSync(dir);
-		}
-
 		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 		const password = passwordSource ?? (await getPasswordFromPrompt('password', true));
 		const result = await encryptPassphrase(passphrase, password, outputPublicKey);
 
 		if (output) {
-			fs.writeJSONSync(output, result, { spaces: ' ', mode: OWNER_READ_WRITE });
+			const res = await handleOutputFlag(output, result, 'passphrase');
+			this.log(res);
 		} else {
 			this.log(JSON.stringify(result, undefined, '  '));
 		}

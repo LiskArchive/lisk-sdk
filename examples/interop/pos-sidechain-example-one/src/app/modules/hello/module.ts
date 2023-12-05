@@ -14,6 +14,7 @@ import {
 	TransactionVerifyContext,
 	utils,
 	VerificationResult,
+	VerifyStatus,
 } from 'lisk-sdk';
 import { CreateHelloCommand } from './commands/create_hello_command';
 import { ReactCCCommand } from './cc_commands/react_cc_command';
@@ -115,7 +116,7 @@ export class HelloModule extends BaseInteroperableModule {
 	public async verifyTransaction(_context: TransactionVerifyContext): Promise<VerificationResult> {
 		// verify transaction will be called multiple times in the transaction pool
 		const result = {
-			status: 1,
+			status: VerifyStatus.OK,
 		};
 		return result;
 	}
