@@ -60,7 +60,7 @@ export class EncryptCommand extends Command {
 		const result = await encryptPassphrase(passphrase, password, outputPublicKey);
 
 		if (output) {
-			const res = await handleOutputFlag(output, result, 'passphrase', 'keys.json');
+			const res = await handleOutputFlag(output, result, 'passphrase');
 			this.log(res);
 		} else {
 			this.log(JSON.stringify(result, undefined, '  '));

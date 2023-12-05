@@ -81,13 +81,13 @@ export class CreateCommand extends Command {
 			if (!userResponse.confirm) {
 				this.error('Operation cancelled, config file already present at the desired location');
 			} else {
-				const res = await handleOutputFlag(configPath, defaultConfig, 'config', 'config.json');
+				const res = await handleOutputFlag(configPath, defaultConfig, 'config');
 				this.log(res);
 			}
 		} else {
 			fs.mkdirSync(configPath, { recursive: true });
 
-			const res = await handleOutputFlag(configPath, defaultConfig, 'config', 'config.json');
+			const res = await handleOutputFlag(configPath, defaultConfig, 'config');
 			this.log(res);
 		}
 	}

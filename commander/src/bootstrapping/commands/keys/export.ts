@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /*
  * Copyright © 2022 Lisk Foundation
  *

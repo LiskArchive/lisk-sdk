@@ -95,10 +95,10 @@ describe('passphrase:encrypt', () => {
 			jest
 				.spyOn(outputUtils, 'handleOutputFlag')
 				.mockImplementation(async () =>
-					Promise.resolve('Successfully written data to /my/path/keys.json'),
+					Promise.resolve('Successfully written data to /mypath/passphrase.json'),
 				);
 
-			await EncryptCommand.run(['--output-public-key', '--output=/mypath/keys.json'], config);
+			await EncryptCommand.run(['--output-public-key', '--output=/mypath/passphrase.json'], config);
 
 			expect(cryptography.encrypt.encryptMessageWithPassword).toHaveBeenCalledWith(
 				defaultInputs.passphrase,
@@ -108,13 +108,12 @@ describe('passphrase:encrypt', () => {
 			expect(readerUtils.getPasswordFromPrompt).toHaveBeenCalledWith('password', true);
 			expect(outputUtils.handleOutputFlag).toHaveBeenCalledTimes(1);
 			expect(outputUtils.handleOutputFlag).toHaveBeenCalledWith(
-				'/mypath/keys.json',
+				'/mypath/passphrase.json',
 				{
 					encryptedPassphrase: encryptedPassphraseObject,
 					publicKey: defaultKeys.publicKey.toString('hex'),
 				},
 				'passphrase',
-				'keys.json',
 			);
 		});
 	});
@@ -124,13 +123,13 @@ describe('passphrase:encrypt', () => {
 			jest
 				.spyOn(outputUtils, 'handleOutputFlag')
 				.mockImplementation(async () =>
-					Promise.resolve('Successfully written data to /my/path/keys.json'),
+					Promise.resolve('Successfully written data to /mypath/passphrase.json'),
 				);
 
 			await EncryptCommand.run(
 				[
 					'--passphrase=enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
-					'--output=/mypath/keys.json',
+					'--output=/mypath/passphrase.json',
 				],
 				config,
 			);
@@ -143,12 +142,11 @@ describe('passphrase:encrypt', () => {
 			expect(readerUtils.getPasswordFromPrompt).toHaveBeenCalledWith('password', true);
 			expect(outputUtils.handleOutputFlag).toHaveBeenCalledTimes(1);
 			expect(outputUtils.handleOutputFlag).toHaveBeenCalledWith(
-				'/mypath/keys.json',
+				'/mypath/passphrase.json',
 				{
 					encryptedPassphrase: encryptedPassphraseObject,
 				},
 				'passphrase',
-				'keys.json',
 			);
 		});
 	});
@@ -158,14 +156,14 @@ describe('passphrase:encrypt', () => {
 			jest
 				.spyOn(outputUtils, 'handleOutputFlag')
 				.mockImplementation(async () =>
-					Promise.resolve('Successfully written data to /my/path/keys.json'),
+					Promise.resolve('Successfully written data to /mypath/passphrase.json'),
 				);
 
 			await EncryptCommand.run(
 				[
 					'--passphrase=enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
 					'--password=LbYpLpV9Wpec6ux8',
-					'--output=/mypath/keys.json',
+					'--output=/mypath/passphrase.json',
 				],
 				config,
 			);
@@ -177,12 +175,11 @@ describe('passphrase:encrypt', () => {
 			expect(readerUtils.getPasswordFromPrompt).not.toHaveBeenCalledWith('password', true);
 			expect(outputUtils.handleOutputFlag).toHaveBeenCalledTimes(1);
 			expect(outputUtils.handleOutputFlag).toHaveBeenCalledWith(
-				'/mypath/keys.json',
+				'/mypath/passphrase.json',
 				{
 					encryptedPassphrase: encryptedPassphraseObject,
 				},
 				'passphrase',
-				'keys.json',
 			);
 		});
 	});
