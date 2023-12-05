@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils as cryptoUtils } from '@liskhq/lisk-cryptography';
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { bls, utils as cryptoUtils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
@@ -21,15 +21,18 @@ import { validator } from '@liskhq/lisk-validator';
 import {
 	BLS_PUBLIC_KEY_LENGTH,
 	BLS_SIGNATURE_LENGTH,
+	CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
 	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 	EMPTY_BYTES,
 	EMPTY_HASH,
 	HASH_LENGTH,
+	MAX_NUM_VALIDATORS,
 	MAX_UINT64,
 	MESSAGE_TAG_CERTIFICATE,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
 	MODULE_NAME_INTEROPERABILITY,
+	EMPTY_FEE_ADDRESS,
 } from '../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
 import * as utils from '../../../../src/modules/interoperability/utils';
@@ -40,6 +43,7 @@ import {
 	testing,
 	CCMsg,
 	OwnChainAccount,
+	ChainStatus,
 } from '../../../../src';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
@@ -76,6 +80,7 @@ import {
 	crossChainUpdateTransactionParams,
 } from '../../../../src/modules/interoperability/schemas';
 import { InvalidSMTVerificationEvent } from '../../../../src/modules/interoperability/events/invalid_smt_verification';
+import { CCM_STATUS_OK } from '../../../../src/modules/token/constants';
 
 describe('Base interoperability internal method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -192,10 +197,12 @@ describe('Base interoperability internal method', () => {
 		jest.spyOn(channelDataSubstore, 'set');
 		outboxRootSubstore = interopMod.stores.get(OutboxRootStore);
 		jest.spyOn(outboxRootSubstore, 'set');
+		jest.spyOn(outboxRootSubstore, 'del');
 		terminatedOutboxSubstore = interopMod.stores.get(TerminatedOutboxStore);
 		chainValidatorsSubstore = interopMod.stores.get(ChainValidatorsStore);
 		// jest.spyOn(terminatedOutboxSubstore, 'set');
 		chainDataSubstore = interopMod.stores.get(ChainAccountStore);
+		jest.spyOn(chainDataSubstore, 'set');
 		terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
 
 		mainchainInteroperabilityInternalMethod = new MainchainInteroperabilityInternalMethod(
@@ -221,6 +228,8 @@ describe('Base interoperability internal method', () => {
 
 	describe('appendToInboxTree', () => {
 		it('should update the channel store with the new inbox tree info', async () => {
+			const { inbox: originalInbox } = await channelDataSubstore.get(methodContext, chainID);
+
 			// Act
 			await mainchainInteroperabilityInternalMethod.appendToInboxTree(
 				methodContext,
@@ -233,11 +242,22 @@ describe('Base interoperability internal method', () => {
 				...channelData,
 				inbox: updatedInboxTree,
 			});
+
+			const { inbox } = await channelDataSubstore.get(methodContext, chainID);
+			expect(inbox.size).toBe(originalInbox.size + 1);
+
+			expect(regularMerkleTree.calculateMerkleRoot).toHaveBeenCalledWith({
+				value: cryptoUtils.hash(appendData),
+				appendPath: originalInbox.appendPath,
+				size: originalInbox.size,
+			});
 		});
 	});
 
 	describe('appendToOutboxTree', () => {
 		it('should update the channel store with the new outbox tree info', async () => {
+			const { outbox: originalOutbox } = await channelDataSubstore.get(methodContext, chainID);
+
 			// Act
 			await mainchainInteroperabilityInternalMethod.appendToOutboxTree(
 				methodContext,
@@ -249,6 +269,15 @@ describe('Base interoperability internal method', () => {
 			expect(channelDataSubstore.set).toHaveBeenCalledWith(expect.anything(), chainID, {
 				...channelData,
 				outbox: updatedOutboxTree,
+			});
+
+			const { outbox } = await channelDataSubstore.get(methodContext, chainID);
+			expect(outbox.size).toBe(originalOutbox.size + 1);
+
+			expect(regularMerkleTree.calculateMerkleRoot).toHaveBeenCalledWith({
+				value: cryptoUtils.hash(appendData),
+				appendPath: originalOutbox.appendPath,
+				size: originalOutbox.size,
 			});
 		});
 	});
@@ -262,6 +291,11 @@ describe('Base interoperability internal method', () => {
 			expect(outboxRootSubstore.set).toHaveBeenCalledWith(expect.anything(), chainID, {
 				root: updatedOutboxTree.root,
 			});
+
+			const { outbox } = await channelDataSubstore.get(methodContext, chainID);
+			expect(outbox.size).toBe(outboxTree.size + 1);
+			expect(outbox.root).toStrictEqual(updatedOutboxTree.root);
+			expect(outbox.appendPath).toStrictEqual(updatedOutboxTree.appendPath);
 		});
 	});
 
@@ -357,6 +391,12 @@ describe('Base interoperability internal method', () => {
 					initialized: true,
 				},
 			);
+
+			expect(chainDataSubstore.set).toHaveBeenCalledWith(crossChainMessageContext, chainId, {
+				...chainAccount,
+				status: ChainStatus.TERMINATED,
+			});
+			expect(outboxRootSubstore.del).toHaveBeenCalledWith(crossChainMessageContext, chainId);
 		});
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id but state root is not provided', async () => {
@@ -377,6 +417,15 @@ describe('Base interoperability internal method', () => {
 				mainchainStateRoot: EMPTY_HASH,
 				initialized: true,
 			});
+
+			expect(chainDataSubstore.set).toHaveBeenCalledWith(crossChainMessageContext, chainId, {
+				...chainAccount,
+				status: ChainStatus.TERMINATED,
+			});
+
+			expect(outboxRootSubstore.del).toHaveBeenCalledWith(crossChainMessageContext, chainId);
+			expect(chainAccountUpdatedEvent.log).toHaveBeenCalled();
+			expect(terminatedStateCreatedEvent.log).toHaveBeenCalled();
 		});
 
 		it('should throw error if chain account does not exist for the id and ownchain account id is mainchain id', async () => {
@@ -392,6 +441,10 @@ describe('Base interoperability internal method', () => {
 					chainIdNew,
 				),
 			).rejects.toThrow('Chain to be terminated is not valid');
+
+			await expect(terminatedStateSubstore.has(crossChainMessageContext, chainIdNew)).resolves.toBe(
+				false,
+			);
 		});
 
 		it('should set appropriate terminated state for chain id if chain account does not exist for the id and stateRoot is EMPTY_HASH', async () => {
@@ -507,10 +560,19 @@ describe('Base interoperability internal method', () => {
 				),
 			).toBeUndefined();
 
-			expect(mainchainInteroperabilityInternalMethod.sendInternal).toHaveBeenCalled();
+			expect(mainchainInteroperabilityInternalMethod.sendInternal).toHaveBeenCalledWith(
+				crossChainMessageContext,
+				EMPTY_FEE_ADDRESS,
+				MODULE_NAME_INTEROPERABILITY,
+				CROSS_CHAIN_COMMAND_CHANNEL_TERMINATED,
+				SIDECHAIN_ID,
+				BigInt(0),
+				CCM_STATUS_OK,
+				EMPTY_BYTES,
+			);
 			expect(
 				mainchainInteroperabilityInternalMethod.createTerminatedStateAccount,
-			).toHaveBeenCalled();
+			).toHaveBeenCalledWith(crossChainMessageContext, SIDECHAIN_ID);
 		});
 	});
 
@@ -684,36 +746,32 @@ describe('Base interoperability internal method', () => {
 				certificate: codec.encode(certificateSchema, defaultCertificate),
 			};
 
-			await interopMod.stores.get(ChainAccountStore).set(storeContext, ccuParams.sendingChainID, {
-				lastCertificate: {
-					height: 20,
-					stateRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
-					timestamp: 99,
-					validatorsHash: cryptoUtils.getRandomBytes(HASH_LENGTH),
-				},
-				name: 'chain1',
-				status: 1,
-			});
-
-			await mainchainInteroperabilityInternalMethod.updateCertificate(methodContext, ccu);
-
-			const updatedChainAccount = {
+			const certificate = {
 				lastCertificate: {
 					height: defaultCertificate.height,
 					stateRoot: defaultCertificate.stateRoot,
 					timestamp: defaultCertificate.timestamp,
 					validatorsHash: defaultCertificate.validatorsHash,
 				},
+				name: 'chain1',
+				status: 1,
 			};
+
+			await interopMod.stores
+				.get(ChainAccountStore)
+				.set(storeContext, ccuParams.sendingChainID, certificate);
+
+			await mainchainInteroperabilityInternalMethod.updateCertificate(methodContext, ccu);
+
 			expect(interopMod.stores.get(ChainAccountStore).set).toHaveBeenCalledWith(
 				expect.anything(),
 				ccu.sendingChainID,
-				expect.objectContaining(updatedChainAccount),
+				certificate,
 			);
 			expect(interopMod.events.get(ChainAccountUpdatedEvent).log).toHaveBeenCalledWith(
 				expect.anything(),
 				ccu.sendingChainID,
-				expect.objectContaining(updatedChainAccount),
+				certificate,
 			);
 			expect(validator.validate).toHaveBeenCalledWith(
 				certificateSchema,
@@ -791,6 +849,99 @@ describe('Base interoperability internal method', () => {
 	});
 
 	describe('verifyValidatorsUpdate', () => {
+		it('should reject if length of bftWeightsUpdateBitmap is too large', async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, defaultCertificate),
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [
+						Buffer.from([0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 1]),
+						Buffer.from([0, 0, 3, 0]),
+					],
+					bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4), BigInt(3)],
+					bftWeightsUpdateBitmap: Buffer.from([0, 7]),
+				},
+			};
+
+			const activeValidators = [{ blsKey: Buffer.from([0, 0, 2, 0]), bftWeight: BigInt(2) }];
+			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, {
+				activeValidators,
+				certificateThreshold: BigInt(1),
+			});
+
+			// the bitmap for 1 active validator and 3 new validators fits into one byte
+			const expectedBitmapLength = 1;
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).rejects.toThrow(`Invalid bftWeightsUpdateBitmap. Expected length ${expectedBitmapLength}.`);
+		});
+
+		it('should reject if the validator list returned by calculateNewActiveValidators is empty', async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, defaultCertificate),
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [
+						Buffer.from([0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 1]),
+						Buffer.from([0, 0, 3, 0]),
+					],
+					bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4)],
+					// 7 corresponds to 0111
+					bftWeightsUpdateBitmap: Buffer.from([7]),
+				},
+			};
+
+			const existingKey = Buffer.from([0, 2, 3, 0]);
+			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, {
+				activeValidators: [{ blsKey: existingKey, bftWeight: BigInt(2) }],
+				certificateThreshold: BigInt(1),
+			});
+			jest.spyOn(utils, 'calculateNewActiveValidators').mockReturnValue([]);
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).rejects.toThrow(
+				`Invalid validators array. It must have at least 1 element and at most ${MAX_NUM_VALIDATORS} elements.`,
+			);
+		});
+
+		it('should reject if the validator list returned by calculateNewActiveValidators has more than MAX_NUM_VALIDATORS entries', async () => {
+			const ccu = {
+				...ccuParams,
+				certificate: codec.encode(certificateSchema, defaultCertificate),
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [
+						Buffer.from([0, 0, 0, 0]),
+						Buffer.from([0, 0, 0, 1]),
+						Buffer.from([0, 0, 3, 0]),
+					],
+					bftWeightsUpdate: [BigInt(1), BigInt(3), BigInt(4)],
+					// 7 corresponds to 0111
+					bftWeightsUpdateBitmap: Buffer.from([7]),
+				},
+			};
+
+			const existingKey = Buffer.from([0, 2, 3, 0]);
+			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, {
+				activeValidators: [{ blsKey: existingKey, bftWeight: BigInt(2) }],
+				certificateThreshold: BigInt(1),
+			});
+			const newValidators = Array.from(new Array(MAX_NUM_VALIDATORS + 1)).map((_, index) => ({
+				blsKey: Buffer.from([0, 0, 0, index]),
+				bftWeight: BigInt(1),
+			}));
+			jest.spyOn(utils, 'calculateNewActiveValidators').mockReturnValue(newValidators);
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
+			).rejects.toThrow(
+				`Invalid validators array. It must have at least 1 element and at most ${MAX_NUM_VALIDATORS} elements.`,
+			);
+		});
+
 		it('should reject if the certificate is empty', async () => {
 			const ccu = {
 				...ccuParams,
@@ -1136,10 +1287,11 @@ describe('Base interoperability internal method', () => {
 			};
 
 			const existingKey = Buffer.from([0, 2, 3, 0]);
-			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, {
+			const chainValidator = {
 				activeValidators: [{ blsKey: existingKey, bftWeight: BigInt(2) }],
 				certificateThreshold: BigInt(1),
-			});
+			};
+			await chainValidatorsSubstore.set(methodContext, ccu.sendingChainID, chainValidator);
 			const newValidators = [
 				{ blsKey: Buffer.from([0, 0, 0, 0]), bftWeight: BigInt(1) },
 				{ blsKey: Buffer.from([0, 0, 0, 1]), bftWeight: BigInt(3) },
@@ -1152,6 +1304,12 @@ describe('Base interoperability internal method', () => {
 			await expect(
 				mainchainInteroperabilityInternalMethod.verifyValidatorsUpdate(methodContext, ccu),
 			).resolves.toBeUndefined();
+			expect(utils.calculateNewActiveValidators).toHaveBeenCalledWith(
+				chainValidator.activeValidators,
+				ccu.activeValidatorsUpdate.blsKeysUpdate,
+				ccu.activeValidatorsUpdate.bftWeightsUpdate,
+				ccu.activeValidatorsUpdate.bftWeightsUpdateBitmap,
+			);
 			expect(validator.validate).toHaveBeenCalledWith(
 				certificateSchema,
 				expect.toBeObject() as Certificate,
@@ -1193,7 +1351,7 @@ describe('Base interoperability internal method', () => {
 			await interopMod.stores
 				.get(ChainValidatorsStore)
 				.set(methodContext, txParams.sendingChainID, {
-					certificateThreshold: BigInt(99),
+					certificateThreshold: BigInt(txParams.certificateThreshold),
 					activeValidators: [],
 				});
 		});
@@ -1267,17 +1425,71 @@ describe('Base interoperability internal method', () => {
 			);
 		});
 
-		it('should resolve when certificate is valid', async () => {
+		// (1): validatorsHash in certificate and state store are equal
+		// (2): there is a proper validators update in the CCU
+		it('should resolve when validatorsHash in certificate and state store are equal', async () => {
 			const certificate: Certificate = {
 				...defaultCertificate,
 				timestamp: 1000,
 			};
+
+			await interopMod.stores.get(ChainAccountStore).set(methodContext, txParams.sendingChainID, {
+				lastCertificate: {
+					height: 100,
+					timestamp: 10,
+					stateRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
+					validatorsHash: defaultCertificate.validatorsHash,
+				},
+				name: 'rand',
+				status: 0,
+			});
+
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
 			await expect(
 				mainchainInteroperabilityInternalMethod.verifyCertificate(
 					methodContext,
 					{
 						...txParams,
+						certificate: encodedCertificate,
+					},
+					1001,
+				),
+			).resolves.toBeUndefined();
+			expect(validator.validate).toHaveBeenCalledWith(
+				certificateSchema,
+				expect.toBeObject() as Certificate,
+			);
+		});
+
+		it('should resolve when validatorsHash is NOT equal, but validators are updated', async () => {
+			const certificate: Certificate = {
+				...defaultCertificate,
+				timestamp: 1000,
+			};
+
+			await interopMod.stores.get(ChainAccountStore).set(methodContext, txParams.sendingChainID, {
+				lastCertificate: {
+					height: 100,
+					timestamp: 10,
+					stateRoot: cryptoUtils.getRandomBytes(HASH_LENGTH),
+					validatorsHash: cryptoUtils.getRandomBytes(HASH_LENGTH),
+				},
+				name: 'rand',
+				status: 0,
+			});
+
+			const encodedCertificate = codec.encode(certificateSchema, certificate);
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyCertificate(
+					methodContext,
+					{
+						...{
+							...txParams,
+							activeValidatorsUpdate: {
+								...txParams.activeValidatorsUpdate,
+								bftWeightsUpdateBitmap: Buffer.alloc(1),
+							},
+						},
 						certificate: encodedCertificate,
 					},
 					1001,
@@ -1371,6 +1583,38 @@ describe('Base interoperability internal method', () => {
 			expect(validator.validate).toHaveBeenCalledWith(
 				certificateSchema,
 				expect.toBeObject() as Certificate,
+			);
+		});
+
+		it('should resolve correctly when validators store is NOT sorted', async () => {
+			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
+
+			await interopMod.stores
+				.get(ChainValidatorsStore)
+				.set(methodContext, txParams.sendingChainID, {
+					...chainValidators,
+					activeValidators: [
+						activeValidators[activeValidators.length - 1],
+						...activeValidators.slice(1, activeValidators.length - 1),
+						activeValidators[0],
+					],
+				});
+
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyCertificateSignature(methodContext, txParams),
+			).resolves.toBeUndefined();
+
+			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
+
+			expect(bls.verifyWeightedAggSig).toHaveBeenCalledWith(
+				activeValidators.map(activeValidator => activeValidator.blsKey),
+				expect.anything(),
+				expect.anything(),
+				expect.anything(),
+				expect.anything(),
+				expect.anything(),
+				activeValidators.map(activeValidator => activeValidator.bftWeight),
+				expect.anything(),
 			);
 		});
 	});
@@ -1622,23 +1866,30 @@ describe('Base interoperability internal method', () => {
 				.spyOn(regularMerkleTree, 'calculateRootFromRightWitness')
 				.mockReturnValue(channelData.partnerChainOutboxRoot);
 
+			const params = {
+				...crossChainUpdateParams,
+				inboxUpdate: {
+					crossChainMessages: [],
+					messageWitnessHashes: [cryptoUtils.getRandomBytes(32)],
+					outboxRootWitness: {
+						bitmap: Buffer.alloc(0),
+						siblingHashes: [],
+					},
+				},
+				certificate: Buffer.alloc(0),
+			};
 			await expect(
 				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(
 					commandExecuteContext as any,
-					{
-						...crossChainUpdateParams,
-						inboxUpdate: {
-							crossChainMessages: [],
-							messageWitnessHashes: [],
-							outboxRootWitness: {
-								bitmap: Buffer.alloc(0),
-								siblingHashes: [],
-							},
-						},
-						certificate: Buffer.alloc(0),
-					},
+					params,
 				),
 			).resolves.toBeUndefined();
+
+			expect(regularMerkleTree.calculateRootFromRightWitness).toHaveBeenCalledWith(
+				channelData.inbox.size,
+				channelData.inbox.appendPath,
+				params.inboxUpdate.messageWitnessHashes,
+			);
 		});
 
 		it('should resolve when certificate provides valid inclusion proof', async () => {
@@ -1655,8 +1906,11 @@ describe('Base interoperability internal method', () => {
 				),
 			).resolves.toBeUndefined();
 
+			// outboxKey = STORE_PREFIX_INTEROPERABILITY + SUBSTORE_PREFIX_OUTBOX_ROOT + sha256(OWN_CHAIN_ID)
+			// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#verifypartnerchainoutboxroot
 			const outboxKey = Buffer.concat([
-				interopMod.stores.get(OutboxRootStore).key,
+				Buffer.from('83ed0d25', 'hex'),
+				Buffer.from('0000', 'hex'),
 				cryptoUtils.hash(ownChainAccount.chainID),
 			]);
 			expect(SparseMerkleTree.prototype.verify).toHaveBeenCalledWith(
@@ -1676,6 +1930,42 @@ describe('Base interoperability internal method', () => {
 			expect(validator.validate).toHaveBeenCalledWith(
 				certificateSchema,
 				expect.toBeObject() as Certificate,
+			);
+
+			expect(regularMerkleTree.calculateRootFromRightWitness).toHaveBeenCalledWith(
+				updatedInboxTree.size,
+				updatedInboxTree.appendPath,
+				crossChainUpdateParams.inboxUpdate.messageWitnessHashes,
+			);
+		});
+
+		it('should resolve correctly when crossChainMessages is non-empty', async () => {
+			jest.spyOn(SparseMerkleTree.prototype, 'verify').mockResolvedValue(false);
+			jest
+				.spyOn(regularMerkleTree, 'calculateRootFromRightWitness')
+				.mockReturnValue(channelData.partnerChainOutboxRoot);
+
+			const params = {
+				...crossChainUpdateParams,
+				inboxUpdate: {
+					crossChainMessages: [cryptoUtils.getRandomBytes(32), cryptoUtils.getRandomBytes(32)],
+					messageWitnessHashes: [cryptoUtils.getRandomBytes(32)],
+					outboxRootWitness: {
+						bitmap: Buffer.alloc(0),
+						siblingHashes: [],
+					},
+				},
+				certificate: Buffer.alloc(0),
+			};
+			await expect(
+				mainchainInteroperabilityInternalMethod.verifyPartnerChainOutboxRoot(
+					commandExecuteContext as any,
+					params,
+				),
+			).resolves.toBeUndefined();
+
+			expect(regularMerkleTree.calculateMerkleRoot).toHaveBeenCalledTimes(
+				params.inboxUpdate.crossChainMessages.length,
 			);
 		});
 	});
