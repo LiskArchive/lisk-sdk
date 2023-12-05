@@ -1,12 +1,7 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { BlockAssets } from '@liskhq/lisk-chain';
-import {
-	ChainStatus,
-	GenesisBlockExecuteContext,
-	genesisInteroperabilitySchema,
-	MODULE_NAME_INTEROPERABILITY,
-} from '../../../../src';
+import { Modules, StateMachine } from '../../../../src';
 import {
 	HASH_LENGTH,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
@@ -68,7 +63,7 @@ export const lastCertificate = {
 export const chainData = {
 	name: 'dummy',
 	lastCertificate,
-	status: ChainStatus.REGISTERED,
+	status: Modules.Interoperability.ChainStatus.REGISTERED,
 };
 
 export const chainInfo = {
@@ -101,12 +96,17 @@ export const genesisInteroperability: GenesisInteroperability = {
 export const createInitGenesisStateContext = (
 	genesisInterop: GenesisInteroperability,
 	params: CreateGenesisBlockContextParams,
-): GenesisBlockExecuteContext => {
-	const encodedAsset = codec.encode(genesisInteroperabilitySchema, genesisInterop);
+): StateMachine.GenesisBlockExecuteContext => {
+	const encodedAsset = codec.encode(
+		Modules.Interoperability.genesisInteroperabilitySchema,
+		genesisInterop,
+	);
 
 	return createGenesisBlockContext({
 		...params,
-		assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
+		assets: new BlockAssets([
+			{ module: Modules.Interoperability.MODULE_NAME_INTEROPERABILITY, data: encodedAsset },
+		]),
 	}).createInitGenesisStateContext();
 };
 

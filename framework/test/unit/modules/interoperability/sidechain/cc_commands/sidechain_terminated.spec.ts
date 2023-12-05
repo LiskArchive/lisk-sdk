@@ -27,14 +27,14 @@ import {
 	createCrossChainMessageContext,
 	InMemoryPrefixedStateDB,
 } from '../../../../../../src/testing';
-import { SidechainInteroperabilityModule } from '../../../../../../src';
+import { Modules } from '../../../../../../src';
 import { SidechainInteroperabilityInternalMethod } from '../../../../../../src/modules/interoperability/sidechain/internal_method';
 import { TerminatedStateStore } from '../../../../../../src/modules/interoperability/stores/terminated_state';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
 
 describe('SidechainCCSidechainTerminatedCommand', () => {
-	const interopMod = new SidechainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.SidechainInteroperabilityModule();
 
 	const chainID = Buffer.from([0, 0, 1, 0]);
 

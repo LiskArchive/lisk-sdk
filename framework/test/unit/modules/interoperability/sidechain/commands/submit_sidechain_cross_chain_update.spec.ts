@@ -16,13 +16,7 @@ import { bls, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { Transaction } from '@liskhq/lisk-chain';
 import { EMPTY_BUFFER } from '@liskhq/lisk-chain/dist-node/constants';
-import {
-	CommandExecuteContext,
-	CommandVerifyContext,
-	SidechainInteroperabilityModule,
-	EMPTY_BYTES,
-	VerifyStatus,
-} from '../../../../../../src';
+import { StateMachine, Modules } from '../../../../../../src';
 import {
 	ActiveValidator,
 	ActiveValidatorsUpdate,
@@ -69,7 +63,7 @@ import {
 } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 
 describe('SubmitSidechainCrossChainUpdateCommand', () => {
-	const interopMod = new SidechainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.SidechainInteroperabilityModule();
 	const senderPublicKey = utils.getRandomBytes(32);
 	const messageFeeTokenID = Buffer.alloc(8, 0);
 
@@ -153,8 +147,8 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 	let encodedDefaultCertificate: Buffer;
 	let partnerChainAccount: ChainAccount;
 	let partnerChannelAccount: ChannelData;
-	let verifyContext: CommandVerifyContext<CrossChainUpdateTransactionParams>;
-	let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
+	let verifyContext: StateMachine.CommandVerifyContext<CrossChainUpdateTransactionParams>;
+	let executeContext: StateMachine.CommandExecuteContext<CrossChainUpdateTransactionParams>;
 	let sidechainCCUUpdateCommand: SubmitSidechainCrossChainUpdateCommand;
 	let params: CrossChainUpdateTransactionParams;
 	let activeValidatorsUpdate: ActiveValidator[];
@@ -297,7 +291,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 
 			await sidechainCCUUpdateCommand['stores']
 				.get(OwnChainAccountStore)
-				.set(stateStore, EMPTY_BYTES, {
+				.set(stateStore, Modules.Interoperability.EMPTY_BYTES, {
 					...ownChainAccount,
 				});
 
@@ -308,7 +302,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			jest.spyOn(sidechainCCUUpdateCommand, 'verifyCommon' as any);
 
 			await expect(sidechainCCUUpdateCommand.verify(verifyContext)).resolves.toEqual({
-				status: VerifyStatus.OK,
+				status: StateMachine.VerifyStatus.OK,
 			});
 
 			expect(sidechainCCUUpdateCommand['verifyCommon']).toHaveBeenCalled();
@@ -322,7 +316,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 					...verifyContext,
 					params: { ...params } as any,
 				}),
-			).resolves.toEqual({ status: VerifyStatus.OK });
+			).resolves.toEqual({ status: StateMachine.VerifyStatus.OK });
 
 			expect(sidechainCCUUpdateCommand['internalMethod'].isLive).not.toHaveBeenCalledWith(
 				verifyContext,

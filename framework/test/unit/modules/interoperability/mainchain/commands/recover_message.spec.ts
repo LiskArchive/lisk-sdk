@@ -18,11 +18,7 @@ import { Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { Proof } from '@liskhq/lisk-tree/dist-node/merkle_tree/types';
-import {
-	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-	CommandExecuteContext,
-	MainchainInteroperabilityModule,
-} from '../../../../../../src';
+import { Modules, StateMachine } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseCCMethod } from '../../../../../../src/modules/interoperability/base_cc_method';
 import {
@@ -61,7 +57,7 @@ import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperabil
 import { InvalidRMTVerificationEvent } from '../../../../../../src/modules/interoperability/events/invalid_rmt_verification';
 
 describe('MessageRecoveryCommand', () => {
-	const interopModule = new MainchainInteroperabilityModule();
+	const interopModule = new Modules.Interoperability.MainchainInteroperabilityModule();
 	const leafPrefix = Buffer.from([0]);
 
 	const appendPrecedingToIndices = (indices: number[], terminatedChainOutboxSize: number) =>
@@ -133,7 +129,7 @@ describe('MessageRecoveryCommand', () => {
 			{
 				nonce: BigInt(1),
 				module: MODULE_NAME_INTEROPERABILITY,
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				crossChainCommand: Modules.Token.CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 				sendingChainID: getMainchainID(chainID),
 				receivingChainID: chainID,
 				fee: BigInt(0),
@@ -475,7 +471,7 @@ describe('MessageRecoveryCommand', () => {
 	});
 
 	describe('Mainchain execute', () => {
-		let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
+		let commandExecuteContext: StateMachine.CommandExecuteContext<MessageRecoveryParams>;
 
 		beforeEach(async () => {
 			commandExecuteContext = createTransactionContext({

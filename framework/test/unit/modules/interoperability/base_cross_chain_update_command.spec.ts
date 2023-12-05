@@ -16,13 +16,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { EMPTY_BUFFER } from '@liskhq/lisk-chain/dist-node/constants';
 import { validator } from '@liskhq/lisk-validator';
-import {
-	CommandExecuteContext,
-	MainchainInteroperabilityModule,
-	Transaction,
-	CommandVerifyContext,
-	ChainAccount,
-} from '../../../../src';
+import { StateMachine, Modules, Transaction } from '../../../../src';
 import { BaseCCCommand } from '../../../../src/modules/interoperability/base_cc_command';
 import { BaseCrossChainUpdateCommand } from '../../../../src/modules/interoperability/base_cross_chain_update_command';
 import { BaseCCMethod } from '../../../../src/modules/interoperability/base_cc_method';
@@ -77,13 +71,13 @@ import { EVENT_TOPIC_TRANSACTION_EXECUTION } from '../../../../src/state_machine
 
 class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async execute(_context: CommandExecuteContext<unknown>): Promise<void> {
+	public async execute(_context: StateMachine.CommandExecuteContext<unknown>): Promise<void> {
 		throw new Error('Method not implemented.');
 	}
 }
 
 describe('BaseCrossChainUpdateCommand', () => {
-	const interopsModule = new MainchainInteroperabilityModule();
+	const interopsModule = new Modules.Interoperability.MainchainInteroperabilityModule();
 	const senderPublicKey = utils.getRandomBytes(32);
 	const messageFeeTokenID = Buffer.alloc(8, 0);
 	const chainID = Buffer.alloc(4, 0);
@@ -211,7 +205,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	let internalMethod: MainchainInteroperabilityInternalMethod;
 
 	beforeEach(() => {
-		const interopModule = new MainchainInteroperabilityModule();
+		const interopModule = new Modules.Interoperability.MainchainInteroperabilityModule();
 		ccMethods = new Map();
 		ccMethods.set(
 			'token',
@@ -269,7 +263,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 	describe('verifyCommon', () => {
 		let stateStore: PrefixedStateReadWriter;
-		let verifyContext: CommandVerifyContext<CrossChainUpdateTransactionParams>;
+		let verifyContext: StateMachine.CommandVerifyContext<CrossChainUpdateTransactionParams>;
 
 		const ownChainAccount: OwnChainAccount = {
 			chainID: EMPTY_BUFFER,
@@ -277,7 +271,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			nonce: BigInt(1),
 		};
 
-		const chainAccount: ChainAccount = {
+		const chainAccount: Modules.Interoperability.ChainAccount = {
 			status: ChainStatus.REGISTERED,
 			name: 'chain123',
 			lastCertificate: {
@@ -530,7 +524,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	});
 
 	describe('verifyCertificateSignatureAndPartnerChainOutboxRoot', () => {
-		let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
+		let executeContext: StateMachine.CommandExecuteContext<CrossChainUpdateTransactionParams>;
 		let stateStore: PrefixedStateReadWriter;
 
 		beforeEach(async () => {
@@ -635,7 +629,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	// otherwise, they can fail due to some other check
 	// also, we can simplify test cases by giving only one CCM to params.inboxUpdate.crossChainMessages array
 	describe('beforeCrossChainMessagesExecution', () => {
-		let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
+		let executeContext: StateMachine.CommandExecuteContext<CrossChainUpdateTransactionParams>;
 		let stateStore: PrefixedStateReadWriter;
 
 		beforeEach(async () => {
@@ -1013,7 +1007,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	});
 
 	describe('afterCrossChainMessagesExecute', () => {
-		let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
+		let executeContext: StateMachine.CommandExecuteContext<CrossChainUpdateTransactionParams>;
 		let chainValidatorsStore: ChainValidatorsStore;
 
 		beforeEach(() => {

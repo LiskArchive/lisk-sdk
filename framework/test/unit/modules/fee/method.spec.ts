@@ -14,7 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { createMethodContext, MethodContext } from '../../../../src/state_machine/method_context';
-import { FeeMethod, FeeModule } from '../../../../src';
+import { Modules } from '../../../../src';
 import { ModuleConfig } from '../../../../src/modules/fee/types';
 import {
 	CONTEXT_STORE_KEY_AVAILABLE_CCM_FEE,
@@ -27,18 +27,18 @@ import { EventQueue } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 
 describe('FeeMethod', () => {
-	const fee = new FeeModule();
+	const fee = new Modules.Fee.FeeModule();
 	const config: ModuleConfig = {
 		...defaultConfig,
 		feeTokenID: Buffer.from('1000000000000002', 'hex'),
 		minFeePerByte: 1234,
 	};
 
-	let feeMethod: FeeMethod;
+	let feeMethod: Modules.Fee.FeeMethod;
 	let methodContext: MethodContext;
 
 	beforeEach(() => {
-		feeMethod = new FeeMethod(fee.stores, fee.events);
+		feeMethod = new Modules.Fee.FeeMethod(fee.stores, fee.events);
 		feeMethod.init(config);
 		methodContext = createMethodContext({
 			contextStore: new Map(),

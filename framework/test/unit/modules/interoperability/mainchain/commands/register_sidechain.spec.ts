@@ -51,7 +51,7 @@ import {
 } from '../../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
-import { MainchainInteroperabilityModule, TokenMethod, MethodContext } from '../../../../../../src';
+import { Modules, StateMachine } from '../../../../../../src';
 import { RegisteredNamesStore } from '../../../../../../src/modules/interoperability/stores/registered_names';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
@@ -69,7 +69,7 @@ import { CcmSendSuccessEvent } from '../../../../../../src/modules/interoperabil
 import { InvalidNameError } from '../../../../../../src/modules/interoperability/errors';
 
 describe('RegisterSidechainCommand', () => {
-	const interopMod = new MainchainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.MainchainInteroperabilityModule();
 	const chainID = Buffer.from([0, 0, 0, 0]);
 	const newChainID = utils.intToBuffer(2, 4);
 	const existingChainID = utils.intToBuffer(1, 4);
@@ -130,14 +130,14 @@ describe('RegisterSidechainCommand', () => {
 	let chainValidatorsSubstore: ChainValidatorsStore;
 	let registeredNamesSubstore: RegisteredNamesStore;
 	let verifyContext: CommandVerifyContext<SidechainRegistrationParams>;
-	const tokenMethod: TokenMethod = new TokenMethod(
+	const tokenMethod: Modules.Token.TokenMethod = new Modules.Token.TokenMethod(
 		interopMod.stores,
 		interopMod.events,
 		interopMod.name,
 	);
 	let initializeEscrowAmountMock: jest.SpyInstance<
 		Promise<void>,
-		[methodContext: MethodContext, chainID: Buffer, tokenID: Buffer]
+		[methodContext: StateMachine.MethodContext, chainID: Buffer, tokenID: Buffer]
 	>;
 
 	beforeEach(async () => {

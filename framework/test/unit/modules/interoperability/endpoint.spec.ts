@@ -14,7 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { ModuleEndpointContext, SidechainInteroperabilityModule } from '../../../../src';
+import { ModuleEndpointContext, Modules } from '../../../../src';
 import { BaseInteroperabilityEndpoint } from '../../../../src/modules/interoperability/base_interoperability_endpoint';
 import {
 	BLS_PUBLIC_KEY_LENGTH,
@@ -55,7 +55,7 @@ import {
 class TestEndpoint extends BaseInteroperabilityEndpoint {}
 
 describe('Test interoperability endpoint', () => {
-	const interopMod = new SidechainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.SidechainInteroperabilityModule();
 	const chainID = utils.intToBuffer(1, 4);
 	const chainAccountStoreMock = {
 		get: jest.fn(),
