@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StoreGetter } from '../../../../../src';
+import { Modules } from '../../../../../src';
 import {
 	ALL_SUPPORTED_TOKENS_KEY,
 	SupportedTokensStore,
@@ -25,7 +25,7 @@ describe('SupportedTokensStore', () => {
 	const ownChainID = Buffer.from([1, 0, 0, 1]);
 
 	let store: SupportedTokensStore;
-	let context: StoreGetter;
+	let context: Modules.StoreGetter;
 
 	beforeEach(() => {
 		store = new SupportedTokensStore('token', 3);

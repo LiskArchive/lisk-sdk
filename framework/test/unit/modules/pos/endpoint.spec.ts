@@ -24,7 +24,7 @@ import {
 	StakerData,
 	StakeSharingCoefficient,
 } from '../../../../src/modules/pos/types';
-import { PoSModule } from '../../../../src';
+import { Modules } from '../../../../src';
 import { StakerStore, stakerStoreSchema } from '../../../../src/modules/pos/stores/staker';
 import { ValidatorStore } from '../../../../src/modules/pos/stores/validator';
 import { createStoreGetter } from '../../../../src/testing/utils';
@@ -39,7 +39,7 @@ import { calculateStakeRewards, getModuleConfig } from '../../../../src/modules/
 const { q96 } = math;
 
 describe('PosModuleEndpoint', () => {
-	const pos = new PoSModule();
+	const pos = new Modules.PoS.PoSModule();
 
 	let posEndpoint: PoSEndpoint;
 	let stateStore: PrefixedStateReadWriter;

@@ -17,11 +17,11 @@ import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefix
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import { LENGTH_NFT_ID } from '../../../../../src/modules/nft/constants';
-import { StoreGetter } from '../../../../../src';
+import { Modules } from '../../../../../src';
 
 describe('NFTStore', () => {
 	let store: NFTStore;
-	let context: StoreGetter;
+	let context: Modules.StoreGetter;
 
 	beforeEach(() => {
 		store = new NFTStore('NFT', 5);

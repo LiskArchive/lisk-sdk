@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { address, utils } from '@liskhq/lisk-cryptography';
-import { TokenMethod, TokenModule, MethodContext } from '../../../../src';
+import { Modules, StateMachine } from '../../../../src';
 import {
 	USER_ACCOUNT_INITIALIZATION_FEE,
 	ESCROW_ACCOUNT_INITIALIZATION_FEE,
@@ -63,10 +63,14 @@ describe('token endpoint', () => {
 
 	let endpoint: TokenEndpoint;
 	let stateStore: PrefixedStateReadWriter;
-	let methodContext: MethodContext;
+	let methodContext: StateMachine.MethodContext;
 
 	beforeEach(async () => {
-		const method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
+		const method = new Modules.Token.TokenMethod(
+			tokenModule.stores,
+			tokenModule.events,
+			tokenModule.name,
+		);
 		const internalMethod = new InternalMethod(tokenModule.stores, tokenModule.events);
 		endpoint = new TokenEndpoint(tokenModule.stores, tokenModule.offchainStores);
 		const config: ModuleConfig = {

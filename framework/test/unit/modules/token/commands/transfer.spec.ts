@@ -16,7 +16,7 @@ import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { TokenModule, VerifyStatus } from '../../../../../src';
+import { Modules, StateMachine } from '../../../../../src';
 import { TokenMethod } from '../../../../../src/modules/token/method';
 import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
 import { transferParamsSchema } from '../../../../../src/modules/token/schemas';
@@ -36,7 +36,7 @@ interface Params {
 }
 
 describe('Transfer command', () => {
-	const tokenModule = new TokenModule();
+	const tokenModule = new Modules.Token.TokenModule();
 	const ownChainID = Buffer.from([0, 0, 0, 1]);
 	const defaultUserAccountInitFee = BigInt('50000000');
 	const defaultEscrowAccountInitFee = BigInt('50000000');
@@ -153,7 +153,7 @@ describe('Transfer command', () => {
 			});
 			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
 
-			expect(result.status).toEqual(VerifyStatus.OK);
+			expect(result.status).toEqual(StateMachine.VerifyStatus.OK);
 		});
 
 		it('should fail if balance for the provided tokenID is insufficient', async () => {
@@ -204,7 +204,7 @@ describe('Transfer command', () => {
 				}),
 			});
 			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
-			expect(result.status).toEqual(VerifyStatus.OK);
+			expect(result.status).toEqual(StateMachine.VerifyStatus.OK);
 		});
 	});
 

@@ -21,7 +21,7 @@ import { UserStore } from '../../../../src/modules/token/stores/user';
 import { createGenesisBlockContext } from '../../../../src/testing';
 import { invalidGenesisAssets, validGenesisAssets } from './init_genesis_state_fixture';
 import { SupportedTokensStore } from '../../../../src/modules/token/stores/supported_tokens';
-import { EMPTY_BYTES } from '../../../../src';
+import { Modules } from '../../../../src';
 
 describe('token module', () => {
 	let tokenModule: TokenModule;
@@ -108,7 +108,7 @@ describe('token module', () => {
 			// When all the tokens are supported
 			if (
 				input.supportedTokensSubstore.length === 1 &&
-				input.supportedTokensSubstore[0].chainID.equals(EMPTY_BYTES)
+				input.supportedTokensSubstore[0].chainID.equals(Modules.Interoperability.EMPTY_BYTES)
 			) {
 				expect(allSupported).toBeTrue();
 			} else {

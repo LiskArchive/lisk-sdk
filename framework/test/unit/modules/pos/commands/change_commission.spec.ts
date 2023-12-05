@@ -24,7 +24,7 @@ import { EventQueue, VerifyStatus } from '../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { ValidatorStore } from '../../../../../src/modules/pos/stores/validator';
-import { PoSModule } from '../../../../../src';
+import { Modules } from '../../../../../src';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import {
 	COMMISSION_INCREASE_PERIOD,
@@ -35,7 +35,7 @@ import { createFakeBlockHeader } from '../../../../../src/testing';
 import { CommissionChangeEvent } from '../../../../../src/modules/pos/events/commission_change';
 
 describe('Change Commission command', () => {
-	const pos = new PoSModule();
+	const pos = new Modules.PoS.PoSModule();
 	const changeCommissionCommand = new ChangeCommissionCommand(pos.stores, pos.events);
 	changeCommissionCommand.init({
 		commissionIncreasePeriod: COMMISSION_INCREASE_PERIOD,
