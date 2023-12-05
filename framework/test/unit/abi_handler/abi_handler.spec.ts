@@ -16,7 +16,7 @@ import { Block, BlockAssets, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { StateDB } from '@liskhq/lisk-db';
-import { BaseModule, TokenModule } from '../../../src';
+import { Modules } from '../../../src';
 import { ABIHandler } from '../../../src/abi_handler/abi_handler';
 import { transferParamsSchema } from '../../../src/modules/token/schemas';
 import { StateMachine } from '../../../src/state_machine';
@@ -48,10 +48,10 @@ describe('abi handler', () => {
 			commit: jest.fn().mockResolvedValue(utils.getRandomBytes(32)),
 		} as never;
 		const stateMachine = new StateMachine();
-		const mod = new TokenModule();
+		const mod = new Modules.Token.TokenModule();
 		const mod2 = new AuthModule();
 		jest.spyOn(mod.commands[0], 'execute').mockResolvedValue();
-		stateMachine.registerModule(mod as BaseModule);
+		stateMachine.registerModule(mod as Modules.BaseModule);
 		abiHandler = new ABIHandler({
 			logger: fakeLogger,
 			channel: channelMock,
@@ -78,9 +78,9 @@ describe('abi handler', () => {
 	describe('init', () => {
 		it('should not revert state and cache chainID if state is correct', async () => {
 			const stateMachine = new StateMachine();
-			const mod = new TokenModule();
+			const mod = new Modules.Token.TokenModule();
 			jest.spyOn(mod.commands[0], 'execute').mockResolvedValue();
-			stateMachine.registerModule(mod as BaseModule);
+			stateMachine.registerModule(mod as Modules.BaseModule);
 			abiHandler = new ABIHandler({
 				logger: fakeLogger,
 				channel: channelMock,
