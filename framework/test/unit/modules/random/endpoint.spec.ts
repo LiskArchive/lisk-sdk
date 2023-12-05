@@ -13,7 +13,7 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { ModuleEndpointContext, RandomModule } from '../../../../src';
+import { ModuleEndpointContext, Modules } from '../../../../src';
 import { RandomEndpoint } from '../../../../src/modules/random/endpoint';
 import { HashOnionStore } from '../../../../src/modules/random/stores/hash_onion';
 import {
@@ -77,7 +77,7 @@ describe('RandomModuleEndpoint', () => {
 	};
 
 	beforeEach(async () => {
-		const randomModule = new RandomModule();
+		const randomModule = new Modules.Random.RandomModule();
 		randomEndpoint = new RandomEndpoint(randomModule.stores, randomModule.offchainStores);
 		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		context = createTransientModuleEndpointContext({

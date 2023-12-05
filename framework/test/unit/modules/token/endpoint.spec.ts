@@ -32,7 +32,7 @@ import { ModuleConfig } from '../../../../src/modules/token/types';
 import { InternalMethod } from '../../../../src/modules/token/internal_method';
 
 describe('token endpoint', () => {
-	const tokenModule = new TokenModule();
+	const tokenModule = new Modules.Token.TokenModule();
 	const addr = utils.getRandomBytes(20);
 	const mainChainID = Buffer.from([1, 0, 0, 0]);
 	const mainChainTokenID = Buffer.concat([mainChainID, Buffer.from([0, 0, 0, 0])]);
