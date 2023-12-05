@@ -27,7 +27,7 @@ describe('calculateActiveValidatorsUpdate', () => {
 	);
 	const certificate = {
 		aggregationBits: Buffer.alloc(1),
-		blockID: cryptography.utils.hash(cryptography.utils.getRandomBytes(8)),
+		blockID: cryptography.utils.getRandomBytes(HASH_LENGTH),
 		height: 10,
 		signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
 		stateRoot: cryptography.utils.getRandomBytes(HASH_LENGTH),
@@ -77,7 +77,7 @@ describe('calculateActiveValidatorsUpdate', () => {
 		).toThrow('No validators data found for the given last certificate height.');
 	});
 
-	it('should return activeValidatorsUpdate and last certificate threshold if certificate threshhold is not changed', () => {
+	it('should return activeValidatorsUpdate and last certificate threshold if certificate threshold is not changed', () => {
 		const activeValidatorsUpdate = {
 			blsKeysUpdate: [validatorData.validators[0].blsKey, validatorData.validators[1].blsKey],
 			bftWeightsUpdate: [BigInt(1), BigInt(1)],
