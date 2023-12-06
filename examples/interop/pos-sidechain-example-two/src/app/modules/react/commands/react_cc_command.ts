@@ -8,21 +8,16 @@ import {
 	VerifyStatus,
 	codec,
 } from 'lisk-sdk';
-import { CROSS_CHAIN_COMMAND_NAME_REACT } from '../constants';
-import {
-	CCReactCommandParamsSchema,
-	CCReactMessageParams,
-	CCReactMessageParamsSchema,
-	CCReactCommandParams,
-} from '../schemas';
-import { InteroperabilityMethod } from '../types';
+import { CROSS_CHAIN_COMMAND_REACT } from '../constants';
+import { CCReactCommandParamsSchema, CCReactMessageParamsSchema } from '../schemas';
+import { CCReactMessageParams, CCReactCommandParams, InteroperabilityMethod } from '../types';
 
-export class ReactCrossChainCommand extends BaseCommand {
+export class CrossChainReactCommand extends BaseCommand {
 	private _interoperabilityMethod!: InteroperabilityMethod;
 	public schema = CCReactCommandParamsSchema;
 
 	public get name(): string {
-		return CROSS_CHAIN_COMMAND_NAME_REACT;
+		return CROSS_CHAIN_COMMAND_REACT;
 	}
 
 	public init(args: { interoperabilityMethod: InteroperabilityMethod }) {
@@ -49,6 +44,7 @@ export class ReactCrossChainCommand extends BaseCommand {
 				error: err as Error,
 			};
 		}
+
 		return {
 			status: VerifyStatus.OK,
 		};
@@ -60,7 +56,7 @@ export class ReactCrossChainCommand extends BaseCommand {
 			transaction: { senderAddress },
 		} = context;
 
-		const reactCCM: CCReactMessageParams = {
+		const ccReactMessageParams: CCReactMessageParams = {
 			reactionType: params.reactionType,
 			data: params.data,
 			helloMessageID: params.helloMessageID,
@@ -70,10 +66,10 @@ export class ReactCrossChainCommand extends BaseCommand {
 			context.getMethodContext(),
 			senderAddress,
 			'hello',
-			CROSS_CHAIN_COMMAND_NAME_REACT,
+			CROSS_CHAIN_COMMAND_REACT,
 			params.receivingChainID,
 			params.messageFee,
-			codec.encode(CCReactMessageParamsSchema, reactCCM),
+			codec.encode(CCReactMessageParamsSchema, ccReactMessageParams),
 			context.header.timestamp,
 		);
 	}

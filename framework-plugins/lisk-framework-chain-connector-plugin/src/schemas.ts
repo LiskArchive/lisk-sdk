@@ -73,10 +73,11 @@ export const configSchema = {
 			description: 'Chain ID of the receiving chain.',
 		},
 	},
-	required: ['ccuFee', 'encryptedPrivateKey', 'receivingChainID'],
+	required: ['encryptedPrivateKey', 'receivingChainID'],
 	default: {
 		ccuFrequency: CCU_FREQUENCY,
 		isSaveCCU: false,
+		ccuFee: '0',
 		maxCCUSize: CCU_TOTAL_CCM_SIZE,
 		registrationHeight: DEFAULT_REGISTRATION_HEIGHT,
 		ccuSaveLimit: DEFAULT_CCU_SAVE_LIMIT,

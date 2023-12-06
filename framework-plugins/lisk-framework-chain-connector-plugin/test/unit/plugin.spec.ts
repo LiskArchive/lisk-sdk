@@ -30,6 +30,8 @@ import {
 	CrossChainUpdateTransactionParams,
 	Certificate,
 	BFTHeights,
+	transactions,
+	ccuParamsSchema,
 } from 'lisk-sdk';
 import { when } from 'jest-when';
 import {
@@ -42,6 +44,7 @@ import {
 	CCM_PROCESSED,
 	CCU_TOTAL_CCM_SIZE,
 	EMPTY_BYTES,
+	COMMAND_NAME_SUBMIT_MAINCHAIN_CCU,
 } from '../../src/constants';
 import { getSampleCCM } from '../utils/sampleCCM';
 import * as plugins from '../../src/chain_connector_plugin';
@@ -150,7 +153,25 @@ describe('ChainConnectorPlugin', () => {
 	const defaultPrivateKey =
 		'6c5e2b24ff1cc99da7a49bd28420b93b2a91e2e2a3b0a0ce07676966b707d3c2859bbd02747cf8e26dab592c02155dfddd4a16b0fe83fd7e7ffaec0b5391f3f7';
 	const defaultPassword = '123';
-	const defaultCCUFee = '100000000';
+	const defaultCCUFee = '500000';
+	const sampleCCUParams: CrossChainUpdateTransactionParams = {
+		sendingChainID: Buffer.from('04000001', 'hex'),
+		activeValidatorsUpdate: {
+			bftWeightsUpdate: [],
+			bftWeightsUpdateBitmap: EMPTY_BYTES,
+			blsKeysUpdate: [],
+		},
+		certificate: EMPTY_BYTES,
+		certificateThreshold: BigInt(1),
+		inboxUpdate: {
+			crossChainMessages: [],
+			messageWitnessHashes: [],
+			outboxRootWitness: {
+				bitmap: EMPTY_BYTES,
+				siblingHashes: [],
+			},
+		},
+	};
 
 	const getApiClientMock = () => ({
 		disconnect: jest.fn(),
@@ -550,28 +571,9 @@ describe('ChainConnectorPlugin', () => {
 
 	describe('_newBlockHandler', () => {
 		let block: Block;
-		let sampleCCUParams: CrossChainUpdateTransactionParams;
 		let sampleNextCertificate: Certificate;
 
 		beforeEach(async () => {
-			sampleCCUParams = {
-				sendingChainID: Buffer.from('04000001', 'hex'),
-				activeValidatorsUpdate: {
-					bftWeightsUpdate: [],
-					bftWeightsUpdateBitmap: EMPTY_BYTES,
-					blsKeysUpdate: [],
-				},
-				certificate: EMPTY_BYTES,
-				certificateThreshold: BigInt(1),
-				inboxUpdate: {
-					crossChainMessages: [],
-					messageWitnessHashes: [],
-					outboxRootWitness: {
-						bitmap: EMPTY_BYTES,
-						siblingHashes: [],
-					},
-				},
-			};
 			block = await testing.createBlock({
 				chainID: Buffer.from('00001111', 'hex'),
 				privateKey: Buffer.from(
@@ -1031,6 +1033,86 @@ describe('ChainConnectorPlugin', () => {
 		});
 	});
 
+	describe('_getCcuFee', () => {
+		const transactionTemplate = {
+			module: MODULE_NAME_INTEROPERABILITY,
+			command: COMMAND_NAME_SUBMIT_MAINCHAIN_CCU,
+			nonce: BigInt(0),
+			senderPublicKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+			params: sampleCCUParams,
+			signatures: [],
+		};
+
+		beforeEach(() => {
+			chainConnectorPlugin['_receivingChainClient'] = receivingChainAPIClientMock;
+		});
+
+		describe('userAddress does not exist in receivingChain', () => {
+			const initializationFees = {
+				userAccount: BigInt('1000000000'),
+				escrowAccount: BigInt('2000000000'),
+			};
+
+			beforeEach(() => {
+				when(receivingChainAPIClientMock.invoke)
+					.calledWith('token_hasUserAccount', expect.anything())
+					.mockResolvedValue({
+						exists: false,
+					});
+				when(receivingChainAPIClientMock.invoke)
+					.calledWith('token_getInitializationFees')
+					.mockResolvedValue(initializationFees);
+			});
+
+			it('should return config.ccuFee + additionalFee when config.ccuFee exists', async () => {
+				await initChainConnectorPlugin(chainConnectorPlugin, defaultConfig);
+				await expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).resolves.toBe(
+					BigInt(defaultCCUFee) + initializationFees.userAccount,
+				);
+			});
+
+			it('should calculate by `computeMinFee` + additionalFee when config.ccuFee does not exist', async () => {
+				await initChainConnectorPlugin(chainConnectorPlugin, {
+					...defaultConfig,
+					ccuFee: '0',
+				});
+
+				await expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).resolves.toBe(
+					transactions.computeMinFee(transactionTemplate, ccuParamsSchema, {
+						additionalFee: initializationFees.userAccount,
+					}),
+				);
+			});
+		});
+
+		describe('userAddress exists in receivingChain', () => {
+			beforeEach(() => {
+				when(receivingChainAPIClientMock.invoke)
+					.calledWith('token_hasUserAccount', expect.anything())
+					.mockResolvedValue({
+						exists: true,
+					});
+			});
+
+			it('should return config.ccuFee when config.ccuFee exists', async () => {
+				await initChainConnectorPlugin(chainConnectorPlugin, defaultConfig);
+				await expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).resolves.toBe(
+					BigInt(defaultCCUFee),
+				);
+			});
+
+			it('should calculate by `computeMinFee` when config.ccuFee does not exist', async () => {
+				await initChainConnectorPlugin(chainConnectorPlugin, {
+					...defaultConfig,
+					ccuFee: '0',
+				});
+
+				await expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).resolves.toBe(
+					transactions.computeMinFee(transactionTemplate, ccuParamsSchema),
+				);
+			});
+		});
+	});
 	describe('_computeCCUParams', () => {
 		let sampleCCMsWithEvents: CCMsFromEvents[];
 		let sampleBlockHeaders: BlockHeader[];
@@ -1704,7 +1786,6 @@ describe('ChainConnectorPlugin', () => {
 	});
 
 	describe('_submitCCU', () => {
-		const ccuParams = cryptography.utils.getRandomBytes(100);
 		beforeEach(async () => {
 			jest
 				.spyOn(apiClient, 'createIPCClient')
@@ -1722,8 +1803,13 @@ describe('ChainConnectorPlugin', () => {
 				})
 				.calledWith('auth_getAuthAccount', expect.anything())
 				.mockResolvedValue({ nonce: '3' });
+			when(sendingChainAPIClientMock.invoke)
+				.calledWith('token_hasUserAccount', expect.anything())
+				.mockResolvedValue({
+					exists: true,
+				});
 
-			await chainConnectorPlugin['_submitCCU'](ccuParams);
+			await chainConnectorPlugin['_submitCCU'](sampleCCUParams);
 		});
 
 		it('should get the chainID from the node', () => {
@@ -1740,7 +1826,22 @@ describe('ChainConnectorPlugin', () => {
 			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledWith('txpool_postTransaction', {
 				transaction: expect.any(String),
 			});
-			expect(sendingChainAPIClientMock.invoke).toHaveBeenCalledTimes(3);
+			expect(sendingChainAPIClientMock.invoke).toHaveBeenNthCalledWith(
+				1,
+				'auth_getAuthAccount',
+				expect.anything(),
+			);
+			expect(sendingChainAPIClientMock.invoke).toHaveBeenNthCalledWith(2, 'system_getNodeInfo');
+			expect(sendingChainAPIClientMock.invoke).toHaveBeenNthCalledWith(
+				3,
+				'token_hasUserAccount',
+				expect.anything(),
+			);
+			expect(sendingChainAPIClientMock.invoke).toHaveBeenNthCalledWith(
+				4,
+				'txpool_postTransaction',
+				expect.anything(),
+			);
 		});
 	});
 });

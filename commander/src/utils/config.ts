@@ -8,6 +8,7 @@ export const defaultConfig = {
 		modes: ['ipc'],
 		port: 7887,
 		host: '127.0.0.1',
+		allowedMethods: [],
 	},
 	network: {
 		version: '1.0',

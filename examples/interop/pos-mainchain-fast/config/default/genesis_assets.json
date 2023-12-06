@@ -987,6 +987,14 @@
 				],
 				"supportedTokensSubstore": [
 					{
+						"chainID": "04000001",
+						"supportedTokenIDs": ["0400000100000000"]
+					},
+					{
+						"chainID": "04000002",
+						"supportedTokenIDs": ["0400000200000000"]
+					},
+					{
 						"chainID": "04123456",
 						"supportedTokenIDs": ["0412345600000000"]
 					}

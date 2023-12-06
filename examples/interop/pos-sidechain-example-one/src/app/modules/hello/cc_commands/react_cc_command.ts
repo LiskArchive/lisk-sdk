@@ -1,8 +1,9 @@
 /* eslint-disable class-methods-use-this */
 
 import { BaseCCCommand, CrossChainMessageContext, codec, cryptography, db } from 'lisk-sdk';
-import { CCReactMessageParamsSchema, CCReactMessageParams } from '../schemas';
-import { MAX_RESERVED_ERROR_STATUS, CROSS_CHAIN_COMMAND_NAME_REACT } from '../constants';
+import { CCReactMessageParamsSchema } from '../schemas';
+import { CCReactMessageParams } from '../types';
+import { MAX_RESERVED_ERROR_STATUS, CROSS_CHAIN_COMMAND_REACT } from '../constants';
 import { ReactionStore, ReactionStoreData } from '../stores/reaction';
 import { MessageStore } from '../stores/message';
 
@@ -10,7 +11,7 @@ export class ReactCCCommand extends BaseCCCommand {
 	public schema = CCReactMessageParamsSchema;
 
 	public get name(): string {
-		return CROSS_CHAIN_COMMAND_NAME_REACT;
+		return CROSS_CHAIN_COMMAND_REACT;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -21,9 +22,12 @@ export class ReactCCCommand extends BaseCCCommand {
 			throw new Error('Invalid CCM status code.');
 		}
 
-		const params = codec.decode<CCReactMessageParams>(CCReactMessageParamsSchema, ccm.params);
+		const ccReactMessageParams = codec.decode<CCReactMessageParams>(
+			CCReactMessageParamsSchema,
+			ccm.params,
+		);
 		const messageCreatorAddress = cryptography.address.getAddressFromLisk32Address(
-			params.helloMessageID,
+			ccReactMessageParams.helloMessageID,
 		);
 		if (!(await this.stores.get(MessageStore).has(ctx, messageCreatorAddress))) {
 			throw new Error('Message ID does not exists.');
@@ -31,50 +35,64 @@ export class ReactCCCommand extends BaseCCCommand {
 	}
 
 	public async execute(ctx: CrossChainMessageContext): Promise<void> {
-		const { ccm, logger } = ctx;
+		const { ccm, logger, transaction } = ctx;
 		logger.info('Executing React CCM');
-		// const { sendingChainID, status, receivingChainID } = ccm;
-		// Decode the provided CCM parameters
-		const params = codec.decode<CCReactMessageParams>(CCReactMessageParamsSchema, ccm.params);
-		logger.info(params, 'parameters');
-		// Get helloMessageID and reactionType from the parameters
-		const { helloMessageID, reactionType } = params;
-		const reactionSubstore = this.stores.get(ReactionStore);
-		const messageCreatorAddress = cryptography.address.getAddressFromLisk32Address(helloMessageID);
-		let msgReactions: ReactionStoreData;
 
+		// Decode the provided CCM parameters
+		const ccReactMessageParams = codec.decode<CCReactMessageParams>(
+			CCReactMessageParamsSchema,
+			ccm.params,
+		);
+		logger.info(ccReactMessageParams, 'parameters');
+
+		// Get helloMessageID and reactionType from the parameters
+		const { helloMessageID, reactionType } = ccReactMessageParams;
+		const { senderAddress } = transaction;
+		const reactionSubstore = this.stores.get(ReactionStore);
+		const msgCreatorAddress = cryptography.address.getAddressFromLisk32Address(helloMessageID);
+
+		let msgReactions: ReactionStoreData;
 		// Get existing reactions for a Hello message, or initialize an empty reaction object, if none exists,yet.
 		try {
-			msgReactions = await reactionSubstore.get(ctx, messageCreatorAddress);
+			msgReactions = await reactionSubstore.get(ctx, msgCreatorAddress);
 		} catch (error) {
 			if (!(error instanceof db.NotFoundError)) {
-				logger.info({ helloMessageID, crossChainCommand: this.name }, (error as Error).message);
-				logger.error({ error }, 'Error when getting the reaction substore');
+				logger.error(
+					{
+						helloMessageID,
+						crossChainCommand: this.name,
+						error,
+					},
+					'Error when getting the reaction substore',
+				);
 				throw error;
 			}
 			logger.info(
 				{ helloMessageID, crossChainCommand: this.name },
 				`No entry exists for given helloMessageID ${helloMessageID}. Creating a default entry.`,
 			);
-			msgReactions = { reactions: { like: [] } };
+			msgReactions = { reactions: { likes: [] } };
 		}
 
+		let { likes } = msgReactions.reactions;
 		// Check if the reactions is a like
 		if (reactionType === 0) {
-			const hasLiked = msgReactions.reactions.like.indexOf(ctx.transaction.senderAddress);
+			const likedPos = likes.indexOf(senderAddress);
 			// If the sender has already liked the message
-			if (hasLiked > -1) {
+			if (likedPos > -1) {
 				// Remove the sender address from the likes for the message
-				msgReactions.reactions.like = msgReactions.reactions.like.splice(hasLiked, 1);
+				likes = likes.splice(likedPos, 1);
 				// If the sender has not liked the message yet
 			} else {
 				// Add the sender address to the likes of the message
-				msgReactions.reactions.like.push(ctx.transaction.senderAddress);
+				likes.push(senderAddress);
 			}
 		} else {
 			logger.error({ reactionType }, 'invalid reaction type');
 		}
+
+		msgReactions.reactions.likes = likes;
 		// Update the reaction store with the reactions for the specified Hello message
-		await reactionSubstore.set(ctx, messageCreatorAddress, msgReactions);
+		await reactionSubstore.set(ctx, msgCreatorAddress, msgReactions);
 	}
 }

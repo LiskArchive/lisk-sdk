@@ -311,7 +311,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 				status: VerifyStatus.OK,
 			});
 
-			expect(sidechainCCUUpdateCommand['verifyCommon']).toHaveBeenCalled();
+			expect(sidechainCCUUpdateCommand['verifyCommon']).toHaveBeenCalledWith(verifyContext, false);
 		});
 
 		it('should call isLive with only 2 params', async () => {
@@ -353,6 +353,31 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 				.spyOn(sidechainCCUUpdateCommand['internalMethod'], 'appendToInboxTree')
 				.mockResolvedValue(undefined);
 			jest.spyOn(sidechainCCUUpdateCommand, 'apply' as never).mockResolvedValue(undefined as never);
+		});
+
+		// verifyCertificateSignatureAndPartnerChainOutboxRoot relevant checks are covered in base_cross_chain_update_command.spec.ts
+		it('should call verifyCertificateSignatureAndPartnerChainOutboxRoot', async () => {
+			jest.spyOn(
+				sidechainCCUUpdateCommand,
+				'verifyCertificateSignatureAndPartnerChainOutboxRoot' as never,
+			);
+
+			executeContext = createTransactionContext({
+				chainID,
+				stateStore,
+				transaction: new Transaction({
+					...defaultTransaction,
+					command: sidechainCCUUpdateCommand.name,
+					params: codec.encode(crossChainUpdateTransactionParams, {
+						...params,
+					}),
+				}),
+			}).createCommandExecuteContext(sidechainCCUUpdateCommand.schema);
+
+			await expect(sidechainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
+			expect(
+				sidechainCCUUpdateCommand['verifyCertificateSignatureAndPartnerChainOutboxRoot'],
+			).toHaveBeenCalledTimes(1);
 		});
 
 		it('should call beforeCrossChainMessagesExecution', async () => {
@@ -404,7 +429,7 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 			expect(sidechainCCUUpdateCommand['apply']).toHaveBeenCalledTimes(1);
 		});
 
-		it('should call apply for ccm and add to the inbox where receiving chain is the main chain', async () => {
+		it('should call apply for ccm and add to the inbox', async () => {
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -430,7 +455,27 @@ describe('SubmitSidechainCrossChainUpdateCommand', () => {
 				});
 			}
 			expect(sidechainCCUUpdateCommand['internalMethod'].appendToInboxTree).toHaveBeenCalledTimes(
-				3,
+				params.inboxUpdate.crossChainMessages.length,
+			);
+		});
+
+		it('should call afterCrossChainMessagesExecution', async () => {
+			jest.spyOn(sidechainCCUUpdateCommand, 'afterCrossChainMessagesExecution' as any);
+			executeContext = createTransactionContext({
+				chainID,
+				stateStore,
+				transaction: new Transaction({
+					...defaultTransaction,
+					command: sidechainCCUUpdateCommand.name,
+					params: codec.encode(crossChainUpdateTransactionParams, {
+						...params,
+					}),
+				}),
+			}).createCommandExecuteContext(sidechainCCUUpdateCommand.schema);
+
+			await expect(sidechainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
+			expect(sidechainCCUUpdateCommand['afterCrossChainMessagesExecution']).toHaveBeenCalledTimes(
+				1,
 			);
 		});
 	});
