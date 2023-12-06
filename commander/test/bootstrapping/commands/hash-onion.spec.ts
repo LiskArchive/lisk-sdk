@@ -18,7 +18,7 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import { HashOnionCommand } from '../../../src/bootstrapping/commands/hash-onion';
 import { getConfig } from '../../helpers/config';
 import { Awaited } from '../../types';
-import { OWNER_READ_WRITE } from '../../../src/constants';
+import * as outputUtils from '../../../src/utils/output';
 
 describe('hash-onion command', () => {
 	let stdout: string[];
@@ -44,7 +44,7 @@ describe('hash-onion command', () => {
 			for (let i = 0; i < result.hashes.length - 1; i += 1) {
 				let nextHash = Buffer.from(result.hashes[i + 1], 'hex');
 				for (let j = 0; j < result.distance; j += 1) {
-					nextHash = cryptography.utils.hash(nextHash).slice(0, 16);
+					nextHash = cryptography.utils.hash(nextHash).subarray(0, 16);
 				}
 				expect(result.hashes[i]).toBe(nextHash.toString('hex'));
 			}
@@ -53,26 +53,41 @@ describe('hash-onion command', () => {
 
 	describe('hash-onion --count=1000 --distance=200 --output=./test/sample.json', () => {
 		it('should write to file', async () => {
+			jest
+				.spyOn(outputUtils, 'handleOutputFlag')
+				.mockImplementation(async () =>
+					Promise.resolve('Successfully written data to /my/path/sample.json'),
+				);
+
 			await HashOnionCommand.run(
 				['--count=1000', '--distance=200', '--output=./test/sample.json'],
 				config,
 			);
-			expect(fs.ensureDirSync).toHaveBeenCalledWith('./test');
-			expect(fs.writeJSONSync).toHaveBeenCalledWith('./test/sample.json', expect.anything(), {
-				mode: OWNER_READ_WRITE,
-			});
+
+			expect(outputUtils.handleOutputFlag).toHaveBeenCalledWith(
+				'./test/sample.json',
+				expect.anything(),
+				'hash-onion',
+			);
 		});
 
 		it('should write to file in pretty format', async () => {
+			jest
+				.spyOn(outputUtils, 'handleOutputFlag')
+				.mockImplementation(async () =>
+					Promise.resolve('Successfully written data to /my/path/sample.json'),
+				);
+
 			await HashOnionCommand.run(
 				['--count=1000', '--distance=200', '--pretty', '--output=./test/sample.json'],
 				config,
 			);
-			expect(fs.ensureDirSync).toHaveBeenCalledWith('./test');
-			expect(fs.writeJSONSync).toHaveBeenCalledWith('./test/sample.json', expect.anything(), {
-				spaces: ' ',
-				mode: OWNER_READ_WRITE,
-			});
+
+			expect(outputUtils.handleOutputFlag).toHaveBeenCalledWith(
+				'./test/sample.json',
+				expect.anything(),
+				'hash-onion',
+			);
 		});
 	});
 

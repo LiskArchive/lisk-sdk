@@ -52,7 +52,8 @@ Install and build `pos-sidechain-example-two`
 
 #### Run apps using pm2
 
-Install [pm2](https://pm2.keymetrics.io/) if not installed using `npm install pm2 -g`
+- Install [pm2](https://pm2.keymetrics.io/) if not installed using `npm install pm2 -g`
+- Install []`ts-node`](https://www.npmjs.com/package/ts-node) globally
 
 Run 2 instances mainchain node
 
@@ -79,8 +80,8 @@ Interact with applications using `pm2`
 #### Register chains
 
 - Run `ts-node pos-mainchain-fast/config/scripts/sidechain_registration.ts` to register all the sidechains on the mainchain node.
-- Run `ts-node pos-sidechain-example-one/config/scripts/mainchain_registration.ts` to register sidechain `sidechain_example_one` on mainchain.
-- Run `ts-node pos-sidechain-example-two/config/scripts/mainchain_registration.ts` to register sidechain `sidechain_example_two` on mainchain.
+- Run `ts-node pos-sidechain-example-one/config/scripts/mainchain_registration.ts` to register mainchain on sidechain `sidechain_example_one`.
+- Run `ts-node pos-sidechain-example-two/config/scripts/mainchain_registration.ts` to register mainchain on sidechain `sidechain_example_two`.
 
 #### Check chain status
 
@@ -89,7 +90,12 @@ Interact with applications using `pm2`
 
 Now observe logs, initially it will log `No valid CCU can be generated for the height: ${newBlockHeader.height}` until first finalized height is reached.
 
-When the finalized height is reached, check chain status as described above and it should update lastCertificate height > 0 and status to 1 which means the CCU was sent successfully and chain is active now.
+When the finalized height is reached, check chain status as described above and it should update lastCertificate `height > 0` and status to `1` which means the CCU was sent successfully and chain is active now.
+
+### Authorize ChainConnector plugin to sign and send CCU(Cross-Chain Update) transactions
+
+Run below command inside each application folder.
+`./bin/run endpoint:invoke 'chainConnector_authorize' '{"password": "lisk" }'`
 
 #### Cross Chain transfers
 
@@ -110,7 +116,7 @@ When the finalized height is reached, check chain status as described above and 
 
 ##### Transfer sidechain two to sidechain one
 
-- Run `ts-node pos-sidechain-example-one/config/scripts/transfer_sidechain_one.ts` from `interop` folder.
+- Run `ts-node pos-sidechain-example-two/config/scripts/transfer_sidechain_one.ts` from `interop` folder.
 - Check balance for `lskxvesvwgxpdnhp4rdukmsx42teehpxkeod7xv7f` using `token_getBalances` RPC on sidechain one.
 
 ##### Transfer sidechain one to sidechain two
@@ -131,6 +137,13 @@ When the finalized height is reached, check chain status as described above and 
 
 #### Other options
 
-There are `genesis_assets_103_validators.json` file under config folder of each app. You can also use this genesis-assets if you want to run an application for 103 validators. In order to do so follow these steps:
+There are `genesis_assets_103_validators.json` file under config folder of each app. You can also use this
+genesis-assets if you want to run an application for 103 validators. In order to do so follow these steps:
 
-- Update genesis block using command: `./bin/run genesis-block:create --output config/default/ --assets-file config/default/genesis_assets_103_validators.json`
+- Update genesis block using
+  command: `./bin/run genesis-block:create --output config/default/ --assets-file config/default/genesis_assets_103_validators.json`
+
+## Learn More
+
+[Here](https://github.com/LiskHQ/lisk-docs/blob/7a7c1606c688f8cd91b50d0ddc199907c6b4f759/docs/modules/ROOT/images/build-blockchain/interop-example.png)
+is reference to diagram explaining interop setup nicely.

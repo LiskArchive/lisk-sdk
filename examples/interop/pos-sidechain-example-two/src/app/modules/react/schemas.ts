@@ -1,88 +1,47 @@
-/**
- * Parameters of the reactCrossChain CCM
- */
-export interface CCReactMessageParams {
-	/**
-	 * A number indicating the type of the reaction.
-	 */
-	reactionType: number;
-	/**
-	 * ID of the Hello message being reacted to.
-	 */
-	helloMessageID: string;
-	/** Optional field for data / messages. */
-	data: string;
-}
+const reactionType = {
+	dataType: 'uint32',
+	fieldNumber: 1,
+};
 
-/**
- * Parameters of the react reactCrossChain command
- */
-export interface CCReactCommandParams extends CCReactMessageParams {
-	/**
-	 * The chain ID of the receiving chain.
-	 *
-	 * `maxLength` and `minLength` are equal to 4.
-	 */
-	receivingChainID: Buffer;
-	/**
-	 * The fee for sending the CCM across chains.
-	 */
-	messageFee: bigint;
-}
+const helloMessageID = {
+	dataType: 'string',
+	fieldNumber: 2,
+};
 
-/**
- * Schema for the parameters of the reactCrossChain CCM
- */
+const data = {
+	dataType: 'string',
+	fieldNumber: 3,
+	minLength: 0,
+	maxLength: 64,
+};
+
+// Schema for the parameters of the crossChainReact CCM
 export const CCReactMessageParamsSchema = {
-	/** The unique identifier of the schema. */
-	$id: '/lisk/react/ccmParams',
+	// The unique identifier of the schema.
+	$id: '/lisk/react/ccReactMessageParams',
 	type: 'object',
-	/** The required parameters for the CCM. */
+	// The required parameters for the CCM.
 	required: ['reactionType', 'helloMessageID', 'data'],
-	/** A list describing the required parameters for the CCM. */
+	// A list describing the required parameters for the CCM.
 	properties: {
-		reactionType: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		helloMessageID: {
-			dataType: 'string',
-			fieldNumber: 2,
-		},
-		data: {
-			dataType: 'string',
-			fieldNumber: 3,
-			minLength: 0,
-			maxLength: 64,
-		},
+		reactionType,
+		helloMessageID,
+		data,
 	},
 };
 
-/**
- * Schema for the parameters of the react reactCrossChain command
- */
+// Schema for the parameters of the react crossChainReact command
 export const CCReactCommandParamsSchema = {
-	/** The unique identifier of the schema. */
-	$id: '/lisk/react/ccCommandParams',
+	// The unique identifier of the schema.
+	$id: '/lisk/react/ccReactCommandParams',
 	type: 'object',
-	/** The required parameters for the command. */
+	// The required parameters for the command.
 	required: ['reactionType', 'helloMessageID', 'receivingChainID', 'data', 'messageFee'],
-	/** A list describing the available parameters for the command. */
+	// A list describing the available parameters for the command.
 	properties: {
-		reactionType: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		helloMessageID: {
-			dataType: 'string',
-			fieldNumber: 2,
-		},
-		data: {
-			dataType: 'string',
-			fieldNumber: 3,
-			minLength: 0,
-			maxLength: 64,
-		},
+		reactionType,
+		helloMessageID,
+		data,
 		receivingChainID: {
 			dataType: 'bytes',
 			fieldNumber: 4,

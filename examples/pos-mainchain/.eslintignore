@@ -12,3 +12,4 @@ scripts
 config
 test/_setup.js
 ecosystem.config.js
+src/app/app.ts

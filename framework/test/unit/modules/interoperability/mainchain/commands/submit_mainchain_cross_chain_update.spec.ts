@@ -414,14 +414,31 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				});
 		});
 
-		it('should verify verifyCommon is called', async () => {
+		it('should check if verifyCommon is called', async () => {
 			jest.spyOn(mainchainCCUUpdateCommand, 'verifyCommon' as any);
 
 			await expect(mainchainCCUUpdateCommand.verify(verifyContext)).resolves.toEqual({
 				status: VerifyStatus.OK,
 			});
 
-			expect(mainchainCCUUpdateCommand['verifyCommon']).toHaveBeenCalled();
+			expect(mainchainCCUUpdateCommand['verifyCommon']).toHaveBeenCalledWith(verifyContext, true);
+		});
+
+		it('should call isLive with 3 params', async () => {
+			jest.spyOn(mainchainCCUUpdateCommand['internalMethod'], 'isLive');
+
+			await expect(
+				mainchainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: { ...params } as any,
+				}),
+			).resolves.toEqual({ status: VerifyStatus.OK });
+
+			expect(mainchainCCUUpdateCommand['internalMethod'].isLive).toHaveBeenCalledWith(
+				verifyContext,
+				verifyContext.params.sendingChainID,
+				verifyContext.header.timestamp,
+			);
 		});
 
 		it(`should not verify liveness condition when sendingChainAccount.status == ${ChainStatus.REGISTERED} and inboxUpdate is empty`, async () => {
@@ -473,6 +490,25 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 				expect.toBeObject() as Certificate,
 			);
 		});
+
+		it('should return status OK for valid context', async () => {
+			await expect(
+				mainchainCCUUpdateCommand.verify({
+					...verifyContext,
+					params: {
+						...params,
+						inboxUpdate: {
+							crossChainMessages: [utils.getRandomBytes(100)],
+							messageWitnessHashes: [utils.getRandomBytes(32)],
+							outboxRootWitness: {
+								bitmap: utils.getRandomBytes(2),
+								siblingHashes: [utils.getRandomBytes(32)],
+							},
+						},
+					},
+				}),
+			).resolves.toEqual({ status: VerifyStatus.OK });
+		});
 	});
 
 	describe('execute', () => {
@@ -493,6 +529,31 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			jest
 				.spyOn(mainchainCCUUpdateCommand, '_forward' as never)
 				.mockResolvedValue(undefined as never);
+		});
+
+		// verifyCertificateSignatureAndPartnerChainOutboxRoot relevant checks are covered in base_cross_chain_update_command.spec.ts
+		it('should call verifyCertificateSignatureAndPartnerChainOutboxRoot', async () => {
+			jest.spyOn(
+				mainchainCCUUpdateCommand,
+				'verifyCertificateSignatureAndPartnerChainOutboxRoot' as never,
+			);
+
+			executeContext = createTransactionContext({
+				chainID,
+				stateStore,
+				transaction: new Transaction({
+					...defaultTransaction,
+					command: mainchainCCUUpdateCommand.name,
+					params: codec.encode(crossChainUpdateTransactionParams, {
+						...params,
+					}),
+				}),
+			}).createCommandExecuteContext(mainchainCCUUpdateCommand.schema);
+
+			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
+			expect(
+				mainchainCCUUpdateCommand['verifyCertificateSignatureAndPartnerChainOutboxRoot'],
+			).toHaveBeenCalledTimes(1);
 		});
 
 		it('should call beforeCrossChainMessagesExecution', async () => {
@@ -635,6 +696,26 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
 			expect(mockExit).toHaveBeenCalledWith(1);
 			expect(mainchainCCUUpdateCommand['_forward']).toHaveBeenCalledTimes(1);
+		});
+
+		it('should call afterCrossChainMessagesExecution', async () => {
+			jest.spyOn(mainchainCCUUpdateCommand, 'afterCrossChainMessagesExecution' as any);
+			executeContext = createTransactionContext({
+				chainID,
+				stateStore,
+				transaction: new Transaction({
+					...defaultTransaction,
+					command: mainchainCCUUpdateCommand.name,
+					params: codec.encode(crossChainUpdateTransactionParams, {
+						...params,
+					}),
+				}),
+			}).createCommandExecuteContext(mainchainCCUUpdateCommand.schema);
+
+			await expect(mainchainCCUUpdateCommand.execute(executeContext)).resolves.toBeUndefined();
+			expect(mainchainCCUUpdateCommand['afterCrossChainMessagesExecution']).toHaveBeenCalledTimes(
+				1,
+			);
 		});
 	});
 

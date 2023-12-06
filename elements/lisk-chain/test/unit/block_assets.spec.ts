@@ -146,11 +146,11 @@ describe('block assets', () => {
 				assetList = [
 					{
 						module: 'auth',
-						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES / 2),
 					},
 					{
 						module: 'random',
-						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES),
+						data: utils.getRandomBytes(MAX_ASSET_DATA_SIZE_BYTES / 2),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -158,8 +158,8 @@ describe('block assets', () => {
 			});
 		});
 
-		describe('when the assets are not sorted by moduleID', () => {
-			it('should throw error when assets are not sorted by moduleID', () => {
+		describe('when the assets are not sorted by module', () => {
+			it('should throw error when assets are not sorted by module', () => {
 				assetList = [
 					{
 						module: 'random',
@@ -172,7 +172,7 @@ describe('block assets', () => {
 				];
 				assets = new BlockAssets(assetList);
 				expect(() => assets.validate()).toThrow(
-					'Assets are not sorted in the increasing values of moduleID.',
+					'Assets are not sorted by the module property value in lexicographical order.',
 				);
 			});
 
@@ -300,7 +300,7 @@ describe('block assets', () => {
 				];
 				assets = new BlockAssets(assetList);
 				expect(() => assets.validateGenesis()).toThrow(
-					'Assets are not sorted in the increasing values of moduleID.',
+					'Assets are not sorted by the module property value in lexicographical order.',
 				);
 			});
 

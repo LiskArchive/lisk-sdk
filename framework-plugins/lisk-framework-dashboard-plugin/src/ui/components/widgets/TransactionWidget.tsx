@@ -77,12 +77,10 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 						{transactions.map(transaction => (
 							<tr key={transaction.id}>
 								<td>
-									<CopiableText text={transaction.id}>{transaction.id}</CopiableText>
+									<CopiableText text={transaction.id} />
 								</td>
 								<td>
-									<CopiableText text={transaction.senderPublicKey}>
-										{transaction.senderPublicKey}
-									</CopiableText>
+									<CopiableText text={transaction.senderPublicKey} />
 								</td>
 								<td>
 									<Text>

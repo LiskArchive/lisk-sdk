@@ -155,7 +155,10 @@ export const flagsWithParser = {
 	}),
 	pretty: flagParser.boolean(flags.pretty),
 	passphrase: flagParser.string(flags.passphrase),
-	output: flagParser.string(flags.output),
+	output: flagParser.string({
+		...flags.output,
+		default: process.cwd(),
+	}),
 	password: flagParser.string(flags.password),
 	offline: flagParser.boolean({
 		...flags.offline,

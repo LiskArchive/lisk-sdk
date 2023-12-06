@@ -54,12 +54,10 @@ const BlockWidget: React.FC<WidgetProps> = props => {
 						{blocks.map(block => (
 							<tr key={block.header.height}>
 								<td>
-									<CopiableText text={block.header.id}>{block.header.id}</CopiableText>
+									<CopiableText text={block.header.id} />
 								</td>
 								<td>
-									<CopiableText text={block.header.generatorAddress}>
-										{block.header.generatorAddress}
-									</CopiableText>
+									<CopiableText text={block.header.generatorAddress} />
 								</td>
 								<td>
 									<Text key={block.header.height}>{block.header.height}</Text>

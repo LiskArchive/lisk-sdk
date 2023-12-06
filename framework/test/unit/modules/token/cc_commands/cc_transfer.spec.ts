@@ -88,6 +88,60 @@ describe('CrossChain Transfer Command', () => {
 	let escrowStore: EscrowStore;
 	let userStore: UserStore;
 
+	const createTransactionContextWithOverridingCCMAndParams = (
+		{ params, ccm }: { params?: Record<string, unknown>; ccm?: Record<string, unknown> } = {
+			params: {},
+			ccm: {},
+		},
+	) => {
+		const validParams = {
+			tokenID: defaultTokenID,
+			amount: defaultAmount,
+			senderAddress: defaultAddress,
+			recipientAddress: defaultAddress,
+			data: 'ddd',
+		};
+
+		const finalCCM = {
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+			module: tokenModule.name,
+			nonce: BigInt(1),
+			sendingChainID: Buffer.from([3, 0, 0, 0]),
+			receivingChainID: Buffer.from([0, 0, 0, 1]),
+			fee: BigInt(3000),
+			status: CCM_STATUS_OK,
+			params: codec.encode(crossChainTransferMessageParams, {
+				...validParams,
+				...params,
+			}),
+			...ccm,
+		};
+
+		const context = {
+			ccm: finalCCM,
+			feeAddress: defaultAddress,
+			transaction: {
+				senderAddress: defaultAddress,
+				fee: BigInt(0),
+				params: defaultEncodedCCUParams,
+			},
+			header: {
+				height: 0,
+				timestamp: 0,
+			},
+			stateStore,
+			contextStore: new Map(),
+			getMethodContext: () => methodContext,
+			eventQueue: new EventQueue(0),
+			ccmSize: BigInt(30),
+			getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+			logger: fakeLogger,
+			chainID: ownChainID,
+		};
+
+		return context;
+	};
+
 	beforeEach(async () => {
 		method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 		command = new CrossChainTransferCommand(tokenModule.stores, tokenModule.events);
@@ -132,7 +186,7 @@ describe('CrossChain Transfer Command', () => {
 		escrowStore = tokenModule.stores.get(EscrowStore);
 		await escrowStore.set(
 			methodContext,
-			Buffer.concat([defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH), defaultTokenID]),
+			Buffer.concat([defaultForeignTokenID.subarray(0, CHAIN_ID_LENGTH), defaultTokenID]),
 			{ amount: defaultEscrowAmount },
 		);
 		await escrowStore.set(
@@ -305,55 +359,6 @@ describe('CrossChain Transfer Command', () => {
 	});
 
 	describe('execute', () => {
-		it('should throw if validation fails', async () => {
-			// Arrange
-			const params = codec.encode(crossChainTransferMessageParams, {
-				tokenID: Buffer.from([0, 0, 0, 1]),
-				amount: defaultAmount,
-				senderAddress: defaultAddress,
-				recipientAddress: defaultAddress,
-				data: 'ddd',
-			});
-
-			const ccm = {
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-				module: tokenModule.name,
-				nonce: BigInt(1),
-				sendingChainID: Buffer.from([3, 0, 0, 0]),
-				receivingChainID: Buffer.from([0, 0, 0, 1]),
-				fee: BigInt(30000),
-				status: CCM_STATUS_OK,
-				params,
-			};
-
-			const ctx = {
-				ccm,
-				feeAddress: defaultAddress,
-				transaction: {
-					senderAddress: defaultAddress,
-					fee: BigInt(0),
-					params: defaultEncodedCCUParams,
-				},
-				header: {
-					height: 0,
-					timestamp: 0,
-				},
-				stateStore,
-				contextStore: new Map(),
-				getMethodContext: () => methodContext,
-				eventQueue: new EventQueue(0),
-				ccmSize: BigInt(30),
-				getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
-				logger: fakeLogger,
-				chainID: ownChainID,
-			};
-
-			// Act & Assert
-			await expect(command.execute(ctx)).rejects.toThrow(
-				`Property '.tokenID' minLength not satisfied`,
-			);
-		});
-
 		it('should throw if fail to decode the CCM', async () => {
 			// Arrange
 			const ccm = {
@@ -501,9 +506,9 @@ describe('CrossChain Transfer Command', () => {
 
 			// Act & Assert
 			await expect(command.execute(ctx)).resolves.toBeUndefined();
-			await expect(
-				method.userSubstoreExists(methodContext, defaultAddress, defaultTokenID),
-			).resolves.toBe(true);
+			const key = userStore.getKey(defaultAddress, defaultTokenID);
+			const userData = await userStore.get(methodContext, key);
+			expect(userData.availableBalance).toEqual(defaultAccount.availableBalance + defaultAmount);
 		});
 
 		it("should initialize account when recipient user store doesn't exist", async () => {
@@ -691,7 +696,7 @@ describe('CrossChain Transfer Command', () => {
 			});
 		});
 
-		it('should throw when the fee to initialize an account is insufficient', async () => {
+		it('should throw when escrow account has insufficient balance', async () => {
 			// Arrange
 			const params = codec.encode(crossChainTransferMessageParams, {
 				tokenID: defaultTokenID,
@@ -736,6 +741,16 @@ describe('CrossChain Transfer Command', () => {
 
 			// Act && Assert
 			await expect(command.execute(ctx)).rejects.toThrow('Insufficient balance in escrow account.');
+		});
+
+		it('should throw if escrow account does not exist', async () => {
+			const escrowAccountNotExistingContext = createTransactionContextWithOverridingCCMAndParams({
+				params: { tokenID: Buffer.from([0, 0, 0, 1, 0, 2, 3, 8]) },
+			});
+
+			await expect(command.execute(escrowAccountNotExistingContext)).rejects.toThrow(
+				'does not exist',
+			);
 		});
 	});
 });

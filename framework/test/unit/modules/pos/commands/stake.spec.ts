@@ -29,6 +29,7 @@ import { ValidatorAccount, ValidatorStore } from '../../../../../src/modules/pos
 import { EligibleValidatorsStore } from '../../../../../src/modules/pos/stores/eligible_validators';
 import { StakerStore } from '../../../../../src/modules/pos/stores/staker';
 import {
+	StakerData,
 	ModuleConfigJSON,
 	StakeObject,
 	StakeTransactionParams,
@@ -72,18 +73,18 @@ describe('StakeCommand', () => {
 	const validator1StakeAmount = liskToBeddows(90);
 	const validator2StakeAmount = liskToBeddows(50);
 
-	let validatorInfo1: ValidatorAccount;
-	let validatorInfo2: ValidatorAccount;
-	let validatorInfo3: ValidatorAccount;
+	let defaultValidator: ValidatorAccount;
+	let validator1: ValidatorAccount;
+	let validator2: ValidatorAccount;
+	let validator3: ValidatorAccount;
 	let stakerStore: StakerStore;
 	let validatorStore: ValidatorStore;
 	let context: any;
 	let transaction: any;
 	let command: StakeCommand;
-	let transactionParams: Buffer;
 	let transactionParamsDecoded: any;
 	let stateStore: PrefixedStateReadWriter;
-	let lockFn: any;
+	let tokenLockMock: jest.Mock;
 	let tokenMethod: any;
 	let internalMethod: InternalMethod;
 	let mockAssignStakeRewards: jest.SpyInstance<
@@ -97,9 +98,9 @@ describe('StakeCommand', () => {
 	>;
 
 	beforeEach(async () => {
-		lockFn = jest.fn();
+		tokenLockMock = jest.fn();
 		tokenMethod = {
-			lock: lockFn,
+			lock: tokenLockMock,
 			unlock: jest.fn(),
 			getAvailableBalance: jest.fn(),
 			burn: jest.fn(),
@@ -134,56 +135,50 @@ describe('StakeCommand', () => {
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
-		validatorInfo1 = {
+		defaultValidator = {
 			consecutiveMissedBlocks: 0,
 			isBanned: false,
 			lastGeneratedHeight: 5,
+			name: 'defaultValidator',
+			reportMisbehaviorHeights: [],
+			selfStake: BigInt(0),
+			totalStake: BigInt(0),
+			commission: 0,
+			lastCommissionIncreaseHeight: 0,
+			sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
+		};
+
+		validator1 = {
+			...defaultValidator,
 			name: 'someValidator1',
-			reportMisbehaviorHeights: [],
-			selfStake: BigInt(0),
-			totalStake: BigInt(0),
-			commission: 0,
-			lastCommissionIncreaseHeight: 0,
-			sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 		};
 
-		validatorInfo2 = {
-			consecutiveMissedBlocks: 0,
-			isBanned: false,
-			lastGeneratedHeight: 5,
+		validator2 = {
+			...defaultValidator,
 			name: 'someValidator2',
-			reportMisbehaviorHeights: [],
-			selfStake: BigInt(0),
-			totalStake: BigInt(0),
-			commission: 0,
-			lastCommissionIncreaseHeight: 0,
-			sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 		};
 
-		validatorInfo3 = {
-			consecutiveMissedBlocks: 0,
-			isBanned: false,
-			lastGeneratedHeight: 5,
+		validator3 = {
+			...defaultValidator,
 			name: 'someValidator3',
-			reportMisbehaviorHeights: [],
-			selfStake: BigInt(0),
-			totalStake: BigInt(0),
-			commission: 0,
-			lastCommissionIncreaseHeight: 0,
-			sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 		};
-
-		validatorStore = pos.stores.get(ValidatorStore);
-
-		await validatorStore.set(createStoreGetter(stateStore), validatorAddress1, validatorInfo1);
-		await validatorStore.set(createStoreGetter(stateStore), validatorAddress2, validatorInfo2);
 
 		stakerStore = pos.stores.get(StakerStore);
 		validatorStore = pos.stores.get(ValidatorStore);
 
-		await validatorStore.set(createStoreGetter(stateStore), validatorAddress1, validatorInfo1);
-		await validatorStore.set(createStoreGetter(stateStore), validatorAddress2, validatorInfo2);
-		await validatorStore.set(createStoreGetter(stateStore), validatorAddress3, validatorInfo3);
+		await validatorStore.set(createStoreGetter(stateStore), validatorAddress1, validator1);
+		await validatorStore.set(createStoreGetter(stateStore), validatorAddress2, validator2);
+		await validatorStore.set(createStoreGetter(stateStore), validatorAddress3, validator3);
+
+		transaction = new Transaction({
+			module: 'pos',
+			command: 'stake',
+			fee: BigInt(1500000),
+			nonce: BigInt(0),
+			params: Buffer.alloc(0),
+			senderPublicKey,
+			signatures: [],
+		});
 	});
 
 	describe('constructor', () => {
@@ -273,81 +268,57 @@ describe('StakeCommand', () => {
 
 		describe('when transaction.params.stakes contains valid contents', () => {
 			it('should not throw errors with valid upstake case', async () => {
-				// Arrange
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress: utils.getRandomBytes(20), amount: liskToBeddows(20) }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 				}).createCommandVerifyContext<StakeTransactionParams>(command.schema);
 
-				// Assert
 				await expect(command.verify(context)).resolves.toHaveProperty('status', VerifyStatus.OK);
 			});
 
 			it('should not throw errors with valid downstake cast', async () => {
-				// Arrange
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress: utils.getRandomBytes(20), amount: liskToBeddows(-20) }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 				}).createCommandVerifyContext<StakeTransactionParams>(command.schema);
 
-				// Assert
 				await expect(command.verify(context)).resolves.toHaveProperty('status', VerifyStatus.OK);
 			});
 
 			it('should not throw errors with valid mixed stakes case', async () => {
-				// Arrange
 				transactionParamsDecoded = {
 					stakes: [
 						{ validatorAddress: utils.getRandomBytes(20), amount: liskToBeddows(20) },
 						{ validatorAddress: utils.getRandomBytes(20), amount: liskToBeddows(-20) },
 					],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 				}).createCommandVerifyContext<StakeTransactionParams>(command.schema);
 
-				// Assert
 				await expect(command.verify(context)).resolves.toHaveProperty('status', VerifyStatus.OK);
 			});
 		});
 
 		describe('when transaction.params.stakes contains more than 10 positive stakes', () => {
 			it('should throw error', async () => {
-				// Arrange
 				transactionParamsDecoded = {
 					stakes: Array(11)
 						.fill(0)
 						.map(() => ({ validatorAddress: utils.getRandomBytes(20), amount: liskToBeddows(10) })),
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 				}).createCommandVerifyContext<StakeTransactionParams>(command.schema);
 
-				// Assert
 				await expect(command.verify(context)).resolves.toHaveProperty(
 					'error.message',
 					'Upstake can only be casted up to 10.',
@@ -357,7 +328,6 @@ describe('StakeCommand', () => {
 
 		describe('when transaction.params.stakes contains more than 10 negative stakes', () => {
 			it('should throw error', async () => {
-				// Arrange
 				transactionParamsDecoded = {
 					stakes: Array(11)
 						.fill(0)
@@ -366,16 +336,11 @@ describe('StakeCommand', () => {
 							amount: liskToBeddows(-10),
 						})),
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 				}).createCommandVerifyContext<StakeTransactionParams>(command.schema);
 
-				// Assert
 				await expect(command.verify(context)).resolves.toHaveProperty(
 					'error.message',
 					'Downstake can only be casted up to 10.',
@@ -385,23 +350,15 @@ describe('StakeCommand', () => {
 
 		describe('when transaction.params.stakes includes duplicate validators within positive amount', () => {
 			it('should throw error', async () => {
-				// Arrange
 				const validatorAddress = utils.getRandomBytes(20);
 				transactionParamsDecoded = {
-					stakes: Array(2)
-						.fill(0)
-						.map(() => ({ validatorAddress, amount: liskToBeddows(10) })),
+					stakes: Array(2).fill({ validatorAddress, amount: liskToBeddows(10) }),
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 				}).createCommandVerifyContext<StakeTransactionParams>(command.schema);
 
-				// Assert
 				await expect(command.verify(context)).resolves.toHaveProperty(
 					'error.message',
 					'Validator address must be unique.',
@@ -411,7 +368,6 @@ describe('StakeCommand', () => {
 
 		describe('when transaction.params.stakes includes duplicate validators within positive and negative amount', () => {
 			it('should throw error', async () => {
-				// Arrange
 				const validatorAddress = utils.getRandomBytes(20);
 				transactionParamsDecoded = {
 					stakes: [
@@ -419,16 +375,11 @@ describe('StakeCommand', () => {
 						{ validatorAddress, amount: liskToBeddows(-10) },
 					],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 				}).createCommandVerifyContext<StakeTransactionParams>(command.schema);
 
-				// Assert
 				await expect(command.verify(context)).resolves.toHaveProperty(
 					'error.message',
 					'Validator address must be unique.',
@@ -438,21 +389,15 @@ describe('StakeCommand', () => {
 
 		describe('when transaction.params.stakes includes zero amount', () => {
 			it('should throw error', async () => {
-				// Arrange
 				const validatorAddress = utils.getRandomBytes(20);
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress, amount: liskToBeddows(0) }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 				}).createCommandVerifyContext<StakeTransactionParams>(command.schema);
 
-				// Assert
 				await expect(command.verify(context)).resolves.toHaveProperty(
 					'error.message',
 					'Amount cannot be 0.',
@@ -462,21 +407,15 @@ describe('StakeCommand', () => {
 
 		describe('when transaction.params.stakes includes positive amount which is not multiple of 10 * 10^8', () => {
 			it('should throw an error', async () => {
-				// Arrange
 				const validatorAddress = utils.getRandomBytes(20);
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress, amount: BigInt(20) }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 				}).createCommandVerifyContext<StakeTransactionParams>(command.schema);
 
-				// Assert
 				await expect(command.verify(context)).resolves.toHaveProperty(
 					'error.message',
 					'Amount should be multiple of 10 * 10^8.',
@@ -486,21 +425,15 @@ describe('StakeCommand', () => {
 
 		describe('when transaction.params.stakes includes negative amount which is not multiple of 10 * 10^8', () => {
 			it('should throw error', async () => {
-				// Arrange
 				const validatorAddress = utils.getRandomBytes(20);
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress, amount: BigInt(-20) }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 				}).createCommandVerifyContext<StakeTransactionParams>(command.schema);
 
-				// Assert
 				await expect(command.verify(context)).resolves.toHaveProperty(
 					'error.message',
 					'Amount should be multiple of 10 * 10^8.',
@@ -510,34 +443,17 @@ describe('StakeCommand', () => {
 	});
 
 	describe('execute', () => {
-		beforeEach(() => {
-			transaction = new Transaction({
-				module: 'pos',
-				command: 'stake',
-				fee: BigInt(1500000),
-				nonce: BigInt(0),
-				params: transactionParams,
-				senderPublicKey,
-				signatures: [],
-			});
-		});
 		describe('when transaction.params.stakes contain positive amount', () => {
 			it('should emit ValidatorStakedEvent with STAKE_SUCCESSFUL result', async () => {
-				// Arrange
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress: validatorAddress1, amount: liskToBeddows(10) }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
 				}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
 
-				// Assert
 				await expect(command.execute(context)).resolves.toBeUndefined();
 
 				checkEventResult(
@@ -555,39 +471,28 @@ describe('StakeCommand', () => {
 			});
 
 			it('should throw error if stake amount is more than balance', async () => {
-				// Arrange
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress: utils.getRandomBytes(20), amount: liskToBeddows(100) }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
 				}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
 
-				lockFn.mockRejectedValue(new Error('Not enough balance to lock'));
+				tokenLockMock.mockRejectedValue(new Error('Not enough balance to lock'));
 
-				// Assert
 				await expect(command.execute(context)).rejects.toThrow();
 			});
 
 			it('should make account to have correct balance', async () => {
-				// Arrange
 				transactionParamsDecoded = {
 					stakes: [
 						{ validatorAddress: validatorAddress1, amount: validator1StakeAmount },
 						{ validatorAddress: validatorAddress2, amount: validator2StakeAmount },
 					],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -595,16 +500,15 @@ describe('StakeCommand', () => {
 
 				await command.execute(context);
 
-				// Assert
-				expect(lockFn).toHaveBeenCalledTimes(2);
-				expect(lockFn).toHaveBeenCalledWith(
+				expect(tokenLockMock).toHaveBeenCalledTimes(2);
+				expect(tokenLockMock).toHaveBeenCalledWith(
 					expect.anything(),
 					senderAddress,
 					MODULE_NAME_POS,
 					posTokenID,
 					validator1StakeAmount,
 				);
-				expect(lockFn).toHaveBeenCalledWith(
+				expect(tokenLockMock).toHaveBeenCalledWith(
 					expect.anything(),
 					senderAddress,
 					MODULE_NAME_POS,
@@ -614,20 +518,10 @@ describe('StakeCommand', () => {
 			});
 
 			it('should not change pendingUnlocks', async () => {
-				// Arrange
-				stakerStore = pos.stores.get(StakerStore);
-				validatorStore = pos.stores.get(ValidatorStore);
-
-				await validatorStore.set(createStoreGetter(stateStore), validatorAddress1, validatorInfo1);
-
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress: validatorAddress1, amount: validator1StakeAmount }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -640,29 +534,17 @@ describe('StakeCommand', () => {
 					senderAddress,
 				);
 
-				// Assert
 				expect(pendingUnlocks).toHaveLength(0);
 			});
 
-			it('should order stakerData.sentStakes', async () => {
-				// Arrange
-				stakerStore = pos.stores.get(StakerStore);
-				validatorStore = pos.stores.get(ValidatorStore);
-
-				await validatorStore.set(createStoreGetter(stateStore), validatorAddress1, validatorInfo1);
-				await validatorStore.set(createStoreGetter(stateStore), validatorAddress2, validatorInfo2);
-
+			it('should order stakerData.stakes', async () => {
 				transactionParamsDecoded = {
 					stakes: [
 						{ validatorAddress: validatorAddress2, amount: validator2StakeAmount },
 						{ validatorAddress: validatorAddress1, amount: validator1StakeAmount },
 					],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -672,31 +554,20 @@ describe('StakeCommand', () => {
 
 				const { stakes } = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
 
-				const sentStakesCopy = stakes.slice(0);
-				sentStakesCopy.sort((a: any, b: any) => a.validatorAddress.compare(b.validatorAddress));
+				const stakesCopy = stakes.slice(0);
+				stakesCopy.sort((a: any, b: any) => a.validatorAddress.compare(b.validatorAddress));
 
-				// Assert
-				expect(stakes).toStrictEqual(sentStakesCopy);
+				expect(stakes).toStrictEqual(stakesCopy);
 			});
 
-			it('should make upstaked validator account to have correct totalStakeReceived', async () => {
-				// Arrange
-				validatorStore = pos.stores.get(ValidatorStore);
-
-				await validatorStore.set(createStoreGetter(stateStore), validatorAddress1, validatorInfo1);
-				await validatorStore.set(createStoreGetter(stateStore), validatorAddress2, validatorInfo2);
-
+			it('should correctly update validator totalStake when a staker is upstaking for the first time', async () => {
 				transactionParamsDecoded = {
 					stakes: [
 						{ validatorAddress: validatorAddress1, amount: validator1StakeAmount },
 						{ validatorAddress: validatorAddress2, amount: validator2StakeAmount },
 					],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -704,40 +575,77 @@ describe('StakeCommand', () => {
 
 				await command.execute(context);
 
-				const { totalStake: totalStakeReceived1 } = await validatorStore.get(
+				const { totalStake: totalStake1 } = await validatorStore.get(
 					createStoreGetter(stateStore),
 					validatorAddress1,
 				);
-				const { totalStake: totalStakeReceived2 } = await validatorStore.get(
+				const { totalStake: totalStake2 } = await validatorStore.get(
 					createStoreGetter(stateStore),
 					validatorAddress2,
 				);
 
-				// Assert
-				expect(totalStakeReceived1).toBe(validator1StakeAmount);
-				expect(totalStakeReceived2).toBe(validator2StakeAmount);
+				expect(totalStake1).toBe(validator1StakeAmount);
+				expect(totalStake2).toBe(validator2StakeAmount);
 			});
 
-			it('should update stake object when it exists before and create if it does not exist', async () => {
-				// Arrange
-				stakerStore = pos.stores.get(StakerStore);
-				validatorStore = pos.stores.get(ValidatorStore);
+			it("should increase staker's stakes.amount and validator's totalStake when an existing staker further increases their stake", async () => {
+				const previousStakeAmount = liskToBeddows(120);
+				const newStakeAmount = liskToBeddows(88);
 
-				await validatorStore.set(createStoreGetter(stateStore), validatorAddress1, validatorInfo1);
-				transactionParamsDecoded = {
-					stakes: [{ validatorAddress: validatorAddress1, amount: validator1StakeAmount }],
+				const validatorAccount: ValidatorAccount = {
+					...validator1,
+					totalStake: previousStakeAmount,
+					selfStake: liskToBeddows(50),
+				};
+				const stakerData: StakerData = {
+					stakes: [
+						{
+							validatorAddress: validatorAddress1,
+							amount: previousStakeAmount,
+							sharingCoefficients: validatorAccount.sharingCoefficients,
+						},
+					],
+					pendingUnlocks: [],
 				};
 
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
+				await stakerStore.set(createStoreGetter(stateStore), senderAddress, stakerData);
+				await validatorStore.set(
+					createStoreGetter(stateStore),
+					validatorAddress1,
+					validatorAccount,
+				);
 
-				transaction.params = transactionParams;
-
+				transactionParamsDecoded = {
+					stakes: [{ validatorAddress: validatorAddress1, amount: newStakeAmount }],
+				};
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
 				}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
 
-				// Assert
+				await command.execute(context);
+
+				const { totalStake } = await validatorStore.get(
+					createStoreGetter(stateStore),
+					validatorAddress1,
+				);
+				const { stakes } = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
+
+				expect(totalStake).toBe(previousStakeAmount + newStakeAmount);
+				expect(stakes[0].amount).toBe(previousStakeAmount + newStakeAmount);
+			});
+
+			it('should create a new entry in staker store, when a new staker upstakes', async () => {
+				transactionParamsDecoded = {
+					stakes: [{ validatorAddress: validatorAddress1, amount: validator1StakeAmount }],
+				};
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
+				context = createTransactionContext({
+					transaction,
+					stateStore,
+				}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
+
 				await expect(
 					stakerStore.get(createStoreGetter(stateStore), senderAddress),
 				).rejects.toThrow();
@@ -752,7 +660,7 @@ describe('StakeCommand', () => {
 			});
 		});
 
-		describe('when transaction.params.stakes contain negative amount which makes stakerStore.sentStakes to be 0 entries', () => {
+		describe('when transaction.params.stakes contain negative amount which decreases StakerData.stakes[x].amount to 0', () => {
 			beforeEach(async () => {
 				transactionParamsDecoded = {
 					stakes: [
@@ -760,11 +668,7 @@ describe('StakeCommand', () => {
 						{ validatorAddress: validatorAddress2, amount: validator2StakeAmount },
 					],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -781,11 +685,7 @@ describe('StakeCommand', () => {
 						{ validatorAddress: validatorAddress2, amount: validator2StakeAmount * BigInt(-1) },
 					],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -794,7 +694,7 @@ describe('StakeCommand', () => {
 					} as any,
 				}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
 
-				lockFn.mockClear();
+				tokenLockMock.mockClear();
 			});
 
 			it('should emit ValidatorStakedEvent with STAKE_SUCCESSFUL result', async () => {
@@ -817,25 +717,18 @@ describe('StakeCommand', () => {
 			});
 
 			it('should not change account balance', async () => {
-				// Act
 				await command.execute(context);
 
-				// Assert
-				expect(lockFn).toHaveBeenCalledTimes(0);
+				expect(tokenLockMock).toHaveBeenCalledTimes(0);
 			});
 
 			it('should remove stake which has zero amount', async () => {
-				// Arrange
 				transactionParamsDecoded = {
 					stakes: [
 						{ validatorAddress: validatorAddress1, amount: validator1StakeAmount * BigInt(-1) },
 					],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -845,23 +738,17 @@ describe('StakeCommand', () => {
 
 				const stakerData = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
 
-				// Assert
 				expect(stakerData.stakes).toHaveLength(1);
 				expect(stakerData.stakes[0].validatorAddress).not.toEqual(validatorAddress1);
 			});
 
 			it('should update stake which has non-zero amount', async () => {
-				// Arrange
 				const downStakeAmount = liskToBeddows(10);
 
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress: validatorAddress1, amount: downStakeAmount * BigInt(-1) }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -871,9 +758,8 @@ describe('StakeCommand', () => {
 
 				const stakerData = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
 
-				// Assert
 				expect(
-					stakerData.stakes.find((v: any) => v.validatorAddress.equals(validatorAddress1)),
+					stakerData.stakes.find(val => val.validatorAddress.equals(validatorAddress1)),
 				).toEqual({
 					validatorAddress: validatorAddress1,
 					amount: validator1StakeAmount - downStakeAmount,
@@ -882,12 +768,10 @@ describe('StakeCommand', () => {
 			});
 
 			it('should make account to have correct unlocking', async () => {
-				// Arrange
 				await command.execute(context);
 
 				const stakerData = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
 
-				// Assert
 				expect(stakerData.pendingUnlocks).toHaveLength(2);
 				expect(stakerData.pendingUnlocks).toEqual(
 					[
@@ -906,20 +790,17 @@ describe('StakeCommand', () => {
 			});
 
 			it('should order stakerData.pendingUnlocks', async () => {
-				// Arrange
 				await command.execute(context);
 
 				const stakerData = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
 
-				// Assert
 				expect(stakerData.pendingUnlocks).toHaveLength(2);
 				expect(stakerData.pendingUnlocks.map((d: any) => d.validatorAddress)).toEqual(
 					[validatorAddress1, validatorAddress2].sort((a, b) => a.compare(b)),
 				);
 			});
 
-			it('should make downstaked validator account to have correct totalStakeReceived', async () => {
-				// Arrange
+			it('should make downstaked validator account to have correct totalStake', async () => {
 				await command.execute(context);
 
 				const validatorData1 = await validatorStore.get(
@@ -931,29 +812,22 @@ describe('StakeCommand', () => {
 					validatorAddress2,
 				);
 
-				// Assert
 				expect(validatorData1.totalStake).toEqual(BigInt(0));
 				expect(validatorData2.totalStake).toEqual(BigInt(0));
 			});
 
 			it('should throw error and emit ValidatorStakedEvent with STAKE_FAILED_INVALID_UNSTAKE_PARAMETERS result when downstaked validator is not already upstaked', async () => {
-				// Arrange
 				const downStakeAmount = liskToBeddows(10);
 
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress: validatorAddress3, amount: downStakeAmount * BigInt(-1) }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
 				}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
 
-				// Assert
 				await expect(command.execute(context)).rejects.toThrow(
 					'Cannot cast downstake to validator who is not upstaked.',
 				);
@@ -983,11 +857,7 @@ describe('StakeCommand', () => {
 						{ validatorAddress: validatorAddress2, amount: validator2StakeAmount },
 					],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -1004,11 +874,7 @@ describe('StakeCommand', () => {
 						{ validatorAddress: validatorAddress2, amount: negativeStakeValidator2 },
 					].sort((a, b) => -1 * a.validatorAddress.compare(b.validatorAddress)),
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -1017,7 +883,7 @@ describe('StakeCommand', () => {
 					} as any,
 				}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
 
-				lockFn.mockClear();
+				tokenLockMock.mockClear();
 			});
 
 			it('should assign reward to staker for downstake and upstake for already staked validator', async () => {
@@ -1026,7 +892,7 @@ describe('StakeCommand', () => {
 				expect(mockAssignStakeRewards).toHaveBeenCalledTimes(2);
 			});
 
-			it('should assign sharingCoefficients of the validator to the corresponding sentStake of the staker for that validator', async () => {
+			it('should assign sharingCoefficients of the validator to the corresponding stake of the staker for that validator', async () => {
 				const sharingCoefficients = [
 					{
 						tokenID: Buffer.alloc(8),
@@ -1037,15 +903,6 @@ describe('StakeCommand', () => {
 						coefficient: Buffer.alloc(24, 1),
 					},
 				];
-
-				const validator1 = await validatorStore.get(
-					createStoreGetter(stateStore),
-					validatorAddress1,
-				);
-				const validator2 = await validatorStore.get(
-					createStoreGetter(stateStore),
-					validatorAddress2,
-				);
 
 				validator1.sharingCoefficients = sharingCoefficients;
 				validator2.sharingCoefficients = sharingCoefficients;
@@ -1058,11 +915,11 @@ describe('StakeCommand', () => {
 				const { stakes } = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
 
 				expect(
-					stakes.find(sentStake => sentStake.validatorAddress.equals(validatorAddress1))
+					stakes.find(stake => stake.validatorAddress.equals(validatorAddress1))
 						?.sharingCoefficients,
 				).toEqual(sharingCoefficients);
 				expect(
-					stakes.find(sentStake => sentStake.validatorAddress.equals(validatorAddress2))
+					stakes.find(stake => stake.validatorAddress.equals(validatorAddress2))
 						?.sharingCoefficients,
 				).toEqual(sharingCoefficients);
 			});
@@ -1071,11 +928,7 @@ describe('StakeCommand', () => {
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress: validatorAddress3, amount: positiveStakeValidator1 }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -1091,19 +944,18 @@ describe('StakeCommand', () => {
 				const validatorAddress = utils.getRandomBytes(20);
 				const selfStake = BigInt(2) + BigInt(defaultConfig.minWeightStandby);
 
-				const validatorInfo = {
-					...validatorInfo1,
+				const val = {
+					...validator1,
 					selfStake,
 					totalStake: BigInt(1) + BigInt(100) * BigInt(defaultConfig.minWeightStandby),
 				};
 				const expectedWeight = BigInt(10) * selfStake;
-				await validatorStore.set(createStoreGetter(stateStore), validatorAddress, validatorInfo);
+				await validatorStore.set(createStoreGetter(stateStore), validatorAddress, val);
+
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress, amount: positiveStakeValidator1 }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-				transaction.params = transactionParams;
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -1126,9 +978,7 @@ describe('StakeCommand', () => {
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress, amount: BigInt(-2) }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-				transaction.params = transactionParams;
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -1148,12 +998,10 @@ describe('StakeCommand', () => {
 			});
 
 			it('should make staker to have correct balance', async () => {
-				// Arrange
 				await command.execute(context);
 
-				// Assert
-				expect(lockFn).toHaveBeenCalledTimes(1);
-				expect(lockFn).toHaveBeenCalledWith(
+				expect(tokenLockMock).toHaveBeenCalledTimes(1);
+				expect(tokenLockMock).toHaveBeenCalledWith(
 					expect.anything(),
 					senderAddress,
 					MODULE_NAME_POS,
@@ -1163,11 +1011,9 @@ describe('StakeCommand', () => {
 			});
 
 			it('should make staker to have correct unlocking', async () => {
-				// Arrange
 				await command.execute(context);
 
 				const stakerData = await stakerStore.get(createStoreGetter(stateStore), senderAddress);
-				// Assert
 				expect(stakerData.pendingUnlocks).toHaveLength(1);
 				expect(stakerData.pendingUnlocks).toEqual([
 					{
@@ -1178,21 +1024,20 @@ describe('StakeCommand', () => {
 				]);
 			});
 
-			it('should make upstaked validator account to have correct totalStakeReceived', async () => {
-				// Arrange
+			it('should make upstaked validator account to have correct totalStake', async () => {
 				await command.execute(context);
 
-				const validatorData1 = await validatorStore.get(
+				const updatedValidator1 = await validatorStore.get(
 					createStoreGetter(stateStore),
 					validatorAddress1,
 				);
 
-				// Assert
-				expect(validatorData1.totalStake).toEqual(validator1StakeAmount + positiveStakeValidator1);
+				expect(updatedValidator1.totalStake).toEqual(
+					validator1StakeAmount + positiveStakeValidator1,
+				);
 			});
 
-			it('should make downstaked validator account to have correct totalStakeReceived', async () => {
-				// Arrange
+			it('should make downstaked validator account to have correct totalStake', async () => {
 				await command.execute(context);
 
 				const validatorData2 = await validatorStore.get(
@@ -1200,7 +1045,6 @@ describe('StakeCommand', () => {
 					validatorAddress2,
 				);
 
-				// Assert
 				expect(validatorData2.totalStake).toEqual(validator2StakeAmount + negativeStakeValidator2);
 			});
 		});
@@ -1213,11 +1057,7 @@ describe('StakeCommand', () => {
 						{ validatorAddress: validatorAddress2, amount: validator2StakeAmount },
 					].sort((a, b) => -1 * a.validatorAddress.compare(b.validatorAddress)),
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -1226,23 +1066,18 @@ describe('StakeCommand', () => {
 					} as any,
 				}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
 
-				lockFn.mockClear();
+				tokenLockMock.mockClear();
 			});
 
 			describe('when transaction.params.stakes contain validator address which is not registered', () => {
 				it('should throw error and emit ValidatorStakedEevnt with STAKE_FAILED_NON_REGISTERED_VALIDATOR failure', async () => {
-					// Arrange
 					const nonExistingValidatorAddress = utils.getRandomBytes(20);
 
 					transactionParamsDecoded = {
 						...transactionParamsDecoded,
 						stakes: [{ validatorAddress: nonExistingValidatorAddress, amount: liskToBeddows(76) }],
 					};
-
-					transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-					transaction.params = transactionParams;
-
+					transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 					context = createTransactionContext({
 						transaction,
 						stateStore,
@@ -1251,7 +1086,6 @@ describe('StakeCommand', () => {
 						} as any,
 					}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
 
-					// Assert
 					await expect(command.execute(context)).rejects.toThrow(
 						'Invalid stake: no registered validator with the specified address',
 					);
@@ -1271,9 +1105,8 @@ describe('StakeCommand', () => {
 				});
 			});
 
-			describe('when transaction.params.stakes positive amount makes stakerData.sentStakes entries more than 10', () => {
+			describe('when transaction.params.stakes positive amount makes StakerData.stakes array contain more than 10 elements', () => {
 				it('should throw error and emit ValidatorStakedEvent with STAKE_FAILED_TOO_MANY_SENT_STAKES failure', async () => {
-					// Arrange
 					const stakes = [];
 
 					for (let i = 0; i < 12; i += 1) {
@@ -1304,17 +1137,12 @@ describe('StakeCommand', () => {
 					}
 
 					transactionParamsDecoded = { stakes };
-
-					transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-					transaction.params = transactionParams;
-
+					transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 					context = createTransactionContext({
 						transaction,
 						stateStore,
 					}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
 
-					// Assert
 					await expect(command.execute(context)).rejects.toThrow('Sender can only stake upto 10.');
 
 					checkEventResult(
@@ -1332,9 +1160,8 @@ describe('StakeCommand', () => {
 				});
 			});
 
-			describe('when transaction.params.stakes negative amount decrease stakerData.sentStakes entries yet positive amount makes account exceeds more than 10', () => {
+			describe('when transaction.params.stakes negative amount decrease StakerData.stakes array entries, yet positive amount makes account exceeds more than 10', () => {
 				it('should throw error and emit ValidatorStakedEvent with STAKE_FAILED_TOO_MANY_SENT_STAKES failure', async () => {
-					// Arrange
 					const initialValidatorAmount = 8;
 					const stakerData = await stakerStore.getOrDefault(
 						createStoreGetter(stateStore),
@@ -1419,17 +1246,12 @@ describe('StakeCommand', () => {
 					// now we added 2 negative stakes and 3 new positive stakes
 					// which will make total positive stakes to grow over 10
 					transactionParamsDecoded = { stakes };
-
-					transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-					transaction.params = transactionParams;
-
+					transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 					context = createTransactionContext({
 						transaction,
 						stateStore,
 					}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
 
-					// Assert
 					await expect(command.execute(context)).rejects.toThrow('Sender can only stake upto 10.');
 
 					checkEventResult(
@@ -1449,7 +1271,6 @@ describe('StakeCommand', () => {
 
 			describe('when transaction.params.stakes has negative amount and makes stakerData.pendingUnlocks more than 20 entries', () => {
 				it('should throw error and emit ValidatorStakedEvent with STAKE_FAILED_TOO_MANY_PENDING_UNLOCKS failure', async () => {
-					// Arrange
 					const initialValidatorAmountForUnlocks = 19;
 					const stakerData = await stakerStore.getOrDefault(
 						createStoreGetter(stateStore),
@@ -1536,17 +1357,12 @@ describe('StakeCommand', () => {
 					// now we added 2 negative stakes
 					// which will make total unlocking to grow over 20
 					transactionParamsDecoded = { stakes };
-
-					transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-					transaction.params = transactionParams;
-
+					transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 					context = createTransactionContext({
 						transaction,
 						stateStore,
 					}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
 
-					// Assert
 					await expect(command.execute(context)).rejects.toThrow(
 						`Pending unlocks cannot exceed ${defaultConfig.maxNumberPendingUnlocks}.`,
 					);
@@ -1570,7 +1386,6 @@ describe('StakeCommand', () => {
 
 			describe('when transaction.params.stakes negative amount exceeds the previously staked amount', () => {
 				it('should throw error and emit ValidatorStakedEvent with STAKE_FAILED_INVALID_UNSTAKE_PARAMETERS', async () => {
-					// Arrange
 					const stakerData = await stakerStore.getOrDefault(
 						createStoreGetter(stateStore),
 						senderAddress,
@@ -1590,17 +1405,12 @@ describe('StakeCommand', () => {
 							},
 						],
 					};
-
-					transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-					transaction.params = transactionParams;
-
+					transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 					context = createTransactionContext({
 						transaction,
 						stateStore,
 					}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
 
-					// Assert
 					await expect(command.execute(context)).rejects.toThrow(
 						'The unstake amount exceeds the staked amount for this validator.',
 					);
@@ -1631,7 +1441,7 @@ describe('StakeCommand', () => {
 				selfStake = BigInt(20);
 
 				const validatorInfo = {
-					...validatorInfo1,
+					...validator1,
 					totalStake,
 					selfStake,
 				};
@@ -1640,11 +1450,7 @@ describe('StakeCommand', () => {
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress: senderAddress, amount: senderStakeAmountPositive }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -1653,11 +1459,10 @@ describe('StakeCommand', () => {
 					} as any,
 				}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
 
-				lockFn.mockClear();
+				tokenLockMock.mockClear();
 			});
 
-			it('should update stakes and totalStakeReceived', async () => {
-				// Act & Assign
+			it('should update stakes and totalStake', async () => {
 				await command.execute(context);
 
 				const validatorData = await validatorStore.get(
@@ -1668,10 +1473,10 @@ describe('StakeCommand', () => {
 					createStoreGetter(stateStore),
 					senderAddress,
 				);
-				// Assert
+
 				expect(validatorData.totalStake).toEqual(totalStake + senderStakeAmountPositive);
 				expect(stakerData.stakes).toHaveLength(1);
-				expect(lockFn).toHaveBeenCalledWith(
+				expect(tokenLockMock).toHaveBeenCalledWith(
 					expect.anything(),
 					senderAddress,
 					MODULE_NAME_POS,
@@ -1680,21 +1485,19 @@ describe('StakeCommand', () => {
 				);
 			});
 
-			it('should change validatorData.selfStake and totalStakeReceived with positive stake', async () => {
-				// Act & Assign
+			it('should change validatorData.selfStake and totalStake with positive stake', async () => {
 				await command.execute(context);
 
 				const validatorData = await validatorStore.get(
 					createStoreGetter(stateStore),
 					senderAddress,
 				);
-				// Assert
+
 				expect(validatorData.totalStake).toEqual(totalStake + senderStakeAmountPositive);
 				expect(validatorData.selfStake).toEqual(selfStake + senderStakeAmountPositive);
 			});
 
-			it('should change validatorData.selfStake, totalStakeReceived and unlocking with negative stake', async () => {
-				// Act & Assign
+			it('should change validatorData.selfStake, totalStake and unlocking with negative stake', async () => {
 				await command.execute(context);
 
 				transactionParamsDecoded = {
@@ -1702,11 +1505,7 @@ describe('StakeCommand', () => {
 						{ validatorAddress: senderAddress, amount: senderStakeAmountNegative * BigInt(-1) },
 					],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -1726,7 +1525,6 @@ describe('StakeCommand', () => {
 					senderAddress,
 				);
 
-				// Assert
 				expect(validatorData.totalStake).toEqual(
 					totalStake + senderStakeAmountPositive - senderStakeAmountNegative,
 				);
@@ -1782,11 +1580,7 @@ describe('StakeCommand', () => {
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress, amount: senderStakeAmountPositive }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -1795,34 +1589,28 @@ describe('StakeCommand', () => {
 					} as any,
 				}).createCommandExecuteContext<StakeTransactionParams>(command.schema);
 
-				lockFn.mockClear();
+				tokenLockMock.mockClear();
 			});
 
-			it('should not change validatorData.selfStake but should update totalStakeReceived with positive stake', async () => {
-				// Act & Assign
+			it('should not change validatorData.selfStake but should update totalStake with positive stake', async () => {
 				await command.execute(context);
 
 				const validatorData = await validatorStore.get(
 					createStoreGetter(stateStore),
 					validatorAddress,
 				);
-				// Assert
+
 				expect(validatorData.totalStake).toEqual(senderStakeAmountPositive + validatorSelfStake);
 				expect(validatorData.selfStake).toEqual(validatorSelfStake);
 			});
 
-			it('should not change validatorData.selfStake but should change totalStakeReceived and unlocking with negative stake', async () => {
-				// Act & Assign
+			it('should not change validatorData.selfStake but should change totalStake and unlocking with negative stake', async () => {
 				await command.execute(context);
 
 				transactionParamsDecoded = {
 					stakes: [{ validatorAddress, amount: senderStakeAmountNegative * BigInt(-1) }],
 				};
-
-				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
-
-				transaction.params = transactionParams;
-
+				transaction.params = codec.encode(command.schema, transactionParamsDecoded);
 				context = createTransactionContext({
 					transaction,
 					stateStore,
@@ -1842,7 +1630,6 @@ describe('StakeCommand', () => {
 					senderAddress,
 				);
 
-				// Assert
 				expect(validatorData.totalStake).toEqual(
 					senderStakeAmountPositive - senderStakeAmountNegative + validatorSelfStake,
 				);

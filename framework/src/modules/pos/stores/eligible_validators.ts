@@ -69,8 +69,8 @@ export class EligibleValidatorsStore extends BaseStore<EligibleValidator> {
 	}
 
 	public splitKey(key: Buffer): [Buffer, bigint] {
-		const weightBytes = key.slice(0, 8);
-		const address = key.slice(8);
+		const weightBytes = key.subarray(0, 8);
+		const address = key.subarray(8);
 		return [address, weightBytes.readBigUInt64BE()];
 	}
 

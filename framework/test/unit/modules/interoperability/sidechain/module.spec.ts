@@ -44,12 +44,59 @@ import {
 	MIN_CHAIN_NAME_LENGTH,
 } from '../../../../../src/modules/interoperability/constants';
 import { InvalidNameError } from '../../../../../src/modules/interoperability/errors';
+import { BaseInteroperabilityModule } from '../../../../../src/modules/interoperability/base_interoperability_module';
 
 describe('initGenesisState', () => {
 	const chainID = Buffer.from([1, 2, 3, 4]);
 	let params: CreateGenesisBlockContextParams;
 	let stateStore: PrefixedStateReadWriter;
 	let interopMod: SidechainInteroperabilityModule;
+
+	const activeValidators = [
+		{
+			...activeValidator,
+			bftWeight: BigInt(300),
+		},
+	];
+
+	const defaultData = {
+		...genesisInteroperability,
+		ownChainName: 'dummy',
+		chainInfos: [
+			{
+				...chainInfo,
+				chainID: getMainchainID(chainID),
+				chainData: {
+					...chainData,
+					name: CHAIN_NAME_MAINCHAIN,
+				},
+			},
+		],
+	};
+
+	const certificateThreshold = BigInt(150);
+	const chainInfosDefault = [
+		{
+			...defaultData.chainInfos[0],
+			chainData: {
+				...defaultData.chainInfos[0].chainData,
+				lastCertificate: {
+					...lastCertificate,
+					timestamp: Date.now() / 10000,
+					validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
+				},
+			},
+			channelData: {
+				...defaultData.chainInfos[0].channelData,
+				messageFeeTokenID: getTokenIDLSK(chainID),
+			},
+			chainValidators: {
+				...chainValidators,
+				activeValidators,
+				certificateThreshold,
+			},
+		},
+	];
 
 	beforeEach(() => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -58,6 +105,26 @@ describe('initGenesisState', () => {
 			stateStore,
 			chainID,
 		};
+	});
+
+	it('should check that _verifyChainInfos is called from initGenesisState', async () => {
+		jest.spyOn(interopMod, '_verifyChainInfos' as any);
+
+		const genesisInteropWithEmptyChainInfos = {
+			...genesisInteroperability,
+			chainInfos: [],
+		};
+
+		const context = createInitGenesisStateContext(
+			{
+				...genesisInteropWithEmptyChainInfos,
+				ownChainName: 'xyz',
+			},
+			params,
+		);
+
+		await expect(interopMod.initGenesisState(context)).rejects.toThrow();
+		expect(interopMod['_verifyChainInfos']).toHaveBeenCalledTimes(1);
 	});
 
 	describe('_verifyChainInfos', () => {
@@ -97,7 +164,7 @@ describe('initGenesisState', () => {
 				);
 			});
 
-			it('should throw error terminatedStateAccounts is not empty', async () => {
+			it('should throw error when terminatedStateAccounts is not empty', async () => {
 				const context = createInitGenesisStateContext(
 					{
 						...genesisInteropWithEmptyChainInfos,
@@ -117,69 +184,31 @@ describe('initGenesisState', () => {
 					`terminatedStateAccounts must be empty, ${ifChainInfosIsEmpty}.`,
 				);
 			});
-		});
-		describe('when chainInfos is not empty', () => {
-			const defaultData = {
-				...genesisInteroperability,
-				ownChainName: 'dummy',
-				chainInfos: [
+
+			it('should throw error when terminatedOutboxAccounts is not empty', async () => {
+				const context = createInitGenesisStateContext(
 					{
-						...chainInfo,
-						chainID: getMainchainID(chainID),
-						chainData: {
-							...chainData,
-							name: CHAIN_NAME_MAINCHAIN,
-						},
+						...genesisInteropWithEmptyChainInfos,
+						ownChainName: '',
+						ownChainNonce: BigInt(0),
+						terminatedOutboxAccounts: [
+							{
+								chainID,
+								terminatedOutboxAccount,
+							},
+						],
 					},
-				],
-			};
+					params,
+				);
 
-			const activeValidators = [
-				{
-					...activeValidator,
-					bftWeight: BigInt(300),
-				},
-			];
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					`terminatedOutboxAccounts must be empty, ${ifChainInfosIsEmpty}.`,
+				);
+			});
+		});
 
-			const certificateThreshold = BigInt(150);
-			const chainInfosDefault = [
-				{
-					...defaultData.chainInfos[0],
-					chainData: {
-						...defaultData.chainInfos[0].chainData,
-						lastCertificate: {
-							...lastCertificate,
-							timestamp: Date.now() / 10000,
-							validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
-						},
-					},
-					channelData: {
-						...defaultData.chainInfos[0].channelData,
-						messageFeeTokenID: getTokenIDLSK(chainID),
-					},
-					chainValidators: {
-						...chainValidators,
-						activeValidators,
-						certificateThreshold,
-					},
-				},
-			];
-
+		describe('when chainInfos is not empty', () => {
 			describe('ownChainName', () => {
-				it(`should throw error if doesn't contain chars from ${validNameChars}`, async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...defaultData,
-							ownChainName: 'a%b',
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						new InvalidNameError('ownChainName').message,
-					);
-				});
-
 				it(`should throw error if doesn't have length between ${MIN_CHAIN_NAME_LENGTH} and ${MAX_CHAIN_NAME_LENGTH}`, async () => {
 					const context1 = createInitGenesisStateContext(
 						{
@@ -189,7 +218,7 @@ describe('initGenesisState', () => {
 						params,
 					);
 					await expect(interopMod.initGenesisState(context1)).rejects.toThrow(
-						`ownChainName.length must be between ${MIN_CHAIN_NAME_LENGTH} and ${MAX_CHAIN_NAME_LENGTH}`,
+						`ownChainName.length must be inclusively between ${MIN_CHAIN_NAME_LENGTH} and ${MAX_CHAIN_NAME_LENGTH}.`,
 					);
 
 					const context2 = createInitGenesisStateContext(
@@ -203,6 +232,20 @@ describe('initGenesisState', () => {
 					// MAX_CHAIN_NAME_LENGTH check already applied in schema
 					await expect(interopMod.initGenesisState(context2)).rejects.toThrow(
 						`.ownChainName' must NOT have more than ${MAX_CHAIN_NAME_LENGTH} characters`,
+					);
+				});
+
+				it(`should throw error if doesn't contain chars from ${validNameChars}`, async () => {
+					const context = createInitGenesisStateContext(
+						{
+							...defaultData,
+							ownChainName: 'a%b',
+						},
+						params,
+					);
+
+					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+						new InvalidNameError('ownChainName').message,
 					);
 				});
 
@@ -370,213 +413,132 @@ describe('initGenesisState', () => {
 				});
 			});
 
-			describe('_verifyTerminatedStateAccounts', () => {
-				const chainIDNotEqualToOwnChainID = Buffer.from([1, 3, 5, 7]);
+			it('should call _verifyChannelData & _verifyChainValidators', async () => {
+				jest.spyOn(interopMod, '_verifyChannelData' as any);
+				jest.spyOn(interopMod, '_verifyChainValidators' as any);
 
-				it(`should throw error if stateAccount.chainID is equal to getMainchainID()`, async () => {
-					const chainIDDefault = getMainchainID(chainID);
-					const context = createInitGenesisStateContext(
-						{
-							...defaultData,
-							chainInfos: [
-								{
-									...defaultData.chainInfos[0],
-									chainData: {
-										...defaultData.chainInfos[0].chainData,
-										lastCertificate: {
-											...lastCertificate,
-											timestamp: Date.now() / 10000,
-											validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
-										},
-									},
-									channelData: {
-										...defaultData.chainInfos[0].channelData,
-										messageFeeTokenID: getTokenIDLSK(chainID),
-									},
-									chainValidators: {
-										...chainValidators,
-										activeValidators,
-										certificateThreshold,
-									},
-								},
-							],
-							terminatedStateAccounts: [
-								{
-									chainID: chainIDDefault,
-									terminatedStateAccount,
-								},
-							],
-						},
-						{
-							...params,
-							header: {
-								timestamp: Date.now(),
-							} as any,
-						},
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						`stateAccount.chainID must not be equal to ${chainIDDefault.toString('hex')}.`,
-					);
-				});
-
-				it(`should throw error if not stateAccount.chainId[0] == getMainchainID()[0]`, async () => {
-					const mainchainID = getMainchainID(params.chainID as Buffer);
-					const context = createInitGenesisStateContext(
-						{
-							...defaultData,
-							chainInfos: chainInfosDefault,
-							terminatedStateAccounts: [
-								{
-									chainID: Buffer.from([0, 1, 2, 3]),
-									terminatedStateAccount,
-								},
-							],
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						`stateAccount.chainID[0] must be equal to ${mainchainID[0]}.`,
-					);
-				});
-
-				it(`should throw error if stateAccount.chainID is equal to OWN_CHAIN_ID`, async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...defaultData,
-							chainInfos: chainInfosDefault,
-							terminatedStateAccounts: [
-								{
-									chainID: params.chainID as Buffer,
-									terminatedStateAccount,
-								},
-							],
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						`stateAccount.chainID must not be equal to OWN_CHAIN_ID.`,
-					);
-				});
-
-				it(`should throw error if stateAccount.stateRoot equals EMPTY_HASH, if initialised is true`, async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...defaultData,
-							chainInfos: chainInfosDefault,
-							terminatedStateAccounts: [
-								{
-									chainID: chainIDNotEqualToOwnChainID,
-									terminatedStateAccount: {
-										...terminatedStateAccount,
-										stateRoot: EMPTY_HASH,
-										initialized: true,
-									},
-								},
-							],
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						`stateAccount.stateRoot mst be not equal to "${EMPTY_HASH.toString(
-							'hex',
-						)}", if initialized is true.`,
-					);
-				});
-
-				it(`should throw error if stateAccount.mainchainStateRoot is not equal to EMPTY_HASH, if initialised is true`, async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...defaultData,
-							chainInfos: chainInfosDefault,
-							terminatedStateAccounts: [
-								{
-									chainID: chainIDNotEqualToOwnChainID,
-									terminatedStateAccount: {
-										...terminatedStateAccount,
-										stateRoot: utils.getRandomBytes(HASH_LENGTH),
-										mainchainStateRoot: utils.getRandomBytes(HASH_LENGTH),
-										initialized: true,
-									},
-								},
-							],
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						`terminatedStateAccount.mainchainStateRoot must be equal to "${EMPTY_HASH.toString(
-							'hex',
-						)}", if initialized is true`,
-					);
-				});
-
-				it(`should throw error if stateAccount.stateRoot is not equal to EMPTY_HASH, if initialised is false`, async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...defaultData,
-							chainInfos: chainInfosDefault,
-							terminatedStateAccounts: [
-								{
-									chainID: chainIDNotEqualToOwnChainID,
-									terminatedStateAccount: {
-										...terminatedStateAccount,
-										stateRoot: utils.getRandomBytes(HASH_LENGTH),
-										initialized: false,
-									},
-								},
-							],
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						`stateAccount.stateRoot mst be equal to "${EMPTY_HASH.toString(
-							'hex',
-						)}", if initialized is false.`,
-					);
-				});
-
-				it(`should throw error if stateAccount.mainchainStateRoot is equal to EMPTY_HASH, if initialised is false`, async () => {
-					const context = createInitGenesisStateContext(
-						{
-							...defaultData,
-							chainInfos: chainInfosDefault,
-							terminatedStateAccounts: [
-								{
-									chainID: chainIDNotEqualToOwnChainID,
-									terminatedStateAccount: {
-										...terminatedStateAccount,
-										stateRoot: EMPTY_HASH,
-										mainchainStateRoot: EMPTY_HASH,
-										initialized: false,
-									},
-								},
-							],
-						},
-						params,
-					);
-
-					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-						`terminatedStateAccount.mainchainStateRoot must be not equal to "${EMPTY_HASH.toString(
-							'hex',
-						)}", if initialized is false.`,
-					);
-				});
-			});
-
-			it('should throw error if terminatedOutboxAccounts is not empty', async () => {
 				const context = createInitGenesisStateContext(
 					{
 						...defaultData,
 						chainInfos: chainInfosDefault,
-						terminatedOutboxAccounts: [
+					},
+					{
+						...params,
+						header: {
+							timestamp: chainInfosDefault[0].chainData.lastCertificate.timestamp + 1000,
+						} as any,
+					},
+				);
+
+				await interopMod.initGenesisState(context);
+				expect(interopMod['_verifyChannelData']).toHaveBeenCalledTimes(1);
+				expect(interopMod['_verifyChainValidators']).toHaveBeenCalledTimes(1);
+			});
+		});
+	});
+
+	it('should check that _verifyTerminatedStateAccounts is called from initGenesisState', async () => {
+		jest.spyOn(interopMod, '_verifyTerminatedStateAccounts' as any);
+
+		const context = createInitGenesisStateContext(
+			{
+				...defaultData,
+				chainInfos: chainInfosDefault,
+				terminatedStateAccounts: [
+					{
+						chainID: Buffer.from([1, 1, 2, 3]),
+						terminatedStateAccount,
+					},
+				],
+			},
+			params,
+		);
+
+		await interopMod.initGenesisState(context);
+		expect(interopMod['_verifyTerminatedStateAccounts']).toHaveBeenCalledTimes(1);
+	});
+
+	describe('_verifyTerminatedStateAccounts', () => {
+		const chainIDNotEqualToOwnChainID = Buffer.from([1, 3, 5, 7]);
+
+		it('should call _verifyTerminatedStateAccounts', async () => {
+			jest.spyOn(interopMod, '_verifyTerminatedStateAccounts' as any);
+
+			// const chainIDDefault = getMainchainID(chainID);
+			const context = createInitGenesisStateContext(
+				{
+					...defaultData,
+					chainInfos: chainInfosDefault,
+					terminatedStateAccounts: [
+						{
+							chainID: Buffer.from([1, 1, 2, 3]),
+							terminatedStateAccount,
+						},
+					],
+				},
+				params,
+			);
+
+			await interopMod.initGenesisState(context);
+			expect(interopMod['_verifyTerminatedStateAccounts']).toHaveBeenCalledTimes(1);
+		});
+
+		it('_verifyChainID the same number of times as size of terminatedStateAccounts', async () => {
+			jest.spyOn(interopMod, '_verifyChainID' as any);
+
+			// const chainIDDefault = getMainchainID(chainID);
+			const context = createInitGenesisStateContext(
+				{
+					...defaultData,
+					chainInfos: chainInfosDefault,
+					terminatedStateAccounts: [
+						{
+							chainID: Buffer.from([1, 1, 2, 3]),
+							terminatedStateAccount,
+						},
+					],
+				},
+				params,
+			);
+
+			await interopMod.initGenesisState(context);
+			expect(interopMod['_verifyChainID']).toHaveBeenCalledTimes(1);
+		});
+
+		it(`should throw error if stateAccount.chainID is equal to OWN_CHAIN_ID`, async () => {
+			const context = createInitGenesisStateContext(
+				{
+					...defaultData,
+					chainInfos: chainInfosDefault,
+					terminatedStateAccounts: [
+						{
+							chainID: params.chainID as Buffer,
+							terminatedStateAccount,
+						},
+					],
+				},
+				params,
+			);
+
+			await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+				`stateAccount.chainID must not be equal to OWN_CHAIN_ID.`,
+			);
+		});
+
+		describe('when initialised is true', () => {
+			it(`should throw error if stateAccount.stateRoot equals EMPTY_HASH`, async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...defaultData,
+						chainInfos: chainInfosDefault,
+						terminatedStateAccounts: [
 							{
-								chainID,
-								terminatedOutboxAccount,
+								chainID: chainIDNotEqualToOwnChainID,
+								terminatedStateAccount: {
+									...terminatedStateAccount,
+									stateRoot: EMPTY_HASH,
+									initialized: true,
+								},
 							},
 						],
 					},
@@ -584,9 +546,128 @@ describe('initGenesisState', () => {
 				);
 
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
-					`terminatedOutboxAccounts must be empty.`,
+					`stateAccount.stateRoot must not be equal to "${EMPTY_HASH.toString(
+						'hex',
+					)}", if initialized is true.`,
+				);
+			});
+
+			it(`should throw error if stateAccount.mainchainStateRoot is not equal to EMPTY_HASH`, async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...defaultData,
+						chainInfos: chainInfosDefault,
+						terminatedStateAccounts: [
+							{
+								chainID: chainIDNotEqualToOwnChainID,
+								terminatedStateAccount: {
+									...terminatedStateAccount,
+									stateRoot: utils.getRandomBytes(HASH_LENGTH),
+									mainchainStateRoot: utils.getRandomBytes(HASH_LENGTH),
+									initialized: true,
+								},
+							},
+						],
+					},
+					params,
+				);
+
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					`terminatedStateAccount.mainchainStateRoot must be equal to "${EMPTY_HASH.toString(
+						'hex',
+					)}", if initialized is true`,
 				);
 			});
 		});
+
+		describe('when initialised is false', () => {
+			it(`should throw error if stateAccount.stateRoot is not equal to EMPTY_HASH`, async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...defaultData,
+						chainInfos: chainInfosDefault,
+						terminatedStateAccounts: [
+							{
+								chainID: chainIDNotEqualToOwnChainID,
+								terminatedStateAccount: {
+									...terminatedStateAccount,
+									stateRoot: utils.getRandomBytes(HASH_LENGTH),
+									initialized: false,
+								},
+							},
+						],
+					},
+					params,
+				);
+
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					`stateAccount.stateRoot mst be equal to "${EMPTY_HASH.toString(
+						'hex',
+					)}", if initialized is false.`,
+				);
+			});
+
+			it(`should throw error if stateAccount.mainchainStateRoot is equal to EMPTY_HASH`, async () => {
+				const context = createInitGenesisStateContext(
+					{
+						...defaultData,
+						chainInfos: chainInfosDefault,
+						terminatedStateAccounts: [
+							{
+								chainID: chainIDNotEqualToOwnChainID,
+								terminatedStateAccount: {
+									...terminatedStateAccount,
+									stateRoot: EMPTY_HASH,
+									mainchainStateRoot: EMPTY_HASH,
+									initialized: false,
+								},
+							},
+						],
+					},
+					params,
+				);
+
+				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+					`terminatedStateAccount.mainchainStateRoot must not be equal to "${EMPTY_HASH.toString(
+						'hex',
+					)}", if initialized is false.`,
+				);
+			});
+		});
+	});
+
+	it('should throw error if terminatedOutboxAccounts is not empty', async () => {
+		const context = createInitGenesisStateContext(
+			{
+				...defaultData,
+				chainInfos: chainInfosDefault,
+				terminatedOutboxAccounts: [
+					{
+						chainID,
+						terminatedOutboxAccount,
+					},
+				],
+			},
+			params,
+		);
+
+		await expect(interopMod.initGenesisState(context)).rejects.toThrow(
+			`terminatedOutboxAccounts must be empty.`,
+		);
+	});
+
+	it('should check that super.processGenesisState has been called from initGenesisState', async () => {
+		const spyInstance = jest.spyOn(BaseInteroperabilityModule.prototype, 'processGenesisState');
+
+		const context = createInitGenesisStateContext(
+			{
+				...defaultData,
+				chainInfos: chainInfosDefault,
+				terminatedOutboxAccounts: [],
+			},
+			params,
+		);
+		await interopMod.initGenesisState(context);
+		expect(spyInstance).toHaveBeenCalledTimes(1);
 	});
 });

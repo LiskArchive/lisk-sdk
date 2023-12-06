@@ -20,7 +20,7 @@ import * as readerUtils from '../../../../src/utils/reader';
 import { CreateCommand } from '../../../../src/bootstrapping/commands/keys/create';
 import { getConfig } from '../../../helpers/config';
 import { Awaited } from '../../../types';
-import { OWNER_READ_WRITE } from '../../../../src/constants';
+import * as outputUtils from '../../../../src/utils/output';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -321,6 +321,12 @@ describe('keys:create command', () => {
 				blsKeyPath2,
 			);
 
+			jest
+				.spyOn(outputUtils, 'handleOutputFlag')
+				.mockImplementation(async () =>
+					Promise.resolve('Successfully written data to /my/path/keys.json'),
+				);
+
 			await CreateCommand.run(
 				[
 					'--passphrase=enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
@@ -367,11 +373,11 @@ describe('keys:create command', () => {
 			);
 			expect(cryptography.bls.getPublicKeyFromPrivateKey).toHaveBeenCalledWith(blsPrivateKey2);
 
-			expect(fs.ensureDirSync).toHaveBeenCalledWith('/tmp');
-			expect(fs.writeJSONSync).toHaveBeenCalledWith('/tmp/keys.json', expect.anything(), {
-				spaces: ' ',
-				mode: OWNER_READ_WRITE,
-			});
+			expect(outputUtils.handleOutputFlag).toHaveBeenCalledWith(
+				'/tmp/keys.json',
+				expect.anything(),
+				'keys',
+			);
 		});
 	});
 });

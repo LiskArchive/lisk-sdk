@@ -148,7 +148,7 @@ export class ChainEndpoint {
 			throw new Error('Invalid parameters. ids must be a non empty array.');
 		}
 		if (!ids.every(id => isHexString(id))) {
-			throw new Error('Invalid parameters. id must a valid hex string.');
+			throw new Error('Invalid parameters. id must be a valid hex string.');
 		}
 		const transactions = [];
 		try {

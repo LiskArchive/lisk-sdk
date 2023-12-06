@@ -100,11 +100,7 @@ describe('CommitPool', () => {
 		});
 	});
 
-	describe('constructor', () => {
-		it.todo('');
-	});
-
-	describe('job', () => {
+	describe('_job', () => {
 		const dbMock = {
 			get: jest.fn(),
 			put: jest.fn(),
@@ -158,9 +154,7 @@ describe('CommitPool', () => {
 
 			gossipedCommits.forEach(commit => commitPool['_gossipedCommits'].add(commit));
 			commitPool['_gossipedCommits'].add(staleGossipedCommit);
-			// commitPool['_gossipedCommits'].set(staleGossipedCommit.height, [staleGossipedCommit]);
 			nonGossipedCommits.forEach(commit => commitPool['_nonGossipedCommits'].add(commit));
-			// commitPool['_nonGossipedCommits'].set(height, nonGossipedCommits);
 			commitPool['_nonGossipedCommits'].add(staleNonGossipedCommit);
 			(commitPool['_chain'] as any).finalizedHeight = maxHeightCertified;
 
@@ -204,7 +198,7 @@ describe('CommitPool', () => {
 			expect(commitPool['_gossipedCommits'].exists(staleGossipedCommit)).toBeFalse();
 		});
 
-		it('should clean all the commits from nonGossipedCommit that does not have bftParams change and height is in the future', async () => {
+		it('should clean all the commits from nonGossipedCommit that does not have bftParams change and in the future height', async () => {
 			// Update current height so that commits will always be in the future
 			chain.lastBlock = { header: { height: 1019 } };
 			// it should not be deleted by the height
@@ -241,7 +235,93 @@ describe('CommitPool', () => {
 			expect(commitPool['_gossipedCommits'].getByHeight(1070)).toBeArrayOfSize(0);
 		});
 
-		it('should select non gossiped commits that are created by the generator of the engine', async () => {
+		it(`should not clean commits for the heights ${maxHeightPrecommitted} - ${COMMIT_RANGE_STORED} until currentHeight and bftParams does not exist for height`, async () => {
+			const testHeight = maxHeightPrecommitted - COMMIT_RANGE_STORED;
+			// // Update current height so that commits will always be in the future
+			chain.lastBlock = { header: { height: maxHeightPrecommitted + 19 } };
+
+			// it should not be deleted by the height
+			commitPool['_nonGossipedCommits'].add({
+				blockID: utils.getRandomBytes(32),
+				certificateSignature: utils.getRandomBytes(96),
+				height: testHeight,
+				validatorAddress: utils.getRandomBytes(20),
+			});
+			commitPool['_gossipedCommits'].add({
+				blockID: utils.getRandomBytes(32),
+				certificateSignature: utils.getRandomBytes(96),
+				height: testHeight,
+				validatorAddress: utils.getRandomBytes(20),
+			});
+			// Assert
+			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(7);
+			// Arrange
+			const bftParamsMock = jest.fn();
+			commitPool['_bftMethod'].existBFTParameters = bftParamsMock;
+			const context = new StateStore(new InMemoryDatabase());
+			commitPool['_bftMethod'].getBFTHeights = jest
+				.fn()
+				.mockResolvedValue({ maxHeightPrecommitted });
+			when(bftParamsMock).calledWith(context, 1071).mockResolvedValue(false);
+			when(bftParamsMock).calledWith(context, maxHeightCertified).mockResolvedValue(true);
+			when(bftParamsMock)
+				.calledWith(context, height + 1)
+				.mockResolvedValue(true);
+			// Act
+			await commitPool['_job'](context);
+			// Assert
+			// nonGossiped commits are moved to gossiped commits after posting to network
+			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(0);
+			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(10);
+		});
+
+		it(`should not clean commits for the heights lower than  ${maxHeightPrecommitted} - ${COMMIT_RANGE_STORED} until currentHeight and bftParams does not exist for height`, async () => {
+			const testHeight = maxHeightPrecommitted - COMMIT_RANGE_STORED - 1;
+			// // Update current height so that commits will always be in the future
+			chain.lastBlock = { header: { height: maxHeightPrecommitted + 19 } };
+
+			// it should not be deleted by the height
+			commitPool['_nonGossipedCommits'].add({
+				blockID: utils.getRandomBytes(32),
+				certificateSignature: utils.getRandomBytes(96),
+				height: testHeight,
+				validatorAddress: utils.getRandomBytes(20),
+			});
+			commitPool['_nonGossipedCommits'].add({
+				blockID: utils.getRandomBytes(32),
+				certificateSignature: utils.getRandomBytes(96),
+				height: maxHeightPrecommitted - 1,
+				validatorAddress: utils.getRandomBytes(20),
+			});
+			commitPool['_gossipedCommits'].add({
+				blockID: utils.getRandomBytes(32),
+				certificateSignature: utils.getRandomBytes(96),
+				height: testHeight,
+				validatorAddress: utils.getRandomBytes(20),
+			});
+			// Assert
+			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(8);
+			// Arrange
+			const bftParamsMock = jest.fn();
+			commitPool['_bftMethod'].existBFTParameters = bftParamsMock;
+			const context = new StateStore(new InMemoryDatabase());
+			commitPool['_bftMethod'].getBFTHeights = jest
+				.fn()
+				.mockResolvedValue({ maxHeightPrecommitted });
+			when(bftParamsMock).calledWith(context, 1071).mockResolvedValue(false);
+			when(bftParamsMock).calledWith(context, maxHeightCertified).mockResolvedValue(true);
+			when(bftParamsMock)
+				.calledWith(context, height + 1)
+				.mockResolvedValue(false);
+			// Act
+			await commitPool['_job'](context);
+			// Assert
+			// nonGossiped commits at maxHeightPrecommitted - 1 is not deleted and broadcasted and moved to gossiped commits
+			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(0);
+			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(1);
+		});
+
+		it('should select non gossiped local commits', async () => {
 			// Arrange
 			const generatorAddress = utils.getRandomBytes(20);
 			commitPool.addCommit(
@@ -968,7 +1048,7 @@ describe('CommitPool', () => {
 			expect(isCommitVerified).toBeTrue();
 		});
 
-		it('should return false when aggregate commit is not signed at height maxHeightCertified', async () => {
+		it('should return false when aggregate commit <= maxHeightCertified', async () => {
 			bftMethod.getBFTHeights.mockReturnValue({
 				maxHeightCertified: 1080,
 				maxHeightPrecommitted: 1100,
@@ -996,6 +1076,30 @@ describe('CommitPool', () => {
 				aggregationBits: Buffer.alloc(0),
 				certificateSignature,
 				height,
+			};
+
+			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
+
+			expect(isCommitVerified).toBeFalse();
+		});
+
+		it('should return true when aggregationBits empty and certificateSignature is empty and aggregateCommit.height === getBFTHeights().maxHeightCertified', async () => {
+			aggregateCommit = {
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
+				height: maxHeightCertified,
+			};
+
+			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
+
+			expect(isCommitVerified).toBeTrue();
+		});
+
+		it('should return false when aggregationBits empty and certificateSignature is empty and aggregateCommit.height != getBFTHeights().maxHeightCertified', async () => {
+			aggregateCommit = {
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
+				height: maxHeightCertified - 1,
 			};
 
 			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
@@ -1058,11 +1162,7 @@ describe('CommitPool', () => {
 		});
 	});
 
-	describe('getAggregateCommit', () => {
-		it.todo('');
-	});
-
-	describe('getMaxRemovalHeight', () => {
+	describe('_getMaxRemovalHeight', () => {
 		let blockHeader: BlockHeader;
 		const finalizedHeight = 1010;
 
@@ -1070,7 +1170,7 @@ describe('CommitPool', () => {
 			chain.finalizedHeight = finalizedHeight;
 
 			blockHeader = createFakeBlockHeader({
-				height: finalizedHeight,
+				height: finalizedHeight - 1,
 				timestamp: finalizedHeight * 10,
 				aggregateCommit: {
 					aggregationBits: Buffer.alloc(0),
@@ -1134,10 +1234,6 @@ describe('CommitPool', () => {
 				finalizedBlockHeader.aggregateCommit.height,
 			);
 		});
-	});
-
-	describe('_aggregateSingleCommits', () => {
-		it.todo('');
 	});
 
 	describe('aggregateSingleCommits', () => {

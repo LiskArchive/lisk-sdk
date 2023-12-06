@@ -17,12 +17,11 @@ import { ed, bls, encrypt, utils } from '@liskhq/lisk-cryptography';
 import * as apiClient from '@liskhq/lisk-api-client';
 import { when } from 'jest-when';
 import * as fs from 'fs-extra';
-import path = require('path');
 import * as appUtils from '../../../../src/utils/application';
 import { ExportCommand } from '../../../../src/bootstrapping/commands/generator/export';
 import { getConfig } from '../../../helpers/config';
 import { Awaited } from '../../../types';
-import { OWNER_READ_WRITE } from '../../../../src/constants';
+import * as outputUtils from '../../../../src/utils/output';
 
 describe('generator:export', () => {
 	const defaultPassword = 'elephant tree paris dragon chair galaxy';
@@ -117,17 +116,19 @@ describe('generator:export', () => {
 				generatorInfo: info,
 			};
 
+			jest
+				.spyOn(outputUtils, 'handleOutputFlag')
+				.mockImplementation(async () =>
+					Promise.resolve('Successfully written data to /my/path/generator_info.json'),
+				);
+
 			await ExportCommand.run([], config);
 
-			expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
-			expect(fs.writeJSONSync).toHaveBeenCalledWith(
-				path.join(process.cwd(), 'generator_info.json'),
-				expect.any(Object),
-				{ spaces: ' ', mode: OWNER_READ_WRITE },
-			);
-			expect(fs.ensureDirSync).toHaveBeenCalledTimes(0);
-			expect(stdout[0]).toContain(
-				`Generator info is exported to ${path.join(process.cwd(), 'generator_info.json')}`,
+			expect(outputUtils.handleOutputFlag).toHaveBeenCalledTimes(1);
+			expect(outputUtils.handleOutputFlag).toHaveBeenCalledWith(
+				process.cwd(),
+				fileData,
+				'generator_info',
 			);
 		});
 	});
@@ -144,14 +145,21 @@ describe('generator:export', () => {
 				keys: [{ address: allKeysPlain[0].address, plain: allKeysPlain[0].data }],
 				generatorInfo: info,
 			};
+
+			jest
+				.spyOn(outputUtils, 'handleOutputFlag')
+				.mockImplementation(async () =>
+					Promise.resolve('Successfully written data to /my/path/generator_info.json'),
+				);
+
 			await ExportCommand.run(['--output=/my/path/info.json'], config);
-			expect(fs.ensureDirSync).toHaveBeenCalledTimes(1);
-			expect(fs.ensureDirSync).toHaveBeenCalledWith('/my/path');
-			expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
-			expect(fs.writeJSONSync).toHaveBeenCalledWith('/my/path/info.json', fileData, {
-				spaces: ' ',
-				mode: OWNER_READ_WRITE,
-			});
+
+			expect(outputUtils.handleOutputFlag).toHaveBeenCalledTimes(1);
+			expect(outputUtils.handleOutputFlag).toHaveBeenCalledWith(
+				'/my/path/info.json',
+				fileData,
+				'generator_info',
+			);
 		});
 	});
 
@@ -167,14 +175,21 @@ describe('generator:export', () => {
 				keys: [{ address: allKeysEncrypted[0].address, encrypted: allKeysEncrypted[0].data }],
 				generatorInfo: info,
 			};
+
+			jest
+				.spyOn(outputUtils, 'handleOutputFlag')
+				.mockImplementation(async () =>
+					Promise.resolve('Successfully written data to /my/path/generator_info.json'),
+				);
+
 			await ExportCommand.run(['--output=/my/path/info.json', '--data-path=/my/app/'], config);
-			expect(fs.ensureDirSync).toHaveBeenCalledTimes(1);
-			expect(fs.ensureDirSync).toHaveBeenCalledWith('/my/path');
-			expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
-			expect(fs.writeJSONSync).toHaveBeenCalledWith('/my/path/info.json', fileData, {
-				spaces: ' ',
-				mode: OWNER_READ_WRITE,
-			});
+
+			expect(outputUtils.handleOutputFlag).toHaveBeenCalledTimes(1);
+			expect(outputUtils.handleOutputFlag).toHaveBeenCalledWith(
+				'/my/path/info.json',
+				fileData,
+				'generator_info',
+			);
 		});
 	});
 });

@@ -67,6 +67,7 @@ export {
 	genesisTokenStoreSchema as tokenGenesisStoreSchema,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 } from './modules/token';
+export { NFTModule, NFTMethod } from './modules/nft';
 export {
 	PoSMethod,
 	PoSModule,
@@ -143,6 +144,7 @@ export { RewardMethod, RewardModule } from './modules/reward';
 export { DynamicRewardMethod, DynamicRewardModule } from './modules/dynamic_reward';
 export { FeeMethod, FeeModule } from './modules/fee';
 export { RandomMethod, RandomModule } from './modules/random';
+export { PoAModule, PoAMethod } from './modules/poa';
 export { NamedRegistry } from './modules/named_registry';
 export {
 	GenesisBlockExecuteContext,

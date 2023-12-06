@@ -535,6 +535,33 @@ describe('ReportMisbehaviorCommand', () => {
 
 			await expect(pomCommand.verify(context)).not.toReject();
 		});
+
+		it('should return error when generator of header1 is not a validator', async () => {
+			const randomAddress = utils.getRandomBytes(20);
+
+			transactionParamsDecoded = {
+				header1: codec.encode(blockHeaderSchema, {
+					...header1,
+					generatorAddress: randomAddress,
+				}),
+				header2: codec.encode(blockHeaderSchema, {
+					...header2,
+					generatorAddress: randomAddress,
+				}),
+			};
+			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
+			transaction.params = transactionParams;
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+				})
+				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
+
+			await expect(pomCommand.verify(context)).rejects.toThrow(
+				`Specified key 7160f8688000${randomAddress.toString('hex')} does not exist`,
+			);
+		});
 	});
 
 	describe('execute', () => {

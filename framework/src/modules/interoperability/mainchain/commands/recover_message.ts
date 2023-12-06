@@ -78,6 +78,7 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			};
 		}
 
+		// Check that there is exactly one index per cross-chain message.
 		if (idxs.length !== crossChainMessages.length) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -87,6 +88,7 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			};
 		}
 
+		// Check that the idxs are strictly increasing
 		for (let i = 0; i < idxs.length - 1; i += 1) {
 			if (idxs[i] > idxs[i + 1]) {
 				return {
@@ -96,8 +98,10 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			}
 		}
 
-		// Ensure that there are at least two bits, i.e. the value must be larger than 1.
-		// It's sufficient to check only the first one due the ascending order.
+		// Check that the CCMs are still pending. We check only the first one,
+		// as the idxs are sorted in ascending order. Note that one must unset the most significant
+		// bit of an encoded index in idxs in order to get the position in the tree. To do this
+		// we must ensure that there are at least two bits, i.e. the value must be larger than 1.
 		// See https://github.com/LiskHQ/lips/blob/main/proposals/lip-0031.md#proof-serialization.
 		if (idxs[0] <= 1) {
 			return {
@@ -105,11 +109,6 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 				error: new Error('Cross-chain message does not have a valid index.'),
 			};
 		}
-
-		// Check that the CCMs are still pending. We can check only the first one,
-		// as the idxs are sorted in ascending order. Note that one must unset the most significant
-		// bit a of an encoded index in idxs in order to get the position in the tree.
-		// See https://github.com/LiskHQ/lips/blob/main/proposals/lip-0031.md#proof-serialization.
 		const firstPosition = parseInt(idxs[0].toString(2).slice(1), 2);
 		if (firstPosition < terminatedOutboxAccount.partnerChainInboxSize) {
 			return {
@@ -138,7 +137,9 @@ export class RecoverMessageCommand extends BaseInteroperabilityCommand<Mainchain
 			if (ccm.status !== CCMStatusCode.OK) {
 				return {
 					status: VerifyStatus.FAIL,
-					error: new Error('Cross-chain message status is not valid.'),
+					error: new Error(
+						`Cross-chain message status must be equal to value ${CCMStatusCode.OK}.`,
+					),
 				};
 			}
 

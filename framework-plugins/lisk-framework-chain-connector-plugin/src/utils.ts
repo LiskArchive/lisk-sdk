@@ -45,7 +45,7 @@ interface BFTParametersWithoutGeneratorKey extends Omit<BFTParameters, 'validato
 }
 
 export const getMainchainID = (chainID: Buffer): Buffer => {
-	const networkID = chainID.slice(0, 1);
+	const networkID = chainID.subarray(0, 1);
 	// 3 bytes for remaining chainID bytes
 	return Buffer.concat([networkID, Buffer.alloc(CHAIN_ID_LENGTH - 1, 0)]);
 };
