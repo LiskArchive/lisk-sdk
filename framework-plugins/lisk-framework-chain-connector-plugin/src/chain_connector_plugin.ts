@@ -177,9 +177,13 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		const ccuFee = BigInt(this.config.ccuFee ?? '0') + additionalFee;
-		const computedMinFee = transactions.computeMinFee(tx, ccuParamsSchema, {
-			additionalFee,
-		});
+		const computedMinFee = transactions.computeMinFee(
+			tx,
+			Modules.Interoperability.ccuParamsSchema,
+			{
+				additionalFee,
+			},
+		);
 
 		if (ccuFee > computedMinFee) {
 			return ccuFee;
@@ -840,7 +844,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 	}
 
-	private async _submitCCU(ccuParams: CrossChainUpdateTransactionParams): Promise<void> {
+	private async _submitCCU(
+		ccuParams: Modules.Interoperability.CrossChainUpdateTransactionParams,
+	): Promise<void> {
 		if (!this._chainConnectorStore.privateKey) {
 			throw new Error('There is no key enabled to submit CCU');
 		}
@@ -866,7 +872,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			command: targetCommand,
 			nonce: BigInt(nonce),
 			senderPublicKey: relayerPublicKey,
-			params: codec.encode(ccuParamsSchema, ccuParams),
+			params: codec.encode(Modules.Interoperability.ccuParamsSchema, ccuParams),
 			signatures: [],
 		};
 
