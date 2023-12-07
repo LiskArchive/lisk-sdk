@@ -223,7 +223,7 @@ export class NFTEndpoint extends BaseEndpoint {
 	 *
 	 * @example
 	 *  ```sh
-	 *  lisk-core endpoint:invoke nft_isCollectionIDSupported '{ "id":"00000001" }' --pretty
+	 *  lisk-core endpoint:invoke nft_isCollectionIDSupported '{ "chainID":"04000001","collectionID":"00000001" }' --pretty
 	 *  ```
 	 *
 	 * @param context
@@ -272,7 +272,7 @@ export class NFTEndpoint extends BaseEndpoint {
 	 *
 	 * @example
 	 *  ```sh
-	 *  lisk-core endpoint:invoke nft_getEscrowedNFTIDs '{ "id":"04000001" }' --pretty
+	 *  lisk-core endpoint:invoke nft_getEscrowedNFTIDs '{ "chainID":"04000001" }' --pretty
 	 *  ```
 	 *
 	 * @param context
@@ -307,7 +307,7 @@ export class NFTEndpoint extends BaseEndpoint {
 	 *
 	 * @example
 	 *  ```sh
-	 *  lisk-core endpoint:invoke nft_isNFTSupported '{ "id":"04000000000000010000000000000001" }' --pretty
+	 *  lisk-core endpoint:invoke nft_isNFTSupported '{ "nftID":"04000000000000010000000000000001" }' --pretty
 	 *  ```
 	 *
 	 * @param context
