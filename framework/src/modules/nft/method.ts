@@ -64,7 +64,7 @@ export class NFTMethod extends BaseMethod {
 	 * Adds dependencies from other module methods.
 	 *
 	 * @param internalMethod
-	 * @param feeMethod {@link FeeMethod}
+	 * @param feeMethod {@link Modules.Fee.FeeMethod}
 	 */
 	public addDependencies(internalMethod: InternalMethod, feeMethod: FeeMethod) {
 		this._internalMethod = internalMethod;
@@ -929,7 +929,7 @@ export class NFTMethod extends BaseMethod {
 
 	/**
 	 * This function recovers an NFT escrowed to a terminated chain.
-	 * It should only be called by the {@link BaseInteroperabilityModule | Interoperability module} to trigger the recovery of NFTs escrowed to terminated chains.
+	 * It should only be called by the {@link Modules.Interoperability.BaseInteroperabilityModule | Interoperability module} to trigger the recovery of NFTs escrowed to terminated chains.
 	 *
 	 * @example
 	 *  ```ts

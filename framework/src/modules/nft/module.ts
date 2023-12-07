@@ -89,10 +89,10 @@ import {
  * Each NFT is stored with an array of attributes specified by various modules, with each attribute property being a byte sequence that is not deserialized by the NFT module.
  * Each custom module using NFTs should define schemas to serialize and deserialize their attributes property of NFTs.
  *
- * Note that the attributes properties are not limited in size by default, which can potentially cause the CCM {@link validateFormat} failure during the cross-chain NFT transfer.
+ * Note that the attributes properties are not limited in size by default, which can potentially cause the CCM {@link Modules.Interoperability.validateFormat} failure during the cross-chain NFT transfer.
  *
  * When an NFT is sent to another chain, the attributes properties of the NFT can be modified according to specifications set on the receiving chain.
- * When the NFT is received back on its native chain, the returned modified attributes are disregarded and the original attributes are restored, as currently defined by {@link getNewAttributes} function.
+ * When the NFT is received back on its native chain, the returned modified attributes are disregarded and the original attributes are restored, as currently defined by {@link https://github.com/LiskHQ/lips/blob/main/proposals/lip-0052.md#getnewattributes | getNewAttributes} function.
  * If needed, custom modules can implement a more fine-grained approach towards the attributes that are modified cross-chain.
  *
  * @see [LIP 0052 - Introduce NFT module](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0052.md)
@@ -165,8 +165,8 @@ export class NFTModule extends BaseInteroperableModule {
 	 * This method should be called where the module is registered to the app (generally in the `app.ts` or `modules.ts` file).
 	 *
 	 * @param interoperabilityMethod {@link InteroperabilityMethod}
-	 * @param feeMethod {@link FeeMethod}
-	 * @param tokenMethod {@link TokenMethod}
+	 * @param feeMethod {@link Modules.Fee.FeeMethod}
+	 * @param tokenMethod {@link Modules.Token.TokenMethod}
 	 */
 	public addDependencies(
 		interoperabilityMethod: InteroperabilityMethod,
