@@ -16,7 +16,7 @@ import { Chain } from '@liskhq/lisk-chain';
 import { address } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../src/testing';
 import { createTransferTransaction, defaultTokenID } from '../../utils/mocks/transaction';
-import { TokenModule } from '../../../src';
+import { Modules } from '../../../src';
 import { genesisTokenStoreSchema } from '../../../src/modules/token';
 import { GenesisTokenStore } from '../../../src/modules/token/types';
 import { Consensus } from '../../../src/engine/consensus';
@@ -53,7 +53,9 @@ describe('genesis block', () => {
 
 			it('should save accounts from genesis block assets', async () => {
 				// Get genesis accounts
-				const tokenAsset = processEnv.getGenesisBlock().assets.getAsset(new TokenModule().name);
+				const tokenAsset = processEnv
+					.getGenesisBlock()
+					.assets.getAsset(new Modules.Token.TokenModule().name);
 				const decoded = codec.decode<GenesisTokenStore>(
 					genesisTokenStoreSchema,
 					tokenAsset as Buffer,
@@ -96,7 +98,9 @@ describe('genesis block', () => {
 		let recipientAddress: Buffer;
 
 		beforeEach(async () => {
-			const tokenAsset = processEnv.getGenesisBlock().assets.getAsset(new TokenModule().name);
+			const tokenAsset = processEnv
+				.getGenesisBlock()
+				.assets.getAsset(new Modules.Token.TokenModule().name);
 			const decoded = codec.decode<GenesisTokenStore>(
 				genesisTokenStoreSchema,
 				tokenAsset as Buffer,
