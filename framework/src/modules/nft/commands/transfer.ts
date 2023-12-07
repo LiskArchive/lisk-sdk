@@ -38,7 +38,7 @@ export interface TransferParams {
  *
  * @example
  *  ```sh
- *  ./bin/run transaction:create nft transfer 10000000 --params='{"nftID":"01000000000000010000000000000001","recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"Congratulations on completing the course!"}'
+ *  lisk-core transaction:create nft transfer 10000000 --params='{"nftID":"01000000000000010000000000000001","recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"Congratulations on completing the course!"}'
  *  ```
  */
 export class TransferCommand extends BaseCommand {

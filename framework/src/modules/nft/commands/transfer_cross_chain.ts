@@ -33,6 +33,25 @@ export interface TransferCrossChainParams {
 	includeAttributes: boolean;
 }
 
+/**
+ * The TransferCrossChain command transfers an NFT from one account to another across chains.
+ *
+ * ## Name
+ * - `transferCrossChain`
+ *
+ * ## Parameters
+ * - `nftID` (number) : 16 byte long
+ * - `recipientAddress` (string) : Lisk32 address
+ * - `data` (string) : Optional transfer message
+ * - `receivingChainID` (string) : The {@link https://lisk.com/documentation/understand-blockchain/interoperability/index.html#chain-identifiers | Chain ID} of the network receiving the NFT.
+ * - `messageFee` (string): Fee for the execution of the CCM in Beddows
+ * - `includeAttributes` (boolean) : Boolean, if NFT attributes should be inlcuded in the cross-chain transfer, or not.
+ *
+ * @example
+ *  ```sh
+ *  lisk-core transaction:create nft transferCrossChain 10000000 --params='{"nftID":"01000000000000010000000000000001","recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"Congratulations on completing the course!","receivingChainID":"04000002","messageFee":"10000000","includeAttributes":true}'
+ *  ```
+ */
 export class TransferCrossChainCommand extends BaseCommand {
 	public schema = crossChainTransferParamsSchema;
 
