@@ -130,7 +130,7 @@ export class NFTEndpoint extends BaseEndpoint {
 	 *
 	 * @param context
 	 *
-	 * @returns The NFT with the specified {@link NFTModule#$nft-identifier| NFT ID}.
+	 * @returns The NFT with the specified {@link NFTModule | NFT ID}.
 	 */
 	public async getNFT(context: ModuleEndpointContext): Promise<JSONObject<NFTJSON>> {
 		const { params } = context;
