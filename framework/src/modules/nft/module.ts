@@ -95,6 +95,12 @@ import {
  * When the NFT is received back on its native chain, the returned modified attributes are disregarded and the original attributes are restored, as currently defined by {@link https://github.com/LiskHQ/lips/blob/main/proposals/lip-0052.md#getnewattributes | getNewAttributes} function.
  * If needed, custom modules can implement a more fine-grained approach towards the attributes that are modified cross-chain.
  *
+ * ## NFT cross-chain transfers
+ * As is the case with fungible tokens, all NFTs are escrowed in the native chain.
+ * Technically, this means that when a token is sent from its native chain to another, the NFT is not erased, but the owner of the NFT now becomes the receiving chain.
+ * When an NFT is returned, the native chain can then check that the NFT is indeed coming from the chain it was sent to, and was not maliciously created and transferred from another chain.
+ * This implies that NFTs can only be transferred to and from their native chain.
+ *
  * @see [LIP 0052 - Introduce NFT module](https://github.com/LiskHQ/lips/blob/main/proposals/lip-0052.md)
  */
 export class NFTModule extends BaseInteroperableModule {
