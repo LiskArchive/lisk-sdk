@@ -498,7 +498,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 						},
 					},
 				}),
-			).resolves.toEqual({ status: VerifyStatus.OK });
+			).resolves.toEqual({ status: StateMachine.VerifyStatus.OK });
 		});
 	});
 
