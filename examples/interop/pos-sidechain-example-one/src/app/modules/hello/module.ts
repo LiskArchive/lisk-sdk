@@ -2,7 +2,7 @@
 
 import { validator, StateMachine, Modules, utils } from 'lisk-sdk';
 import { CreateHelloCommand } from './commands/create_hello_command';
-import { ReactCCCommand } from './cc_commands/react_command';
+import { ReactCCCommand } from './cc_commands/react_cc_command';
 import { HelloEndpoint } from './endpoint';
 import { NewHelloEvent } from './events/new_hello';
 import { HelloMethod } from './method';
@@ -107,7 +107,7 @@ export class HelloModule extends Modules.Interoperability.BaseInteroperableModul
 	): Promise<StateMachine.VerificationResult> {
 		// verify transaction will be called multiple times in the transaction pool
 		const result = {
-			status: 1,
+			status: StateMachine.VerifyStatus.OK,
 		};
 		return result;
 	}

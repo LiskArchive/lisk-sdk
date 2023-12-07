@@ -19,7 +19,6 @@ export class HelloEndpoint extends Modules.BaseEndpoint {
 		if (typeof address !== 'string') {
 			throw new Error('Parameter address must be a string.');
 		}
-		cryptography.address.validateLisk32Address(address);
 
 		const reactions = await reactionSubStore.get(
 			ctx,
@@ -36,7 +35,7 @@ export class HelloEndpoint extends Modules.BaseEndpoint {
 		if (typeof address !== 'string') {
 			throw new Error('Parameter address must be a string.');
 		}
-		cryptography.address.validateLisk32Address(address);
+
 		const helloMessage = await messageSubStore.get(
 			ctx,
 			cryptography.address.getAddressFromLisk32Address(address),

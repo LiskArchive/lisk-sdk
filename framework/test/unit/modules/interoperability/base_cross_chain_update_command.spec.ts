@@ -68,6 +68,7 @@ import {
 } from '../../../../src/modules/interoperability/stores/own_chain_account';
 import { createStoreGetter } from '../../../../src/testing/utils';
 import { EVENT_TOPIC_TRANSACTION_EXECUTION } from '../../../../src/state_machine/constants';
+import { TransactionContext } from '../../../../src/state_machine';
 
 class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -77,6 +78,8 @@ class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInter
 }
 
 describe('BaseCrossChainUpdateCommand', () => {
+	let executeContext: StateMachine.CommandExecuteContext<CrossChainUpdateTransactionParams>;
+	let stateStore: PrefixedStateReadWriter;
 	const interopsModule = new Modules.Interoperability.MainchainInteroperabilityModule();
 	const senderPublicKey = utils.getRandomBytes(32);
 	const messageFeeTokenID = Buffer.alloc(8, 0);
@@ -199,6 +202,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	};
 
 	let context: CrossChainMessageContext;
+	let defaultTransactionContext: TransactionContext;
 	let command: CrossChainUpdateCommand;
 	let ccMethods: Map<string, BaseCCMethod>;
 	let ccCommands: Map<string, BaseCCCommand[]>;
@@ -206,6 +210,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 
 	beforeEach(() => {
 		const interopModule = new Modules.Interoperability.MainchainInteroperabilityModule();
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		ccMethods = new Map();
 		ccMethods.set(
 			'token',
@@ -259,10 +264,19 @@ describe('BaseCrossChainUpdateCommand', () => {
 		context = createCrossChainMessageContext({
 			ccm: defaultCCM,
 		});
+
+		defaultTransactionContext = createTransactionContext({
+			chainID,
+			stateStore,
+			transaction: new Transaction({
+				...defaultTransaction,
+				command: command.name,
+				params: codec.encode(crossChainUpdateTransactionParams, params),
+			}),
+		});
 	});
 
 	describe('verifyCommon', () => {
-		let stateStore: PrefixedStateReadWriter;
 		let verifyContext: StateMachine.CommandVerifyContext<CrossChainUpdateTransactionParams>;
 
 		const ownChainAccount: OwnChainAccount = {
@@ -290,16 +304,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		].sort((v1, v2) => v2.blsKey.compare(v1.blsKey)); // unsorted list
 
 		beforeEach(async () => {
-			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			verifyContext = createTransactionContext({
-				chainID,
-				stateStore,
-				transaction: new Transaction({
-					...defaultTransaction,
-					command: command.name,
-					params: codec.encode(crossChainUpdateTransactionParams, params),
-				}),
-			}).createCommandVerifyContext(command.schema);
+			verifyContext = defaultTransactionContext.createCommandVerifyContext(command.schema);
 
 			await command['stores']
 				.get(ChainValidatorsStore)
@@ -524,12 +529,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	});
 
 	describe('verifyCertificateSignatureAndPartnerChainOutboxRoot', () => {
-		let executeContext: StateMachine.CommandExecuteContext<CrossChainUpdateTransactionParams>;
-		let stateStore: PrefixedStateReadWriter;
-
 		beforeEach(async () => {
-			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-
 			executeContext = createTransactionContext({
 				chainID,
 				stateStore,
@@ -629,29 +629,18 @@ describe('BaseCrossChainUpdateCommand', () => {
 	// otherwise, they can fail due to some other check
 	// also, we can simplify test cases by giving only one CCM to params.inboxUpdate.crossChainMessages array
 	describe('beforeCrossChainMessagesExecution', () => {
-		let executeContext: StateMachine.CommandExecuteContext<CrossChainUpdateTransactionParams>;
-		let stateStore: PrefixedStateReadWriter;
-
 		beforeEach(async () => {
-			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-
-			executeContext = createTransactionContext({
-				chainID,
-				stateStore,
-				transaction: new Transaction({
-					...defaultTransaction,
-					command: command.name,
-					params: codec.encode(crossChainUpdateTransactionParams, params),
-				}),
-			}).createCommandExecuteContext(command.schema);
 			jest.spyOn(interopsModule.events.get(CcmProcessedEvent), 'log');
+
 			await interopsModule.stores
 				.get(ChainAccountStore)
 				.set(stateStore, defaultSendingChainID, partnerChainAccount);
+
 			await interopsModule.stores.get(ChainValidatorsStore).set(stateStore, defaultSendingChainID, {
 				activeValidators,
 				certificateThreshold: params.certificateThreshold,
 			});
+
 			await interopsModule.stores
 				.get(ChannelDataStore)
 				.set(stateStore, defaultSendingChainID, partnerChannel);
@@ -688,10 +677,12 @@ describe('BaseCrossChainUpdateCommand', () => {
 			await expect(
 				command['beforeCrossChainMessagesExecution'](executeContext, true),
 			).resolves.toEqual([[], false]);
+
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
 				expect.anything(),
 				params.sendingChainID,
 			);
+
 			const invalidCCMID = getIDFromCCMBytes(codec.encode(ccmSchema, invalidCCM));
 			const ccmEventQueue = executeContext.eventQueue.getChildQueue(
 				Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, invalidCCMID]),
@@ -732,10 +723,12 @@ describe('BaseCrossChainUpdateCommand', () => {
 			await expect(
 				command['beforeCrossChainMessagesExecution'](executeContext, true),
 			).resolves.toEqual([[], false]);
+
 			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
 				expect.anything(),
 				params.sendingChainID,
 			);
+
 			const ccmID = getIDFromCCMBytes(codec.encode(ccmSchema, EmptyCCM));
 			const ccmEventQueue = executeContext.eventQueue.getChildQueue(
 				Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
@@ -752,7 +745,12 @@ describe('BaseCrossChainUpdateCommand', () => {
 			);
 		});
 
-		it('should terminate the chain and add an event when CCM sending chain and ccu sending chain is not the same', async () => {
+		it('should terminate the chain and log an event when verifyRoutingRules throws error', async () => {
+			// we want to return error in all cases
+			jest.spyOn(command, 'verifyRoutingRules' as any).mockImplementation(() => {
+				throw new Error('blah');
+			});
+
 			const ccm = {
 				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				fee: BigInt(0),
@@ -786,17 +784,30 @@ describe('BaseCrossChainUpdateCommand', () => {
 			await expect(
 				command['beforeCrossChainMessagesExecution'](executeContext, true),
 			).resolves.toEqual([[], false]);
-			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				expect.anything(),
-				params.sendingChainID,
+
+			expect(command['verifyRoutingRules']).toHaveBeenCalledWith(
+				ccm,
+				executeContext.params,
+				executeContext.chainID,
+				true,
 			);
 
-			const ccmID = getIDFromCCMBytes(codec.encode(ccmSchema, ccm));
-			const ccmEventQueue = executeContext.eventQueue.getChildQueue(
-				Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
+			const ccmBytes = executeContext.params.inboxUpdate.crossChainMessages[0];
+			const ccmID = getIDFromCCMBytes(ccmBytes);
+			const ccmContext = {
+				...executeContext,
+				eventQueue: executeContext.eventQueue.getChildQueue(
+					Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
+				),
+			};
+
+			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
+				ccmContext,
+				executeContext.params.sendingChainID,
 			);
+
 			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
-				{ ...executeContext, eventQueue: ccmEventQueue },
+				ccmContext,
 				executeContext.params.sendingChainID,
 				ccm.receivingChainID,
 				{
@@ -805,11 +816,32 @@ describe('BaseCrossChainUpdateCommand', () => {
 					code: CCMProcessedCode.INVALID_CCM_ROUTING_EXCEPTION,
 				},
 			);
+
+			expect(executeContext.eventQueue['_defaultTopics'][0]).toEqual(
+				Buffer.concat([EVENT_TOPIC_TRANSACTION_EXECUTION, executeContext.transaction.id]),
+			);
+		});
+	});
+
+	describe('verifyRoutingRules', () => {
+		beforeEach(async () => {
+			jest.spyOn(interopsModule.events.get(CcmProcessedEvent), 'log');
+
+			await interopsModule.stores
+				.get(ChainAccountStore)
+				.set(stateStore, defaultSendingChainID, partnerChainAccount);
+
+			await interopsModule.stores.get(ChainValidatorsStore).set(stateStore, defaultSendingChainID, {
+				activeValidators,
+				certificateThreshold: params.certificateThreshold,
+			});
+
+			await interopsModule.stores
+				.get(ChannelDataStore)
+				.set(stateStore, defaultSendingChainID, partnerChannel);
 		});
 
-		// Sending and receiving chains must differ.
-		it('should terminate the chain and add an event when receiving chain is the same as sending chain', async () => {
-			const sendingChainID = chainID;
+		it('should return error when CCM sending chain and ccu sending chain is not the same', () => {
 			const ccm = {
 				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				fee: BigInt(0),
@@ -818,62 +850,9 @@ describe('BaseCrossChainUpdateCommand', () => {
 				params: utils.getRandomBytes(10),
 				// must be same as `context.chainID` to pass `!context.chainID.equals(ccm.receivingChainID)` check
 				receivingChainID: chainID,
-				// will fail for `Sending and receiving chains must differ`
-				sendingChainID: chainID,
-				status: CCMStatusCode.OK,
-			};
-
-			executeContext = createTransactionContext({
-				chainID: sendingChainID,
-				stateStore,
-				transaction: new Transaction({
-					...defaultTransaction,
-					command: command.name,
-					params: codec.encode(crossChainUpdateTransactionParams, {
-						...params,
-						inboxUpdate: {
-							...params.inboxUpdate,
-							crossChainMessages: [codec.encode(ccmSchema, ccm)],
-						},
-						// this is needed to pass `!ccm.sendingChainID.equals(params.sendingChainID)` check (previous test)
-						sendingChainID,
-					}),
-				}),
-			}).createCommandExecuteContext(command.schema);
-
-			await expect(
-				command['beforeCrossChainMessagesExecution'](executeContext, true),
-			).resolves.toEqual([[], false]);
-			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				expect.anything(),
-				sendingChainID,
-			);
-			const ccmID = getIDFromCCMBytes(codec.encode(ccmSchema, ccm));
-			const ccmEventQueue = executeContext.eventQueue.getChildQueue(
-				Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
-			);
-			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
-				{ ...executeContext, eventQueue: ccmEventQueue },
-				executeContext.params.sendingChainID,
-				ccm.receivingChainID,
-				{
-					ccm,
-					result: CCMProcessedResult.DISCARDED,
-					code: CCMProcessedCode.INVALID_CCM_ROUTING_EXCEPTION,
-				},
-			);
-		});
-
-		it('should terminate the chain and add an event when CCM is not directed to the sidechain', async () => {
-			const ccm = {
-				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
-				fee: BigInt(0),
-				module: MODULE_NAME_INTEROPERABILITY,
-				nonce: BigInt(1),
-				params: utils.getRandomBytes(10),
-				// will fail for `!context.chainID.equals(ccm.receivingChainID)`
-				receivingChainID: Buffer.from([0, 0, 3, 0]),
-				sendingChainID: defaultSendingChainID,
+				// this will fail for `!ccm.sendingChainID.equals(params.sendingChainID)`
+				// params.sendingChainID is `defaultSendingChainID` (line 158)
+				sendingChainID: Buffer.from([1, 2, 3, 4]),
 				status: CCMStatusCode.OK,
 			};
 
@@ -893,30 +872,14 @@ describe('BaseCrossChainUpdateCommand', () => {
 				}),
 			}).createCommandExecuteContext(command.schema);
 
-			await expect(
-				command['beforeCrossChainMessagesExecution'](executeContext, false),
-			).resolves.toEqual([[], false]);
-			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				expect.anything(),
-				params.sendingChainID,
-			);
-			const ccmID = getIDFromCCMBytes(codec.encode(ccmSchema, ccm));
-			const ccmEventQueue = executeContext.eventQueue.getChildQueue(
-				Buffer.concat([EVENT_TOPIC_CCM_EXECUTION, ccmID]),
-			);
-			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
-				{ ...executeContext, eventQueue: ccmEventQueue },
-				executeContext.params.sendingChainID,
-				ccm.receivingChainID,
-				{
-					ccm,
-					result: CCMProcessedResult.DISCARDED,
-					code: CCMProcessedCode.INVALID_CCM_ROUTING_EXCEPTION,
-				},
-			);
+			try {
+				command['verifyRoutingRules'](ccm, executeContext.params, executeContext.chainID, true);
+			} catch (err: any) {
+				expect((err as Error).message).toBe('CCM is not from the sending chain.');
+			}
 		});
 
-		it('should reject with terminate the chain and add an event when ccm status is CCMStatusCode.CHANNEL_UNAVAILABLE and mainchain is true', async () => {
+		it('should return error when ccm status is CCMStatusCode.CHANNEL_UNAVAILABLE', () => {
 			const ccm = {
 				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				fee: BigInt(0),
@@ -947,31 +910,31 @@ describe('BaseCrossChainUpdateCommand', () => {
 				}),
 			}).createCommandExecuteContext(command.schema);
 
-			await expect(
-				command['beforeCrossChainMessagesExecution'](executeContext, true),
-			).resolves.toEqual([[], false]);
-			expect(internalMethod.terminateChainInternal).toHaveBeenCalledWith(
-				expect.anything(),
-				params.sendingChainID,
-			);
-			expect(command['events'].get(CcmProcessedEvent).log).toHaveBeenCalledWith(
-				expect.anything(),
-				executeContext.params.sendingChainID,
-				ccm.receivingChainID,
-				{
-					ccm,
-					result: CCMProcessedResult.DISCARDED,
-					code: CCMProcessedCode.INVALID_CCM_ROUTING_EXCEPTION,
-				},
-			);
-			expect(executeContext.eventQueue['_defaultTopics'][0]).toEqual(
-				Buffer.concat([EVENT_TOPIC_TRANSACTION_EXECUTION, executeContext.transaction.id]),
-			);
+			try {
+				command['verifyRoutingRules'](ccm, executeContext.params, executeContext.chainID, true);
+			} catch (err: any) {
+				expect((err as Error).message).toBe(
+					'CCM status channel unavailable can only be set on the mainchain.',
+				);
+			}
 		});
 
-		it('should resolve when ccm status is CCMStatusCode.CHANNEL_UNAVAILABLE and mainchain is false', async () => {
+		it('should return error when CCM is not directed to the sidechain', () => {
+			const sidechainID = Buffer.from([1, 2, 3, 4]);
+			const ccm = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+				fee: BigInt(0),
+				module: MODULE_NAME_INTEROPERABILITY,
+				nonce: BigInt(1),
+				params: utils.getRandomBytes(10),
+				// will fail for `!context.chainID.equals(ccm.receivingChainID)`
+				receivingChainID: Buffer.from([0, 0, 3, 0]),
+				sendingChainID: defaultSendingChainID,
+				status: CCMStatusCode.OK,
+			};
+
 			executeContext = createTransactionContext({
-				chainID: Buffer.from([0, 0, 2, 0]),
+				chainID: sidechainID,
 				stateStore,
 				transaction: new Transaction({
 					...defaultTransaction,
@@ -980,34 +943,72 @@ describe('BaseCrossChainUpdateCommand', () => {
 						...params,
 						inboxUpdate: {
 							...params.inboxUpdate,
-							crossChainMessages: [
-								codec.encode(ccmSchema, {
-									crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
-									fee: BigInt(0),
-									module: MODULE_NAME_INTEROPERABILITY,
-									nonce: BigInt(1),
-									params: utils.getRandomBytes(10),
-									receivingChainID: Buffer.from([0, 0, 2, 0]),
-									sendingChainID: Buffer.from([0, 0, 0, 4]),
-									status: CCMStatusCode.CHANNEL_UNAVAILABLE,
-								}),
-							],
+							crossChainMessages: [codec.encode(ccmSchema, ccm)],
 						},
 					}),
 				}),
 			}).createCommandExecuteContext(command.schema);
 
-			await expect(
-				command['beforeCrossChainMessagesExecution'](executeContext, false),
-			).resolves.toEqual([expect.toBeArrayOfSize(1), true]);
-
-			expect(internalMethod.terminateChainInternal).not.toHaveBeenCalled();
-			expect(command['events'].get(CcmProcessedEvent).log).not.toHaveBeenCalled();
+			try {
+				command['verifyRoutingRules'](ccm, executeContext.params, executeContext.chainID, false);
+			} catch (err: any) {
+				expect((err as Error).message).toBe('CCM is not directed to the sidechain.');
+			}
 		});
+
+		it.each([
+			['true', 1],
+			['false', 0],
+		])(
+			'should return error when receiving chain is the same as sending chain && isMainchain = %s',
+			(_s, isMainchain) => {
+				const sendingChainID = chainID;
+				const ccm = {
+					crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+					fee: BigInt(0),
+					module: MODULE_NAME_INTEROPERABILITY,
+					nonce: BigInt(1),
+					params: utils.getRandomBytes(10),
+					// must be same as `context.chainID` to pass `!context.chainID.equals(ccm.receivingChainID)` check
+					receivingChainID: chainID,
+					// will fail for `Sending and receiving chains must differ`
+					sendingChainID: chainID,
+					status: CCMStatusCode.OK,
+				};
+
+				executeContext = createTransactionContext({
+					chainID: sendingChainID,
+					stateStore,
+					transaction: new Transaction({
+						...defaultTransaction,
+						command: command.name,
+						params: codec.encode(crossChainUpdateTransactionParams, {
+							...params,
+							inboxUpdate: {
+								...params.inboxUpdate,
+								crossChainMessages: [codec.encode(ccmSchema, ccm)],
+							},
+							// this is needed to pass `!ccm.sendingChainID.equals(params.sendingChainID)` check (previous test)
+							sendingChainID,
+						}),
+					}),
+				}).createCommandExecuteContext(command.schema);
+
+				try {
+					command['verifyRoutingRules'](
+						ccm,
+						executeContext.params,
+						executeContext.chainID,
+						Boolean(isMainchain),
+					);
+				} catch (err: any) {
+					expect((err as Error).message).toBe('Sending and receiving chains must differ.');
+				}
+			},
+		);
 	});
 
-	describe('afterCrossChainMessagesExecute', () => {
-		let executeContext: StateMachine.CommandExecuteContext<CrossChainUpdateTransactionParams>;
+	describe('afterCrossChainMessagesExecution', () => {
 		let chainValidatorsStore: ChainValidatorsStore;
 
 		beforeEach(() => {
@@ -1051,7 +1052,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			} as any);
 
 			await expect(
-				command['afterCrossChainMessagesExecute'](executeContext),
+				command['afterCrossChainMessagesExecution'](executeContext),
 			).resolves.toBeUndefined();
 			expect(command['internalMethod'].updateValidators).toHaveBeenCalledWith(
 				expect.anything(),
@@ -1062,7 +1063,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		it('should update validators if activeValidatorsUpdate is empty but params.certificateThreshold !== sendingChainValidators.certificateThreshold', async () => {
 			executeContext.params.activeValidatorsUpdate.bftWeightsUpdateBitmap = EMPTY_BUFFER;
 			await expect(
-				command['afterCrossChainMessagesExecute'](executeContext),
+				command['afterCrossChainMessagesExecution'](executeContext),
 			).resolves.toBeUndefined();
 
 			expect(command['internalMethod'].updateValidators).toHaveBeenCalledWith(
@@ -1074,7 +1075,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 		it('should not update certificate and updatePartnerChainOutboxRoot if certificate is empty', async () => {
 			executeContext.params.certificate = EMPTY_BYTES;
 			await expect(
-				command['afterCrossChainMessagesExecute'](executeContext),
+				command['afterCrossChainMessagesExecution'](executeContext),
 			).resolves.toBeUndefined();
 			expect(command['internalMethod'].updateCertificate).not.toHaveBeenCalled();
 			expect(command['internalMethod'].updatePartnerChainOutboxRoot).not.toHaveBeenCalled();
@@ -1090,7 +1091,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 				},
 			};
 			await expect(
-				command['afterCrossChainMessagesExecute'](executeContext),
+				command['afterCrossChainMessagesExecution'](executeContext),
 			).resolves.toBeUndefined();
 
 			expect(command['internalMethod'].updatePartnerChainOutboxRoot).not.toHaveBeenCalled();
@@ -1580,10 +1581,8 @@ describe('BaseCrossChainUpdateCommand', () => {
 		const ccmStatus = CCMStatusCode.MODULE_NOT_SUPPORTED;
 		const ccmProcessedEventCode = CCMProcessedCode.MODULE_NOT_SUPPORTED;
 		const ccmSize = 100;
-		let stateStore: PrefixedStateReadWriter;
 
 		beforeEach(async () => {
-			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			await interopsModule.stores.get(OwnChainAccountStore).set(stateStore, EMPTY_BYTES, {
 				chainID: Buffer.from('11111111', 'hex'),
 				name: 'ownChain',

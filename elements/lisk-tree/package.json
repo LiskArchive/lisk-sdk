@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-tree",
-	"version": "0.5.0-rc.0",
+	"version": "0.5.0",
 	"description": "Library containing Merkle tree implementations for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -35,8 +35,8 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "^4.1.0-rc.0",
-		"@liskhq/lisk-utils": "^0.4.0-rc.0"
+		"@liskhq/lisk-cryptography": "^4.1.0",
+		"@liskhq/lisk-utils": "^0.4.0"
 	},
 	"devDependencies": {
 		"@types/jest": "29.2.3",

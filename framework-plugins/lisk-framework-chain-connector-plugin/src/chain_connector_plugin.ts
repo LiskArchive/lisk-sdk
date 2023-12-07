@@ -25,6 +25,7 @@ import {
 	Schema,
 	Transaction,
 	cryptography,
+	transactions,
 } from 'lisk-sdk';
 import { calculateActiveValidatorsUpdate } from './active_validators_update';
 import {
@@ -60,6 +61,7 @@ import {
 	chainAccountDataJSONToObj,
 	channelDataJSONToObj,
 	getMainchainID,
+	getTokenIDLSK,
 	proveResponseJSONToObj,
 } from './utils';
 
@@ -150,6 +152,39 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		this._chainConnectorStore.close();
+	}
+
+	public async _getCcuFee(tx: Record<string, unknown>): Promise<bigint> {
+		let additionalFee = BigInt(0);
+
+		const userBalance = await this._receivingChainClient.invoke<{ exists: boolean }>(
+			'token_hasUserAccount',
+			{
+				address: address.getLisk32AddressFromAddress(
+					address.getAddressFromPublicKey(tx.senderPublicKey as Buffer),
+				),
+				// It is always LSK token
+				tokenID: `${getTokenIDLSK(this._receivingChainID).toString('hex')}`,
+			},
+		);
+
+		if (!userBalance.exists) {
+			const fee = await this._receivingChainClient.invoke<{
+				userAccount: string;
+				escrowAccount: string;
+			}>('token_getInitializationFees');
+			additionalFee += BigInt(fee.userAccount);
+		}
+
+		const ccuFee = BigInt(this.config.ccuFee ?? '0') + additionalFee;
+		const computedMinFee = transactions.computeMinFee(tx, ccuParamsSchema, {
+			additionalFee,
+		});
+
+		if (ccuFee > computedMinFee) {
+			return ccuFee;
+		}
+		return computedMinFee;
 	}
 
 	private async _newBlockReceivingChainHandler(_?: Record<string, unknown>) {
@@ -258,9 +293,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 			if (computedCCUParams) {
 				try {
-					await this._submitCCU(
-						codec.encode(Modules.Interoperability.ccuParamsSchema, computedCCUParams.ccuParams),
-					);
+					await this._submitCCU(computedCCUParams.ccuParams);
 					// If CCU was sent successfully then save the lastSentCCM if any
 					// TODO: Add function to check on the receiving chain whether last sent CCM was accepted or not
 					if (computedCCUParams.lastCCMToBeSent) {
@@ -807,7 +840,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 	}
 
-	private async _submitCCU(ccuParams: Buffer): Promise<void> {
+	private async _submitCCU(ccuParams: CrossChainUpdateTransactionParams): Promise<void> {
 		if (!this._chainConnectorStore.privateKey) {
 			throw new Error('There is no key enabled to submit CCU');
 		}
@@ -828,15 +861,23 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		);
 		const chainID = Buffer.from(chainIDStr, 'hex');
 
-		const tx = new Transaction({
+		const txWithoutFee = {
 			module: MODULE_NAME_INTEROPERABILITY,
 			command: targetCommand,
 			nonce: BigInt(nonce),
 			senderPublicKey: relayerPublicKey,
-			fee: BigInt(this.config.ccuFee),
-			params: ccuParams,
+			params: codec.encode(ccuParamsSchema, ccuParams),
 			signatures: [],
+		};
+
+		const tx = new Transaction({
+			...txWithoutFee,
+			fee: await this._getCcuFee({
+				...txWithoutFee,
+				params: ccuParams,
+			}),
 		});
+
 		tx.sign(chainID, this._chainConnectorStore.privateKey);
 		let result: { transactionId: string };
 		if (this._isSaveCCU) {

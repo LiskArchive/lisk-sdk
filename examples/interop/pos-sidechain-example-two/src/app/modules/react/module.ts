@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 
 import { Modules } from 'lisk-sdk';
-import { ReactCrossChainCommand } from './commands/react_command';
+import { CrossChainReactCommand } from './commands/react_cc_command';
 import { ReactEndpoint } from './endpoint';
 import { ReactMethod } from './method';
 import { ReactInteroperableMethod } from './cc_method';
@@ -11,7 +11,7 @@ import { InteroperabilityMethod } from './types';
 export class ReactModule extends Modules.Interoperability.BaseInteroperableModule {
 	public endpoint = new ReactEndpoint(this.stores, this.offchainStores);
 	public method = new ReactMethod(this.stores, this.events);
-	public commands = [new ReactCrossChainCommand(this.stores, this.events)];
+	public commands = [new CrossChainReactCommand(this.stores, this.events)];
 	private _interoperabilityMethod!: InteroperabilityMethod;
 
 	public crossChainMethod = new ReactInteroperableMethod(this.stores, this.events);

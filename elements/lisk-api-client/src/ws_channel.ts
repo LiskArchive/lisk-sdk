@@ -18,8 +18,8 @@ import { EventEmitter } from 'events';
 import { JSONRPCMessage, EventCallback, Defer } from './types';
 import { convertRPCError, defer, messageIsNotification, promiseWithTimeout } from './utils';
 
-const CONNECTION_TIMEOUT = 2000;
-const RESPONSE_TIMEOUT = 3000;
+export const CONNECTION_TIMEOUT = 5000;
+export const RESPONSE_TIMEOUT = 10000;
 
 export class WSChannel {
 	public isAlive = false;

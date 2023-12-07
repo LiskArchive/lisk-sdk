@@ -14,11 +14,10 @@
  */
 
 import { encrypt } from '@liskhq/lisk-cryptography';
-import * as fs from 'fs-extra';
 import * as path from 'path';
 import { flagsWithParser } from '../../../utils/flags';
 import { BaseIPCClientCommand } from '../base_ipc_client';
-import { OWNER_READ_WRITE } from '../../../constants';
+import { handleOutputFlag } from '../../../utils/output';
 
 interface EncryptedMessageObject {
 	readonly version: string;
@@ -86,11 +85,6 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 			this.error('APIClient is not initialized.');
 		}
 
-		if (flags.output) {
-			const { dir } = path.parse(flags.output);
-			fs.ensureDirSync(dir);
-		}
-
 		const allKeys = await this._client.invoke<GetKeysResponse>('generator_getAllKeys');
 		const statusResponse = await this._client.invoke<GetStatusResponse>('generator_getStatus');
 
@@ -120,7 +114,7 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 		};
 
 		const filePath = flags.output ? flags.output : path.join(process.cwd(), 'generator_info.json');
-		fs.writeJSONSync(filePath, output, { spaces: ' ', mode: OWNER_READ_WRITE });
-		this.log(`Generator info is exported to ${filePath}`);
+		const res = await handleOutputFlag(filePath, output, 'generator_info');
+		this.log(res);
 	}
 }
