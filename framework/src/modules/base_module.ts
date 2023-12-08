@@ -47,7 +47,7 @@ export interface ModuleMetadata {
 		name: string;
 		// Required parameters for the endpoint.
 		request?: Schema;
-		// A schema of the expected response to a request to the endpoint.
+		// A schema of the expected response to a request, sent to the endpoint.
 		response?: Schema;
 	}[];
 	/** A list of Blockchain Events that are emitted by the module. */
