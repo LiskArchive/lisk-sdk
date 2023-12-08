@@ -303,7 +303,7 @@ export class NFTEndpoint extends BaseEndpoint {
 	}
 
 	/**
-	 * Checks wheter a specific NFT is supported by the network.
+	 * Checks whether a specific NFT is supported by the network.
 	 *
 	 * @example
 	 *  ```sh
