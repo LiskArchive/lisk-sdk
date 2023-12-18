@@ -17,10 +17,7 @@ export * from './constants';
 export {
 	BFTHeader,
 	ActiveValidator,
-	PkSigPair,
 	AggregateCommit,
-	CommitPool,
-	ValidatorUpdate,
 } from './types';
 export * from './schema';
 export { isEmptyConsensusUpdate } from './utils';
