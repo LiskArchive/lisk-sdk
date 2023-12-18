@@ -15,4 +15,3 @@
 export * from './engine';
 export * from './bft';
 export * from './consensus';
-export * from './endpoint';
