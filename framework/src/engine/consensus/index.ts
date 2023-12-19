@@ -16,10 +16,7 @@ export { Consensus } from './consensus';
 export {
 	BFTHeader,
 	ActiveValidator,
-	PkSigPair,
 	AggregateCommit,
-	CommitPool,
-	ValidatorUpdate,
 } from './types';
 export { isEmptyConsensusUpdate } from './utils';
 export {
