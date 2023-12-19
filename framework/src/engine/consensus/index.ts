@@ -13,11 +13,8 @@
  */
 
 export { Consensus } from './consensus';
-export {
-	BFTHeader,
-	ActiveValidator,
-	AggregateCommit,
-} from './types';
+export { CONSENSUS_EVENT_BLOCK_DELETE, CONSENSUS_EVENT_BLOCK_NEW } from './constants';
+export { BFTHeader, ActiveValidator, AggregateCommit } from './types';
 export { isEmptyConsensusUpdate } from './utils';
 export {
 	computeUnsignedCertificateFromBlockHeader,
