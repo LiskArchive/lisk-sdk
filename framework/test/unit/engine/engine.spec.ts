@@ -14,13 +14,7 @@
  */
 import { Block, BlockAssets, Chain } from '@liskhq/lisk-chain';
 import { jobHandlers } from '@liskhq/lisk-utils';
-import { Engine } from '../../../src/engine/engine';
-import {
-	Consensus,
-	CONSENSUS_EVENT_BLOCK_DELETE,
-	CONSENSUS_EVENT_BLOCK_NEW,
-	CONSENSUS_EVENT_FORK_DETECTED,
-} from '../../../src/engine/consensus';
+import { Engine, Consensus } from '../../../src/engine';
 import { ABI } from '../../../src/abi';
 import * as logger from '../../../src/logger';
 import { fakeLogger } from '../../utils/mocks';
@@ -29,8 +23,11 @@ import { Network } from '../../../src/engine/network';
 import { Generator } from '../../../src/engine/generator';
 import { RPCServer } from '../../../src/engine/rpc/rpc_server';
 import {
+	CONSENSUS_EVENT_BLOCK_DELETE,
+	CONSENSUS_EVENT_BLOCK_NEW,
 	CONSENSUS_EVENT_NETWORK_BLOCK_NEW,
 	CONSENSUS_EVENT_VALIDATORS_CHANGED,
+	CONSENSUS_EVENT_FORK_DETECTED,
 } from '../../../src/engine/consensus/constants';
 import { defaultConfig } from '../../../src/testing/fixtures';
 import { createFakeBlockHeader } from '../../fixtures';
