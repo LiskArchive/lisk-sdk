@@ -13,7 +13,6 @@
  */
 
 export { Consensus } from './consensus';
-export * from './constants';
 export {
 	BFTHeader,
 	ActiveValidator,
@@ -22,7 +21,6 @@ export {
 	CommitPool,
 	ValidatorUpdate,
 } from './types';
-export * from './schema';
 export { isEmptyConsensusUpdate } from './utils';
 export {
 	computeUnsignedCertificateFromBlockHeader,

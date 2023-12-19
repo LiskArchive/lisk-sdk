@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './constants';
 export { BFTModule } from './module';
 export type { BFTMethod } from './method';
 export { bftParametersSchema, BFTParameters } from './schemas';

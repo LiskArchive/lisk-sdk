@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './engine';
+export { Engine } from './engine';
 export * from './bft';
 export * from './consensus';
