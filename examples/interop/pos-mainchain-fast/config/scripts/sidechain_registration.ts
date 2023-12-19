@@ -1,11 +1,9 @@
-import { apiClient, codec, sidechainRegParams, cryptography, Transaction } from 'lisk-sdk';
+import { apiClient } from 'lisk-sdk';
 // Replace this with the path to a file storing the public and private key of a mainchain account who will send the sidechain registration transaction.
 // (Can be any account with enough tokens).
 import { keys } from '../default/dev-validators.json';
 
 (async () => {
-	const { address } = cryptography;
-
 	// Replace this with alias of the sidechain node(s)
 	const SIDECHAIN_ARRAY = ['pos-sidechain-example-one', 'pos-sidechain-example-two'];
 	// Replace this with the alias of the mainchain node(s), e.g. lisk-core
@@ -20,7 +18,6 @@ import { keys } from '../default/dev-validators.json';
 
 		// Get node info data from sidechain and mainchain
 		const sidechainNodeInfo = await sidechainClient.invoke('system_getNodeInfo');
-		const mainchainNodeInfo = await mainchainClient.invoke('system_getNodeInfo');
 
 		// Get info about the active sidechain validators and the certificate threshold
 		const { validators: sidechainActiveValidators, certificateThreshold } =
@@ -33,48 +30,33 @@ import { keys } from '../default/dev-validators.json';
 			Buffer.from(a.blsKey, 'hex').compare(Buffer.from(b.blsKey, 'hex')),
 		);
 
-		// Define parameters for the sidechain registration
-		const params = {
-			sidechainCertificateThreshold: certificateThreshold,
-			sidechainValidators: sidechainActiveValidators,
-			chainID: sidechainNodeInfo.chainID,
-			name: nodeAlias.replace(/-/g, '_'),
-		};
-
-		// Get public key and nonce of the sender account
-		const relayerKeyInfo = keys[2];
-		const { nonce } = await mainchainClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
-			address: address.getLisk32AddressFromPublicKey(Buffer.from(relayerKeyInfo.publicKey, 'hex')),
-		});
-
-		// Create registerSidechain transaction
-		const tx = new Transaction({
+		const unsignedTransaction = {
 			module: 'interoperability',
 			command: 'registerSidechain',
 			fee: BigInt(2000000000),
-			params: codec.encodeJSON(sidechainRegParams, params),
-			nonce: BigInt(nonce),
-			senderPublicKey: Buffer.from(relayerKeyInfo.publicKey, 'hex'),
-			signatures: [],
-		});
+			params: {
+				sidechainCertificateThreshold: certificateThreshold,
+				sidechainValidators: sidechainActiveValidators,
+				chainID: sidechainNodeInfo.chainID,
+				name: nodeAlias.replace(/-/g, '_'),
+			},
+		};
 
-		// Sign the transaction
-		tx.sign(
-			Buffer.from(mainchainNodeInfo.chainID as string, 'hex'),
-			Buffer.from(relayerKeyInfo.privateKey, 'hex'),
+		const signedTransaction = await mainchainClient.transaction.create(
+			unsignedTransaction,
+			keys[2].privateKey,
 		);
 
-		// Post the transaction to a mainchain node
-		const result = await mainchainClient.invoke<{
-			transactionId: string;
-		}>('txpool_postTransaction', {
-			transaction: tx.getBytes().toString('hex'),
-		});
+		try {
+			const receipt = await mainchainClient.transaction.send(signedTransaction);
+			console.log(
+				`Sent sidechain '${nodeAlias}' registration transaction on mainchain node '${MAINCHAIN_ARRAY[i]}'. Tx ID:`,
+				receipt.transactionId,
+			);
+		} catch (error) {
+			console.log(error);
+		}
 
-		console.log(
-			`Sent sidechain registration transaction on mainchain node ${MAINCHAIN_ARRAY[1]}. Result from transaction pool is: `,
-			result,
-		);
 		i += 1;
 
 		// Wait in case there are more elements in the SIDECHAIN_ARRAY, after performing another loop with the next element.
@@ -82,7 +64,6 @@ import { keys } from '../default/dev-validators.json';
 		if (i < SIDECHAIN_ARRAY.length) {
 			const WAIT_PERIOD = 10000;
 			console.log(`Waiting for ${WAIT_PERIOD} ms to send another sidechain registration`);
-			// Wait for 2 seconds before next registration
 			await wait(WAIT_PERIOD);
 		}
 
