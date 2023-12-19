@@ -53,7 +53,7 @@ Install and build `pos-sidechain-example-two`
 #### Run apps using pm2
 
 - Install [pm2](https://pm2.keymetrics.io/) if not installed using `npm install pm2 -g`
-- Install []`ts-node`](https://www.npmjs.com/package/ts-node) globally
+- Install [`ts-node`](https://www.npmjs.com/package/ts-node) globally
 
 Run 2 instances mainchain node
 
@@ -85,17 +85,26 @@ Interact with applications using `pm2`
 
 #### Check chain status
 
-- Run `./bin/run endpoint:invoke 'interoperability_getChainAccount' '{"chainID": "04000000" }'` to check chain status of mainchain account on sidechain. It should show lastCertificate with height 0 and status 0 if no CCU was sent yet.
-- Run `./bin/run endpoint:invoke 'interoperability_getChainAccount' '{"chainID": "04000001" }'` to check chain status of sidechain account on mainchain. It should show lastCertificate with height 0 and status 0 if no CCU was sent yet.
+- Run `./pos-sidechain-example-one/bin/run endpoint:invoke interoperability_getChainAccount '{"chainID": "04000000" }'` to check chain status of the mainchain account on the sidechain one. It should show lastCertificate with height 0 and status 0 if no CCU was sent yet.
+- Run `./pos-mainchain-fast/bin/run endpoint:invoke interoperability_getChainAccount '{"chainID": "04000001" }' --data-path ~/.lisk/mainchain-node-one` to check chain status of the sidechain one account on the mainchain, using mainchain node one. It should show lastCertificate with height 0 and status 0 if no CCU was sent yet.
 
 Now observe logs, initially it will log `No valid CCU can be generated for the height: ${newBlockHeader.height}` until first finalized height is reached.
 
 When the finalized height is reached, check chain status as described above and it should update lastCertificate `height > 0` and status to `1` which means the CCU was sent successfully and chain is active now.
 
-### Authorize ChainConnector plugin to sign and send CCU(Cross-Chain Update) transactions
+### Authorize ChainConnector plugin to sign and send CCU (Cross-Chain Update) transactions
 
-Run below command inside each application folder.
-`./bin/run endpoint:invoke 'chainConnector_authorize' '{"password": "lisk" }'`
+Authorize ChainConnector plugin on each of the 4 nodes:
+
+```
+./pos-mainchain-fast/bin/run endpoint:invoke chainConnector_authorize '{"enable": true, "password": "lisk" }' --data-path ~/.lisk/mainchain-node-one
+
+./pos-mainchain-fast/bin/run endpoint:invoke chainConnector_authorize '{"enable": true, "password": "lisk" }' --data-path ~/.lisk/mainchain-node-two
+
+./pos-sidechain-example-one/bin/run endpoint:invoke chainConnector_authorize '{"enable": true, "password": "lisk" }'
+
+./pos-sidechain-example-two/bin/run endpoint:invoke chainConnector_authorize '{"enable": true, "password": "lisk" }'
+```
 
 #### Cross Chain transfers
 
@@ -145,5 +154,4 @@ genesis-assets if you want to run an application for 103 validators. In order to
 
 ## Learn More
 
-[Here](https://github.com/LiskHQ/lisk-docs/blob/7a7c1606c688f8cd91b50d0ddc199907c6b4f759/docs/modules/ROOT/images/build-blockchain/interop-example.png)
-is reference to diagram explaining interop setup nicely.
+[Here](https://github.com/LiskHQ/lisk-docs/blob/7a7c1606c688f8cd91b50d0ddc199907c6b4f759/docs/modules/ROOT/images/build-blockchain/interop-example.png) is a reference to the diagram explaining interop setup nicely.
