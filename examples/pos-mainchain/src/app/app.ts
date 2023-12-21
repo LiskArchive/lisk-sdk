@@ -1,7 +1,7 @@
-import { Application, PartialApplicationConfig, Modules } from 'lisk-sdk';
+import { Application, Types, Modules } from 'lisk-sdk';
 import { TestNftModule } from './modules/testNft/module';
 
-export const getApplication = (config: PartialApplicationConfig): Application => {
+export const getApplication = (config: Types.PartialApplicationConfig): Application => {
 	const { app, method } = Application.defaultApplication(config, true);
 	const nftModule = new Modules.NFT.NFTModule();
 	const testNftModule = new TestNftModule();

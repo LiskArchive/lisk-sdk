@@ -1,6 +1,6 @@
-import { Application, Modules, PartialApplicationConfig } from 'lisk-sdk';
+import { Application, Modules, Types } from 'lisk-sdk';
 
-export const registerModules = (config: PartialApplicationConfig): Application => {
+export const registerModules = (config: Types.PartialApplicationConfig): Application => {
 	const application = new Application(config);
 	// create module instances
 	const authModule = new Modules.Auth.AuthModule();
