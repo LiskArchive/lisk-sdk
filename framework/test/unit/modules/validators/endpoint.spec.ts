@@ -13,7 +13,7 @@
  */
 
 import { utils, address as cryptoAddress } from '@liskhq/lisk-cryptography';
-import { ModuleEndpointContext } from '../../../../src';
+import { Types } from '../../../../src';
 import { ValidatorsModule } from '../../../../src/modules/validators';
 import { BLSKeyStore } from '../../../../src/modules/validators/stores/bls_keys';
 import { ValidatorKeysStore } from '../../../../src/modules/validators/stores/validator_keys';
@@ -170,7 +170,7 @@ describe('ValidatorsModuleEndpoint', () => {
 	});
 
 	describe('getValidator', () => {
-		let context: ModuleEndpointContext;
+		let context: Types.ModuleEndpointContext;
 		beforeEach(() => {
 			context = createTransientModuleEndpointContext({
 				stateStore,

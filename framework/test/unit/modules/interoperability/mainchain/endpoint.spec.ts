@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Modules, ModuleEndpointContext } from '../../../../../src';
+import { Modules, Types } from '../../../../../src';
 import {
 	CHAIN_REGISTRATION_FEE,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
@@ -157,7 +157,7 @@ describe('MainchainInteroperabilityEndpoint', () => {
 		const ownChainAccountStore = {
 			get: jest.fn().mockResolvedValue({ chainID: Buffer.from('00000000', 'hex') }),
 		};
-		let context: ModuleEndpointContext;
+		let context: Types.ModuleEndpointContext;
 
 		beforeEach(() => {
 			interopMod.stores.register(ChainAccountStore, chainAccountStore as never);

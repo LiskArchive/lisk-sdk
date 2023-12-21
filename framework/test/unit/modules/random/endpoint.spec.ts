@@ -13,7 +13,7 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { ModuleEndpointContext, Modules } from '../../../../src';
+import { Types, Modules } from '../../../../src';
 import { RandomEndpoint } from '../../../../src/modules/random/endpoint';
 import { HashOnionStore } from '../../../../src/modules/random/stores/hash_onion';
 import {
@@ -29,7 +29,7 @@ import { MAX_HASH_COMPUTATION } from '../../../../src/modules/random/constants';
 
 describe('RandomModuleEndpoint', () => {
 	let randomEndpoint: RandomEndpoint;
-	let context: ModuleEndpointContext;
+	let context: Types.ModuleEndpointContext;
 
 	const validatorsData = [
 		{

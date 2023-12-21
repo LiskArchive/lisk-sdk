@@ -22,7 +22,7 @@ import { Controller } from '../../../src/controller/controller';
 import { Bus } from '../../../src/controller/bus';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import * as basePluginModule from '../../../src/plugins/base_plugin';
-import { ApplicationConfigForPlugin, EndpointHandlers, testing } from '../../../src';
+import { Types, testing } from '../../../src';
 
 jest.mock('zeromq');
 
@@ -93,7 +93,7 @@ describe('Controller Class', () => {
 			...testing.fixtures.defaultConfig.system,
 			dataPath: '/user/.lisk/#LABEL',
 		},
-	} as ApplicationConfigForPlugin;
+	} as Types.ApplicationConfigForPlugin;
 	const pluginConfigs = {};
 
 	const params = {
@@ -107,7 +107,7 @@ describe('Controller Class', () => {
 		moduleDB: new InMemoryDatabase() as unknown as Database,
 		logger: loggerMock,
 		events: ['app_start', 'app_blockNew'],
-		endpoints: new Map([['getBlockByID', jest.fn()]]) as EndpointHandlers,
+		endpoints: new Map([['getBlockByID', jest.fn()]]) as Types.EndpointHandlers,
 		chainID: Buffer.alloc(0),
 	};
 

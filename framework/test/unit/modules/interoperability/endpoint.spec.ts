@@ -14,7 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { ModuleEndpointContext, Modules } from '../../../../src';
+import { Types, Modules } from '../../../../src';
 import { BaseInteroperabilityEndpoint } from '../../../../src/modules/interoperability/base_interoperability_endpoint';
 import {
 	BLS_PUBLIC_KEY_LENGTH,
@@ -90,7 +90,7 @@ describe('Test interoperability endpoint', () => {
 		has: jest.fn(),
 	};
 
-	let moduleContext: ModuleEndpointContext;
+	let moduleContext: Types.ModuleEndpointContext;
 
 	const chainAccount: ChainAccount = {
 		lastCertificate: {
