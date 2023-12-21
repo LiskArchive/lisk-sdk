@@ -18,7 +18,7 @@ import * as childProcess from 'child_process';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
-import { Modules, BasePlugin } from '../../src';
+import { Modules, Plugins } from '../../src';
 import { Application } from '../../src/application';
 import { Bus } from '../../src/controller/bus';
 import { WSServer } from '../../src/controller/ws/ws_server';
@@ -46,7 +46,7 @@ jest.mock('zeromq', () => {
 jest.mock('@liskhq/lisk-db');
 jest.mock('../../src/logger');
 
-class TestPlugin extends BasePlugin {
+class TestPlugin extends Plugins.BasePlugin {
 	public get nodeModulePath(): string {
 		return __filename;
 	}

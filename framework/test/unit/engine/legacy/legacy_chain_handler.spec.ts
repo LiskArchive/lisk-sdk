@@ -16,7 +16,7 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
-import { LegacyConfig } from '../../../../src';
+import { Types } from '../../../../src';
 import { LegacyChainHandler } from '../../../../src/engine/legacy/legacy_chain_handler';
 import { Network } from '../../../../src/engine/network';
 import { encodeBlock } from '../../../../src/engine/legacy/codec';
@@ -30,7 +30,7 @@ const expectedSnapshotBlockID = utils.getRandomBytes(20);
 
 describe('Legacy Chain Handler', () => {
 	let legacyChainHandler: LegacyChainHandler;
-	let legacyConfig: LegacyConfig;
+	let legacyConfig: Types.LegacyConfig;
 	let peers: Peer[];
 	let network: Network;
 	let legacyBlock16270316: LegacyBlock;

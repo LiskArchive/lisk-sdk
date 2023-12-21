@@ -17,7 +17,7 @@ import * as fs from 'fs-extra';
 import { Bus } from '../../../src/controller/bus';
 import { Request } from '../../../src/controller/request';
 import { IPCServer } from '../../../src/controller/ipc/ipc_server';
-import { EndpointInfo } from '../../../src';
+import { Types } from '../../../src';
 import { InvokeRequest } from '../../../src/controller/channels/base_channel';
 
 jest.mock('ws');
@@ -136,7 +136,7 @@ describe('Bus', () => {
 		it('should register actions.', async () => {
 			// Arrange
 			const moduleName = 'name';
-			const endpointInfo: { [key: string]: EndpointInfo } = {
+			const endpointInfo: { [key: string]: Types.EndpointInfo } = {
 				action1: {
 					namespace: 'name',
 					method: 'action1',
@@ -160,7 +160,7 @@ describe('Bus', () => {
 		it('should throw error when trying to register duplicate actions.', async () => {
 			// Arrange
 			const moduleName = 'name';
-			const endpointInfo: { [key: string]: EndpointInfo } = {
+			const endpointInfo: { [key: string]: Types.EndpointInfo } = {
 				action1: {
 					namespace: 'name',
 					method: 'action1',
@@ -179,7 +179,7 @@ describe('Bus', () => {
 		it('should invoke the action on the channel.', async () => {
 			// Arrange
 			const moduleName = 'name';
-			const endpointInfo: { [key: string]: EndpointInfo } = {
+			const endpointInfo: { [key: string]: Types.EndpointInfo } = {
 				action1: {
 					namespace: 'name',
 					method: 'action1',
@@ -196,7 +196,7 @@ describe('Bus', () => {
 		it('should throw error when invoking an action on the channel with an invalid context.', async () => {
 			// Arrange
 			const moduleName = 'name';
-			const endpointInfo: { [key: string]: EndpointInfo } = {
+			const endpointInfo: { [key: string]: Types.EndpointInfo } = {
 				action1: {
 					namespace: 'name',
 					method: 'action1',
@@ -244,7 +244,7 @@ describe('Bus', () => {
 
 		it('should return a result of undefined when an empty context and action params are passed to a registered channel', async () => {
 			const moduleName = 'name';
-			const endpointInfo: { [key: string]: EndpointInfo } = {
+			const endpointInfo: { [key: string]: Types.EndpointInfo } = {
 				action1: {
 					namespace: 'name',
 					method: 'action1',
@@ -395,7 +395,7 @@ describe('Bus', () => {
 		it('should return the registered actions', async () => {
 			// Arrange
 			const moduleName = 'name';
-			const endpointInfo: { [key: string]: EndpointInfo } = {
+			const endpointInfo: { [key: string]: Types.EndpointInfo } = {
 				action1: {
 					namespace: 'name',
 					method: 'action1',
