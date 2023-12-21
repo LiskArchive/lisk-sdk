@@ -14,14 +14,13 @@
 
 import {
 	Engine,
-	BasePlugin,
-	PluginInitContext,
+	Plugins,
 	apiClient,
 	db as liskDB,
 	codec,
 	chain,
 	Modules,
-	JSONObject,
+	Types,
 	Schema,
 	Transaction,
 	cryptography,
@@ -81,7 +80,7 @@ type ModulesMetadata = [
 
 type FinalizedHeightInfo = { inboxSize: number; lastCertificateHeight: number };
 
-export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig> {
+export class ChainConnectorPlugin extends Plugins.BasePlugin<ChainConnectorPluginConfig> {
 	public endpoint = new Endpoint();
 	public configSchema = configSchema;
 
@@ -106,7 +105,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async init(context: PluginInitContext): Promise<void> {
+	public async init(context: Plugins.PluginInitContext): Promise<void> {
 		await super.init(context);
 		this._ccuFrequency = this.config.ccuFrequency ?? CCU_FREQUENCY;
 		if (this.config.maxCCUSize > CCU_TOTAL_CCM_SIZE) {
@@ -539,7 +538,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		// Check for events if any and store them
-		const events = await this._sendingChainClient.invoke<JSONObject<chain.EventAttr[]>>(
+		const events = await this._sendingChainClient.invoke<Types.JSONObject<chain.EventAttr[]>>(
 			'chain_getEvents',
 			{ height: newBlockHeader.height },
 		);

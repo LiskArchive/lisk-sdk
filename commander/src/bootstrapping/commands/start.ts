@@ -18,7 +18,7 @@
 import { Command, Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
 import { utils as cryptoUtils } from '@liskhq/lisk-cryptography';
-import { ApplicationConfig, Application, PartialApplicationConfig } from 'lisk-framework';
+import { Types, Application } from 'lisk-framework';
 import * as utils from '@liskhq/lisk-utils';
 import { flagsWithParser } from '../../utils/flags';
 
@@ -152,8 +152,8 @@ export abstract class StartCommand extends Command {
 		let config = await fs.readJSON(configFilePath);
 
 		if (flags.config) {
-			const customConfig: ApplicationConfig = await fs.readJSON(flags.config);
-			config = utils.objects.mergeDeep({}, config, customConfig) as ApplicationConfig;
+			const customConfig: Types.ApplicationConfig = await fs.readJSON(flags.config);
+			config = utils.objects.mergeDeep({}, config, customConfig) as Types.ApplicationConfig;
 		}
 		config.system.version = this.config.pjson.version;
 		config.system.dataPath = dataPath;
@@ -220,7 +220,7 @@ export abstract class StartCommand extends Command {
 		}
 	}
 
-	abstract getApplication(config: PartialApplicationConfig): Promise<Application>;
+	abstract getApplication(config: Types.PartialApplicationConfig): Promise<Application>;
 
 	abstract getApplicationConfigDir(): string;
 }

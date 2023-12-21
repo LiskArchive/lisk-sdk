@@ -15,7 +15,7 @@
 
 import * as apiClient from '@liskhq/lisk-api-client';
 import { Command } from '@oclif/core';
-import { RegisteredSchema, Modules } from 'lisk-framework';
+import { Types, Modules } from 'lisk-framework';
 import { PromiseResolvedType } from '../../types';
 import { isApplicationRunning } from '../../utils/application';
 import { flagsWithParser } from '../../utils/flags';
@@ -34,7 +34,7 @@ export abstract class BaseIPCClientCommand extends Command {
 
 	protected baseIPCClientFlags!: BaseIPCClientFlags;
 	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
-	protected _schema!: RegisteredSchema;
+	protected _schema!: Types.RegisteredSchema;
 	protected _metadata!: Modules.ModuleMetadataJSON[];
 	protected _dataPath!: string;
 

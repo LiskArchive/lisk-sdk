@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BasePlugin, PluginInitContext } from 'lisk-sdk';
+import { Plugins } from 'lisk-sdk';
 import * as express from 'express';
 import { join } from 'path';
 import { Server } from 'http';
@@ -19,7 +19,7 @@ import { configSchema } from './schemas';
 import { FaucetPluginConfig, State } from './types';
 import { Endpoint } from './endpoint';
 
-export class FaucetPlugin extends BasePlugin<FaucetPluginConfig> {
+export class FaucetPlugin extends Plugins.BasePlugin<FaucetPluginConfig> {
 	public configSchema = configSchema;
 	public endpoint = new Endpoint();
 
@@ -34,7 +34,7 @@ export class FaucetPlugin extends BasePlugin<FaucetPluginConfig> {
 		return __filename;
 	}
 
-	public async init(context: PluginInitContext): Promise<void> {
+	public async init(context: Plugins.PluginInitContext): Promise<void> {
 		await super.init(context);
 		this.endpoint.init(this._state, this.apiClient, this.config);
 	}

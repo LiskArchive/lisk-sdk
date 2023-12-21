@@ -11,13 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-	BasePlugin,
-	BasePluginEndpoint,
-	PluginEndpointContext,
-	db as liskDB,
-	cryptography,
-} from 'lisk-sdk';
+import { Plugins, Types, db as liskDB, cryptography } from 'lisk-sdk';
 import { getForgerInfo } from './db';
 import { Forger } from './types';
 
@@ -50,16 +44,16 @@ interface Validator {
 	consecutiveMissedBlocks: number;
 }
 
-export class Endpoint extends BasePluginEndpoint {
-	private _client!: BasePlugin['apiClient'];
+export class Endpoint extends Plugins.BasePluginEndpoint {
+	private _client!: Plugins.BasePlugin['apiClient'];
 	private _db!: liskDB.Database;
 
-	public init(db: liskDB.Database, apiClient: BasePlugin['apiClient']) {
+	public init(db: liskDB.Database, apiClient: Plugins.BasePlugin['apiClient']) {
 		this._db = db;
 		this._client = apiClient;
 	}
 
-	public async getStakers(_context: PluginEndpointContext): Promise<Staker[]> {
+	public async getStakers(_context: Types.PluginEndpointContext): Promise<Staker[]> {
 		const { status: forgersList } = await this._client.invoke<{ status: Forger[] }>(
 			'generator_getStatus',
 		);
@@ -95,7 +89,7 @@ export class Endpoint extends BasePluginEndpoint {
 		return result;
 	}
 
-	public async getForgingInfo(_context: PluginEndpointContext): Promise<ForgerInfo[]> {
+	public async getForgingInfo(_context: Types.PluginEndpointContext): Promise<ForgerInfo[]> {
 		const { status: forgersList } = await this._client.invoke<{ status: Forger[] }>(
 			'generator_getStatus',
 		);

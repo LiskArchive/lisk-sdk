@@ -14,7 +14,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Application, PartialApplicationConfig } from 'lisk-framework';
+import { Application, Types } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
 import { Command, Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
@@ -141,6 +141,6 @@ export abstract class BaseGenesisBlockCommand extends Command {
 		this.log(`Genesis block files saved at: ${configPath}`);
 	}
 
-	abstract getApplication(config: PartialApplicationConfig): Application;
+	abstract getApplication(config: Types.PartialApplicationConfig): Application;
 	abstract getApplicationConfigDir(): string;
 }

@@ -19,8 +19,7 @@ import {
 	blockHeaderSchema,
 	blockSchema,
 	Modules,
-	PartialApplicationConfig,
-	RegisteredSchema,
+	Types,
 	transactionSchema,
 } from 'lisk-framework';
 import * as transactions from '@liskhq/lisk-transactions';
@@ -57,7 +56,7 @@ interface SignFlags {
 
 const signTransaction = async (
 	flags: SignFlags,
-	registeredSchema: RegisteredSchema,
+	registeredSchema: Types.RegisteredSchema,
 	metadata: Modules.ModuleMetadataJSON[],
 	transactionHexStr: string,
 	chainID: string | undefined,
@@ -105,7 +104,7 @@ const signTransaction = async (
 
 const signTransactionOffline = async (
 	flags: SignFlags,
-	registeredSchema: RegisteredSchema,
+	registeredSchema: Types.RegisteredSchema,
 	metadata: Modules.ModuleMetadataJSON[],
 	transactionHexStr: string,
 ): Promise<Record<string, unknown>> => {
@@ -132,7 +131,7 @@ const signTransactionOffline = async (
 const signTransactionOnline = async (
 	flags: SignFlags,
 	client: apiClient.APIClient,
-	registeredSchema: RegisteredSchema,
+	registeredSchema: Types.RegisteredSchema,
 	metadata: Modules.ModuleMetadataJSON[],
 	transactionHexStr: string,
 ) => {
@@ -190,7 +189,7 @@ export abstract class SignCommand extends Command {
 	];
 
 	protected _client: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
-	protected _schema!: RegisteredSchema;
+	protected _schema!: Types.RegisteredSchema;
 	protected _metadata!: Modules.ModuleMetadataJSON[];
 	protected _dataPath!: string;
 
@@ -261,5 +260,5 @@ export abstract class SignCommand extends Command {
 		}
 	}
 
-	abstract getApplication(config: PartialApplicationConfig): Application;
+	abstract getApplication(config: Types.PartialApplicationConfig): Application;
 }

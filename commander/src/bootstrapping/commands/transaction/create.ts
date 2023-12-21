@@ -22,8 +22,7 @@ import { validator } from '@liskhq/lisk-validator';
 import { Command, Flags as flagParser } from '@oclif/core';
 import {
 	Application,
-	PartialApplicationConfig,
-	RegisteredSchema,
+	Types,
 	blockHeaderSchema,
 	blockSchema,
 	transactionSchema,
@@ -116,7 +115,7 @@ const getKeysFromFlags = async (flags: CreateFlags) => {
 
 const validateAndSignTransaction = (
 	transaction: Transaction,
-	schema: RegisteredSchema,
+	schema: Types.RegisteredSchema,
 	metadata: Modules.ModuleMetadataJSON[],
 	chainID: string,
 	privateKey: Buffer,
@@ -149,7 +148,7 @@ const validateAndSignTransaction = (
 const createTransactionOffline = async (
 	args: Args,
 	flags: CreateFlags,
-	registeredSchema: RegisteredSchema,
+	registeredSchema: Types.RegisteredSchema,
 	metadata: Modules.ModuleMetadataJSON[],
 	transaction: Transaction,
 ) => {
@@ -173,7 +172,7 @@ const createTransactionOnline = async (
 	args: Args,
 	flags: CreateFlags,
 	client: apiClient.APIClient,
-	registeredSchema: RegisteredSchema,
+	registeredSchema: Types.RegisteredSchema,
 	metadata: Modules.ModuleMetadataJSON[],
 	transaction: Transaction,
 ) => {
@@ -279,7 +278,7 @@ export abstract class CreateCommand extends Command {
 	};
 
 	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
-	protected _schema!: RegisteredSchema;
+	protected _schema!: Types.RegisteredSchema;
 	protected _metadata!: Modules.ModuleMetadataJSON[];
 	protected _dataPath!: string;
 
@@ -377,5 +376,5 @@ export abstract class CreateCommand extends Command {
 		}
 	}
 
-	abstract getApplication(config: PartialApplicationConfig): Application;
+	abstract getApplication(config: Types.PartialApplicationConfig): Application;
 }
