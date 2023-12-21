@@ -26,14 +26,14 @@ export {
 } from '@liskhq/lisk-chain';
 export { Application } from './application';
 export { systemDirs } from './system_dirs';
-export * from './plugins';
-export * from './logger';
+export * as Plugins from './plugins';
+export * as Logger from './logger';
 export * as Controller from './controller';
 export * as testing from './testing';
 export * as Modules from './modules';
 export * as StateMachine from './state_machine';
 export * as Engine from './engine';
-export * from './types';
+export * as Types from './types';
 export { applicationConfigSchema } from './schema';
 export {
 	TransactionExecutionResult,
