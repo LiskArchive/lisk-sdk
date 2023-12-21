@@ -12,13 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	BFTHeights,
-	chain,
-	computeUnsignedCertificateFromBlockHeader,
-	cryptography,
-	testing,
-} from 'lisk-sdk';
+import { chain, Engine, cryptography, testing } from 'lisk-sdk';
 import {
 	checkChainOfTrust,
 	getCertificateFromAggregateCommit,
@@ -103,7 +97,7 @@ describe('certificate generation', () => {
 		validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
 	};
 
-	const bftHeights: BFTHeights = {
+	const bftHeights: Engine.BFTHeights = {
 		maxHeightPrevoted: 5,
 		maxHeightPrecommitted: 5,
 		maxHeightCertified: 3,
@@ -123,7 +117,7 @@ describe('certificate generation', () => {
 			const firstBlockHeader = sampleBlockHeaders[0];
 			const { aggregateCommit } = firstBlockHeader;
 
-			const unsignedCertificate = computeUnsignedCertificateFromBlockHeader(
+			const unsignedCertificate = Engine.computeUnsignedCertificateFromBlockHeader(
 				new chain.BlockHeader(firstBlockHeader),
 			);
 			const expectedCertificate = {
@@ -275,7 +269,7 @@ describe('certificate generation', () => {
 
 		it('should return a valid certificate passing chainOfTrust check', () => {
 			const secondBlockHeader = sampleBlockHeaders[1];
-			const unsignedCertificate = computeUnsignedCertificateFromBlockHeader(
+			const unsignedCertificate = Engine.computeUnsignedCertificateFromBlockHeader(
 				new chain.BlockHeader(secondBlockHeader),
 			);
 			const expectedCertificate = {

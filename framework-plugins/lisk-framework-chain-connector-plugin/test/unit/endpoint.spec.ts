@@ -14,14 +14,7 @@
 
 import { removeSync } from 'fs-extra';
 import { when } from 'jest-when';
-import {
-	ApplicationConfigForPlugin,
-	GenesisConfig,
-	testing,
-	cryptography,
-	apiClient,
-	db,
-} from 'lisk-sdk';
+import { Types, testing, cryptography, apiClient, db } from 'lisk-sdk';
 import { ChainConnectorPlugin } from '../../src/chain_connector_plugin';
 import * as chainConnectorDB from '../../src/db';
 import { CCMsFromEvents, CCMsFromEventsJSON, LastSentCCMWithHeightJSON } from '../../src/types';
@@ -29,11 +22,11 @@ import { ccmsFromEventsToJSON, getMainchainID } from '../../src/utils';
 
 describe('endpoints', () => {
 	const ownChainID = Buffer.from('10000000', 'hex');
-	const appConfigForPlugin: ApplicationConfigForPlugin = {
+	const appConfigForPlugin: Types.ApplicationConfigForPlugin = {
 		...testing.fixtures.defaultConfig,
 		genesis: {
 			chainID: ownChainID.toString('hex'),
-		} as GenesisConfig,
+		} as Types.GenesisConfig,
 		generator: {
 			keys: {
 				fromFile: '',

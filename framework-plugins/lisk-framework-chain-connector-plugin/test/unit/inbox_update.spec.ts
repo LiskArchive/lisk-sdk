@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { CCMsg, tree } from 'lisk-sdk';
+import { Modules, tree } from 'lisk-sdk';
 import { CCU_TOTAL_CCM_SIZE } from '../../src/constants';
 import { CCMsFromEvents } from '../../src/types';
 import { calculateMessageWitnesses } from '../../src/inbox_update';
 import { getSampleCCM } from '../utils/sampleCCM';
 
 describe('inboxUpdate', () => {
-	let sampleCCMs: CCMsg[];
+	let sampleCCMs: Modules.Interoperability.CCMsg[];
 	let sampleCCMsFromEvents: CCMsFromEvents[];
 
 	beforeEach(() => {
