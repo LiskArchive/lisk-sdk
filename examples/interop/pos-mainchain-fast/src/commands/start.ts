@@ -5,7 +5,7 @@
 import { Flags as flagParser } from '@oclif/core';
 import { FlagInput } from '@oclif/core/lib/interfaces';
 import { BaseStartCommand } from 'lisk-commander';
-import { Application, ApplicationConfig, PartialApplicationConfig } from 'lisk-sdk';
+import { Application, Types } from 'lisk-sdk';
 import { ForgerPlugin } from '@liskhq/lisk-framework-forger-plugin';
 import { MonitorPlugin } from '@liskhq/lisk-framework-monitor-plugin';
 import { ReportMisbehaviorPlugin } from '@liskhq/lisk-framework-report-misbehavior-plugin';
@@ -19,7 +19,7 @@ interface Flags {
 	[key: string]: string | number | boolean | undefined;
 }
 
-const setPluginConfig = (config: ApplicationConfig, flags: Flags): void => {
+const setPluginConfig = (config: Types.ApplicationConfig, flags: Flags): void => {
 	if (flags['monitor-plugin-port'] !== undefined) {
 		config.plugins[MonitorPlugin.name] = config.plugins[MonitorPlugin.name] ?? {};
 		config.plugins[MonitorPlugin.name].port = flags['monitor-plugin-port'];
@@ -111,11 +111,11 @@ export class StartCommand extends BaseStartCommand {
 		}),
 	};
 
-	public async getApplication(config: PartialApplicationConfig): Promise<Application> {
+	public async getApplication(config: Types.PartialApplicationConfig): Promise<Application> {
 		/* eslint-disable @typescript-eslint/no-unsafe-call */
 		const { flags } = await this.parse(StartCommand);
 		// Set Plugins Config
-		setPluginConfig(config as ApplicationConfig, flags);
+		setPluginConfig(config as Types.ApplicationConfig, flags);
 		const app = getApplication(config);
 
 		if (flags['enable-forger-plugin']) {
