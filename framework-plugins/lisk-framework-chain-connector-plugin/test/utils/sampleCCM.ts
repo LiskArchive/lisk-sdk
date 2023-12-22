@@ -21,7 +21,7 @@ export const getSampleCCM = (
 	return {
 		nonce: BigInt(nonce),
 		module: Modules.Interoperability.MODULE_NAME_INTEROPERABILITY,
-		crossChainCommand: Modules.Interoperability.CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+		crossChainCommand: Modules.Token.CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 		sendingChainID: Buffer.from([0, 0, 0, 3]),
 		receivingChainID: Buffer.from('04000000', 'hex'),
 		fee: BigInt(nonce),

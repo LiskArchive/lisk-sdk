@@ -14,7 +14,7 @@
 
 import { rmSync } from 'fs-extra';
 import * as sdk from 'lisk-sdk';
-import { chain, db as liskDB, blockHeaderSchema, codec, Types } from 'lisk-sdk';
+import { chain, db as liskDB, blockHeaderSchema, codec, BlockHeader } from 'lisk-sdk';
 import { getContradictingBlockHeader, saveBlockHeaders } from '../../src/db';
 
 describe('db', () => {
@@ -62,7 +62,7 @@ describe('db', () => {
 	});
 
 	describe('getContradictingBlockHeader', () => {
-		const headerClone = Types.BlockHeader.fromBytes(headerBytes1);
+		const headerClone = BlockHeader.fromBytes(headerBytes1);
 
 		const header2 = new chain.BlockHeader({
 			id: Buffer.from('ff', 'hex'),

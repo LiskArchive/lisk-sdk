@@ -20,6 +20,7 @@ export {
 	signingBlockHeaderSchema,
 	Block,
 	BlockJSON,
+	BlockHeader,
 	BlockHeaderJSON,
 	BlockAssetJSON,
 	standardEventDataSchema,
