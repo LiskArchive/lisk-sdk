@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { utils } from '@liskhq/lisk-cryptography';
-import { ApplicationConfigForPlugin, GenesisConfig, testing, chain, codec } from 'lisk-sdk';
+import { Types, testing, chain, codec } from 'lisk-sdk';
 import * as fs from 'fs-extra';
 
 import { ReportMisbehaviorPlugin } from '../../src';
@@ -21,7 +21,7 @@ import { blockHeadersSchema } from '../../src/db';
 import { configSchema } from '../../src/schemas';
 import { waitTill } from '../utils/application';
 
-const appConfigForPlugin: ApplicationConfigForPlugin = {
+const appConfigForPlugin: Types.ApplicationConfigForPlugin = {
 	system: {
 		dataPath: '~/.lisk/my-app',
 		keepEventsForHeights: -1,
@@ -35,7 +35,7 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 		port: 7887,
 		host: '127.0.0.1',
 	},
-	genesis: {} as GenesisConfig,
+	genesis: {} as Types.GenesisConfig,
 	network: {
 		version: '1.0',
 		seedPeers: [],

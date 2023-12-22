@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing, PartialApplicationConfig } from 'lisk-sdk';
+import { testing, Types } from 'lisk-sdk';
 import { waitTill } from '../utils/application';
 import { createStakeTransaction } from '../utils/transactions';
 import { ForgerPlugin } from '../../src';
@@ -27,7 +27,7 @@ describe('forger:getStakers action', () => {
 		const config = {
 			rootPath,
 			label: 'stakers_functional',
-		} as PartialApplicationConfig;
+		} as Types.PartialApplicationConfig;
 
 		appEnv = testing.createDefaultApplicationEnv({
 			config,
