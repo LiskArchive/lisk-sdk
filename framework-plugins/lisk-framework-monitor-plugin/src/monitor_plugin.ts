@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Server } from 'http';
-import { BasePlugin, PluginInitContext } from 'lisk-sdk';
+import { Plugins } from 'lisk-sdk';
 import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
@@ -31,7 +31,7 @@ interface BlockData {
 	};
 }
 
-export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
+export class MonitorPlugin extends Plugins.BasePlugin<MonitorPluginConfig> {
 	public configSchema = configSchema;
 	public endpoint = new Endpoint();
 
@@ -43,7 +43,7 @@ export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 		return __filename;
 	}
 
-	public async init(context: PluginInitContext): Promise<void> {
+	public async init(context: Plugins.PluginInitContext): Promise<void> {
 		await super.init(context);
 		this._state = {
 			forks: {

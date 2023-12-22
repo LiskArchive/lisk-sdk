@@ -61,9 +61,13 @@ export interface NFTAttributes {
 	attributes: Buffer;
 }
 
+/** Interface for NFTs */
 export interface NFT {
+	// Owner of the NFT
 	owner: Buffer;
+	// NFT Attributes
 	attributesArray: NFTAttributes[];
+	// Name of the module locking the NFT (if locked).
 	lockingModule?: string;
 }
 

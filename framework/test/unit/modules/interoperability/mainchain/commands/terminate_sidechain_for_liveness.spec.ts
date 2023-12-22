@@ -16,7 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { CommandExecuteContext, MainchainInteroperabilityModule } from '../../../../../../src';
+import { StateMachine, Modules } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseCCMethod } from '../../../../../../src/modules/interoperability/base_cc_method';
 import {
@@ -39,7 +39,7 @@ import { TerminateSidechainForLivenessCommand } from '../../../../../../src/modu
 import { CHAIN_ID_LENGTH } from '../../../../../../src/modules/token/constants';
 
 describe('TerminateSidechainForLivenessCommand', () => {
-	const interopMod = new MainchainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.MainchainInteroperabilityModule();
 	let livenessTerminationCommand: TerminateSidechainForLivenessCommand;
 	let commandVerifyContext: CommandVerifyContext<TerminateSidechainForLivenessParams>;
 	let interoperableCCMethods: Map<string, BaseCCMethod>;
@@ -165,7 +165,7 @@ describe('TerminateSidechainForLivenessCommand', () => {
 	});
 
 	describe('execute', () => {
-		let commandExecuteContext: CommandExecuteContext<TerminateSidechainForLivenessParams>;
+		let commandExecuteContext: StateMachine.CommandExecuteContext<TerminateSidechainForLivenessParams>;
 		let transactionContext: TransactionContext;
 
 		beforeEach(() => {

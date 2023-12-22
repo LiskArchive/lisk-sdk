@@ -13,7 +13,7 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { StoreGetter } from '../../../../../src';
+import { Modules } from '../../../../../src';
 import {
 	HASH_LENGTH,
 	MODULE_NAME_INTEROPERABILITY,
@@ -24,7 +24,7 @@ import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_pr
 import { createStoreGetter } from '../../../../../src/testing/utils';
 
 describe('ChainAccountStore', () => {
-	let context: StoreGetter;
+	let context: Modules.StoreGetter;
 	let chainAccountStore: ChainAccountStore;
 
 	const chainIDs = [

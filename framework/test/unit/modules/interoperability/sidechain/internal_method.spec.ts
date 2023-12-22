@@ -13,7 +13,7 @@
  */
 
 import { SidechainInteroperabilityInternalMethod } from '../../../../../src/modules/interoperability/sidechain/internal_method';
-import { SidechainInteroperabilityModule } from '../../../../../src';
+import { Modules } from '../../../../../src';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import {
@@ -28,7 +28,7 @@ import { OwnChainAccountStore } from '../../../../../src/modules/interoperabilit
 import { EMPTY_BYTES } from '../../../../../src/modules/interoperability/constants';
 
 describe('Sidechain interoperability store', () => {
-	const sidechainInterops = new SidechainInteroperabilityModule();
+	const sidechainInterops = new Modules.Interoperability.SidechainInteroperabilityModule();
 	const ownChainAccountStoreMock = {
 		get: jest.fn(),
 		set: jest.fn(),

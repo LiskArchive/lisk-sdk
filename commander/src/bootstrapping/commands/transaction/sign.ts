@@ -18,9 +18,8 @@ import {
 	Application,
 	blockHeaderSchema,
 	blockSchema,
-	ModuleMetadataJSON,
-	PartialApplicationConfig,
-	RegisteredSchema,
+	Modules,
+	Types,
 	transactionSchema,
 } from 'lisk-framework';
 import * as transactions from '@liskhq/lisk-transactions';
@@ -57,8 +56,8 @@ interface SignFlags {
 
 const signTransaction = async (
 	flags: SignFlags,
-	registeredSchema: RegisteredSchema,
-	metadata: ModuleMetadataJSON[],
+	registeredSchema: Types.RegisteredSchema,
+	metadata: Modules.ModuleMetadataJSON[],
 	transactionHexStr: string,
 	chainID: string | undefined,
 	keys: Keys,
@@ -105,8 +104,8 @@ const signTransaction = async (
 
 const signTransactionOffline = async (
 	flags: SignFlags,
-	registeredSchema: RegisteredSchema,
-	metadata: ModuleMetadataJSON[],
+	registeredSchema: Types.RegisteredSchema,
+	metadata: Modules.ModuleMetadataJSON[],
 	transactionHexStr: string,
 ): Promise<Record<string, unknown>> => {
 	const mandatoryKeys = flags['mandatory-keys'];
@@ -132,8 +131,8 @@ const signTransactionOffline = async (
 const signTransactionOnline = async (
 	flags: SignFlags,
 	client: apiClient.APIClient,
-	registeredSchema: RegisteredSchema,
-	metadata: ModuleMetadataJSON[],
+	registeredSchema: Types.RegisteredSchema,
+	metadata: Modules.ModuleMetadataJSON[],
 	transactionHexStr: string,
 ) => {
 	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
@@ -190,8 +189,8 @@ export abstract class SignCommand extends Command {
 	];
 
 	protected _client: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
-	protected _schema!: RegisteredSchema;
-	protected _metadata!: ModuleMetadataJSON[];
+	protected _schema!: Types.RegisteredSchema;
+	protected _metadata!: Modules.ModuleMetadataJSON[];
 	protected _dataPath!: string;
 
 	async run(): Promise<void> {
@@ -261,5 +260,5 @@ export abstract class SignCommand extends Command {
 		}
 	}
 
-	abstract getApplication(config: PartialApplicationConfig): Application;
+	abstract getApplication(config: Types.PartialApplicationConfig): Application;
 }

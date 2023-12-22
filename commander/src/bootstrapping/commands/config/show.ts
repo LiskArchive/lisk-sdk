@@ -15,7 +15,7 @@
 import * as utils from '@liskhq/lisk-utils';
 import { Command } from '@oclif/core';
 import * as fs from 'fs-extra';
-import { ApplicationConfig } from 'lisk-framework';
+import { Types } from 'lisk-framework';
 import { flagsWithParser } from '../../../utils/flags';
 import { getConfigFilesPath, getDefaultPath } from '../../../utils/path';
 
@@ -46,11 +46,11 @@ export class ShowCommand extends Command {
 			this.error(`Folder in ${dataPath} does not contain valid config`);
 		}
 		// Get config from network config or config specified
-		let config = (await fs.readJSON(configFilePath)) as ApplicationConfig;
+		let config = (await fs.readJSON(configFilePath)) as Types.ApplicationConfig;
 
 		if (flags.config) {
-			const customConfig = (await fs.readJSON(flags.config)) as ApplicationConfig;
-			config = utils.objects.mergeDeep({}, config, customConfig) as ApplicationConfig;
+			const customConfig = (await fs.readJSON(flags.config)) as Types.ApplicationConfig;
+			config = utils.objects.mergeDeep({}, config, customConfig) as Types.ApplicationConfig;
 		}
 
 		config.system.dataPath = dataPath;

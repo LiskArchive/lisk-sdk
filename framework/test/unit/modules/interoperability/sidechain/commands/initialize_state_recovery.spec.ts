@@ -31,7 +31,7 @@ import {
 	OwnChainAccount,
 	StateRecoveryInitParams,
 } from '../../../../../../src/modules/interoperability/types';
-import { CommandExecuteContext, SidechainInteroperabilityModule } from '../../../../../../src';
+import { StateMachine, Modules } from '../../../../../../src';
 import { TransactionContext } from '../../../../../../src/state_machine';
 import { stateRecoveryInitParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { createTransactionContext } from '../../../../../../src/testing';
@@ -53,7 +53,7 @@ import { getMainchainID } from '../../../../../../src/modules/interoperability/u
 import { InvalidSMTVerificationEvent } from '../../../../../../src/modules/interoperability/events/invalid_smt_verification';
 
 describe('Sidechain InitializeStateRecoveryCommand', () => {
-	const interopMod = new SidechainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.SidechainInteroperabilityModule();
 	type StoreMock = Mocked<SidechainInteroperabilityInternalMethod, 'createTerminatedStateAccount'>;
 	const getSetHas = () => ({
 		get: jest.fn(),
@@ -67,7 +67,7 @@ describe('Sidechain InitializeStateRecoveryCommand', () => {
 	const ownChainAccountStoreMock = getSetHas();
 	const terminatedStateAccountMock = getSetHas();
 	let stateRecoveryInitCommand: InitializeStateRecoveryCommand;
-	let commandExecuteContext: CommandExecuteContext<StateRecoveryInitParams>;
+	let commandExecuteContext: StateMachine.CommandExecuteContext<StateRecoveryInitParams>;
 	let transaction: Transaction;
 	let transactionParams: StateRecoveryInitParams;
 	let encodedTransactionParams: Buffer;

@@ -1,27 +1,16 @@
-import {
-	Application,
-	AuthModule,
-	FeeModule,
-	PartialApplicationConfig,
-	PoAModule,
-	RandomModule,
-	RewardModule,
-	SidechainInteroperabilityModule,
-	TokenModule,
-	ValidatorsModule,
-} from 'lisk-sdk';
+import { Application, Modules, Types } from 'lisk-sdk';
 
-export const registerModules = (config: PartialApplicationConfig): Application => {
+export const registerModules = (config: Types.PartialApplicationConfig): Application => {
 	const application = new Application(config);
 	// create module instances
-	const authModule = new AuthModule();
-	const tokenModule = new TokenModule();
-	const feeModule = new FeeModule();
-	const rewardModule = new RewardModule();
-	const randomModule = new RandomModule();
-	const validatorModule = new ValidatorsModule();
-	const poaModule = new PoAModule();
-	const interoperabilityModule = new SidechainInteroperabilityModule();
+	const authModule = new Modules.Auth.AuthModule();
+	const tokenModule = new Modules.Token.TokenModule();
+	const feeModule = new Modules.Fee.FeeModule();
+	const rewardModule = new Modules.Reward.RewardModule();
+	const randomModule = new Modules.Random.RandomModule();
+	const validatorModule = new Modules.Validators.ValidatorsModule();
+	const poaModule = new Modules.PoA.PoAModule();
+	const interoperabilityModule = new Modules.Interoperability.SidechainInteroperabilityModule();
 
 	interoperabilityModule.addDependencies(validatorModule.method, tokenModule.method);
 	rewardModule.addDependencies(tokenModule.method, randomModule.method);

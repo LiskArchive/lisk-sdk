@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BasePlugin } from 'lisk-sdk';
+import { Plugins } from 'lisk-sdk';
 import { BlockPropagationStats, PeerInfo, SharedState } from '../types';
 
 export interface BlockStats {
@@ -31,7 +31,7 @@ const getAverageReceivedBlocks = (blocks: { [key: string]: BlockPropagationStats
 };
 
 export const getBlockStats = async (
-	client: BasePlugin['apiClient'],
+	client: Plugins.BasePlugin['apiClient'],
 	state: SharedState,
 ): Promise<BlockStats> => {
 	const connectedPeers = await client.invoke<ReadonlyArray<PeerInfo>>('network_getConnectedPeers');

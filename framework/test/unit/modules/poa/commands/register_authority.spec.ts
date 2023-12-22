@@ -17,13 +17,7 @@ import { address, utils } from '@liskhq/lisk-cryptography';
 import { TransactionAttrs } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import * as testing from '../../../../../src/testing';
-import {
-	CommandExecuteContext,
-	CommandVerifyContext,
-	Transaction,
-	VerifyStatus,
-	PoAModule,
-} from '../../../../../src';
+import { Transaction, StateMachine, Modules } from '../../../../../src';
 import { RegisterAuthorityCommand } from '../../../../../src/modules/poa/commands/register_authority';
 import {
 	COMMAND_REGISTER_AUTHORITY,
@@ -46,7 +40,7 @@ import { InMemoryPrefixedStateDB } from '../../../../../src/testing';
 import { ED25519_PUBLIC_KEY_LENGTH } from '../../../../../src/modules/validators/constants';
 
 describe('RegisterAuthority', () => {
-	const poaModule = new PoAModule();
+	const poaModule = new Modules.PoA.PoAModule();
 	let registerAuthorityCommand: RegisterAuthorityCommand;
 	let mockValidatorsMethod: ValidatorsMethod;
 	let mockFeeMethod: any;
@@ -169,7 +163,7 @@ describe('RegisterAuthority', () => {
 	});
 
 	describe('verify', () => {
-		let context: CommandVerifyContext<RegisterAuthorityParams>;
+		let context: StateMachine.CommandVerifyContext<RegisterAuthorityParams>;
 		beforeEach(() => {
 			context = testing
 				.createTransactionContext({
@@ -230,12 +224,12 @@ describe('RegisterAuthority', () => {
 		it('should return OK when transaction is valid', async () => {
 			const result = await registerAuthorityCommand.verify(context);
 
-			expect(result.status).toBe(VerifyStatus.OK);
+			expect(result.status).toBe(StateMachine.VerifyStatus.OK);
 		});
 	});
 
 	describe('execute', () => {
-		let context: CommandExecuteContext<RegisterAuthorityParams>;
+		let context: StateMachine.CommandExecuteContext<RegisterAuthorityParams>;
 		beforeEach(() => {
 			context = testing
 				.createTransactionContext({

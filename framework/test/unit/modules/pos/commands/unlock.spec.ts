@@ -15,7 +15,7 @@
 import { BlockHeader, Transaction } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../../src/testing';
-import { UnlockCommand, CommandExecuteContext, PoSModule } from '../../../../../src';
+import { Modules, StateMachine } from '../../../../../src';
 import {
 	defaultConfig,
 	EMPTY_KEY,
@@ -37,9 +37,9 @@ import { GenesisDataStore } from '../../../../../src/modules/pos/stores/genesis'
 import { getModuleConfig } from '../../../../../src/modules/pos/utils';
 
 describe('UnlockCommand', () => {
-	const pos = new PoSModule();
+	const pos = new Modules.PoS.PoSModule();
 
-	let unlockCommand: UnlockCommand;
+	let unlockCommand: Modules.PoS.UnlockCommand;
 	let stateStore: PrefixedStateReadWriter;
 	let validatorSubstore: ValidatorStore;
 	let stakerSubstore: StakerStore;
@@ -51,7 +51,7 @@ describe('UnlockCommand', () => {
 	let unlockableObject2: UnlockingObject;
 	let unlockableObject3: UnlockingObject;
 	let nonUnlockableObject: UnlockingObject;
-	let context: CommandExecuteContext;
+	let context: StateMachine.CommandExecuteContext;
 	let storedData: StakerData;
 	const validator1 = {
 		name: 'validator1',
@@ -111,7 +111,7 @@ describe('UnlockCommand', () => {
 	};
 
 	beforeEach(() => {
-		unlockCommand = new UnlockCommand(pos.stores, pos.events);
+		unlockCommand = new Modules.PoS.UnlockCommand(pos.stores, pos.events);
 		mockTokenMethod = {
 			lock: jest.fn(),
 			unlock: jest.fn(),

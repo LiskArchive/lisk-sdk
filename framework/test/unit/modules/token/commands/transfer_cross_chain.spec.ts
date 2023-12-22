@@ -17,13 +17,7 @@ import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { utils } from '@liskhq/lisk-cryptography';
-import {
-	TokenMethod,
-	TokenModule,
-	Transaction,
-	VerificationResult,
-	VerifyStatus,
-} from '../../../../../src';
+import { Modules, Transaction, StateMachine } from '../../../../../src';
 import { TransferCrossChainCommand } from '../../../../../src/modules/token/commands/transfer_cross_chain';
 import { CROSS_CHAIN_COMMAND_NAME_TRANSFER } from '../../../../../src/modules/token/constants';
 import {
@@ -51,8 +45,8 @@ interface Params {
 
 describe('CCTransfer command', () => {
 	let command: TransferCrossChainCommand;
-	const module = new TokenModule();
-	const method = new TokenMethod(module.stores, module.events, module.name);
+	const module = new Modules.Token.TokenModule();
+	const method = new Modules.Token.TokenMethod(module.stores, module.events, module.name);
 	const internalMethod = new InternalMethod(module.stores, module.events);
 
 	const defaultOwnChainID = Buffer.from([0, 0, 0, 1]);
@@ -223,8 +217,8 @@ describe('CCTransfer command', () => {
 	});
 
 	describe('verify', () => {
-		const expectVerifyErrorError = (result: VerificationResult, message: string) => {
-			expect(result.status).toEqual(VerifyStatus.FAIL);
+		const expectVerifyErrorError = (result: StateMachine.VerificationResult, message: string) => {
+			expect(result.status).toEqual(StateMachine.VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(message);
 		};
 

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { codec, emptySchema, Schema } from '@liskhq/lisk-codec';
-import { EventQueue } from '../state_machine';
+import { EventQueue } from '../state_machine/event_queue';
 
 export interface EventQueuer {
 	eventQueue: EventQueue;

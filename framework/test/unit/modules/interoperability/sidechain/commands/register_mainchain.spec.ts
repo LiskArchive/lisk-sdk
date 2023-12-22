@@ -54,7 +54,7 @@ import {
 	computeValidatorsHash,
 	sortValidatorsByBLSKey,
 } from '../../../../../../src/modules/interoperability/utils';
-import { SidechainInteroperabilityModule } from '../../../../../../src';
+import { Modules } from '../../../../../../src';
 import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
 import { OutboxRootStore } from '../../../../../../src/modules/interoperability/stores/outbox_root';
@@ -76,7 +76,7 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 }));
 
 describe('RegisterMainchainCommand', () => {
-	const interopMod = new SidechainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.SidechainInteroperabilityModule();
 	interopMod['internalMethod'] = { addToOutbox: jest.fn() } as any;
 	const unsortedMainchainValidators: ActiveValidators[] = [];
 	for (let i = 0; i < NUMBER_ACTIVE_VALIDATORS_MAINCHAIN; i += 1) {

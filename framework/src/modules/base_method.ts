@@ -13,6 +13,9 @@
  */
 import { NamedRegistry } from './named_registry';
 
+/**
+ * The `BaseMethod` provides a generic interface for module methods.
+ */
 export abstract class BaseMethod {
 	// eslint-disable-next-line no-useless-constructor
 	public constructor(protected stores: NamedRegistry, protected events: NamedRegistry) {}

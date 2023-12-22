@@ -14,5 +14,6 @@
 
 export { BFTModule } from './module';
 export type { BFTMethod } from './method';
+export { bftParametersSchema, BFTParameters } from './schemas';
+export { BFTHeights } from './types';
 export { computeValidatorsHash, areDistinctHeadersContradicting } from './utils';
-export { BFTParameters } from './schemas';

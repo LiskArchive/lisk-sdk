@@ -16,7 +16,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { BLS_SIGNATURE_LENGTH, VerifyStatus } from '../../../../src';
+import { Modules, StateMachine } from '../../../../src';
 import {
 	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_SIDECHAIN_TERMINATED,
@@ -55,7 +55,7 @@ describe('Utils', () => {
 		timestamp: Math.floor(Date.now() / 1000),
 		validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
 		aggregationBits: cryptography.utils.getRandomBytes(1),
-		signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
+		signature: cryptography.utils.getRandomBytes(Modules.Interoperability.BLS_SIGNATURE_LENGTH),
 	};
 
 	beforeEach(() => {
@@ -81,7 +81,7 @@ describe('Utils', () => {
 				partnerChainAccount as ChainAccount,
 				txParamsEmptyCertificate as CrossChainUpdateTransactionParams,
 			);
-			expect(result.status).toEqual(VerifyStatus.FAIL);
+			expect(result.status).toEqual(StateMachine.VerifyStatus.FAIL);
 		});
 
 		it(`should return status VerifyStatus.OK status when chain status ${ChainStatus.REGISTERED} && certificate is non-empty`, () => {
@@ -89,7 +89,7 @@ describe('Utils', () => {
 				partnerChainAccount as ChainAccount,
 				txParamsNonEmptyCertificate as CrossChainUpdateTransactionParams,
 			);
-			expect(result.status).toEqual(VerifyStatus.OK);
+			expect(result.status).toEqual(StateMachine.VerifyStatus.OK);
 		});
 	});
 

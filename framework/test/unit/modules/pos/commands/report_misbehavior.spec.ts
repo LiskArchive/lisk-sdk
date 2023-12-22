@@ -17,7 +17,7 @@ import { objects } from '@liskhq/lisk-utils';
 import { address, utils, legacy } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { Status } from '@liskhq/lisk-transaction-pool/dist-node/types';
-import { ReportMisbehaviorCommand, VerifyStatus, PoSModule } from '../../../../../src';
+import { StateMachine, Modules } from '../../../../../src';
 import * as testing from '../../../../../src/testing';
 import {
 	defaultConfig,
@@ -42,8 +42,8 @@ import { liskToBeddows } from '../../../../utils/assets';
 import { getModuleConfig, getValidatorWeight } from '../../../../../src/modules/pos/utils';
 
 describe('ReportMisbehaviorCommand', () => {
-	const pos = new PoSModule();
-	let pomCommand: ReportMisbehaviorCommand;
+	const pos = new Modules.PoS.PoSModule();
+	let pomCommand: Modules.PoS.ReportMisbehaviorCommand;
 	let stateStore: PrefixedStateReadWriter;
 	let validatorSubstore: ValidatorStore;
 	let stakerSubStore: StakerStore;
@@ -85,7 +85,7 @@ describe('ReportMisbehaviorCommand', () => {
 
 	beforeEach(async () => {
 		pos.stores.get(EligibleValidatorsStore).init(config);
-		pomCommand = new ReportMisbehaviorCommand(pos.stores, pos.events);
+		pomCommand = new Modules.PoS.ReportMisbehaviorCommand(pos.stores, pos.events);
 		mockTokenMethod = {
 			lock: jest.fn(),
 			unlock: jest.fn(),
@@ -412,7 +412,10 @@ describe('ReportMisbehaviorCommand', () => {
 				'error.message',
 				'BlockHeaders are not contradicting as per BFT violation rules.',
 			);
-			await expect(pomCommand.verify(context)).resolves.toHaveProperty('status', VerifyStatus.FAIL);
+			await expect(pomCommand.verify(context)).resolves.toHaveProperty(
+				'status',
+				StateMachine.VerifyStatus.FAIL,
+			);
 		});
 
 		it('should resolve without error when headers are valid, can be decoded and are contradicting', async () => {
@@ -434,7 +437,10 @@ describe('ReportMisbehaviorCommand', () => {
 			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValue(undefined);
 			jest.spyOn(bftUtil, 'areDistinctHeadersContradicting').mockReturnValue(true);
 
-			await expect(pomCommand.verify(context)).resolves.toHaveProperty('status', VerifyStatus.OK);
+			await expect(pomCommand.verify(context)).resolves.toHaveProperty(
+				'status',
+				StateMachine.VerifyStatus.OK,
+			);
 		});
 
 		it('should not throw error when first height is equal to second height but equal maxHeightPrestaked', async () => {
@@ -457,7 +463,10 @@ describe('ReportMisbehaviorCommand', () => {
 
 			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValue(undefined);
 
-			await expect(pomCommand.verify(context)).resolves.toHaveProperty('status', VerifyStatus.OK);
+			await expect(pomCommand.verify(context)).resolves.toHaveProperty(
+				'status',
+				StateMachine.VerifyStatus.OK,
+			);
 		});
 
 		it('should not throw error when first height is greater than the second height but equal maxHeightPrestaked', async () => {

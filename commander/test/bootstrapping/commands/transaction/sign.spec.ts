@@ -15,7 +15,7 @@
 
 import * as fs from 'fs-extra';
 import { ed } from '@liskhq/lisk-cryptography';
-import { Application, IPCChannel, transactionSchema } from 'lisk-framework';
+import { Application, Controller, transactionSchema } from 'lisk-framework';
 import * as apiClient from '@liskhq/lisk-api-client';
 import { codec } from '@liskhq/lisk-codec';
 import { TransactionAttrs } from '@liskhq/lisk-chain';
@@ -101,8 +101,8 @@ describe('transaction:sign command', () => {
 		jest.spyOn(appUtils, 'isApplicationRunning').mockReturnValue(true);
 		jest.spyOn(fs, 'existsSync').mockReturnValue(true);
 		jest.spyOn(SignCommandExtended.prototype, 'printJSON').mockReturnValue();
-		jest.spyOn(IPCChannel.prototype, 'startAndListen').mockResolvedValue();
-		jest.spyOn(IPCChannel.prototype, 'invoke');
+		jest.spyOn(Controller.IPCChannel.prototype, 'startAndListen').mockResolvedValue();
+		jest.spyOn(Controller.IPCChannel.prototype, 'invoke');
 		jest.spyOn(readerUtils, 'getPassphraseFromPrompt').mockResolvedValue(senderPassphrase);
 		jest
 			.spyOn(apiClient, 'createIPCClient')

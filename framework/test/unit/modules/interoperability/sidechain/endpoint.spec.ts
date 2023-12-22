@@ -14,7 +14,7 @@
 
 import { createTransientModuleEndpointContext } from '../../../../../src/testing';
 import { SidechainInteroperabilityEndpoint } from '../../../../../src/modules/interoperability/sidechain/endpoint';
-import { ModuleEndpointContext } from '../../../../../src';
+import { Types } from '../../../../../src';
 
 describe('SidechainInteroperabilityEndpoint', () => {
 	let endpoint: SidechainInteroperabilityEndpoint;
@@ -27,7 +27,7 @@ describe('SidechainInteroperabilityEndpoint', () => {
 	});
 
 	describe('getMainchainID', () => {
-		let context: ModuleEndpointContext;
+		let context: Types.ModuleEndpointContext;
 
 		it('should throw error for chainID having less than 8 chars', () => {
 			context = createTransientModuleEndpointContext({

@@ -14,7 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
-import { MainchainInteroperabilityModule } from '../../../../../src';
+import { Modules } from '../../../../../src';
 import { StoreGetter } from '../../../../../src/modules/base_store';
 import { LIVENESS_LIMIT, EMPTY_BYTES } from '../../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityInternalMethod } from '../../../../../src/modules/interoperability/mainchain/internal_method';
@@ -28,7 +28,7 @@ import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_pr
 import { createStoreGetter } from '../../../../../src/testing/utils';
 
 describe('Mainchain interoperability internal method', () => {
-	const interopMod = new MainchainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.MainchainInteroperabilityModule();
 	const ownChainAccountStoreMock = {
 		get: jest.fn(),
 		set: jest.fn(),

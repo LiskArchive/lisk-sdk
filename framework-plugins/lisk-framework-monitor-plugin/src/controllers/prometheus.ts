@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Request, Response, NextFunction } from 'express';
-import { BasePlugin } from 'lisk-sdk';
+import { Plugins } from 'lisk-sdk';
 import { SharedState, PeerInfo } from '../types';
 import { getBlockStats } from './blocks';
 import { getTransactionStats } from './transactions';
@@ -56,7 +56,7 @@ const prometheusExporter = (data: PrometheusData[]) => {
 };
 
 export const getData =
-	(client: BasePlugin['apiClient'], state: SharedState) =>
+	(client: Plugins.BasePlugin['apiClient'], state: SharedState) =>
 	async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
 		try {
 			const connectedPeers: PeerInfo[] = await client.invoke('network_getConnectedPeers');

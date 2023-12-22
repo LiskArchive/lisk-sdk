@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCommand, CommandExecuteContext, NFTMethod } from 'lisk-sdk';
+import { Modules, StateMachine } from 'lisk-sdk';
 import { NFTAttributes } from '../types';
 import { mintNftParamsSchema } from '../schema';
 
@@ -22,15 +22,15 @@ interface Params {
 	attributesArray: NFTAttributes[];
 }
 
-export class MintNftCommand extends BaseCommand {
-	private _nftMethod!: NFTMethod;
+export class MintNftCommand extends Modules.BaseCommand {
+	private _nftMethod!: Modules.NFT.NFTMethod;
 	public schema = mintNftParamsSchema;
 
-	public init(args: { nftMethod: NFTMethod }): void {
+	public init(args: { nftMethod: Modules.NFT.NFTMethod }): void {
 		this._nftMethod = args.nftMethod;
 	}
 
-	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
+	public async execute(context: StateMachine.CommandExecuteContext<Params>): Promise<void> {
 		const { params } = context;
 
 		await this._nftMethod.create(

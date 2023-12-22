@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { chain, aggregateCommitSchema, ccmSchema } from 'lisk-sdk';
+import { chain, Engine, Modules } from 'lisk-sdk';
 import {
 	CCU_FREQUENCY,
 	CCU_TOTAL_CCM_SIZE,
@@ -129,7 +129,7 @@ export const aggregateCommitsInfoSchema = {
 			type: 'array',
 			fieldNumber: 1,
 			items: {
-				...aggregateCommitSchema,
+				...Engine.aggregateCommitSchema,
 			},
 		},
 	},
@@ -152,10 +152,13 @@ export const validatorsHashPreimageInfoSchema = {
 export const lastSentCCMWithHeight = {
 	$id: `${pluginSchemaIDPrefix}/lastSentCCMWithHeight`,
 	type: 'object',
-	required: [...ccmSchema.required, 'height'],
+	required: [...Modules.Interoperability.ccmSchema.required, 'height'],
 	properties: {
-		...ccmSchema.properties,
-		height: { dataType: 'uint32', fieldNumber: Object.keys(ccmSchema.properties).length + 1 },
+		...Modules.Interoperability.ccmSchema.properties,
+		height: {
+			dataType: 'uint32',
+			fieldNumber: Object.keys(Modules.Interoperability.ccmSchema.properties).length + 1,
+		},
 	},
 };
 
@@ -188,7 +191,7 @@ export const ccmsFromEventsSchema = {
 						type: 'array',
 						fieldNumber: 1,
 						items: {
-							...ccmSchema,
+							...Modules.Interoperability.ccmSchema,
 						},
 					},
 					height: { dataType: 'uint32', fieldNumber: 2 },

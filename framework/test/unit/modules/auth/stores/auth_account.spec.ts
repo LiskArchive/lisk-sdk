@@ -13,7 +13,7 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { StoreGetter } from '../../../../../src';
+import { Modules } from '../../../../../src';
 import { AuthAccount, AuthAccountStore } from '../../../../../src/modules/auth/stores/auth_account';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
@@ -29,7 +29,7 @@ describe('AuthAccountStore', () => {
 	};
 
 	let authAccountStore: AuthAccountStore;
-	let context: StoreGetter;
+	let context: Modules.StoreGetter;
 
 	beforeEach(async () => {
 		authAccountStore = new AuthAccountStore('auth', 0);

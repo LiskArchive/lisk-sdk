@@ -12,13 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { CCMsg, MODULE_NAME_INTEROPERABILITY, CROSS_CHAIN_COMMAND_NAME_TRANSFER } from 'lisk-sdk';
+import { Modules } from 'lisk-sdk';
 
-export const getSampleCCM = (nonce = 1, ccmSizeInBytes?: number): CCMsg => {
+export const getSampleCCM = (
+	nonce = 1,
+	ccmSizeInBytes?: number,
+): Modules.Interoperability.CCMsg => {
 	return {
 		nonce: BigInt(nonce),
-		module: MODULE_NAME_INTEROPERABILITY,
-		crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+		module: Modules.Interoperability.MODULE_NAME_INTEROPERABILITY,
+		crossChainCommand: Modules.Token.CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 		sendingChainID: Buffer.from([0, 0, 0, 3]),
 		receivingChainID: Buffer.from('04000000', 'hex'),
 		fee: BigInt(nonce),

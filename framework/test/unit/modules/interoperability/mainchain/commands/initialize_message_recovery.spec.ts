@@ -15,14 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
-import {
-	CommandExecuteContext,
-	CommandVerifyContext,
-	MainchainInteroperabilityModule,
-	Transaction,
-	VerifyStatus,
-	messageRecoveryInitializationParamsSchema,
-} from '../../../../../../src';
+import { StateMachine, Modules, Transaction } from '../../../../../../src';
 import {
 	EMPTY_BYTES,
 	EMPTY_HASH,
@@ -49,7 +42,7 @@ import { createTransactionContext, InMemoryPrefixedStateDB } from '../../../../.
 import { InvalidSMTVerificationEvent } from '../../../../../../src/modules/interoperability/events/invalid_smt_verification';
 
 describe('InitializeMessageRecoveryCommand', () => {
-	const interopMod = new MainchainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.MainchainInteroperabilityModule();
 	const targetChainID = Buffer.from([0, 0, 3, 0]);
 	const ownChainAccount: OwnChainAccount = {
 		chainID: Buffer.from([0, 0, 2, 0]),
@@ -139,7 +132,7 @@ describe('InitializeMessageRecoveryCommand', () => {
 	});
 
 	describe('verify', () => {
-		let defaultContext: CommandVerifyContext<MessageRecoveryInitializationParams>;
+		let defaultContext: StateMachine.CommandVerifyContext<MessageRecoveryInitializationParams>;
 
 		beforeEach(() => {
 			defaultContext = createTransactionContext({
@@ -160,7 +153,7 @@ describe('InitializeMessageRecoveryCommand', () => {
 				channel: Buffer.alloc(0),
 			};
 			const encodedTransactionParams = codec.encode(
-				messageRecoveryInitializationParamsSchema,
+				Modules.Interoperability.messageRecoveryInitializationParamsSchema,
 				transactionParams,
 			);
 			const context = createTransactionContext({
@@ -189,7 +182,7 @@ describe('InitializeMessageRecoveryCommand', () => {
 			}).createCommandVerifyContext<MessageRecoveryInitializationParams>(command.schema);
 			const result = await command.verify(context);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.status).toBe(StateMachine.VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(`Chain ID is not valid.`);
 		});
 
@@ -207,7 +200,7 @@ describe('InitializeMessageRecoveryCommand', () => {
 			}).createCommandVerifyContext<MessageRecoveryInitializationParams>(command.schema);
 			const result = await command.verify(context);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.status).toBe(StateMachine.VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(`Chain ID is not valid.`);
 		});
 
@@ -216,7 +209,7 @@ describe('InitializeMessageRecoveryCommand', () => {
 
 			const result = await command.verify(defaultContext);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.status).toBe(StateMachine.VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(`Chain is not registered`);
 		});
 
@@ -225,7 +218,7 @@ describe('InitializeMessageRecoveryCommand', () => {
 
 			const result = await command.verify(defaultContext);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.status).toBe(StateMachine.VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(`not present`);
 		});
 
@@ -238,7 +231,7 @@ describe('InitializeMessageRecoveryCommand', () => {
 
 			const result = await command.verify(defaultContext);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.status).toBe(StateMachine.VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(`Terminated outbox account already exists.`);
 		});
 
@@ -247,16 +240,20 @@ describe('InitializeMessageRecoveryCommand', () => {
 				.get(OwnChainAccountStore)
 				.set(stateStore, EMPTY_BYTES, { ...ownChainAccount, chainID: Buffer.from([2, 2, 2, 2]) });
 
-			await expect(command.verify(defaultContext)).resolves.toEqual({ status: VerifyStatus.OK });
+			await expect(command.verify(defaultContext)).resolves.toEqual({
+				status: StateMachine.VerifyStatus.OK,
+			});
 		});
 
 		it('should resolve when params is valid', async () => {
-			await expect(command.verify(defaultContext)).resolves.toEqual({ status: VerifyStatus.OK });
+			await expect(command.verify(defaultContext)).resolves.toEqual({
+				status: StateMachine.VerifyStatus.OK,
+			});
 		});
 	});
 
 	describe('execute', () => {
-		let executeContext: CommandExecuteContext<MessageRecoveryInitializationParams>;
+		let executeContext: StateMachine.CommandExecuteContext<MessageRecoveryInitializationParams>;
 		beforeEach(() => {
 			executeContext = createTransactionContext({
 				stateStore,

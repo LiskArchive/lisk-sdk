@@ -18,11 +18,11 @@ import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefix
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import { LENGTH_CHAIN_ID, LENGTH_COLLECTION_ID } from '../../../../../src/modules/nft/constants';
-import { CHAIN_ID_LENGTH, StoreGetter } from '../../../../../src';
+import { Modules } from '../../../../../src';
 
 describe('NFTStore', () => {
 	let store: SupportedNFTsStore;
-	let context: StoreGetter;
+	let context: Modules.StoreGetter;
 
 	beforeEach(() => {
 		store = new SupportedNFTsStore('NFT', 5);
@@ -35,7 +35,7 @@ describe('NFTStore', () => {
 
 	describe('save', () => {
 		it('should order supported NFT collection of a chain', async () => {
-			const chainID = Buffer.alloc(CHAIN_ID_LENGTH, 0);
+			const chainID = Buffer.alloc(Modules.Interoperability.CHAIN_ID_LENGTH, 0);
 
 			const unsortedSupportedCollections = [
 				{

@@ -39,7 +39,7 @@ import {
 	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
 } from '../../../../src/modules/interoperability/constants';
-import { ccuParamsSchema } from '../../../../src';
+import { Modules } from '../../../../src';
 import { InternalMethod } from '../../../../src/modules/token/internal_method';
 import { InitializeUserAccountEvent } from '../../../../src/modules/token/events/initialize_user_account';
 
@@ -67,7 +67,7 @@ describe('TokenInteroperableMethod', () => {
 	const defaultTotalSupply = BigInt('100000000000000');
 	const defaultEscrowAmount = BigInt('100000000000');
 	const sendingChainID = Buffer.from([3, 0, 0, 0]);
-	const defaultEncodedCCUParams = codec.encode(ccuParamsSchema, {
+	const defaultEncodedCCUParams = codec.encode(Modules.Interoperability.ccuParamsSchema, {
 		activeValidatorsUpdate: {
 			blsKeysUpdate: [],
 			bftWeightsUpdate: [],

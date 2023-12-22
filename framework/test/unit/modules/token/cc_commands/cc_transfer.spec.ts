@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { TokenModule, TokenMethod, ccuParamsSchema } from '../../../../../src';
+import { Modules } from '../../../../../src';
 import { CrossChainTransferCommand } from '../../../../../src/modules/token/cc_commands/cc_transfer';
 import {
 	CCM_STATUS_OK,
@@ -41,7 +41,7 @@ import { InternalMethod } from '../../../../../src/modules/token/internal_method
 import { InteroperabilityMethod } from '../../../../../src/modules/token/types';
 
 describe('CrossChain Transfer Command', () => {
-	const tokenModule = new TokenModule();
+	const tokenModule = new Modules.Token.TokenModule();
 	const internalMethod = new InternalMethod(tokenModule.stores, tokenModule.events);
 	const defaultAddress = utils.getRandomBytes(20);
 	const randomAddress = utils.getRandomBytes(20);
@@ -61,7 +61,7 @@ describe('CrossChain Transfer Command', () => {
 	};
 	const defaultEscrowAmount = BigInt('100000000000');
 	const sendingChainID = Buffer.from([3, 0, 0, 0]);
-	const defaultEncodedCCUParams = codec.encode(ccuParamsSchema, {
+	const defaultEncodedCCUParams = codec.encode(Modules.Interoperability.ccuParamsSchema, {
 		activeValidatorsUpdate: {
 			blsKeysUpdate: [],
 			bftWeightsUpdate: [],
@@ -81,7 +81,7 @@ describe('CrossChain Transfer Command', () => {
 	});
 
 	let command: CrossChainTransferCommand;
-	let method: TokenMethod;
+	let method: Modules.Token.TokenMethod;
 	let interopMethod: InteroperabilityMethod;
 	let stateStore: PrefixedStateReadWriter;
 	let methodContext: MethodContext;
@@ -143,7 +143,11 @@ describe('CrossChain Transfer Command', () => {
 	};
 
 	beforeEach(async () => {
-		method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
+		method = new Modules.Token.TokenMethod(
+			tokenModule.stores,
+			tokenModule.events,
+			tokenModule.name,
+		);
 		command = new CrossChainTransferCommand(tokenModule.stores, tokenModule.events);
 		interopMethod = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ chainID: Buffer.from([0, 0, 0, 1]) }),

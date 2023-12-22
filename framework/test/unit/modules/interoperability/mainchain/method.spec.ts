@@ -13,10 +13,7 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import {
-	MainchainInteroperabilityMethod,
-	MainchainInteroperabilityModule,
-} from '../../../../../src';
+import { Modules } from '../../../../../src';
 import { createTransientMethodContext } from '../../../../../src/testing';
 import { EventQueue, MethodContext } from '../../../../../src/state_machine';
 import {
@@ -27,7 +24,7 @@ import {
 import { OwnChainAccountStore } from '../../../../../src/modules/interoperability/stores/own_chain_account';
 
 describe('Mainchain Method', () => {
-	const interopMod = new MainchainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.MainchainInteroperabilityModule();
 	const chainID = utils.intToBuffer(1, 4);
 	const chainAccountStoreMock = {
 		get: jest.fn(),
@@ -39,7 +36,7 @@ describe('Mainchain Method', () => {
 	const interoperableCCMethods = new Map();
 	const defaultEventQueue = new EventQueue(0, [], [utils.hash(utils.getRandomBytes(32))]);
 	const timestamp = Date.now();
-	let mainchainInteroperabilityMethod: MainchainInteroperabilityMethod;
+	let mainchainInteroperabilityMethod: Modules.Interoperability.MainchainInteroperabilityMethod;
 	let methodContext: MethodContext;
 	let chainAccount: ChainAccount;
 
@@ -47,7 +44,7 @@ describe('Mainchain Method', () => {
 		methodContext = createTransientMethodContext({ eventQueue: defaultEventQueue });
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
 		interopMod.stores.register(OwnChainAccountStore, ownchainAccountStoreMock as never);
-		mainchainInteroperabilityMethod = new MainchainInteroperabilityMethod(
+		mainchainInteroperabilityMethod = new Modules.Interoperability.MainchainInteroperabilityMethod(
 			interopMod.stores,
 			interopMod.events,
 			interoperableCCMethods,

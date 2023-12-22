@@ -14,12 +14,12 @@
  */
 
 import * as apiClient from '@liskhq/lisk-api-client';
-import { BasePlugin, GenesisConfig, systemDirs, testing } from '../../../src';
+import { Plugins, Types, systemDirs, testing } from '../../../src';
 import * as loggerModule from '../../../src/logger';
 import { getPluginExportPath } from '../../../src/plugins/base_plugin';
 import { fakeLogger } from '../../utils/mocks';
 
-class MyPlugin extends BasePlugin {
+class MyPlugin extends Plugins.BasePlugin {
 	public configSchema = {
 		$id: '/myPlugin/schema',
 		type: 'object',
@@ -90,7 +90,7 @@ describe('base_plugin', () => {
 					plugin.init({
 						appConfig: {
 							...testing.fixtures.defaultConfig,
-							genesis: {} as unknown as GenesisConfig,
+							genesis: {} as unknown as Types.GenesisConfig,
 						},
 						logger: fakeLogger,
 						config: {

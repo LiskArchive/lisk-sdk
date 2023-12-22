@@ -29,7 +29,7 @@ import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefix
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { ValidatorStore } from '../../../../../src/modules/pos/stores/validator';
 import { NameStore } from '../../../../../src/modules/pos/stores/name';
-import { PoSModule } from '../../../../../src';
+import { Modules } from '../../../../../src';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 import {
 	COMMISSION,
@@ -39,7 +39,7 @@ import {
 import { ValidatorRegisteredEvent } from '../../../../../src/modules/pos/events/validator_registered';
 
 describe('Validator registration command', () => {
-	const pos = new PoSModule();
+	const pos = new Modules.PoS.PoSModule();
 	let validatorRegistrationCommand: RegisterValidatorCommand;
 	let validatorRegisteredEvent: ValidatorRegisteredEvent;
 	let stateStore: PrefixedStateReadWriter;

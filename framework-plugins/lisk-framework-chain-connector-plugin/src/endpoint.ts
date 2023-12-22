@@ -12,14 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	BasePluginEndpoint,
-	PluginEndpointContext,
-	chain,
-	BlockHeader,
-	BlockHeaderJSON,
-	validator as liskValidator,
-} from 'lisk-sdk';
+import { Plugins, Types, chain, BlockHeaderJSON, validator as liskValidator } from 'lisk-sdk';
 import { ChainConnectorStore } from './db';
 import {
 	AggregateCommitJSON,
@@ -36,7 +29,7 @@ import { authorizeRequestSchema } from './schemas';
 // eslint-disable-next-line prefer-destructuring
 const validator: liskValidator.LiskValidator = liskValidator.validator;
 
-export class Endpoint extends BasePluginEndpoint {
+export class Endpoint extends Plugins.BasePluginEndpoint {
 	private _chainConnectorStore!: ChainConnectorStore;
 	private _config!: ChainConnectorPluginConfig;
 
@@ -46,26 +39,26 @@ export class Endpoint extends BasePluginEndpoint {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getSentCCUs(_context: PluginEndpointContext): Promise<SentCCUsJSON> {
+	public async getSentCCUs(_context: Types.PluginEndpointContext): Promise<SentCCUsJSON> {
 		const sentCCUs = await this._chainConnectorStore.getListOfCCUs();
 		return sentCCUs.map(transaction => new chain.Transaction(transaction).toJSON());
 	}
 
 	public async getAggregateCommits(
-		_context: PluginEndpointContext,
+		_context: Types.PluginEndpointContext,
 	): Promise<AggregateCommitJSON[]> {
 		const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
 		return aggregateCommits.map(aggregateCommit => aggregateCommitToJSON(aggregateCommit));
 	}
 
-	public async getBlockHeaders(_context: PluginEndpointContext): Promise<BlockHeaderJSON[]> {
+	public async getBlockHeaders(_context: Types.PluginEndpointContext): Promise<BlockHeaderJSON[]> {
 		const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
 
-		return blockHeaders.map(blockHeader => new BlockHeader(blockHeader).toJSON());
+		return blockHeaders.map(blockHeader => new chain.BlockHeader(blockHeader).toJSON());
 	}
 
 	public async getCrossChainMessages(
-		_context: PluginEndpointContext,
+		_context: Types.PluginEndpointContext,
 	): Promise<CCMsFromEventsJSON[]> {
 		const ccmsAndInclusionProofs = await this._chainConnectorStore.getCrossChainMessages();
 		return ccmsAndInclusionProofs.map(ccmsAndInclusionProof =>
@@ -73,7 +66,9 @@ export class Endpoint extends BasePluginEndpoint {
 		);
 	}
 
-	public async getLastSentCCM(_context: PluginEndpointContext): Promise<LastSentCCMWithHeightJSON> {
+	public async getLastSentCCM(
+		_context: Types.PluginEndpointContext,
+	): Promise<LastSentCCMWithHeightJSON> {
 		const lastSentCCM = await this._chainConnectorStore.getLastSentCCM();
 		if (!lastSentCCM) {
 			throw new Error('No CCM was sent so far.');
@@ -90,14 +85,14 @@ export class Endpoint extends BasePluginEndpoint {
 	}
 
 	public async getValidatorsInfoFromPreimage(
-		_context: PluginEndpointContext,
+		_context: Types.PluginEndpointContext,
 	): Promise<ValidatorsDataJSON[]> {
 		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
 		return validatorsHashPreimagetoJSON(validatorsHashPreimage);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async authorize(context: PluginEndpointContext): Promise<{ result: string }> {
+	public async authorize(context: Types.PluginEndpointContext): Promise<{ result: string }> {
 		validator.validate<{ enable: boolean; password: string }>(
 			authorizeRequestSchema,
 			context.params,

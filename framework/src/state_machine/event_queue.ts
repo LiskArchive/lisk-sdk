@@ -19,6 +19,7 @@ interface RevertibleEvent {
 	noRevert: boolean;
 }
 
+/** Event interface to add blockchain events to the event queue. */
 export class EventQueue {
 	private readonly _height: number;
 	private readonly _events: RevertibleEvent[];

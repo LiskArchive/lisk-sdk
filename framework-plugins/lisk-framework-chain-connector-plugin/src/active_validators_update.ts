@@ -12,23 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable no-bitwise */
-import {
-	ActiveValidator,
-	Certificate,
-	LastCertificate,
-	utils,
-	ActiveValidatorsUpdate,
-} from 'lisk-sdk';
+import { Modules, utils, Engine } from 'lisk-sdk';
 import { ValidatorsData } from './types';
 
 /**
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#computing-the-validators-update
  */
 export const calculateActiveValidatorsUpdate = (
-	certificate: Certificate,
+	certificate: Engine.Certificate,
 	validatorsHashPreimage: ValidatorsData[],
-	lastCertificate: LastCertificate,
-): { activeValidatorsUpdate: ActiveValidatorsUpdate; certificateThreshold: bigint } => {
+	lastCertificate: Modules.Interoperability.LastCertificate,
+): {
+	activeValidatorsUpdate: Modules.Interoperability.ActiveValidatorsUpdate;
+	certificateThreshold: bigint;
+} => {
 	let certificateThreshold;
 	const validatorDataAtCertificate = validatorsHashPreimage.find(validatorsData =>
 		validatorsData.validatorsHash.equals(certificate.validatorsHash),
@@ -68,17 +65,18 @@ export const calculateActiveValidatorsUpdate = (
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#computing-the-validators-update
  */
 export const getActiveValidatorsUpdate = (
-	currentValidators: ActiveValidator[],
-	newValidators: ActiveValidator[],
-): ActiveValidatorsUpdate => {
-	const currentValidatorsMap = new utils.dataStructures.BufferMap<ActiveValidator>();
+	currentValidators: Modules.Interoperability.ActiveValidator[],
+	newValidators: Modules.Interoperability.ActiveValidator[],
+): Modules.Interoperability.ActiveValidatorsUpdate => {
+	const currentValidatorsMap =
+		new utils.dataStructures.BufferMap<Modules.Interoperability.ActiveValidator>();
 	const allBLSKeysSet = new utils.dataStructures.BufferSet();
 	for (const v of currentValidators) {
 		currentValidatorsMap.set(v.blsKey, v);
 		allBLSKeysSet.add(v.blsKey);
 	}
 
-	const validatorsUpdate: ActiveValidator[] = [];
+	const validatorsUpdate: Modules.Interoperability.ActiveValidator[] = [];
 	const blsKeysUpdate: Buffer[] = [];
 	const newBLSKeys = new utils.dataStructures.BufferSet();
 	for (const v of newValidators) {

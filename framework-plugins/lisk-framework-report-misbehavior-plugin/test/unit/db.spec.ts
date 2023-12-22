@@ -13,7 +13,7 @@
  */
 
 import { rmSync } from 'fs-extra';
-import * as sdk from 'lisk-sdk';
+import { Engine } from 'lisk-sdk';
 import { chain, db as liskDB, blockHeaderSchema, codec, BlockHeader } from 'lisk-sdk';
 import { getContradictingBlockHeader, saveBlockHeaders } from '../../src/db';
 
@@ -100,13 +100,13 @@ describe('db', () => {
 		});
 
 		it('should return undefined if block headers are not contradicting', async () => {
-			jest.spyOn(sdk, 'areDistinctHeadersContradicting').mockImplementation(() => false);
+			jest.spyOn(Engine, 'areDistinctHeadersContradicting').mockImplementation(() => false);
 
 			await expect(getContradictingBlockHeader(db, header2)).resolves.toBeUndefined();
 		});
 
 		it('should return the block in plugin db if blocks are contradicting', async () => {
-			jest.spyOn(sdk, 'areDistinctHeadersContradicting').mockImplementation(() => true);
+			jest.spyOn(Engine, 'areDistinctHeadersContradicting').mockImplementation(() => true);
 
 			await expect(getContradictingBlockHeader(db, header2)).resolves.toEqual(headerClone);
 		});

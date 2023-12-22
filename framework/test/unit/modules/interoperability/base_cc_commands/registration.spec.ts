@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { MainchainInteroperabilityModule } from '../../../../../src';
+import { Modules } from '../../../../../src';
 import {
 	CCMStatusCode,
 	CROSS_CHAIN_COMMAND_REGISTRATION,
@@ -36,7 +36,7 @@ import { CHAIN_ID_LENGTH } from '../../../../../src/modules/token/constants';
 import { ChainAccountUpdatedEvent } from '../../../../../src/modules/interoperability/events/chain_account_updated';
 
 describe('BaseCCRegistrationCommand', () => {
-	const interopMod = new MainchainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.MainchainInteroperabilityModule();
 
 	const objGetSetHas = () => ({
 		get: jest.fn(),

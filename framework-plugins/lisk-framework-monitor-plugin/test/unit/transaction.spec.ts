@@ -13,11 +13,11 @@
  */
 
 import { randomBytes } from 'crypto';
-import { testing, ApplicationConfigForPlugin } from 'lisk-sdk';
+import { testing, Types } from 'lisk-sdk';
 import { MonitorPlugin } from '../../src/monitor_plugin';
 import { configSchema } from '../../src/schemas';
 
-const appConfigForPlugin: ApplicationConfigForPlugin = {
+const appConfigForPlugin: Types.ApplicationConfigForPlugin = {
 	...testing.fixtures.defaultConfig,
 };
 

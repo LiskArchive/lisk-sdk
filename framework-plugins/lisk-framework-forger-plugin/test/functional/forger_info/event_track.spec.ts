@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing, PartialApplicationConfig } from 'lisk-sdk';
+import { testing, Types } from 'lisk-sdk';
 import { getForgerInfoByAddress, getForgerPlugin, waitTill } from '../../utils/application';
 import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction, createStakeTransaction } from '../../utils/transactions';
@@ -28,7 +28,7 @@ describe('Forger Info', () => {
 		const config = {
 			rootPath,
 			label: 'event_track_functional',
-		} as PartialApplicationConfig;
+		} as Types.PartialApplicationConfig;
 
 		appEnv = testing.createDefaultApplicationEnv({
 			config,

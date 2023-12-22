@@ -1,4 +1,4 @@
-import { BaseStore } from 'lisk-sdk';
+import { Modules } from 'lisk-sdk';
 
 export interface ReactionStoreData {
 	reactions: {
@@ -27,6 +27,6 @@ export const reactionStoreSchema = {
 	},
 };
 
-export class ReactionStore extends BaseStore<ReactionStoreData> {
+export class ReactionStore extends Modules.BaseStore<ReactionStoreData> {
 	public schema = reactionStoreSchema;
 }

@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseMethod } from 'lisk-sdk';
+import { Modules } from 'lisk-sdk';
 
-export class TestNftMethod extends BaseMethod {}
+export class TestNftMethod extends Modules.BaseMethod {}

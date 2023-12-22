@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ApplicationConfigForPlugin, testing } from 'lisk-sdk';
+import { Types, testing } from 'lisk-sdk';
 import { when } from 'jest-when';
 import { PeerInfo } from '../../src/types';
 import { MonitorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
-const appConfigForPlugin: ApplicationConfigForPlugin = {
+const appConfigForPlugin: Types.ApplicationConfigForPlugin = {
 	...testing.fixtures.defaultConfig,
 };
 

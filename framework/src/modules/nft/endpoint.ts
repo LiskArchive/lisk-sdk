@@ -38,6 +38,18 @@ export class NFTEndpoint extends BaseEndpoint {
 		this._nftMethod = nftMethod;
 	}
 
+	/**
+	 * Gets all NFT owned by a specific account.
+	 *
+	 * @example
+	 *  ```sh
+	 *  lisk-core endpoint:invoke nft_getNFTs '{ "address": "lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu" }' --pretty
+	 *  ```
+	 *
+	 * @param context
+	 *
+	 * @returns A list of all NFT owned by the specified account.
+	 */
 	public async getNFTs(
 		context: ModuleEndpointContext,
 	): Promise<{ nfts: JSONObject<Omit<NFTJSON, 'owner'> & { id: string }>[] }> {
@@ -77,6 +89,18 @@ export class NFTEndpoint extends BaseEndpoint {
 		return { nfts };
 	}
 
+	/**
+	 * Checks whether an account owns a specific NFT or not.
+	 *
+	 * @example
+	 *  ```sh
+	 *  lisk-core endpoint:invoke nft_hasNFT '{ "address": "lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu", "id":"04000000000000010000000000000001" }' --pretty
+	 *  ```
+	 *
+	 * @param context
+	 *
+	 * @returns `true` if the account owns the NFT, `false` if not.
+	 */
 	public async hasNFT(context: ModuleEndpointContext): Promise<{ hasNFT: boolean }> {
 		const { params } = context;
 		validator.validate<{ address: string; id: string }>(hasNFTRequestSchema, params);
@@ -96,6 +120,18 @@ export class NFTEndpoint extends BaseEndpoint {
 		return { hasNFT: nftData.owner.equals(owner) };
 	}
 
+	/**
+	 * Gets a specific NFT.
+	 *
+	 * @example
+	 *  ```sh
+	 *  lisk-core endpoint:invoke nft_getNFT '{ "id":"04000000000000010000000000000001" }' --pretty
+	 *  ```
+	 *
+	 * @param context
+	 *
+	 * @returns The NFT with the specified {@link NFTModule | "NFT ID"}.
+	 */
 	public async getNFT(context: ModuleEndpointContext): Promise<JSONObject<NFTJSON>> {
 		const { params } = context;
 		validator.validate<{ id: string }>(getNFTRequestSchema, params);
@@ -142,6 +178,18 @@ export class NFTEndpoint extends BaseEndpoint {
 		};
 	}
 
+	/**
+	 * Returns all supported NFT collections of the network.
+	 *
+	 * @example
+	 *  ```sh
+	 *  lisk-core endpoint:invoke nft_getSupportedCollectionIDs --pretty
+	 *  ```
+	 *
+	 * @param context
+	 *
+	 * @returns A list of all NFT collection IDs that are supported by the network.
+	 */
 	public async getSupportedCollectionIDs(
 		context: ModuleEndpointContext,
 	): Promise<{ supportedCollectionIDs: string[] }> {
@@ -170,6 +218,18 @@ export class NFTEndpoint extends BaseEndpoint {
 		return { supportedCollectionIDs };
 	}
 
+	/**
+	 * Checks whether a specific NFT collection ID is supported by the network.
+	 *
+	 * @example
+	 *  ```sh
+	 *  lisk-core endpoint:invoke nft_isCollectionIDSupported '{ "chainID":"04000001","collectionID":"00000001" }' --pretty
+	 *  ```
+	 *
+	 * @param context
+	 *
+	 * @returns `true` if the specified NFT collection is supported, `false` if not.
+	 */
 	public async isCollectionIDSupported(
 		context: ModuleEndpointContext,
 	): Promise<{ isCollectionIDSupported: boolean }> {
@@ -207,6 +267,18 @@ export class NFTEndpoint extends BaseEndpoint {
 		};
 	}
 
+	/**
+	 * Gets all escrowed NFTs for a specific chain ID.
+	 *
+	 * @example
+	 *  ```sh
+	 *  lisk-core endpoint:invoke nft_getEscrowedNFTIDs '{ "chainID":"04000001" }' --pretty
+	 *  ```
+	 *
+	 * @param context
+	 *
+	 * @returns A list of escrowed NFT for the specified chain ID.
+	 */
 	public async getEscrowedNFTIDs(
 		context: ModuleEndpointContext,
 	): Promise<{ escrowedNFTIDs: string[] }> {
@@ -230,6 +302,18 @@ export class NFTEndpoint extends BaseEndpoint {
 		};
 	}
 
+	/**
+	 * Checks whether a specific NFT is supported by the network.
+	 *
+	 * @example
+	 *  ```sh
+	 *  lisk-core endpoint:invoke nft_isNFTSupported '{ "nftID":"04000000000000010000000000000001" }' --pretty
+	 *  ```
+	 *
+	 * @param context
+	 *
+	 * @returns `true` if the NFT is supported, `false` if not.
+	 */
 	public async isNFTSupported(
 		context: ModuleEndpointContext,
 	): Promise<{ isNFTSupported: boolean }> {
@@ -252,6 +336,18 @@ export class NFTEndpoint extends BaseEndpoint {
 		return { isNFTSupported };
 	}
 
+	/**
+	 * Returns all NFT supported by the network.
+	 *
+	 * @example
+	 *  ```sh
+	 *  lisk-core endpoint:invoke nft_getSupportedNFTs --pretty
+	 *  ```
+	 *
+	 * @param context
+	 *
+	 * @returns A list of all supported NFT IDs
+	 */
 	public async getSupportedNFTs(
 		context: ModuleEndpointContext,
 	): Promise<{ supportedNFTs: string[] }> {

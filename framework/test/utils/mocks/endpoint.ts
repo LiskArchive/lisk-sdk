@@ -14,7 +14,7 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { ModuleEndpointContext } from '../../../src';
+import { Types } from '../../../src';
 import { RequestContext } from '../../../src/engine/rpc/rpc_server';
 import { PrefixedStateReadWriter } from '../../../src/state_machine/prefixed_state_read_writer';
 import { createTransientModuleEndpointContext } from '../../../src/testing';
@@ -23,7 +23,7 @@ import { fakeLogger } from './logger';
 export const createContext = (
 	stateStore: PrefixedStateReadWriter,
 	params: Record<string, unknown>,
-): ModuleEndpointContext =>
+): Types.ModuleEndpointContext =>
 	createTransientModuleEndpointContext({
 		stateStore,
 		params,

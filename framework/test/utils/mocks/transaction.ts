@@ -17,7 +17,7 @@ import { Transaction, BlockHeader, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { ed, address } from '@liskhq/lisk-cryptography';
 import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
-import { TokenModule } from '../../../src';
+import { Modules } from '../../../src';
 import { MESSAGE_TAG_MULTISIG_REG } from '../../../src/modules/auth/constants';
 import {
 	multisigRegMsgSchema,
@@ -257,7 +257,7 @@ export const createMultisignatureTransferTransaction = (input: {
 	senderPublicKey: Buffer;
 	privateKeys: Buffer[];
 }): Transaction => {
-	const mod = new TokenModule();
+	const mod = new Modules.Token.TokenModule();
 	const command = new TransferCommand(mod.stores, mod.events);
 	const params = {
 		tokenID: defaultTokenID(input.chainID),

@@ -18,7 +18,7 @@ import { resolve as pathResolve } from 'path';
 import { IPCChannel, InMemoryChannel } from '../../../src/controller/channels';
 import { Bus } from '../../../src/controller/bus';
 import { IPCServer } from '../../../src/controller/ipc/ipc_server';
-import { EndpointHandlers } from '../../../src';
+import { Types } from '../../../src';
 
 // TODO: ZeroMQ tests are unstable with jest https://github.com/zeromq/zeromq.js/issues/416
 // eslint-disable-next-line jest/no-disabled-tests
@@ -52,7 +52,7 @@ describe.skip('IPCChannel', () => {
 		endpoints: {
 			multiplyByTwo: (params: any) => params.val * 2,
 			multiplyByThree: (params: any) => params.val * 3,
-		} as unknown as EndpointHandlers,
+		} as unknown as Types.EndpointHandlers,
 	};
 
 	const beta = {
@@ -68,7 +68,7 @@ describe.skip('IPCChannel', () => {
 				}
 				return 0;
 			},
-		} as unknown as EndpointHandlers,
+		} as unknown as Types.EndpointHandlers,
 	};
 
 	describe('after registering itself to the bus', () => {

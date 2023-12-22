@@ -26,7 +26,7 @@ import {
 	NftEventResult,
 } from '../../../../../src/modules/nft/constants';
 import { NFTStore } from '../../../../../src/modules/nft/stores/nft';
-import { CCMsg, CrossChainMessageContext, ccuParamsSchema } from '../../../../../src';
+import { Modules } from '../../../../../src';
 import { InternalMethod } from '../../../../../src/modules/nft/internal_method';
 import { NFTMethod } from '../../../../../src/modules/nft/method';
 import { EventQueue, MethodContext, createMethodContext } from '../../../../../src/state_machine';
@@ -98,7 +98,7 @@ describe('CrossChain Transfer Command', () => {
 		height: 0,
 		timestamp: 0,
 	};
-	const defaultEncodedCCUParams = codec.encode(ccuParamsSchema, {
+	const defaultEncodedCCUParams = codec.encode(Modules.Interoperability.ccuParamsSchema, {
 		activeValidatorsUpdate: {
 			blsKeysUpdate: [],
 			bftWeightsUpdate: [],
@@ -122,11 +122,11 @@ describe('CrossChain Transfer Command', () => {
 		params: defaultEncodedCCUParams,
 	};
 	let params: Buffer;
-	let ccm: CCMsg;
+	let ccm: Modules.Interoperability.CCMsg;
 	let command: CrossChainTransferCommand;
 	let methodContext: MethodContext;
 	let stateStore: PrefixedStateReadWriter;
-	let context: CrossChainMessageContext;
+	let context: Modules.Interoperability.CrossChainMessageContext;
 	let nftStore: NFTStore;
 	let escrowStore: EscrowStore;
 	let userStore: UserStore;

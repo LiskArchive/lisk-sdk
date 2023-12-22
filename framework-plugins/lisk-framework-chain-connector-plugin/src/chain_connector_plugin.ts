@@ -13,30 +13,17 @@
  */
 
 import {
-	BasePlugin,
-	PluginInitContext,
+	Engine,
+	Plugins,
 	apiClient,
-	BFTHeights,
 	db as liskDB,
 	codec,
 	chain,
-	OutboxRootWitness,
-	JSONObject,
+	Modules,
+	Types,
 	Schema,
 	Transaction,
-	LastCertificate,
-	CcmSendSuccessEventData,
-	CcmProcessedEventData,
-	CCMProcessedResult,
-	CrossChainUpdateTransactionParams,
-	certificateSchema,
-	ccuParamsSchema,
 	cryptography,
-	ChainAccountJSON,
-	ActiveValidatorsUpdate,
-	AggregateCommit,
-	ChannelDataJSON,
-	Certificate,
 	transactions,
 } from 'lisk-sdk';
 import { calculateActiveValidatorsUpdate } from './active_validators_update';
@@ -93,13 +80,13 @@ type ModulesMetadata = [
 
 type FinalizedHeightInfo = { inboxSize: number; lastCertificateHeight: number };
 
-export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig> {
+export class ChainConnectorPlugin extends Plugins.BasePlugin<ChainConnectorPluginConfig> {
 	public endpoint = new Endpoint();
 	public configSchema = configSchema;
 
 	private _chainConnectorPluginDB!: liskDB.Database;
 	private _chainConnectorStore!: ChainConnectorStore;
-	private _lastCertificate!: LastCertificate;
+	private _lastCertificate!: Modules.Interoperability.LastCertificate;
 	private _ccuFrequency!: number;
 	private _maxCCUSize!: number;
 	private _isSaveCCU!: boolean;
@@ -118,7 +105,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async init(context: PluginInitContext): Promise<void> {
+	public async init(context: Plugins.PluginInitContext): Promise<void> {
 		await super.init(context);
 		this._ccuFrequency = this.config.ccuFrequency ?? CCU_FREQUENCY;
 		if (this.config.maxCCUSize > CCU_TOTAL_CCM_SIZE) {
@@ -189,9 +176,13 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		const ccuFee = BigInt(this.config.ccuFee ?? '0') + additionalFee;
-		const computedMinFee = transactions.computeMinFee(tx, ccuParamsSchema, {
-			additionalFee,
-		});
+		const computedMinFee = transactions.computeMinFee(
+			tx,
+			Modules.Interoperability.ccuParamsSchema,
+			{
+				additionalFee,
+			},
+		);
 
 		if (ccuFee > computedMinFee) {
 			return ccuFee;
@@ -205,17 +196,19 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				finalizedHeight: number;
 			}>('system_getNodeInfo');
 			this._receivingChainFinalizedHeight = finalizedHeight;
-			const { inbox } = await this._receivingChainClient.invoke<ChannelDataJSON>(
-				'interoperability_getChannel',
-				{ chainID: this._ownChainID.toString('hex') },
-			);
+			const { inbox } =
+				await this._receivingChainClient.invoke<Modules.Interoperability.ChannelDataJSON>(
+					'interoperability_getChannel',
+					{ chainID: this._ownChainID.toString('hex') },
+				);
 			if (!inbox) {
 				throw new Error('No channel data available on receiving chain.');
 			}
-			const { lastCertificate } = await this._receivingChainClient.invoke<ChainAccountJSON>(
-				'interoperability_getChainAccount',
-				{ chainID: this._ownChainID.toString('hex') },
-			);
+			const { lastCertificate } =
+				await this._receivingChainClient.invoke<Modules.Interoperability.ChainAccountJSON>(
+					'interoperability_getChainAccount',
+					{ chainID: this._ownChainID.toString('hex') },
+				);
 			if (!lastCertificate) {
 				throw new Error('No chain data available on receiving chain.');
 			}
@@ -244,16 +237,17 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		const { blockHeader: receivedBlock } = data as unknown as Data;
 
 		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock).toObject();
-		let chainAccountJSON: ChainAccountJSON;
+		let chainAccountJSON: Modules.Interoperability.ChainAccountJSON;
 		// Save blockHeader, aggregateCommit, validatorsData and cross chain messages if any.
 		try {
 			const nodeInfo = await this._sendingChainClient.node.getNodeInfo();
 			// Fetch last certificate from the receiving chain and update the _lastCertificate
 			try {
-				chainAccountJSON = await this._receivingChainClient.invoke<ChainAccountJSON>(
-					'interoperability_getChainAccount',
-					{ chainID: this._ownChainID.toString('hex') },
-				);
+				chainAccountJSON =
+					await this._receivingChainClient.invoke<Modules.Interoperability.ChainAccountJSON>(
+						'interoperability_getChainAccount',
+						{ chainID: this._ownChainID.toString('hex') },
+					);
 				// If sending chain is not registered with the receiving chain then only save data on new block and exit
 				if (!chainAccountJSON || (chainAccountJSON && !chainAccountJSON.lastCertificate)) {
 					this.logger.info(
@@ -331,12 +325,12 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 	private async _computeCCUParams(
 		blockHeaders: BlockHeader[],
-		aggregateCommits: AggregateCommit[],
+		aggregateCommits: Engine.AggregateCommit[],
 		validatorsHashPreimage: ValidatorsData[],
 		ccmsFromEvents: CCMsFromEvents[],
 	): Promise<
 		| {
-				ccuParams: CrossChainUpdateTransactionParams;
+				ccuParams: Modules.Interoperability.CrossChainUpdateTransactionParams;
 				lastCCMToBeSent: LastSentCCMWithHeight | undefined;
 		  }
 		| undefined
@@ -360,7 +354,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			height: this._lastCertificate.height,
 		};
 
-		let activeValidatorsUpdate: ActiveValidatorsUpdate = {
+		let activeValidatorsUpdate: Modules.Interoperability.ActiveValidatorsUpdate = {
 			blsKeysUpdate: [],
 			bftWeightsUpdate: [],
 			bftWeightsUpdateBitmap: EMPTY_BYTES,
@@ -377,20 +371,22 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				record.height <= (newCertificate ? newCertificate.height : this._lastCertificate.height),
 		);
 		// Calculate messageWitnessHashes for pending CCMs if any
-		const channelDataOnReceivingChain = await this._receivingChainClient.invoke<ChannelDataJSON>(
-			'interoperability_getChannel',
-			{ chainID: this._ownChainID.toString('hex') },
-		);
+		const channelDataOnReceivingChain =
+			await this._receivingChainClient.invoke<Modules.Interoperability.ChannelDataJSON>(
+				'interoperability_getChannel',
+				{ chainID: this._ownChainID.toString('hex') },
+			);
 		if (!channelDataOnReceivingChain?.inbox) {
 			this.logger.info('Receiving chain is not registered yet on the sending chain.');
 			return;
 		}
 		const inboxSizeOnReceivingChain = channelDataJSONToObj(channelDataOnReceivingChain).inbox.size;
 
-		const receivingChainChannelDataJSON = await this._sendingChainClient.invoke<ChannelDataJSON>(
-			'interoperability_getChannel',
-			{ chainID: this._receivingChainID.toString('hex') },
-		);
+		const receivingChainChannelDataJSON =
+			await this._sendingChainClient.invoke<Modules.Interoperability.ChannelDataJSON>(
+				'interoperability_getChannel',
+				{ chainID: this._receivingChainID.toString('hex') },
+			);
 
 		if (!receivingChainChannelDataJSON?.outbox) {
 			this.logger.info('Sending chain is not registered yet on the receiving chain.');
@@ -465,7 +461,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				outboxRootWitness = ccmsDataAtCertificateHeight?.inclusionProof;
 			}
 
-			certificate = codec.encode(certificateSchema, newCertificate);
+			certificate = codec.encode(Engine.certificateSchema, newCertificate);
 		}
 
 		// eslint-disable-next-line consistent-return
@@ -480,16 +476,16 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 					messageWitnessHashes,
 					outboxRootWitness,
 				},
-			} as CrossChainUpdateTransactionParams,
+			} as Modules.Interoperability.CrossChainUpdateTransactionParams,
 			lastCCMToBeSent,
 		};
 	}
 
 	private async _findNextCertificate(
-		aggregateCommits: AggregateCommit[],
+		aggregateCommits: Engine.AggregateCommit[],
 		blockHeaders: BlockHeader[],
 		validatorsHashPreimage: ValidatorsData[],
-	): Promise<Certificate | undefined> {
+	): Promise<Engine.Certificate | undefined> {
 		if (aggregateCommits.length === 0) {
 			return undefined;
 		}
@@ -512,7 +508,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 			return undefined;
 		}
-		const bftHeights = await this._sendingChainClient.invoke<BFTHeights>('consensus_getBFTHeights');
+		const bftHeights = await this._sendingChainClient.invoke<Engine.BFTHeights>(
+			'consensus_getBFTHeights',
+		);
 		// Calculate certificate
 		return getNextCertificateFromAggregateCommits(
 			blockHeaders,
@@ -540,7 +538,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 
 		// Check for events if any and store them
-		const events = await this._sendingChainClient.invoke<JSONObject<chain.EventAttr[]>>(
+		const events = await this._sendingChainClient.invoke<Types.JSONObject<chain.EventAttr[]>>(
 			'chain_getEvents',
 			{ height: newBlockHeader.height },
 		);
@@ -586,7 +584,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				}
 
 				for (const e of ccmSendSuccessEvents) {
-					const eventData = codec.decode<CcmSendSuccessEventData>(
+					const eventData = codec.decode<Modules.Interoperability.CcmSendSuccessEventData>(
 						ccmSendSuccessEventInfo[0].data,
 						Buffer.from(e.data, 'hex'),
 					);
@@ -604,11 +602,11 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				}
 
 				for (const e of ccmProcessedEvents) {
-					const eventData = codec.decode<CcmProcessedEventData>(
+					const eventData = codec.decode<Modules.Interoperability.CcmProcessedEventData>(
 						ccmProcessedEventInfo[0].data,
 						Buffer.from(e.data, 'hex'),
 					);
-					if (eventData.result === CCMProcessedResult.FORWARDED) {
+					if (eventData.result === Modules.Interoperability.CCMProcessedResult.FORWARDED) {
 						ccmsFromEvents.push(eventData.ccm);
 					}
 				}
@@ -632,17 +630,18 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			},
 		);
 		const proveResponseObj = proveResponseJSONToObj(proveResponseJSON);
-		const outboxRootWitness: OutboxRootWitness = {
+		const outboxRootWitness: Modules.Interoperability.OutboxRootWitness = {
 			bitmap: proveResponseObj.proof.queries[0].bitmap,
 			siblingHashes: proveResponseObj.proof.siblingHashes,
 		};
 		const crossChainMessages = await this._chainConnectorStore.getCrossChainMessages();
 		let receivingChainOutboxSize = 0;
 		try {
-			const receivingChainChannelDataJSON = await this._sendingChainClient.invoke<ChannelDataJSON>(
-				'interoperability_getChannel',
-				{ chainID: this._receivingChainID.toString('hex') },
-			);
+			const receivingChainChannelDataJSON =
+				await this._sendingChainClient.invoke<Modules.Interoperability.ChannelDataJSON>(
+					'interoperability_getChannel',
+					{ chainID: this._receivingChainID.toString('hex') },
+				);
 			receivingChainOutboxSize = receivingChainChannelDataJSON.outbox.size;
 		} catch (error) {
 			this.logger.debug(
@@ -844,7 +843,9 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 	}
 
-	private async _submitCCU(ccuParams: CrossChainUpdateTransactionParams): Promise<void> {
+	private async _submitCCU(
+		ccuParams: Modules.Interoperability.CrossChainUpdateTransactionParams,
+	): Promise<void> {
 		if (!this._chainConnectorStore.privateKey) {
 			throw new Error('There is no key enabled to submit CCU');
 		}
@@ -870,7 +871,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			command: targetCommand,
 			nonce: BigInt(nonce),
 			senderPublicKey: relayerPublicKey,
-			params: codec.encode(ccuParamsSchema, ccuParams),
+			params: codec.encode(Modules.Interoperability.ccuParamsSchema, ccuParams),
 			signatures: [],
 		};
 

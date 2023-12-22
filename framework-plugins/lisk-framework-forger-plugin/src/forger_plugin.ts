@@ -12,16 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	BasePlugin,
-	GenesisConfig,
-	utils,
-	codec,
-	chain,
-	db as liskDB,
-	cryptography,
-	PluginInitContext,
-} from 'lisk-sdk';
+import { Plugins, Types, utils, codec, chain, db as liskDB, cryptography } from 'lisk-sdk';
 import {
 	getDBInstance,
 	getForgerInfo,
@@ -62,7 +53,7 @@ interface ForgerTransactionsInfo {
 
 interface NodeInfo {
 	genesisHeight: number;
-	genesis: GenesisConfig;
+	genesis: Types.GenesisConfig;
 }
 
 interface MissedBlocksByAddress {
@@ -77,7 +68,7 @@ const getBinaryAddress = (hexAddressStr: string) =>
 	Buffer.from(hexAddressStr, 'hex').toString('binary');
 const getAddressBuffer = (hexAddressStr: string) => Buffer.from(hexAddressStr, 'hex');
 
-export class ForgerPlugin extends BasePlugin {
+export class ForgerPlugin extends Plugins.BasePlugin {
 	public endpoint = new Endpoint();
 
 	private _forgerPluginDB!: liskDB.Database;
@@ -91,7 +82,7 @@ export class ForgerPlugin extends BasePlugin {
 		return ['block:created', 'block:missed'];
 	}
 
-	public async init(context: PluginInitContext): Promise<void> {
+	public async init(context: Plugins.PluginInitContext): Promise<void> {
 		await super.init(context);
 		this.endpoint.init(this._forgerPluginDB, this.apiClient);
 	}

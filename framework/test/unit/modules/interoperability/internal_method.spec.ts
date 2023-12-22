@@ -36,15 +36,8 @@ import {
 } from '../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityInternalMethod } from '../../../../src/modules/interoperability/mainchain/internal_method';
 import * as utils from '../../../../src/modules/interoperability/utils';
-import {
-	CrossChainUpdateTransactionParams,
-	MainchainInteroperabilityModule,
-	Transaction,
-	testing,
-	CCMsg,
-	OwnChainAccount,
-	ChainStatus,
-} from '../../../../src';
+import { Modules, Transaction, testing } from '../../../../src';
+
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
@@ -83,7 +76,7 @@ import { InvalidSMTVerificationEvent } from '../../../../src/modules/interoperab
 import { CCM_STATUS_OK } from '../../../../src/modules/token/constants';
 
 describe('Base interoperability internal method', () => {
-	const interopMod = new MainchainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.MainchainInteroperabilityModule();
 	const chainID = Buffer.from('01', 'hex');
 	const appendData = Buffer.from(
 		'0c4c839c0fd8155fd0d52efc7dd29d2a71919dee517d50967cd26f4db2e0d1c5b',
@@ -182,7 +175,7 @@ describe('Base interoperability internal method', () => {
 	let ownChainAccountSubstore: OwnChainAccountStore;
 	let methodContext: MethodContext;
 	let storeContext: StoreGetter;
-	let ownChainAccount: OwnChainAccount;
+	let ownChainAccount: Modules.Interoperability.OwnChainAccount;
 
 	beforeEach(async () => {
 		ownChainAccount = {
@@ -394,7 +387,7 @@ describe('Base interoperability internal method', () => {
 
 			expect(chainDataSubstore.set).toHaveBeenCalledWith(crossChainMessageContext, chainId, {
 				...chainAccount,
-				status: ChainStatus.TERMINATED,
+				status: Modules.Interoperability.ChainStatus.TERMINATED,
 			});
 			expect(outboxRootSubstore.del).toHaveBeenCalledWith(crossChainMessageContext, chainId);
 		});
@@ -420,7 +413,7 @@ describe('Base interoperability internal method', () => {
 
 			expect(chainDataSubstore.set).toHaveBeenCalledWith(crossChainMessageContext, chainId, {
 				...chainAccount,
-				status: ChainStatus.TERMINATED,
+				status: Modules.Interoperability.ChainStatus.TERMINATED,
 			});
 
 			expect(outboxRootSubstore.del).toHaveBeenCalledWith(crossChainMessageContext, chainId);
@@ -1318,7 +1311,7 @@ describe('Base interoperability internal method', () => {
 	});
 
 	describe('verifyCertificate', () => {
-		const txParams: CrossChainUpdateTransactionParams = {
+		const txParams: Modules.Interoperability.CrossChainUpdateTransactionParams = {
 			certificate: Buffer.alloc(0),
 			activeValidatorsUpdate: {
 				blsKeysUpdate: [],
@@ -1524,7 +1517,7 @@ describe('Base interoperability internal method', () => {
 		const { aggregationBits, signature, ...unsignedCertificate } = defaultCertificate;
 		const encodedCertificate = codec.encode(certificateSchema, defaultCertificate);
 		const encodedUnsignedCertificate = codec.encode(unsignedCertificateSchema, unsignedCertificate);
-		const txParams: CrossChainUpdateTransactionParams = {
+		const txParams: Modules.Interoperability.CrossChainUpdateTransactionParams = {
 			certificate: encodedCertificate,
 			activeValidatorsUpdate,
 			certificateThreshold: BigInt(10),
@@ -1621,7 +1614,7 @@ describe('Base interoperability internal method', () => {
 
 	describe('verifyOutboxRootWitness', () => {
 		const encodedCertificate = codec.encode(certificateSchema, defaultCertificate);
-		const txParams: CrossChainUpdateTransactionParams = {
+		const txParams: Modules.Interoperability.CrossChainUpdateTransactionParams = {
 			certificate: encodedCertificate,
 			activeValidatorsUpdate: {
 				blsKeysUpdate: [],
@@ -1732,7 +1725,7 @@ describe('Base interoperability internal method', () => {
 		const encodedDefaultCertificate = codec.encode(certificateSchema, {
 			...certificate,
 		});
-		// const txParams: CrossChainUpdateTransactionParams = {
+		// const txParams: Modules.Interoperability.CrossChainUpdateTransactionParams = {
 		// 	certificate: encodedDefaultCertificate,
 		// 	activeValidatorsUpdate: {
 		// 		blsKeysUpdate: [],
@@ -1762,7 +1755,7 @@ describe('Base interoperability internal method', () => {
 
 		const defaultSendingChainID = 20;
 		const defaultSendingChainIDBuffer = cryptoUtils.intToBuffer(defaultSendingChainID, 4);
-		const defaultCCMs: CCMsg[] = [
+		const defaultCCMs: Modules.Interoperability.CCMsg[] = [
 			{
 				crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 				fee: BigInt(0),
@@ -1785,7 +1778,7 @@ describe('Base interoperability internal method', () => {
 		};
 
 		let commandExecuteContext: CommandExecuteContext;
-		let crossChainUpdateParams: CrossChainUpdateTransactionParams;
+		let crossChainUpdateParams: Modules.Interoperability.CrossChainUpdateTransactionParams;
 
 		beforeEach(async () => {
 			crossChainUpdateParams = {

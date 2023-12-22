@@ -11,15 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-	BasePlugin,
-	PluginInitContext,
-	db as liskDB,
-	codec,
-	chain,
-	cryptography,
-	blockHeaderSchema,
-} from 'lisk-sdk';
+import { Plugins, db as liskDB, codec, chain, cryptography, blockHeaderSchema } from 'lisk-sdk';
 import {
 	getDBInstance,
 	saveBlockHeaders,
@@ -33,7 +25,7 @@ import { Endpoint } from './endpoint';
 const { address, ed } = cryptography;
 const { BlockHeader, Transaction, TAG_TRANSACTION } = chain;
 
-export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginConfig> {
+export class ReportMisbehaviorPlugin extends Plugins.BasePlugin<ReportMisbehaviorPluginConfig> {
 	public configSchema = configSchema;
 	public endpoint = new Endpoint();
 
@@ -45,7 +37,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		return __filename;
 	}
 
-	public async init(context: PluginInitContext): Promise<void> {
+	public async init(context: Plugins.PluginInitContext): Promise<void> {
 		await super.init(context);
 		this.endpoint.init(this._state, this.config);
 	}

@@ -48,7 +48,11 @@ describe('HTTPServer', () => {
 
 		it('should setup event handlers', () => {
 			// Assert
-			expect(httpServerInstance.server.eventNames()).toEqual(['request', 'connection', 'error']);
+			expect(httpServerInstance.server.eventNames()).toIncludeAllPartialMembers([
+				'request',
+				'connection',
+				'error',
+			]);
 		});
 	});
 

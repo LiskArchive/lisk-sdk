@@ -16,11 +16,7 @@ import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-db';
-import {
-	CommandExecuteContext,
-	CommandVerifyContext,
-	MainchainInteroperabilityModule,
-} from '../../../../src';
+import { StateMachine, Modules } from '../../../../src';
 import { BaseCCCommand } from '../../../../src/modules/interoperability/base_cc_command';
 import { BaseCCMethod } from '../../../../src/modules/interoperability/base_cc_method';
 import {
@@ -45,12 +41,12 @@ import { computeStorePrefix } from '../../../../src/modules/base_store';
 
 describe('RecoverStateCommand', () => {
 	// Since the code is same for both mainchain and sidechain, using mainchain will be enough to test both
-	const interopMod = new MainchainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.MainchainInteroperabilityModule();
 	const moduleName = 'fooModule';
 	let chainIDAsBuffer: Buffer;
 	let stateRecoveryCommand: RecoverStateCommand;
-	let commandVerifyContext: CommandVerifyContext<StateRecoveryParams>;
-	let commandExecuteContext: CommandExecuteContext<StateRecoveryParams>;
+	let commandVerifyContext: StateMachine.CommandVerifyContext<StateRecoveryParams>;
+	let commandExecuteContext: StateMachine.CommandExecuteContext<StateRecoveryParams>;
 	let interoperableCCMethods: Map<string, BaseCCMethod>;
 	let interoperableMethod: any;
 	let ccCommands: Map<string, BaseCCCommand[]>;

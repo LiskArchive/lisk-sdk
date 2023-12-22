@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as axios from 'axios';
-import { testing, PartialApplicationConfig, BasePlugin } from 'lisk-sdk';
+import { testing, Types, Plugins } from 'lisk-sdk';
 import { FaucetPlugin } from '../../src/plugin';
 
 describe('fund tokens action', () => {
@@ -31,10 +31,10 @@ describe('fund tokens action', () => {
 					captchaSitekey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
 				},
 			},
-		} as PartialApplicationConfig;
+		} as Types.PartialApplicationConfig;
 		appEnv = testing.createDefaultApplicationEnv({
 			config,
-			plugins: [new FaucetPlugin() as BasePlugin<any>],
+			plugins: [new FaucetPlugin() as Plugins.BasePlugin<any>],
 		});
 		await appEnv.startApplication();
 		await appEnv.ipcClient.invoke<{ result: string }>('faucet:authorize', {

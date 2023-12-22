@@ -1,4 +1,4 @@
-import { JSONObject } from 'lisk-sdk';
+import { Types } from 'lisk-sdk';
 
 export interface ModuleConfig {
 	maxMessageLength: number;
@@ -6,7 +6,7 @@ export interface ModuleConfig {
 	blacklist: string[];
 }
 
-export type ModuleConfigJSON = JSONObject<ModuleConfig>;
+export type ModuleConfigJSON = Types.JSONObject<ModuleConfig>;
 
 export interface CreateHelloParams {
 	message: string;

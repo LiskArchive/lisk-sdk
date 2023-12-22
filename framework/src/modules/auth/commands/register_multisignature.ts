@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { BaseCommand } from '../..';
+import { BaseCommand } from '../../base_command';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,

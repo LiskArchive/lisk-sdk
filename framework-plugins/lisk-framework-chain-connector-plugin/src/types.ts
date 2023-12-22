@@ -12,18 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	Transaction,
-	chain,
-	CCMsg,
-	OutboxRootWitness,
-	ActiveValidator,
-	AggregateCommit,
-	BFTParameters,
-	Proof,
-	ProveResponse,
-	BFTValidator,
-} from 'lisk-sdk';
+import { Transaction, chain, Modules, Engine, Proof, ProveResponse, BFTValidator } from 'lisk-sdk';
 
 export interface BlockHeader extends chain.BlockHeaderAttrs {
 	validatorsHash: Buffer;
@@ -45,7 +34,7 @@ export interface ChainConnectorPluginConfig {
 export type SentCCUs = Transaction[];
 export type SentCCUsJSON = chain.TransactionJSON[];
 
-export interface ActiveValidatorWithAddress extends ActiveValidator {
+export interface ActiveValidatorWithAddress extends Modules.Interoperability.ActiveValidator {
 	address: Buffer;
 }
 
@@ -55,14 +44,14 @@ export interface ValidatorsData {
 	validatorsHash: Buffer;
 }
 
-export interface LastSentCCMWithHeight extends CCMsg {
+export interface LastSentCCMWithHeight extends Modules.Interoperability.CCMsg {
 	height: number;
 }
 
 export interface CCMsFromEvents {
-	ccms: CCMsg[];
+	ccms: Modules.Interoperability.CCMsg[];
 	height: number;
-	inclusionProof: OutboxRootWitness;
+	inclusionProof: Modules.Interoperability.OutboxRootWitness;
 	outboxSize: number;
 }
 
@@ -81,7 +70,7 @@ export type CCMsFromEventsJSON = JSONObject<CCMsFromEvents>;
 
 export type LastSentCCMWithHeightJSON = JSONObject<LastSentCCMWithHeight>;
 
-export type AggregateCommitJSON = JSONObject<AggregateCommit>;
+export type AggregateCommitJSON = JSONObject<Engine.AggregateCommit>;
 
 export type BFTValidatorJSON = JSONObject<BFTValidator>;
 
@@ -91,4 +80,4 @@ export type ProofJSON = JSONObject<Proof>;
 
 export type ProveResponseJSON = JSONObject<ProveResponse>;
 
-export type BFTParametersJSON = JSONObject<BFTParameters>;
+export type BFTParametersJSON = JSONObject<Engine.BFTParameters>;

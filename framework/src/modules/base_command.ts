@@ -14,7 +14,11 @@
 /* eslint-disable class-methods-use-this */
 
 import { Schema, emptySchema } from '@liskhq/lisk-codec';
-import { CommandVerifyContext, CommandExecuteContext, VerificationResult } from '../state_machine';
+import {
+	CommandVerifyContext,
+	CommandExecuteContext,
+	VerificationResult,
+} from '../state_machine/types';
 import { NamedRegistry } from './named_registry';
 
 /**

@@ -11,12 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { testing, ApplicationConfigForPlugin, chain, cryptography } from 'lisk-sdk';
+import { testing, Types, chain, cryptography } from 'lisk-sdk';
 import { when } from 'jest-when';
 import { MonitorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
-const appConfigForPlugin: ApplicationConfigForPlugin = {
+const appConfigForPlugin: Types.ApplicationConfigForPlugin = {
 	...testing.fixtures.defaultConfig,
 };
 

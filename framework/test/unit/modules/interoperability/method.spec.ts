@@ -13,7 +13,7 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { MainchainInteroperabilityModule, TokenMethod, ChannelData } from '../../../../src';
+import { Modules } from '../../../../src';
 import { BaseInteroperabilityMethod } from '../../../../src/modules/interoperability/base_interoperability_method';
 import {
 	CCMStatusCode,
@@ -45,7 +45,7 @@ import { getMainchainID, getEncodedCCMAndID } from '../../../../src/modules/inte
 class SampleInteroperabilityMethod extends BaseInteroperabilityMethod<MainchainInteroperabilityInternalMethod> {}
 
 describe('Sample Method', () => {
-	const interopMod = new MainchainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.MainchainInteroperabilityModule();
 	const chainID = utils.intToBuffer(1, 4);
 	const interoperableCCMethods = new Map();
 	const chainAccountStoreMock = {
@@ -76,10 +76,10 @@ describe('Sample Method', () => {
 	};
 	let sampleInteroperabilityMethod: SampleInteroperabilityMethod;
 	let methodContext: MethodContext;
-	let tokenMethodMock: TokenMethod;
+	let tokenMethodMock: Modules.Token.TokenMethod;
 	let ccmSendFailEventMock: CcmSentFailedEvent;
 	let ccmSendSuccessEventMock: CcmSendSuccessEvent;
-	let sampleChannelData: ChannelData;
+	let sampleChannelData: Modules.Interoperability.ChannelData;
 
 	beforeEach(() => {
 		sampleChannelData = {

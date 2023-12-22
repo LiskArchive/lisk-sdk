@@ -11,39 +11,41 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BasePlugin, BasePluginEndpoint, PluginEndpointContext } from 'lisk-sdk';
+import { Plugins, Types } from 'lisk-sdk';
 import { SharedState } from './types';
 import * as controllers from './controllers';
 
-export class Endpoint extends BasePluginEndpoint {
+export class Endpoint extends Plugins.BasePluginEndpoint {
 	private _state!: SharedState;
-	private _client!: BasePlugin['apiClient'];
+	private _client!: Plugins.BasePlugin['apiClient'];
 
-	public init(state: SharedState, apiClient: BasePlugin['apiClient']) {
+	public init(state: SharedState, apiClient: Plugins.BasePlugin['apiClient']) {
 		this._state = state;
 		this._client = apiClient;
 	}
 
 	public async getTransactionStats(
-		_context: PluginEndpointContext,
+		_context: Types.PluginEndpointContext,
 	): Promise<controllers.transactions.TransactionStats> {
 		return controllers.transactions.getTransactionStats(this._client, this._state);
 	}
 
 	public async getBlockStats(
-		_context: PluginEndpointContext,
+		_context: Types.PluginEndpointContext,
 	): Promise<controllers.blocks.BlockStats> {
 		return controllers.blocks.getBlockStats(this._client, this._state);
 	}
 
 	public async getNetworkStats(
-		_context: PluginEndpointContext,
+		_context: Types.PluginEndpointContext,
 	): Promise<controllers.network.NetworkStats> {
 		return controllers.network.getNetworkStats(this._client);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getForkStats(_context: PluginEndpointContext): Promise<controllers.forks.ForkStats> {
+	public async getForkStats(
+		_context: Types.PluginEndpointContext,
+	): Promise<controllers.forks.ForkStats> {
 		return controllers.forks.getForkStats(this._state);
 	}
 }

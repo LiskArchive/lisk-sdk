@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseEndpoint } from 'lisk-sdk';
+import { Modules } from 'lisk-sdk';
 
-export class TestNftEndpoint extends BaseEndpoint {}
+export class TestNftEndpoint extends Modules.BaseEndpoint {}

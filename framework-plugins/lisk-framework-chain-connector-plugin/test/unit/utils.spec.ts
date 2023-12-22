@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BLS_SIGNATURE_LENGTH, cryptography } from 'lisk-sdk';
+import { Modules, cryptography } from 'lisk-sdk';
 import * as utils from '../../src/active_validators_update';
 import {
 	calculateActiveValidatorsUpdate,
@@ -29,7 +29,7 @@ describe('calculateActiveValidatorsUpdate', () => {
 		aggregationBits: Buffer.alloc(1),
 		blockID: cryptography.utils.getRandomBytes(HASH_LENGTH),
 		height: 10,
-		signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
+		signature: cryptography.utils.getRandomBytes(Modules.Interoperability.BLS_SIGNATURE_LENGTH),
 		stateRoot: cryptography.utils.getRandomBytes(HASH_LENGTH),
 		timestamp: Date.now(),
 		validatorsHash: certificateValidatorsHash,

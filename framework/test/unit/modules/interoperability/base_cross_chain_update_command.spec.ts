@@ -16,13 +16,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { EMPTY_BUFFER } from '@liskhq/lisk-chain/dist-node/constants';
 import { validator } from '@liskhq/lisk-validator';
-import {
-	CommandExecuteContext,
-	MainchainInteroperabilityModule,
-	Transaction,
-	CommandVerifyContext,
-	ChainAccount,
-} from '../../../../src';
+import { StateMachine, Modules, Transaction } from '../../../../src';
 import { BaseCCCommand } from '../../../../src/modules/interoperability/base_cc_command';
 import { BaseCrossChainUpdateCommand } from '../../../../src/modules/interoperability/base_cross_chain_update_command';
 import { BaseCCMethod } from '../../../../src/modules/interoperability/base_cc_method';
@@ -78,15 +72,15 @@ import { TransactionContext } from '../../../../src/state_machine';
 
 class CrossChainUpdateCommand extends BaseCrossChainUpdateCommand<MainchainInteroperabilityInternalMethod> {
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async execute(_context: CommandExecuteContext<unknown>): Promise<void> {
+	public async execute(_context: StateMachine.CommandExecuteContext<unknown>): Promise<void> {
 		throw new Error('Method not implemented.');
 	}
 }
 
 describe('BaseCrossChainUpdateCommand', () => {
-	let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
+	let executeContext: StateMachine.CommandExecuteContext<CrossChainUpdateTransactionParams>;
 	let stateStore: PrefixedStateReadWriter;
-	const interopsModule = new MainchainInteroperabilityModule();
+	const interopsModule = new Modules.Interoperability.MainchainInteroperabilityModule();
 	const senderPublicKey = utils.getRandomBytes(32);
 	const messageFeeTokenID = Buffer.alloc(8, 0);
 	const chainID = Buffer.alloc(4, 0);
@@ -215,7 +209,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	let internalMethod: MainchainInteroperabilityInternalMethod;
 
 	beforeEach(() => {
-		const interopModule = new MainchainInteroperabilityModule();
+		const interopModule = new Modules.Interoperability.MainchainInteroperabilityModule();
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		ccMethods = new Map();
 		ccMethods.set(
@@ -283,7 +277,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 	});
 
 	describe('verifyCommon', () => {
-		let verifyContext: CommandVerifyContext<CrossChainUpdateTransactionParams>;
+		let verifyContext: StateMachine.CommandVerifyContext<CrossChainUpdateTransactionParams>;
 
 		const ownChainAccount: OwnChainAccount = {
 			chainID: EMPTY_BUFFER,
@@ -291,7 +285,7 @@ describe('BaseCrossChainUpdateCommand', () => {
 			nonce: BigInt(1),
 		};
 
-		const chainAccount: ChainAccount = {
+		const chainAccount: Modules.Interoperability.ChainAccount = {
 			status: ChainStatus.REGISTERED,
 			name: 'chain123',
 			lastCertificate: {

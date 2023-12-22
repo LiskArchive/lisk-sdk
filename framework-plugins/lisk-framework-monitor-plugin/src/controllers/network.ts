@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BasePlugin } from 'lisk-sdk';
+import { Plugins } from 'lisk-sdk';
 import { PeerInfo } from '../types';
 
 export interface NetworkStats {
@@ -36,7 +36,9 @@ const getMajorityHeight = (peers: PeerInfo[]): { height: number; count: number }
 	return majority;
 };
 
-export const getNetworkStats = async (client: BasePlugin['apiClient']): Promise<NetworkStats> => {
+export const getNetworkStats = async (
+	client: Plugins.BasePlugin['apiClient'],
+): Promise<NetworkStats> => {
 	const networkStats = await client.invoke('network_getStats');
 	const connectedPeers = await client.invoke<PeerInfo[]>('network_getConnectedPeers');
 	const disconnectedPeers = await client.invoke<PeerInfo[]>('network_getDisconnectedPeers');

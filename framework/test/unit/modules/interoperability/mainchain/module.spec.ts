@@ -21,11 +21,7 @@ import {
 	EMPTY_HASH,
 	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../src/modules/interoperability/constants';
-import {
-	ChainStatus,
-	MainchainInteroperabilityModule,
-	genesisInteroperabilitySchema,
-} from '../../../../../src';
+import { Modules } from '../../../../../src';
 import {
 	ChainInfo,
 	GenesisInteroperability,
@@ -59,7 +55,7 @@ import { BaseInteroperabilityModule } from '../../../../../src/modules/interoper
 describe('initGenesisState', () => {
 	const chainID = Buffer.from([0, 0, 0, 0]);
 	let stateStore: PrefixedStateReadWriter;
-	let interopMod: MainchainInteroperabilityModule;
+	let interopMod: Modules.Interoperability.MainchainInteroperabilityModule;
 	let certificateThreshold = BigInt(0);
 	let params: CreateGenesisBlockContextParams;
 	let validChainInfos: ChainInfo[];
@@ -67,7 +63,7 @@ describe('initGenesisState', () => {
 
 	beforeEach(() => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		interopMod = new MainchainInteroperabilityModule();
+		interopMod = new Modules.Interoperability.MainchainInteroperabilityModule();
 		params = {
 			stateStore,
 			chainID,
@@ -78,7 +74,7 @@ describe('initGenesisState', () => {
 				...chainInfo,
 				chainData: {
 					...chainData,
-					status: ChainStatus.TERMINATED,
+					status: Modules.Interoperability.ChainStatus.TERMINATED,
 					lastCertificate: {
 						...lastCertificate,
 						validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
@@ -316,9 +312,9 @@ describe('initGenesisState', () => {
 				);
 				await expect(interopMod.initGenesisState(context)).rejects.toThrow(
 					`chainData.status must be one of ${[
-						ChainStatus.REGISTERED,
-						ChainStatus.ACTIVE,
-						ChainStatus.TERMINATED,
+						Modules.Interoperability.ChainStatus.REGISTERED,
+						Modules.Interoperability.ChainStatus.ACTIVE,
+						Modules.Interoperability.ChainStatus.TERMINATED,
 					].join(', ')}`,
 				);
 			});
@@ -332,7 +328,7 @@ describe('initGenesisState', () => {
 								...chainInfo,
 								chainData: {
 									...chainData,
-									status: ChainStatus.TERMINATED,
+									status: Modules.Interoperability.ChainStatus.TERMINATED,
 									lastCertificate: {
 										...lastCertificate,
 										validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
@@ -424,7 +420,7 @@ describe('initGenesisState', () => {
 							...chainInfo,
 							chainData: {
 								...chainData,
-								status: ChainStatus.TERMINATED,
+								status: Modules.Interoperability.ChainStatus.TERMINATED,
 								lastCertificate: {
 									...lastCertificate,
 									validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
@@ -461,7 +457,7 @@ describe('initGenesisState', () => {
 							...chainInfo,
 							chainData: {
 								...chainData,
-								status: ChainStatus.TERMINATED,
+								status: Modules.Interoperability.ChainStatus.TERMINATED,
 								lastCertificate: {
 									...lastCertificate,
 									validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
@@ -496,7 +492,7 @@ describe('initGenesisState', () => {
 							...chainInfo,
 							chainData: {
 								...chainData,
-								status: ChainStatus.ACTIVE,
+								status: Modules.Interoperability.ChainStatus.ACTIVE,
 								lastCertificate: {
 									...lastCertificate,
 									validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
@@ -678,7 +674,7 @@ describe('initGenesisState', () => {
 							...chainInfo,
 							chainData: {
 								...chainData,
-								status: ChainStatus.ACTIVE,
+								status: Modules.Interoperability.ChainStatus.ACTIVE,
 								lastCertificate: {
 									...lastCertificate,
 									validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
@@ -707,7 +703,7 @@ describe('initGenesisState', () => {
 							...chainInfo,
 							chainData: {
 								...chainData,
-								status: ChainStatus.ACTIVE,
+								status: Modules.Interoperability.ChainStatus.ACTIVE,
 								lastCertificate: {
 									...lastCertificate,
 									validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
@@ -743,7 +739,7 @@ describe('initGenesisState', () => {
 						{
 							...chainInfo,
 							chainData: {
-								...chainData, // status: ChainStatus.REGISTERED,
+								...chainData, // status: Modules.Interoperability.ChainStatus.REGISTERED,
 								lastCertificate: {
 									...lastCertificate,
 									validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
@@ -925,7 +921,7 @@ describe('initGenesisState', () => {
 			// let's go with dynamic fixtures, so that if chainInfos length will change inside contextWithValidValidatorsHash,
 			// we wouldn't have to refactor this part of tests
 			const genesisInteroperabilityLocal = codec.decode<GenesisInteroperability>(
-				genesisInteroperabilitySchema,
+				Modules.Interoperability.genesisInteroperabilitySchema,
 				contextWithValidValidatorsHash.assets.getAsset(MODULE_NAME_INTEROPERABILITY) as Buffer, // not undefined at this point
 			);
 

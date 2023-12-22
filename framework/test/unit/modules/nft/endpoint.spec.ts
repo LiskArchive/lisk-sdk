@@ -35,7 +35,7 @@ import {
 	NFT_NOT_LOCKED,
 } from '../../../../src/modules/nft/constants';
 import { NFT } from '../../../../src/modules/nft/types';
-import { JSONObject } from '../../../../src';
+import { Types } from '../../../../src';
 import { SupportedNFTsStore } from '../../../../src/modules/nft/stores/supported_nfts';
 import {
 	isCollectionIDSupportedResponseSchema,
@@ -180,7 +180,7 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			const expectedNFT: JSONObject<NFT> = {
+			const expectedNFT: Types.JSONObject<NFT> = {
 				owner: escrowChainID.toString('hex'),
 				attributesArray: [],
 			};
@@ -344,7 +344,7 @@ describe('NFTEndpoint', () => {
 				},
 			});
 
-			const expectedNFT: JSONObject<NFT> = {
+			const expectedNFT: Types.JSONObject<NFT> = {
 				owner: owner.toString('hex'),
 				attributesArray: attributesArray.map(attribute => ({
 					module: attribute.module,

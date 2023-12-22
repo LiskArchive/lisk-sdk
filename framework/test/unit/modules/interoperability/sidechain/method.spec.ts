@@ -13,11 +13,7 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import {
-	SidechainInteroperabilityMethod,
-	SidechainInteroperabilityModule,
-	getMainchainID,
-} from '../../../../../src';
+import { Modules } from '../../../../../src';
 import { createTransientMethodContext } from '../../../../../src/testing';
 import { EventQueue, MethodContext } from '../../../../../src/state_machine';
 import {
@@ -29,9 +25,9 @@ import { OwnChainAccountStore } from '../../../../../src/modules/interoperabilit
 import { TerminatedStateStore } from '../../../../../src/modules/interoperability/stores/terminated_state';
 
 describe('Sidechain Method', () => {
-	const interopMod = new SidechainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.SidechainInteroperabilityModule();
 	const chainID = utils.intToBuffer(1, 4);
-	const mainchainID = getMainchainID(chainID);
+	const mainchainID = Modules.Interoperability.getMainchainID(chainID);
 	const chainAccountStoreMock = {
 		get: jest.fn(),
 		has: jest.fn(),
@@ -44,7 +40,7 @@ describe('Sidechain Method', () => {
 	};
 	const interoperableCCMethods = new Map();
 	const defaultEventQueue = new EventQueue(0, [], [utils.hash(utils.getRandomBytes(32))]);
-	let sidechainInteroperabilityMethod: SidechainInteroperabilityMethod;
+	let sidechainInteroperabilityMethod: Modules.Interoperability.SidechainInteroperabilityMethod;
 	let methodContext: MethodContext;
 	let chainAccount: ChainAccount;
 
@@ -53,7 +49,7 @@ describe('Sidechain Method', () => {
 		interopMod.stores.register(ChainAccountStore, chainAccountStoreMock as never);
 		interopMod.stores.register(OwnChainAccountStore, ownchainAccountStoreMock as never);
 		interopMod.stores.register(TerminatedStateStore, terminatedStateStoreMock as never);
-		sidechainInteroperabilityMethod = new SidechainInteroperabilityMethod(
+		sidechainInteroperabilityMethod = new Modules.Interoperability.SidechainInteroperabilityMethod(
 			interopMod.stores,
 			interopMod.events,
 			interoperableCCMethods,

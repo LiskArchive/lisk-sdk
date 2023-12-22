@@ -13,14 +13,14 @@
  */
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
-import { FeeModule } from '../../../../src';
+import { Modules } from '../../../../src';
 import { createTransientModuleEndpointContext } from '../../../../src/testing';
 import { FeeEndpoint } from '../../../../src/modules/fee/endpoint';
 import { ModuleConfig } from '../../../../src/modules/fee/types';
 import { defaultConfig } from '../../../../src/modules/fee/constants';
 
 describe('FeeModuleEndpoint', () => {
-	const fee = new FeeModule();
+	const fee = new Modules.Fee.FeeModule();
 	const config: ModuleConfig = {
 		...defaultConfig,
 		feeTokenID: Buffer.from('1000000000000002', 'hex'),

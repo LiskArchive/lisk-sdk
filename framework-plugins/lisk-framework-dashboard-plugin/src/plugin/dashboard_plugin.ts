@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BasePlugin } from 'lisk-sdk';
+import { Plugins } from 'lisk-sdk';
 import * as express from 'express';
 import { join } from 'path';
 import { Server } from 'http';
 import { configSchema } from './schemas';
 import { DashboardPluginConfig } from './types';
 
-export class DashboardPlugin extends BasePlugin<DashboardPluginConfig> {
+export class DashboardPlugin extends Plugins.BasePlugin<DashboardPluginConfig> {
 	public configSchema = configSchema;
 
 	private _server!: Server;

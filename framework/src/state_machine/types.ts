@@ -39,17 +39,27 @@ export interface ImmutableStateStore {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
+/** State store interface. */
 export interface StateStore {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	createSnapshot(): number;
 	restoreSnapshot(snapshotID: number): void;
 }
 
+/** Context for immutable methods */
 export interface ImmutableMethodContext {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
+/** Context for methods */
 export interface MethodContext {
+	/**
+	 * Returns a module store based on module ID and store prefix
+	 * @param moduleID The ID of a module
+	 * @param storePrefix The prefix of a module store
+	 *
+	 * @returns The requested module store.
+	 */
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	eventQueue: EventQueue;
 	contextStore: Map<string, unknown>;
@@ -61,6 +71,7 @@ export enum VerifyStatus {
 	PENDING = TransactionVerifyResult.PENDING,
 }
 
+/** The block header. */
 export interface BlockHeader {
 	version: number;
 	height: number;
@@ -77,6 +88,7 @@ export interface BlockHeader {
 	};
 }
 
+/** The block assets. */
 export interface BlockAssets {
 	getAsset: (module: string) => Buffer | undefined;
 }
@@ -151,19 +163,31 @@ export interface CommandExecuteContext<T = undefined> {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 }
 
+/**
+ * Context for the genesis block execution hook.
+ */
 export interface GenesisBlockExecuteContext {
 	logger: Logger;
 	eventQueue: EventQueue;
 	stateStore: StateStore;
 	getMethodContext: () => MethodContext;
+	/** State store interface to get data from the module stores. */
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
+	/**
+	 * Sets the next active validators to generate blocks after the genesis block.
+	 *
+	 * @param preCommitThreshold
+	 * @param certificateThreshold
+	 * @param validators
+	 */
 	setNextValidators: (
 		preCommitThreshold: bigint,
 		certificateThreshold: bigint,
 		validators: Validator[],
 	) => void;
+	/** The identifier of the blockchain, the genesis block belongs to. */
 	chainID: Buffer;
 }
 

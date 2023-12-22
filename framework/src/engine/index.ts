@@ -13,4 +13,5 @@
  */
 
 export { Engine } from './engine';
-export { computeValidatorsHash, areDistinctHeadersContradicting, BFTParameters } from './bft';
+export * from './bft';
+export * from './consensus';

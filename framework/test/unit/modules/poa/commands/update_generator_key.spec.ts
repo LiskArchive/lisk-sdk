@@ -17,13 +17,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { TransactionAttrs } from '@liskhq/lisk-chain';
 import { utils, address } from '@liskhq/lisk-cryptography';
 
-import {
-	PoAModule,
-	Transaction,
-	CommandVerifyContext,
-	CommandExecuteContext,
-	VerifyStatus,
-} from '../../../../../src';
+import { Modules, Transaction, StateMachine } from '../../../../../src';
 import { UpdateGeneratorKeyParams, ValidatorsMethod } from '../../../../../src/modules/poa/types';
 import { ValidatorStore } from '../../../../../src/modules/poa/stores';
 import {
@@ -40,7 +34,7 @@ import { UpdateGeneratorKeyCommand } from '../../../../../src/modules/poa/comman
 import { createStoreGetter } from '../../../../../src/testing/utils';
 
 describe('UpdateGeneratorKey', () => {
-	const poaModule = new PoAModule();
+	const poaModule = new Modules.PoA.PoAModule();
 	let updateGeneratorKeyCommand: UpdateGeneratorKeyCommand;
 	let stateStore: PrefixedStateReadWriter;
 	let mockValidatorsMethod: ValidatorsMethod;
@@ -109,7 +103,7 @@ describe('UpdateGeneratorKey', () => {
 	});
 
 	describe('verify', () => {
-		let context: CommandVerifyContext<UpdateGeneratorKeyParams>;
+		let context: StateMachine.CommandVerifyContext<UpdateGeneratorKeyParams>;
 		beforeEach(() => {
 			context = testing
 				.createTransactionContext({
@@ -134,12 +128,12 @@ describe('UpdateGeneratorKey', () => {
 		it('should return OK when transaction is valid', async () => {
 			const result = await updateGeneratorKeyCommand.verify(context);
 
-			expect(result.status).toBe(VerifyStatus.OK);
+			expect(result.status).toBe(StateMachine.VerifyStatus.OK);
 		});
 	});
 
 	describe('execute', () => {
-		let context: CommandExecuteContext<UpdateGeneratorKeyParams>;
+		let context: StateMachine.CommandExecuteContext<UpdateGeneratorKeyParams>;
 		beforeEach(async () => {
 			context = testing
 				.createTransactionContext({

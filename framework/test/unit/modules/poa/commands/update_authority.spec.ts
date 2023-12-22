@@ -2,14 +2,7 @@ import { bls, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { TransactionAttrs } from '@liskhq/lisk-chain';
 import { MAX_UINT64, validator } from '@liskhq/lisk-validator';
-import {
-	CommandExecuteContext,
-	CommandVerifyContext,
-	MAX_NUM_VALIDATORS,
-	PoAModule,
-	Transaction,
-	VerifyStatus,
-} from '../../../../../src';
+import { StateMachine, Modules, Transaction } from '../../../../../src';
 import { UpdateAuthorityCommand } from '../../../../../src/modules/poa/commands/update_authority';
 import { UpdateAuthorityParams, ValidatorsMethod } from '../../../../../src/modules/poa/types';
 import {
@@ -36,7 +29,7 @@ import { EventQueue } from '../../../../../src/state_machine';
 import { ED25519_PUBLIC_KEY_LENGTH } from '../../../../../src/modules/validators/constants';
 
 describe('UpdateAuthority', () => {
-	const poaModule = new PoAModule();
+	const poaModule = new Modules.PoA.PoAModule();
 	let updateAuthorityCommand: UpdateAuthorityCommand;
 	let mockValidatorsMethod: ValidatorsMethod;
 	let stateStore: PrefixedStateReadWriter;
@@ -134,17 +127,19 @@ describe('UpdateAuthority', () => {
 			expect(() =>
 				validator.validate(updateAuthorityCommand.schema, {
 					...updateAuthorityValidatorParams,
-					newValidators: Array.from(Array(MAX_NUM_VALIDATORS + 1).keys()).map(_ => ({
+					newValidators: Array.from(
+						Array(Modules.Interoperability.MAX_NUM_VALIDATORS + 1).keys(),
+					).map(_ => ({
 						address: utils.getRandomBytes(20),
 						weight: BigInt(1),
 					})),
 				}),
-			).toThrow(`must NOT have more than ${MAX_NUM_VALIDATORS} items`);
+			).toThrow(`must NOT have more than ${Modules.Interoperability.MAX_NUM_VALIDATORS} items`);
 		});
 	});
 
 	describe('verify', () => {
-		let context: CommandVerifyContext<UpdateAuthorityParams>;
+		let context: StateMachine.CommandVerifyContext<UpdateAuthorityParams>;
 		beforeEach(() => {
 			context = testing
 				.createTransactionContext({
@@ -179,7 +174,7 @@ describe('UpdateAuthority', () => {
 
 			const result = await updateAuthorityCommand.verify(context);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.status).toBe(StateMachine.VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
 				`Addresses in newValidators are not lexicographically ordered.`,
 			);
@@ -212,7 +207,7 @@ describe('UpdateAuthority', () => {
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 			const result = await updateAuthorityCommand.verify(context);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.status).toBe(StateMachine.VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(`Addresses in newValidators are not unique.`);
 		});
 
@@ -236,7 +231,7 @@ describe('UpdateAuthority', () => {
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 			const result = await updateAuthorityCommand.verify(context);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.status).toBe(StateMachine.VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
 				`No validator found for given address ${address2.toString('hex')}.`,
 			);
@@ -265,7 +260,7 @@ describe('UpdateAuthority', () => {
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 			const result = await updateAuthorityCommand.verify(context);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.status).toBe(StateMachine.VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(`Validator weight cannot be zero.`);
 		});
 
@@ -292,7 +287,7 @@ describe('UpdateAuthority', () => {
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 			const result = await updateAuthorityCommand.verify(context);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.status).toBe(StateMachine.VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(`Validator weight cannot be zero.`);
 		});
 
@@ -319,7 +314,7 @@ describe('UpdateAuthority', () => {
 				.createCommandVerifyContext<UpdateAuthorityParams>(updateAuthoritySchema);
 			const result = await updateAuthorityCommand.verify(context);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.status).toBe(StateMachine.VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(`Validators total weight exceeds ${MAX_UINT64}`);
 		});
 
@@ -344,7 +339,7 @@ describe('UpdateAuthority', () => {
 
 			const result = await updateAuthorityCommand.verify(context);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.status).toBe(StateMachine.VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
 				`Threshold must be between ${minThreshold} and ${totalWeight} (inclusive).`,
 			);
@@ -371,7 +366,7 @@ describe('UpdateAuthority', () => {
 
 			const result = await updateAuthorityCommand.verify(context);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.status).toBe(StateMachine.VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
 				`Threshold must be between ${minThreshold} and ${totalWeight}`,
 			);
@@ -394,7 +389,7 @@ describe('UpdateAuthority', () => {
 
 			const result = await updateAuthorityCommand.verify(context);
 
-			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.status).toBe(StateMachine.VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
 				`validatorsUpdateNonce must be equal to ${chainProperties.validatorsUpdateNonce}.`,
 			);
@@ -403,12 +398,12 @@ describe('UpdateAuthority', () => {
 		it('should return OK when transaction is valid', async () => {
 			const result = await updateAuthorityCommand.verify(context);
 
-			expect(result.status).toBe(VerifyStatus.OK);
+			expect(result.status).toBe(StateMachine.VerifyStatus.OK);
 		});
 	});
 
 	describe('execute', () => {
-		let context: CommandExecuteContext<UpdateAuthorityParams>;
+		let context: StateMachine.CommandExecuteContext<UpdateAuthorityParams>;
 
 		const checkEventResult = (
 			eventQueue: EventQueue,

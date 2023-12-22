@@ -113,6 +113,7 @@ interface LoggerInput {
 	readonly name: string;
 }
 
+/** Logger interface, to create log messages. */
 export interface Logger {
 	readonly trace: (data?: Record<string, unknown> | unknown, message?: string) => void;
 	readonly debug: (data?: Record<string, unknown> | unknown, message?: string) => void;

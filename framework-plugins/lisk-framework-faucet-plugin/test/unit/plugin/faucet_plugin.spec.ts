@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ApplicationConfigForPlugin, testing } from 'lisk-sdk';
+import { Types, testing } from 'lisk-sdk';
 import { FaucetPlugin } from '../../../src/plugin';
 
-const appConfigForPlugin: ApplicationConfigForPlugin = {
+const appConfigForPlugin: Types.ApplicationConfigForPlugin = {
 	...testing.fixtures.defaultConfig,
 };
 const logger = testing.mocks.loggerMock;

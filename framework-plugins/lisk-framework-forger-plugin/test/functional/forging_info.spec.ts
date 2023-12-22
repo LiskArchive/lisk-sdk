@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing, PartialApplicationConfig } from 'lisk-sdk';
+import { testing, Types } from 'lisk-sdk';
 import { getForgerInfoByAddress, getForgerPlugin } from '../utils/application';
 import { ForgerPlugin } from '../../src';
 
@@ -24,7 +24,7 @@ describe('forger:getForgingInfo action', () => {
 		const config = {
 			rootPath,
 			label: 'forging_info_functional',
-		} as PartialApplicationConfig;
+		} as Types.PartialApplicationConfig;
 
 		appEnv = testing.createDefaultApplicationEnv({
 			config,

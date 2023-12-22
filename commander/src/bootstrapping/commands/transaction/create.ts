@@ -22,12 +22,11 @@ import { validator } from '@liskhq/lisk-validator';
 import { Command, Flags as flagParser } from '@oclif/core';
 import {
 	Application,
-	PartialApplicationConfig,
-	RegisteredSchema,
+	Types,
 	blockHeaderSchema,
 	blockSchema,
 	transactionSchema,
-	ModuleMetadataJSON,
+	Modules,
 } from 'lisk-framework';
 import { PromiseResolvedType } from '../../../types';
 import { deriveKeypair } from '../../../utils/commons';
@@ -74,7 +73,11 @@ interface Transaction {
 	signatures: never[];
 }
 
-const getParamsObject = async (metadata: ModuleMetadataJSON[], flags: CreateFlags, args: Args) => {
+const getParamsObject = async (
+	metadata: Modules.ModuleMetadataJSON[],
+	flags: CreateFlags,
+	args: Args,
+) => {
 	let params: Record<string, unknown>;
 
 	const paramsSchema = getParamsSchema(metadata, args.module, args.command);
@@ -112,8 +115,8 @@ const getKeysFromFlags = async (flags: CreateFlags) => {
 
 const validateAndSignTransaction = (
 	transaction: Transaction,
-	schema: RegisteredSchema,
-	metadata: ModuleMetadataJSON[],
+	schema: Types.RegisteredSchema,
+	metadata: Modules.ModuleMetadataJSON[],
 	chainID: string,
 	privateKey: Buffer,
 	noSignature: boolean,
@@ -145,8 +148,8 @@ const validateAndSignTransaction = (
 const createTransactionOffline = async (
 	args: Args,
 	flags: CreateFlags,
-	registeredSchema: RegisteredSchema,
-	metadata: ModuleMetadataJSON[],
+	registeredSchema: Types.RegisteredSchema,
+	metadata: Modules.ModuleMetadataJSON[],
 	transaction: Transaction,
 ) => {
 	const params = await getParamsObject(metadata, flags, args);
@@ -169,8 +172,8 @@ const createTransactionOnline = async (
 	args: Args,
 	flags: CreateFlags,
 	client: apiClient.APIClient,
-	registeredSchema: RegisteredSchema,
-	metadata: ModuleMetadataJSON[],
+	registeredSchema: Types.RegisteredSchema,
+	metadata: Modules.ModuleMetadataJSON[],
 	transaction: Transaction,
 ) => {
 	const nodeInfo = await client.node.getNodeInfo();
@@ -275,8 +278,8 @@ export abstract class CreateCommand extends Command {
 	};
 
 	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
-	protected _schema!: RegisteredSchema;
-	protected _metadata!: ModuleMetadataJSON[];
+	protected _schema!: Types.RegisteredSchema;
+	protected _metadata!: Modules.ModuleMetadataJSON[];
 	protected _dataPath!: string;
 
 	async run(): Promise<void> {
@@ -373,5 +376,5 @@ export abstract class CreateCommand extends Command {
 		}
 	}
 
-	abstract getApplication(config: PartialApplicationConfig): Application;
+	abstract getApplication(config: Types.PartialApplicationConfig): Application;
 }

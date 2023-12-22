@@ -13,7 +13,7 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { FeeModule } from '../../../../src';
+import { Modules } from '../../../../src';
 import { FeeInteroperableMethod } from '../../../../src/modules/fee/cc_method';
 import { CONTEXT_STORE_KEY_AVAILABLE_CCM_FEE } from '../../../../src/modules/fee/constants';
 import { createCrossChainMessageContext } from '../../../../src/testing';
@@ -21,7 +21,7 @@ import { CrossChainMessageContext } from '../../../../src/modules/interoperabili
 import { RelayerFeeProcessedEvent } from '../../../../src/modules/fee/events/relayer_fee_processed';
 
 describe('FeeInteroperableMethod', () => {
-	const feeModule = new FeeModule();
+	const feeModule = new Modules.Fee.FeeModule();
 	const ccm = {
 		module: 'token',
 		crossChainCommand: 'crossChainTransfer',

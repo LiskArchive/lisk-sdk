@@ -27,7 +27,7 @@ import {
 import { EMPTY_KEY } from '../../../../src/modules/random/constants';
 import { blockHeaderAssetRandomModule } from '../../../../src/modules/random/schemas';
 import { defaultChainID } from '../../../fixtures';
-import { GenesisConfig, testing } from '../../../../src';
+import { Types, testing } from '../../../../src';
 import {
 	createBlockContext,
 	createBlockHeaderWithDefaults,
@@ -77,7 +77,7 @@ describe('RandomModule', () => {
 		it('should initialize config with default value when module config is empty', async () => {
 			await expect(
 				randomModule.init({
-					genesisConfig: {} as GenesisConfig,
+					genesisConfig: {} as Types.GenesisConfig,
 					moduleConfig: {},
 				}),
 			).toResolve();
@@ -87,7 +87,7 @@ describe('RandomModule', () => {
 
 		it('should assign config values', async () => {
 			await randomModule.init({
-				genesisConfig: {} as GenesisConfig,
+				genesisConfig: {} as Types.GenesisConfig,
 				moduleConfig: { maxLengthReveals: 20 },
 			});
 
@@ -286,7 +286,7 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				genesisConfig: {} as GenesisConfig,
+				genesisConfig: {} as Types.GenesisConfig,
 				moduleConfig: {},
 			});
 			await randomModule.insertAssets(blockGenerateContext);
@@ -355,7 +355,7 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				genesisConfig: {} as GenesisConfig,
+				genesisConfig: {} as Types.GenesisConfig,
 				moduleConfig: {},
 			});
 			await randomModule.insertAssets(blockGenerateContext);
@@ -424,7 +424,7 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				genesisConfig: {} as GenesisConfig,
+				genesisConfig: {} as Types.GenesisConfig,
 				moduleConfig: {},
 			});
 			await randomModule.insertAssets(blockGenerateContext);
@@ -501,7 +501,7 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				genesisConfig: {} as GenesisConfig,
+				genesisConfig: {} as Types.GenesisConfig,
 				moduleConfig: {},
 			});
 			await randomModule.insertAssets(blockGenerateContext);
@@ -546,7 +546,7 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				genesisConfig: {} as GenesisConfig,
+				genesisConfig: {} as Types.GenesisConfig,
 				moduleConfig: {},
 			});
 			await randomModule.insertAssets(blockGenerateContext);
@@ -613,7 +613,7 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				genesisConfig: {} as GenesisConfig,
+				genesisConfig: {} as Types.GenesisConfig,
 				moduleConfig: {},
 			});
 			await randomModule.insertAssets(blockGenerateContext);
@@ -651,7 +651,7 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				genesisConfig: {} as GenesisConfig,
+				genesisConfig: {} as Types.GenesisConfig,
 				moduleConfig: {},
 			});
 

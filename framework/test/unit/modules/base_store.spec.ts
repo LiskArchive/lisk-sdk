@@ -13,7 +13,7 @@
  */
 
 import { Schema } from '@liskhq/lisk-codec';
-import { MethodContext } from '../../../src';
+import { StateMachine } from '../../../src';
 import { BaseStore, computeSubstorePrefix } from '../../../src/modules/base_store';
 import { createTransientMethodContext } from '../../../src/testing';
 
@@ -35,7 +35,7 @@ describe('BaseStore', () => {
 	const key = Buffer.from([1, 2]);
 
 	let store: SampleStore;
-	let context: MethodContext;
+	let context: StateMachine.MethodContext;
 
 	beforeEach(() => {
 		store = new SampleStore('sample', 0);

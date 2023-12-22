@@ -17,7 +17,7 @@ import {
 	CreateGenesisBlockContextParams,
 	InMemoryPrefixedStateDB,
 } from '../../../../../src/testing';
-import { ChainStatus, SidechainInteroperabilityModule } from '../../../../../src';
+import { Modules } from '../../../../../src';
 import {
 	activeValidator,
 	chainData,
@@ -50,7 +50,7 @@ describe('initGenesisState', () => {
 	const chainID = Buffer.from([1, 2, 3, 4]);
 	let params: CreateGenesisBlockContextParams;
 	let stateStore: PrefixedStateReadWriter;
-	let interopMod: SidechainInteroperabilityModule;
+	let interopMod: Modules.Interoperability.SidechainInteroperabilityModule;
 
 	const activeValidators = [
 		{
@@ -100,7 +100,7 @@ describe('initGenesisState', () => {
 
 	beforeEach(() => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		interopMod = new SidechainInteroperabilityModule();
+		interopMod = new Modules.Interoperability.SidechainInteroperabilityModule();
 		params = {
 			stateStore,
 			chainID,
@@ -340,7 +340,7 @@ describe('initGenesisState', () => {
 									...defaultData.chainInfos[0],
 									chainData: {
 										...defaultData.chainInfos[0].chainData,
-										status: ChainStatus.TERMINATED,
+										status: Modules.Interoperability.ChainStatus.TERMINATED,
 									},
 								},
 							],
@@ -348,7 +348,10 @@ describe('initGenesisState', () => {
 						params,
 					);
 
-					const validStatuses = [ChainStatus.REGISTERED, ChainStatus.ACTIVE];
+					const validStatuses = [
+						Modules.Interoperability.ChainStatus.REGISTERED,
+						Modules.Interoperability.ChainStatus.ACTIVE,
+					];
 					await expect(interopMod.initGenesisState(context)).rejects.toThrow(
 						`chainData.status must be one of ${validStatuses.join(', ')}.`,
 					);

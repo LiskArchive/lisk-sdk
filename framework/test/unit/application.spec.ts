@@ -18,17 +18,7 @@ import * as childProcess from 'child_process';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
-import {
-	BaseCCMethod,
-	BaseEndpoint,
-	BaseInteroperableModule,
-	BaseMethod,
-	BaseModule,
-	BasePlugin,
-	MODULE_NAME_INTEROPERABILITY,
-	ModuleMetadata,
-	SidechainInteroperabilityModule,
-} from '../../src';
+import { Modules, Plugins } from '../../src';
 import { Application } from '../../src/application';
 import { Bus } from '../../src/controller/bus';
 import { WSServer } from '../../src/controller/ws/ws_server';
@@ -56,7 +46,7 @@ jest.mock('zeromq', () => {
 jest.mock('@liskhq/lisk-db');
 jest.mock('../../src/logger');
 
-class TestPlugin extends BasePlugin {
+class TestPlugin extends Plugins.BasePlugin {
 	public get nodeModulePath(): string {
 		return __filename;
 	}
@@ -70,10 +60,10 @@ class TestPlugin extends BasePlugin {
 	public async unload(): Promise<void> {}
 }
 
-class TestModule extends BaseModule {
+class TestModule extends Modules.BaseModule {
 	public commands = [];
-	public endpoint: BaseEndpoint = {} as BaseEndpoint;
-	public method: BaseMethod = {} as BaseMethod;
+	public endpoint: Modules.BaseEndpoint = {} as Modules.BaseEndpoint;
+	public method: Modules.BaseMethod = {} as Modules.BaseMethod;
 
 	public verifyAssets = jest.fn();
 	public beforeTransactionsExecute = jest.fn();
@@ -82,16 +72,19 @@ class TestModule extends BaseModule {
 	public get name() {
 		return 'test-module';
 	}
-	public metadata(): ModuleMetadata {
+	public metadata(): Modules.ModuleMetadata {
 		throw new Error('Method not implemented.');
 	}
 }
 
-class TestInteroperableModule extends BaseInteroperableModule {
-	public crossChainMethod = { stores: {}, events: {} } as unknown as BaseCCMethod;
+class TestInteroperableModule extends Modules.Interoperability.BaseInteroperableModule {
+	public crossChainMethod = {
+		stores: {},
+		events: {},
+	} as unknown as Modules.Interoperability.BaseCCMethod;
 	public commands = [];
-	public endpoint: BaseEndpoint = {} as BaseEndpoint;
-	public method: BaseMethod = {} as BaseMethod;
+	public endpoint: Modules.BaseEndpoint = {} as Modules.BaseEndpoint;
+	public method: Modules.BaseMethod = {} as Modules.BaseMethod;
 
 	public verifyAssets = jest.fn();
 	public beforeTransactionsExecute = jest.fn();
@@ -101,7 +94,7 @@ class TestInteroperableModule extends BaseInteroperableModule {
 		return 'test-interoperable-module';
 	}
 
-	public metadata(): ModuleMetadata {
+	public metadata(): Modules.ModuleMetadata {
 		throw new Error('Method not implemented.');
 	}
 }
@@ -280,7 +273,7 @@ describe('Application', () => {
 
 			const interoperabilityModule = app['_registeredModules'].find(
 				module => module.name === 'interoperability',
-			) as SidechainInteroperabilityModule;
+			) as Modules.Interoperability.SidechainInteroperabilityModule;
 
 			expect(
 				interoperabilityModule['interoperableCCCommands'].has(testInteroperableModule.name),
@@ -295,7 +288,7 @@ describe('Application', () => {
 			const { app } = Application.defaultApplication(config);
 
 			const index = app['_registeredModules'].findIndex(
-				module => module.name === MODULE_NAME_INTEROPERABILITY,
+				module => module.name === Modules.Interoperability.MODULE_NAME_INTEROPERABILITY,
 			);
 
 			app['_registeredModules'][index] = new TestModule();
@@ -303,7 +296,7 @@ describe('Application', () => {
 			const testInteroperableModule = new TestInteroperableModule();
 
 			expect(() => app.registerInteroperableModule(testInteroperableModule)).toThrow(
-				`${MODULE_NAME_INTEROPERABILITY} module is not registered.`,
+				`${Modules.Interoperability.MODULE_NAME_INTEROPERABILITY} module is not registered.`,
 			);
 		});
 	});

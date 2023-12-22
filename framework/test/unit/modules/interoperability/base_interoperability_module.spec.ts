@@ -14,12 +14,7 @@ import {
 	terminatedStateAccount,
 	mainchainID,
 } from './interopFixtures';
-import {
-	ActiveValidator,
-	ChainStatus,
-	EMPTY_BYTES,
-	MainchainInteroperabilityModule,
-} from '../../../../src';
+import { Engine, Modules } from '../../../../src';
 import {
 	MAX_NUM_VALIDATORS,
 	MIN_RETURN_FEE_PER_BYTE_BEDDOWS,
@@ -49,7 +44,7 @@ describe('initGenesisState Common Tests', () => {
 	const chainID = Buffer.from([0, 0, 0, 0]);
 
 	let stateStore: PrefixedStateReadWriter;
-	let interopMod: MainchainInteroperabilityModule;
+	let interopMod: Modules.Interoperability.MainchainInteroperabilityModule;
 	let certificateThreshold = BigInt(0);
 	let params: CreateGenesisBlockContextParams;
 	let ownChainAccountStore: OwnChainAccountStore;
@@ -62,7 +57,7 @@ describe('initGenesisState Common Tests', () => {
 
 	beforeEach(() => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		interopMod = new MainchainInteroperabilityModule();
+		interopMod = new Modules.Interoperability.MainchainInteroperabilityModule();
 		params = {
 			stateStore,
 			chainID,
@@ -172,7 +167,7 @@ describe('initGenesisState Common Tests', () => {
 		});
 
 		it(`should throw error if activeValidators have more than MAX_NUM_VALIDATORS elements`, async () => {
-			const activeValidatorsTemp: ActiveValidator[] = [];
+			const activeValidatorsTemp: Engine.ActiveValidator[] = [];
 			const max = MAX_NUM_VALIDATORS + 10;
 			for (let i = 1; i < max; i += 1) {
 				activeValidatorsTemp.push({
@@ -495,7 +490,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 				...chainInfo,
 				chainData: {
 					...chainData,
-					status: ChainStatus.TERMINATED,
+					status: Modules.Interoperability.ChainStatus.TERMINATED,
 					lastCertificate: {
 						...lastCertificate,
 						validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
@@ -545,7 +540,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 							chainID: Buffer.from([0, 0, 0, 2]),
 							chainData: {
 								...chainData,
-								status: ChainStatus.TERMINATED,
+								status: Modules.Interoperability.ChainStatus.TERMINATED,
 								lastCertificate: {
 									...lastCertificate,
 									validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
@@ -609,11 +604,15 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 			await expect(interopMod.initGenesisState(context)).resolves.not.toThrow();
 
 			expect(ownChainAccountStore.set).toHaveBeenCalledTimes(1);
-			expect(ownChainAccountStore.set).toHaveBeenCalledWith(context, EMPTY_BYTES, {
-				name: genesisInteroperability.ownChainName,
-				chainID: context.chainID,
-				nonce: genesisInteroperability.ownChainNonce,
-			});
+			expect(ownChainAccountStore.set).toHaveBeenCalledWith(
+				context,
+				Modules.Interoperability.EMPTY_BYTES,
+				{
+					name: genesisInteroperability.ownChainName,
+					chainID: context.chainID,
+					nonce: genesisInteroperability.ownChainNonce,
+				},
+			);
 		});
 
 		it('should not throw error If for each entry in chainInfos, we add valid substore entries', async () => {
@@ -684,7 +683,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 									...lastCertificate,
 									validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
 								},
-								status: ChainStatus.TERMINATED,
+								status: Modules.Interoperability.ChainStatus.TERMINATED,
 							},
 							chainValidators: {
 								activeValidators,
@@ -736,7 +735,7 @@ must NOT have more than ${MAX_NUM_VALIDATORS} items`,
 									...lastCertificate,
 									validatorsHash: computeValidatorsHash(activeValidators, certificateThreshold),
 								},
-								status: ChainStatus.TERMINATED,
+								status: Modules.Interoperability.ChainStatus.TERMINATED,
 							},
 							chainValidators: {
 								activeValidators,

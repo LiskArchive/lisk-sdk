@@ -31,6 +31,9 @@ import { FeeMethod } from '../types';
 import { EscrowStore } from '../stores/escrow';
 import { CcmTransferEvent } from '../events/ccm_transfer';
 
+/**
+ * Accepts CCMs created by the {@link CrossChainTransferCommand} and executes the cross-chain transfer on the receiving chain.
+ */
 export class CrossChainTransferCommand extends BaseCCCommand {
 	public schema = crossChainNFTTransferMessageParamsSchema;
 	private _method!: NFTMethod;

@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BasePlugin } from 'lisk-sdk';
+import { Plugins } from 'lisk-sdk';
 import { PeerInfo, SharedState, TransactionPropagationStats } from '../types';
 
 export interface TransactionStats {
@@ -33,7 +33,7 @@ const getAverage = (transactions: Record<string, TransactionPropagationStats>): 
 };
 
 export const getTransactionStats = async (
-	client: BasePlugin['apiClient'],
+	client: Plugins.BasePlugin['apiClient'],
 	state: SharedState,
 ): Promise<TransactionStats> => ({
 	transactions: state.transactions,

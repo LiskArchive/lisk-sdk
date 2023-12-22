@@ -13,7 +13,7 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { StoreGetter } from '../../../../../src';
+import { Modules } from '../../../../../src';
 import { UserStore } from '../../../../../src/modules/token/stores/user';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
@@ -29,7 +29,7 @@ describe('UserStore', () => {
 	};
 
 	let store: UserStore;
-	let context: StoreGetter;
+	let context: Modules.StoreGetter;
 
 	beforeEach(async () => {
 		store = new UserStore('token', 0);

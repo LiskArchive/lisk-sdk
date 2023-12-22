@@ -35,11 +35,7 @@ import {
 	defaultConfig,
 	EMPTY_BYTES,
 } from '../../../../src/modules/dynamic_reward/constants';
-import {
-	BlockAfterExecuteContext,
-	BlockExecuteContext,
-	GenesisBlockExecuteContext,
-} from '../../../../src';
+import { StateMachine } from '../../../../src';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { EndOfRoundTimestampStore } from '../../../../src/modules/dynamic_reward/stores/end_of_round_timestamp';
 import {
@@ -139,7 +135,7 @@ describe('DynamicRewardModule', () => {
 	});
 
 	describe('initGenesisState', () => {
-		let blockExecuteContext: GenesisBlockExecuteContext;
+		let blockExecuteContext: StateMachine.GenesisBlockExecuteContext;
 
 		beforeEach(() => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -161,7 +157,7 @@ describe('DynamicRewardModule', () => {
 	});
 
 	describe('beforeTransactionsExecute', () => {
-		let blockExecuteContext: BlockExecuteContext;
+		let blockExecuteContext: StateMachine.BlockExecuteContext;
 
 		beforeEach(async () => {
 			generatorAddress = utils.getRandomBytes(20);
@@ -315,7 +311,7 @@ describe('DynamicRewardModule', () => {
 	});
 
 	describe('afterTransactionsExecute', () => {
-		let blockExecuteContext: BlockAfterExecuteContext;
+		let blockExecuteContext: StateMachine.BlockAfterExecuteContext;
 		let contextStore: Map<string, unknown>;
 
 		beforeEach(async () => {

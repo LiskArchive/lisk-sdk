@@ -14,8 +14,10 @@
 
 export { BaseCCCommand } from './base_cc_command';
 export { BaseInteroperableModule } from './base_interoperable_module';
+export { BaseInteroperabilityModule } from './base_interoperability_module';
+export { BaseInteroperabilityMethod } from './base_interoperability_method';
 export { BaseCCMethod } from './base_cc_method';
-export { getMainchainID } from './utils';
+export { getMainchainID, validateFormat } from './utils';
 
 // Mainchain
 export { MainchainInteroperabilityModule } from './mainchain/module';
@@ -50,13 +52,7 @@ export {
 	RecoverContext,
 } from './types';
 // Common
-export {
-	LIVENESS_LIMIT,
-	MESSAGE_TAG_CERTIFICATE,
-	MODULE_NAME_INTEROPERABILITY,
-	MAX_CCM_SIZE,
-	EMPTY_BYTES,
-} from './constants';
+export * from './constants';
 export { ChainStatus } from './stores/chain_account';
 export {
 	ccmSchema,

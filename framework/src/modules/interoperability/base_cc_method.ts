@@ -12,9 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseMethod } from '..';
+import { BaseMethod } from '../base_method';
 import { BeforeCCMForwardingContext, CrossChainMessageContext, RecoverContext } from './types';
 
+/**
+ * The BaseCCMethod represents Lisk module methods with cross-chain relations.
+ */
 export abstract class BaseCCMethod extends BaseMethod {
 	public beforeRecoverCCM?(ctx: CrossChainMessageContext): Promise<void>;
 	public recover?(ctx: RecoverContext): Promise<void>;

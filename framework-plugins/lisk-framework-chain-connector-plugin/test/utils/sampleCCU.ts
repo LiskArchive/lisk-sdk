@@ -12,17 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	testing,
-	SubmitMainchainCrossChainUpdateCommand,
-	MODULE_NAME_INTEROPERABILITY,
-} from 'lisk-sdk';
+import { testing, Modules } from 'lisk-sdk';
 
 export const getSampleCCU = (txParams?: Record<string, unknown>) =>
 	testing
 		.createTransaction({
-			commandClass: SubmitMainchainCrossChainUpdateCommand as any,
-			module: MODULE_NAME_INTEROPERABILITY,
+			commandClass: Modules.Interoperability.SubmitMainchainCrossChainUpdateCommand as any,
+			module: Modules.Interoperability.MODULE_NAME_INTEROPERABILITY,
 			nonce: (txParams?.nonce as bigint) ?? BigInt(0),
 			params: (txParams?.params as Record<string, unknown>) ?? {
 				activeValidatorsUpdate: {

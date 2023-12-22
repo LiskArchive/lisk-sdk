@@ -12,16 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	AggregateCommit,
-	db,
-	testing,
-	cryptography,
-	chain,
-	SubmitMainchainCrossChainUpdateCommand,
-	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
-	MODULE_NAME_INTEROPERABILITY,
-} from 'lisk-sdk';
+import { Engine, db, testing, cryptography, chain, Modules } from 'lisk-sdk';
 import * as fs from 'fs-extra';
 import { homedir } from 'os';
 import { join } from 'path';
@@ -99,7 +90,7 @@ describe('Plugins DB', () => {
 		});
 
 		describe('aggregateCommits', () => {
-			let sampleAggregateCommits: AggregateCommit[];
+			let sampleAggregateCommits: Engine.AggregateCommit[];
 
 			beforeEach(() => {
 				sampleAggregateCommits = [
@@ -240,7 +231,7 @@ describe('Plugins DB', () => {
 
 			beforeEach(() => {
 				sampleLastSentCCM = {
-					crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+					crossChainCommand: Modules.Token.CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 					fee: BigInt(1000),
 					height: 1,
 					module: 'token',
@@ -270,8 +261,8 @@ describe('Plugins DB', () => {
 				listOfCCUs = [
 					testing
 						.createTransaction({
-							commandClass: SubmitMainchainCrossChainUpdateCommand as any,
-							module: MODULE_NAME_INTEROPERABILITY,
+							commandClass: Modules.Interoperability.SubmitMainchainCrossChainUpdateCommand as any,
+							module: Modules.Interoperability.MODULE_NAME_INTEROPERABILITY,
 							params: {
 								activeValidatorsUpdate: {
 									blsKeysUpdate: [],
@@ -295,8 +286,8 @@ describe('Plugins DB', () => {
 						.toObject(),
 					testing
 						.createTransaction({
-							commandClass: SubmitMainchainCrossChainUpdateCommand as any,
-							module: MODULE_NAME_INTEROPERABILITY,
+							commandClass: Modules.Interoperability.SubmitMainchainCrossChainUpdateCommand as any,
+							module: Modules.Interoperability.MODULE_NAME_INTEROPERABILITY,
 							params: {
 								activeValidatorsUpdate: {
 									blsKeysUpdate: [],

@@ -12,14 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	testing,
-	RegisteredSchema,
-	PartialApplicationConfig,
-	chain,
-	db as liskDB,
-	codec,
-} from 'lisk-sdk';
+import { testing, Types, chain, db as liskDB, codec } from 'lisk-sdk';
 import { rmdirSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
@@ -49,7 +42,7 @@ describe('save block header', () => {
 	const rootPath = join(homedir(), '.lisk', 'report-misbehavior-plugin');
 	const apiPort = 5002;
 
-	const encodeBlockHeader = (schemas: RegisteredSchema, newHeader: chain.BlockHeader) =>
+	const encodeBlockHeader = (schemas: Types.RegisteredSchema, newHeader: chain.BlockHeader) =>
 		codec.encode(schemas.blockHeader, newHeader);
 
 	beforeAll(async () => {
@@ -65,7 +58,7 @@ describe('save block header', () => {
 					encryptedPassphrase: testing.fixtures.defaultFaucetAccount.encryptedPassphrase,
 				},
 			},
-		} as PartialApplicationConfig;
+		} as Types.PartialApplicationConfig;
 
 		appEnv = testing.createDefaultApplicationEnv({
 			config,

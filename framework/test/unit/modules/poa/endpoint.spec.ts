@@ -13,7 +13,7 @@
  */
 
 import { address as cryptoAddress, utils } from '@liskhq/lisk-cryptography';
-import { PoAModule } from '../../../../src';
+import { Modules } from '../../../../src';
 import { PoAEndpoint } from '../../../../src/modules/poa/endpoint';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { SnapshotStore, ValidatorStore } from '../../../../src/modules/poa/stores';
@@ -25,7 +25,7 @@ import { createStoreGetter } from '../../../../src/testing/utils';
 import { AUTHORITY_REGISTRATION_FEE, KEY_SNAPSHOT_0 } from '../../../../src/modules/poa/constants';
 
 describe('PoAModuleEndpoint', () => {
-	const poa = new PoAModule();
+	const poa = new Modules.PoA.PoAModule();
 
 	let poaEndpoint: PoAEndpoint;
 	let stateStore: PrefixedStateReadWriter;

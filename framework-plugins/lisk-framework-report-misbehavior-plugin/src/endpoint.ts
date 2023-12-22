@@ -11,12 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-	BasePluginEndpoint,
-	PluginEndpointContext,
-	validator as liskValidator,
-	cryptography,
-} from 'lisk-sdk';
+import { Plugins, Types, validator as liskValidator, cryptography } from 'lisk-sdk';
 import { actionParamsSchema } from './schemas';
 import { ReportMisbehaviorPluginConfig, State } from './types';
 
@@ -26,7 +21,7 @@ const validator: liskValidator.LiskValidator = liskValidator.validator;
 
 const { encrypt, ed } = cryptography;
 
-export class Endpoint extends BasePluginEndpoint {
+export class Endpoint extends Plugins.BasePluginEndpoint {
 	private _state!: State;
 	private _config!: ReportMisbehaviorPluginConfig;
 
@@ -36,7 +31,7 @@ export class Endpoint extends BasePluginEndpoint {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async authorize(context: PluginEndpointContext): Promise<{ result: string }> {
+	public async authorize(context: Types.PluginEndpointContext): Promise<{ result: string }> {
 		validator.validate<{ enable: boolean; password: string }>(actionParamsSchema, context.params);
 
 		const { enable, password } = context.params;

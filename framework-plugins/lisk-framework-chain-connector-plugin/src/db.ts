@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec, db as liskDB, AggregateCommit, chain, cryptography } from 'lisk-sdk';
+import { codec, db as liskDB, Engine, chain, cryptography } from 'lisk-sdk';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
@@ -42,7 +42,7 @@ interface BlockHeadersInfo {
 }
 
 interface AggregateCommitsInfo {
-	aggregateCommits: AggregateCommit[];
+	aggregateCommits: Engine.AggregateCommit[];
 }
 
 interface ValidatorsHashPreimage {
@@ -105,8 +105,8 @@ export class ChainConnectorStore {
 		await this._db.set(DB_KEY_BLOCK_HEADERS, encodedInfo);
 	}
 
-	public async getAggregateCommits(): Promise<AggregateCommit[]> {
-		let aggregateCommits: AggregateCommit[] = [];
+	public async getAggregateCommits(): Promise<Engine.AggregateCommit[]> {
+		let aggregateCommits: Engine.AggregateCommit[] = [];
 		try {
 			const encodedInfo = await this._db.get(DB_KEY_AGGREGATE_COMMITS);
 			aggregateCommits = codec.decode<AggregateCommitsInfo>(
@@ -119,7 +119,7 @@ export class ChainConnectorStore {
 		return aggregateCommits;
 	}
 
-	public async setAggregateCommits(aggregateCommits: AggregateCommit[]) {
+	public async setAggregateCommits(aggregateCommits: Engine.AggregateCommit[]) {
 		const encodedInfo = codec.encode(aggregateCommitsInfoSchema, { aggregateCommits });
 		await this._db.set(DB_KEY_AGGREGATE_COMMITS, encodedInfo);
 	}

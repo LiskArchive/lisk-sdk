@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MAX_CCM_SIZE } from 'lisk-sdk';
+import { Modules } from 'lisk-sdk';
 
 // LIP: https://github.com/LiskHQ/lips/blob/main/proposals/lip-0045.md#liveness-condition
 export const CCU_FREQUENCY = 1; // At each block
@@ -46,4 +46,4 @@ export const DB_KEY_LIST_OF_CCU = Buffer.from([6]);
  * Max size of total CCMs that can be included in a CCU
  * CCU_TOTAL_CCM_SIZE
  */
-export const CCU_TOTAL_CCM_SIZE = MAX_CCM_SIZE;
+export const CCU_TOTAL_CCM_SIZE = Modules.Interoperability.MAX_CCM_SIZE;

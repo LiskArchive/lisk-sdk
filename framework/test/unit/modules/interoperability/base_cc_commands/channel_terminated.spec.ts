@@ -13,7 +13,7 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { ChainStatus, MainchainInteroperabilityModule } from '../../../../../src';
+import { Modules } from '../../../../../src';
 import {
 	CCMStatusCode,
 	CHAIN_ID_LENGTH,
@@ -33,7 +33,7 @@ import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefix
 import { CCCommandExecuteContext } from '../../../../../src/modules/interoperability/types';
 
 describe('BaseCCChannelTerminatedCommand', () => {
-	const interopMod = new MainchainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.MainchainInteroperabilityModule();
 	const createTerminatedStateAccountMock = jest.fn();
 
 	let sampleExecuteContext: CCCommandExecuteContext<void>;
@@ -80,7 +80,7 @@ describe('BaseCCChannelTerminatedCommand', () => {
 			timestamp: 100,
 			validatorsHash: utils.getRandomBytes(32),
 		},
-		status: ChainStatus.TERMINATED,
+		status: Modules.Interoperability.ChainStatus.TERMINATED,
 	};
 
 	beforeEach(() => {

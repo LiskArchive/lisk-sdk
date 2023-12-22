@@ -16,22 +16,15 @@ import {
 	cryptography,
 	testing,
 	apiClient,
-	ApplicationConfigForPlugin,
+	Types,
 	codec,
 	db,
 	Block,
-	AggregateCommit,
 	chain,
-	ccmSchema,
-	ChannelDataJSON,
-	CCMsg,
-	certificateSchema,
+	Modules,
+	Engine,
 	tree,
-	CrossChainUpdateTransactionParams,
-	Certificate,
-	BFTHeights,
 	transactions,
-	ccuParamsSchema,
 } from 'lisk-sdk';
 import { when } from 'jest-when';
 import {
@@ -63,7 +56,7 @@ import { getSampleCCU } from '../utils/sampleCCU';
 describe('ChainConnectorPlugin', () => {
 	const BLS_SIGNATURE_LENGTH = 96;
 	const ownChainID = Buffer.from('04000000', 'hex');
-	const appConfigForPlugin: ApplicationConfigForPlugin = {
+	const appConfigForPlugin: Types.ApplicationConfigForPlugin = {
 		...testing.fixtures.defaultConfig,
 		genesis: {
 			chainID: ownChainID.toString('hex'),
@@ -90,10 +83,10 @@ describe('ChainConnectorPlugin', () => {
 		properties: {
 			ccm: {
 				fieldNumber: 1,
-				type: ccmSchema.type,
-				required: [...ccmSchema.required],
+				type: Modules.Interoperability.ccmSchema.type,
+				required: [...Modules.Interoperability.ccmSchema.required],
 				properties: {
-					...ccmSchema.properties,
+					...Modules.Interoperability.ccmSchema.properties,
 				},
 			},
 		},
@@ -106,10 +99,10 @@ describe('ChainConnectorPlugin', () => {
 		properties: {
 			ccm: {
 				fieldNumber: 1,
-				type: ccmSchema.type,
-				required: [...ccmSchema.required],
+				type: Modules.Interoperability.ccmSchema.type,
+				required: [...Modules.Interoperability.ccmSchema.required],
 				properties: {
-					...ccmSchema.properties,
+					...Modules.Interoperability.ccmSchema.properties,
 				},
 			},
 			result: {
@@ -154,7 +147,7 @@ describe('ChainConnectorPlugin', () => {
 		'6c5e2b24ff1cc99da7a49bd28420b93b2a91e2e2a3b0a0ce07676966b707d3c2859bbd02747cf8e26dab592c02155dfddd4a16b0fe83fd7e7ffaec0b5391f3f7';
 	const defaultPassword = '123';
 	const defaultCCUFee = '500000';
-	const sampleCCUParams: CrossChainUpdateTransactionParams = {
+	const sampleCCUParams: Modules.Interoperability.CrossChainUpdateTransactionParams = {
 		sendingChainID: Buffer.from('04000001', 'hex'),
 		activeValidatorsUpdate: {
 			bftWeightsUpdate: [],
@@ -199,7 +192,7 @@ describe('ChainConnectorPlugin', () => {
 
 	let defaultEncryptedPrivateKey: string;
 	let defaultConfig: ChainConnectorPluginConfig & Record<string, unknown>;
-	let sampleBFTHeights: BFTHeights;
+	let sampleBFTHeights: Engine.BFTHeights;
 
 	beforeEach(async () => {
 		sampleBFTHeights = {
@@ -467,7 +460,7 @@ describe('ChainConnectorPlugin', () => {
 				let height = 0;
 				return new Array(count).fill(0).map(() => {
 					height += 1;
-					const aggregateCommit: AggregateCommit = {
+					const aggregateCommit: Engine.AggregateCommit = {
 						height,
 						aggregationBits: Buffer.from('00', 'hex'),
 						certificateSignature: Buffer.alloc(0),
@@ -571,7 +564,7 @@ describe('ChainConnectorPlugin', () => {
 
 	describe('_newBlockHandler', () => {
 		let block: Block;
-		let sampleNextCertificate: Certificate;
+		let sampleNextCertificate: Engine.Certificate;
 
 		beforeEach(async () => {
 			block = await testing.createBlock({
@@ -1078,9 +1071,13 @@ describe('ChainConnectorPlugin', () => {
 				});
 
 				await expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).resolves.toBe(
-					transactions.computeMinFee(transactionTemplate, ccuParamsSchema, {
-						additionalFee: initializationFees.userAccount,
-					}),
+					transactions.computeMinFee(
+						transactionTemplate,
+						Modules.Interoperability.ccuParamsSchema,
+						{
+							additionalFee: initializationFees.userAccount,
+						},
+					),
 				);
 			});
 		});
@@ -1108,7 +1105,7 @@ describe('ChainConnectorPlugin', () => {
 				});
 
 				await expect(chainConnectorPlugin['_getCcuFee'](transactionTemplate)).resolves.toBe(
-					transactions.computeMinFee(transactionTemplate, ccuParamsSchema),
+					transactions.computeMinFee(transactionTemplate, Modules.Interoperability.ccuParamsSchema),
 				);
 			});
 		});
@@ -1116,9 +1113,9 @@ describe('ChainConnectorPlugin', () => {
 	describe('_computeCCUParams', () => {
 		let sampleCCMsWithEvents: CCMsFromEvents[];
 		let sampleBlockHeaders: BlockHeader[];
-		let sampleAggregateCommits: AggregateCommit[];
+		let sampleAggregateCommits: Engine.AggregateCommit[];
 		let sampleValidatorsHashPreimage: ValidatorsData[];
-		let sampleChannelDataJSON: ChannelDataJSON;
+		let sampleChannelDataJSON: Modules.Interoperability.ChannelDataJSON;
 
 		beforeEach(async () => {
 			sampleBlockHeaders = new Array(10).fill(0).map((_, index) => {
@@ -1341,14 +1338,14 @@ describe('ChainConnectorPlugin', () => {
 				const lastSentCCMsFromEvents = sampleCCMsWithEvents[5];
 				const expectedCCMsToBeSent = sampleCCMsWithEvents
 					.slice(5, 7)
-					.reduce((ccms: CCMsg[], record: CCMsFromEvents) => {
+					.reduce((ccms: Modules.Interoperability.CCMsg[], record: CCMsFromEvents) => {
 						for (const ccm of record.ccms) {
 							ccms.push(ccm);
 						}
 
 						return ccms;
 					}, [])
-					.map(ccm => codec.encode(ccmSchema, ccm));
+					.map(ccm => codec.encode(Modules.Interoperability.ccmSchema, ccm));
 				await chainConnectorPlugin['_chainConnectorStore'].setLastSentCCM({
 					...lastSentCCMsFromEvents.ccms[0],
 					height: lastSentCCMsFromEvents.height,
@@ -1500,7 +1497,7 @@ describe('ChainConnectorPlugin', () => {
 					validatorsData[0].certificateThreshold,
 				);
 				expect(result?.ccuParams.certificate).toEqual(
-					codec.encode(certificateSchema, newCertificate),
+					codec.encode(Engine.certificateSchema, newCertificate),
 				);
 				expect(result?.ccuParams.inboxUpdate.crossChainMessages).toEqual([]);
 				expect(result?.ccuParams.inboxUpdate.messageWitnessHashes).toEqual([]);
@@ -1580,7 +1577,7 @@ describe('ChainConnectorPlugin', () => {
 					validatorsUpdateResult.certificateThreshold,
 				);
 				expect(result?.ccuParams.certificate).toEqual(
-					codec.encode(certificateSchema, newCertificate),
+					codec.encode(Engine.certificateSchema, newCertificate),
 				);
 
 				expect(result?.ccuParams.inboxUpdate.crossChainMessages.length).toEqual(
@@ -1681,7 +1678,7 @@ describe('ChainConnectorPlugin', () => {
 					validatorsUpdateResult.certificateThreshold,
 				);
 				expect(result?.ccuParams.certificate).toEqual(
-					codec.encode(certificateSchema, newCertificate),
+					codec.encode(Engine.certificateSchema, newCertificate),
 				);
 				expect(result?.ccuParams.inboxUpdate.crossChainMessages.length).toEqual(
 					sampleCCMsWithEvents.slice(5, 8).length,
@@ -1773,7 +1770,7 @@ describe('ChainConnectorPlugin', () => {
 					validatorsUpdateResult.certificateThreshold,
 				);
 				expect(result?.ccuParams.certificate).toEqual(
-					codec.encode(certificateSchema, newCertificate),
+					codec.encode(Engine.certificateSchema, newCertificate),
 				);
 				expect(result?.ccuParams.inboxUpdate.crossChainMessages).toEqual([]);
 				expect(result?.ccuParams.inboxUpdate.messageWitnessHashes).toEqual([]);

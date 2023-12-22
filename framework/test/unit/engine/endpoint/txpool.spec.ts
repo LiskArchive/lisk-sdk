@@ -22,7 +22,7 @@ import { Broadcaster } from '../../../../src/engine/generator/broadcaster';
 import { InvalidTransactionError } from '../../../../src/engine/generator/errors';
 import { fakeLogger } from '../../../utils/mocks';
 import { TxpoolEndpoint } from '../../../../src/engine/endpoint/txpool';
-import { VerifyStatus } from '../../../../src';
+import { StateMachine } from '../../../../src';
 import { ED25519_PUBLIC_KEY_LENGTH } from '../../../../src/engine/bft/constants';
 
 const ED25519_SIGNATURE_LENGTH = 64;
@@ -445,7 +445,7 @@ describe('txpool endpoint', () => {
 						chainID,
 					}),
 				).resolves.toEqual({
-					result: VerifyStatus.OK,
+					result: StateMachine.VerifyStatus.OK,
 					events: eventsJson,
 				});
 			});

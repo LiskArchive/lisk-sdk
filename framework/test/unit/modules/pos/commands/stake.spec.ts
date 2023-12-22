@@ -16,7 +16,7 @@ import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { address, utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { StakeCommand, VerifyStatus, PoSModule } from '../../../../../src';
+import { StateMachine, Modules } from '../../../../../src';
 import {
 	defaultConfig,
 	MODULE_NAME_POS,
@@ -43,7 +43,7 @@ import { liskToBeddows } from '../../../../utils/assets';
 import { DEFAULT_LOCAL_ID } from '../../../../utils/mocks/transaction';
 
 describe('StakeCommand', () => {
-	const pos = new PoSModule();
+	const pos = new Modules.PoS.PoSModule();
 	const checkEventResult = (
 		eventQueue: EventQueue,
 		length: number,
@@ -81,7 +81,7 @@ describe('StakeCommand', () => {
 	let validatorStore: ValidatorStore;
 	let context: any;
 	let transaction: any;
-	let command: StakeCommand;
+	let command: Modules.PoS.StakeCommand;
 	let transactionParamsDecoded: any;
 	let stateStore: PrefixedStateReadWriter;
 	let tokenLockMock: jest.Mock;
@@ -120,7 +120,7 @@ describe('StakeCommand', () => {
 		internalMethod = new InternalMethod(pos.stores, pos.events, pos.name);
 		internalMethod.addDependencies(tokenMethod);
 		mockAssignStakeRewards = jest.spyOn(internalMethod, 'assignStakeRewards').mockResolvedValue();
-		command = new StakeCommand(pos.stores, pos.events);
+		command = new Modules.PoS.StakeCommand(pos.stores, pos.events);
 		command.addDependencies({
 			tokenMethod,
 			internalMethod,
@@ -276,7 +276,10 @@ describe('StakeCommand', () => {
 					transaction,
 				}).createCommandVerifyContext<StakeTransactionParams>(command.schema);
 
-				await expect(command.verify(context)).resolves.toHaveProperty('status', VerifyStatus.OK);
+				await expect(command.verify(context)).resolves.toHaveProperty(
+					'status',
+					StateMachine.VerifyStatus.OK,
+				);
 			});
 
 			it('should not throw errors with valid downstake cast', async () => {
@@ -288,7 +291,10 @@ describe('StakeCommand', () => {
 					transaction,
 				}).createCommandVerifyContext<StakeTransactionParams>(command.schema);
 
-				await expect(command.verify(context)).resolves.toHaveProperty('status', VerifyStatus.OK);
+				await expect(command.verify(context)).resolves.toHaveProperty(
+					'status',
+					StateMachine.VerifyStatus.OK,
+				);
 			});
 
 			it('should not throw errors with valid mixed stakes case', async () => {
@@ -303,7 +309,10 @@ describe('StakeCommand', () => {
 					transaction,
 				}).createCommandVerifyContext<StakeTransactionParams>(command.schema);
 
-				await expect(command.verify(context)).resolves.toHaveProperty('status', VerifyStatus.OK);
+				await expect(command.verify(context)).resolves.toHaveProperty(
+					'status',
+					StateMachine.VerifyStatus.OK,
+				);
 			});
 		});
 

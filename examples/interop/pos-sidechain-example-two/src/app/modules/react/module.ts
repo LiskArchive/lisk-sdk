@@ -1,14 +1,14 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable @typescript-eslint/member-ordering */
 
-import { BaseInteroperableModule, ModuleMetadata, ModuleInitArgs } from 'lisk-sdk';
+import { Modules } from 'lisk-sdk';
 import { CrossChainReactCommand } from './commands/react_cc_command';
 import { ReactEndpoint } from './endpoint';
 import { ReactMethod } from './method';
 import { ReactInteroperableMethod } from './cc_method';
 import { InteroperabilityMethod } from './types';
 
-export class ReactModule extends BaseInteroperableModule {
+export class ReactModule extends Modules.Interoperability.BaseInteroperableModule {
 	public endpoint = new ReactEndpoint(this.stores, this.offchainStores);
 	public method = new ReactMethod(this.stores, this.events);
 	public commands = [new CrossChainReactCommand(this.stores, this.events)];
@@ -21,7 +21,7 @@ export class ReactModule extends BaseInteroperableModule {
 			this.stores.register(ReactionStore, new ReactionStore(this.name, 0));
 	 } */
 
-	public metadata(): ModuleMetadata {
+	public metadata(): Modules.ModuleMetadata {
 		return {
 			...this.baseMetadata(),
 			endpoints: [],
@@ -39,7 +39,7 @@ export class ReactModule extends BaseInteroperableModule {
 
 	// Lifecycle hooks
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async init(_args: ModuleInitArgs) {
+	public async init(_args: Modules.ModuleInitArgs) {
 		this.commands[0].init({
 			interoperabilityMethod: this._interoperabilityMethod,
 		});

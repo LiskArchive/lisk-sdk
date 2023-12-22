@@ -18,16 +18,7 @@ import { bls, utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { EMPTY_BUFFER } from '@liskhq/lisk-chain/dist-node/constants';
-import {
-	CommandExecuteContext,
-	CommandVerifyContext,
-	VerifyStatus,
-	SubmitMainchainCrossChainUpdateCommand,
-	MainchainInteroperabilityModule,
-	Transaction,
-	BLS_SIGNATURE_LENGTH,
-	EMPTY_BYTES,
-} from '../../../../../../src';
+import { StateMachine, Transaction, Modules } from '../../../../../../src';
 import {
 	ActiveValidator,
 	ActiveValidatorsUpdate,
@@ -91,7 +82,7 @@ import {
 } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
 
 describe('SubmitMainchainCrossChainUpdateCommand', () => {
-	const interopMod = new MainchainInteroperabilityModule();
+	const interopMod = new Modules.Interoperability.MainchainInteroperabilityModule();
 	const chainID = Buffer.alloc(4, 0);
 	const senderPublicKey = utils.getRandomBytes(32);
 	const messageFeeTokenID = Buffer.alloc(8, 0);
@@ -102,7 +93,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 		stateRoot: utils.getRandomBytes(HASH_LENGTH),
 		validatorsHash: cryptography.utils.getRandomBytes(HASH_LENGTH),
 		aggregationBits: cryptography.utils.getRandomBytes(1),
-		signature: cryptography.utils.getRandomBytes(BLS_SIGNATURE_LENGTH),
+		signature: cryptography.utils.getRandomBytes(Modules.Interoperability.BLS_SIGNATURE_LENGTH),
 	};
 
 	const defaultNewCertificateThreshold = BigInt(20);
@@ -175,9 +166,9 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 	let encodedDefaultCertificate: Buffer;
 	let partnerChainAccount: ChainAccount;
 	let partnerChannelAccount: ChannelData;
-	let verifyContext: CommandVerifyContext<CrossChainUpdateTransactionParams>;
-	let executeContext: CommandExecuteContext<CrossChainUpdateTransactionParams>;
-	let mainchainCCUUpdateCommand: SubmitMainchainCrossChainUpdateCommand;
+	let verifyContext: StateMachine.CommandVerifyContext<CrossChainUpdateTransactionParams>;
+	let executeContext: StateMachine.CommandExecuteContext<CrossChainUpdateTransactionParams>;
+	let mainchainCCUUpdateCommand: Modules.Interoperability.SubmitMainchainCrossChainUpdateCommand;
 	let params: CrossChainUpdateTransactionParams;
 	let activeValidatorsUpdate: ActiveValidator[];
 	let sortedActiveValidatorsUpdate: ActiveValidatorsUpdate;
@@ -186,7 +177,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 	let partnerValidatorStore: ChainValidatorsStore;
 
 	beforeEach(async () => {
-		mainchainCCUUpdateCommand = new SubmitMainchainCrossChainUpdateCommand(
+		mainchainCCUUpdateCommand = new Modules.Interoperability.SubmitMainchainCrossChainUpdateCommand(
 			interopMod.stores,
 			interopMod.events,
 			new Map(),
@@ -402,7 +393,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 
 			await mainchainCCUUpdateCommand['stores']
 				.get(OwnChainAccountStore)
-				.set(stateStore, EMPTY_BYTES, {
+				.set(stateStore, Modules.Interoperability.EMPTY_BYTES, {
 					...ownChainAccount,
 				});
 
@@ -418,7 +409,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			jest.spyOn(mainchainCCUUpdateCommand, 'verifyCommon' as any);
 
 			await expect(mainchainCCUUpdateCommand.verify(verifyContext)).resolves.toEqual({
-				status: VerifyStatus.OK,
+				status: StateMachine.VerifyStatus.OK,
 			});
 
 			expect(mainchainCCUUpdateCommand['verifyCommon']).toHaveBeenCalledWith(verifyContext, true);
@@ -432,7 +423,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 					...verifyContext,
 					params: { ...params } as any,
 				}),
-			).resolves.toEqual({ status: VerifyStatus.OK });
+			).resolves.toEqual({ status: StateMachine.VerifyStatus.OK });
 
 			expect(mainchainCCUUpdateCommand['internalMethod'].isLive).toHaveBeenCalledWith(
 				verifyContext,
@@ -462,7 +453,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 						},
 					},
 				}),
-			).resolves.toEqual({ status: VerifyStatus.OK });
+			).resolves.toEqual({ status: StateMachine.VerifyStatus.OK });
 			expect(interopUtils.verifyLivenessConditionForRegisteredChains).not.toHaveBeenCalled();
 		});
 
@@ -482,7 +473,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 						},
 					},
 				}),
-			).resolves.toEqual({ status: VerifyStatus.OK });
+			).resolves.toEqual({ status: StateMachine.VerifyStatus.OK });
 
 			expect(interopUtils.verifyLivenessConditionForRegisteredChains).toHaveBeenCalled();
 			expect(validator.validate).toHaveBeenCalledWith(
@@ -507,7 +498,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 						},
 					},
 				}),
-			).resolves.toEqual({ status: VerifyStatus.OK });
+			).resolves.toEqual({ status: StateMachine.VerifyStatus.OK });
 		});
 	});
 
@@ -731,12 +722,12 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 			params: Buffer.alloc(0),
 		};
 		let context: CrossChainMessageContext;
-		let command: SubmitMainchainCrossChainUpdateCommand;
+		let command: Modules.Interoperability.SubmitMainchainCrossChainUpdateCommand;
 		let ccMethods: Map<string, BaseCCMethod>;
 		let ccCommands: Map<string, BaseCCCommand[]>;
 
 		beforeEach(async () => {
-			const interopModule = new MainchainInteroperabilityModule();
+			const interopModule = new Modules.Interoperability.MainchainInteroperabilityModule();
 			ccMethods = new Map();
 			ccMethods.set(
 				'token',
@@ -753,7 +744,7 @@ describe('SubmitMainchainCrossChainUpdateCommand', () => {
 					public execute = jest.fn();
 				})(interopModule.stores, interopModule.events),
 			]);
-			command = new SubmitMainchainCrossChainUpdateCommand(
+			command = new Modules.Interoperability.SubmitMainchainCrossChainUpdateCommand(
 				interopModule.stores,
 				interopModule.events,
 				ccMethods,

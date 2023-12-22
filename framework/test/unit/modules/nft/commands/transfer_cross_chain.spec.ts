@@ -31,7 +31,7 @@ import {
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { EventQueue, VerifyStatus, createMethodContext } from '../../../../../src/state_machine';
-import { TokenMethod } from '../../../../../src';
+import { Modules } from '../../../../../src';
 import { MethodContext } from '../../../../../src/state_machine/method_context';
 import { NFTStore } from '../../../../../src/modules/nft/stores/nft';
 import { UserStore } from '../../../../../src/modules/nft/stores/user';
@@ -54,7 +54,7 @@ describe('TransferCrossChainComand', () => {
 
 	const command = new TransferCrossChainCommand(module.stores, module.events);
 	const nftMethod = new NFTMethod(module.stores, module.events);
-	const tokenMethod = new TokenMethod(module.stores, module.events, module.name);
+	const tokenMethod = new Modules.Token.TokenMethod(module.stores, module.events, module.name);
 	const internalMethod = new InternalMethod(module.stores, module.events);
 	let interoperabilityMethod!: InteroperabilityMethod;
 

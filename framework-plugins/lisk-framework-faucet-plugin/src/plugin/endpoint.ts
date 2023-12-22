@@ -13,14 +13,7 @@
  */
 
 import axios from 'axios';
-import {
-	BasePluginEndpoint,
-	PluginEndpointContext,
-	validator as liskValidator,
-	cryptography,
-	transactions,
-	BasePlugin,
-} from 'lisk-sdk';
+import { Plugins, Types, validator as liskValidator, cryptography, transactions } from 'lisk-sdk';
 import { authorizeParamsSchema, fundParamsSchema } from './schemas';
 import { FaucetPluginConfig, State } from './types';
 
@@ -28,18 +21,22 @@ import { FaucetPluginConfig, State } from './types';
 // eslint-disable-next-line prefer-destructuring
 const validator: liskValidator.LiskValidator = liskValidator.validator;
 
-export class Endpoint extends BasePluginEndpoint {
+export class Endpoint extends Plugins.BasePluginEndpoint {
 	private _state: State = { publicKey: undefined, privateKey: undefined, address: undefined };
-	private _client!: BasePlugin['apiClient'];
+	private _client!: Plugins.BasePlugin['apiClient'];
 	private _config!: FaucetPluginConfig;
 
-	public init(state: State, apiClient: BasePlugin['apiClient'], config: FaucetPluginConfig) {
+	public init(
+		state: State,
+		apiClient: Plugins.BasePlugin['apiClient'],
+		config: FaucetPluginConfig,
+	) {
 		this._state = state;
 		this._client = apiClient;
 		this._config = config;
 	}
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async authorize(context: PluginEndpointContext): Promise<{ result: string }> {
+	public async authorize(context: Types.PluginEndpointContext): Promise<{ result: string }> {
 		validator.validate<{ enable: boolean; password: string }>(
 			authorizeParamsSchema,
 			context.params,
@@ -76,7 +73,7 @@ export class Endpoint extends BasePluginEndpoint {
 		}
 	}
 
-	public async fundTokens(context: PluginEndpointContext): Promise<{ result: string }> {
+	public async fundTokens(context: Types.PluginEndpointContext): Promise<{ result: string }> {
 		validator.validate(fundParamsSchema, context.params);
 		const { address, token } = context.params;
 
