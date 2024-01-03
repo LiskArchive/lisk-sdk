@@ -621,7 +621,7 @@ describe('StakeCommand', () => {
 					pendingUnlocks: [],
 				};
 
-                await stakerStore.set(createStoreGetter(stateStore), senderAddress, stakerData);
+				await stakerStore.set(createStoreGetter(stateStore), senderAddress, stakerData);
 				await validatorStore.set(
 					createStoreGetter(stateStore),
 					validatorAddress1,
