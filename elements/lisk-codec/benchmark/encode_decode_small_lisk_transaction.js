@@ -51,7 +51,7 @@ const testSchema = {
 	properties: {
 		senderPublicKey: { fieldNumber: 1, dataType: 'bytes' },
 		nonce: { fieldNumber: 2, dataType: 'uint32' },
-		free: { fieldNumber: 3, dataType: 'uint64' },
+		fee: { fieldNumber: 3, dataType: 'uint64' },
 		type: { fieldNumber: 4, dataType: 'uint32' },
 		asset: {
 			type: 'object',
