@@ -26,7 +26,7 @@ import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefix
 import { createFakeBlockHeader, InMemoryPrefixedStateDB } from '../../../../../src/testing';
 import { createStoreGetter } from '../../../../../src/testing/utils';
 
-describe('Change Commission command', () => {
+describe('Claim Rewards command', () => {
 	const pos = new PoSModule();
 	const publicKey = utils.getRandomBytes(32);
 	const senderAddress = address.getAddressFromPublicKey(publicKey);

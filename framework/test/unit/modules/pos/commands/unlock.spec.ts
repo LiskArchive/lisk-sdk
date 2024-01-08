@@ -42,17 +42,20 @@ describe('UnlockCommand', () => {
 	let unlockCommand: Modules.PoS.UnlockCommand;
 	let stateStore: PrefixedStateReadWriter;
 	let validatorSubstore: ValidatorStore;
-	let stakerSubstore: StakerStore;
+	let stakerStore: StakerStore;
 	let genesisSubstore: GenesisDataStore;
 	let mockTokenMethod: TokenMethod;
 	let blockHeight: number;
 	let header: BlockHeader;
 	let unlockableObject: UnlockingObject;
 	let unlockableObject2: UnlockingObject;
-	let unlockableObject3: UnlockingObject;
-	let nonUnlockableObject: UnlockingObject;
+	let nonUnlockableObject1: UnlockingObject;
+	let nonUnlockableObject2: UnlockingObject;
 	let context: StateMachine.CommandExecuteContext;
-	let storedData: StakerData;
+	let stakerData: StakerData;
+
+	const initRounds = 3;
+
 	const validator1 = {
 		name: 'validator1',
 		address: utils.getRandomBytes(32),
@@ -126,7 +129,7 @@ describe('UnlockCommand', () => {
 		unlockCommand.init({ ...config, punishmentLockingPeriods });
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		validatorSubstore = pos.stores.get(ValidatorStore);
-		stakerSubstore = pos.stores.get(StakerStore);
+		stakerStore = pos.stores.get(StakerStore);
 		genesisSubstore = pos.stores.get(GenesisDataStore);
 		blockHeight = 8760000;
 		header = testing.createFakeBlockHeader({
@@ -143,7 +146,7 @@ describe('UnlockCommand', () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
-				initRounds: 1,
+				initRounds,
 				initValidators: [],
 			});
 			await validatorSubstore.set(createStoreGetter(stateStore), validator1.address, {
@@ -160,12 +163,12 @@ describe('UnlockCommand', () => {
 				amount: validator1.amount,
 				unstakeHeight: blockHeight - config.lockingPeriodStaking,
 			};
-			nonUnlockableObject = {
+			nonUnlockableObject2 = {
 				validatorAddress: validator2.address,
 				amount: validator2.amount,
 				unstakeHeight: blockHeight,
 			};
-			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
+			await stakerStore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
@@ -173,7 +176,7 @@ describe('UnlockCommand', () => {
 						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
-				pendingUnlocks: [unlockableObject, nonUnlockableObject],
+				pendingUnlocks: [unlockableObject, nonUnlockableObject2],
 			});
 			context = testing
 				.createTransactionContext({
@@ -184,18 +187,15 @@ describe('UnlockCommand', () => {
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
-			storedData = await stakerSubstore.get(
-				createStoreGetter(stateStore),
-				transaction.senderAddress,
-			);
+			stakerData = await stakerStore.get(createStoreGetter(stateStore), transaction.senderAddress);
 		});
 
 		it('should remove eligible pending unlock from staker substore', () => {
-			expect(storedData.pendingUnlocks).not.toContainEqual(unlockableObject);
+			expect(stakerData.pendingUnlocks).not.toContainEqual(unlockableObject);
 		});
 
 		it('should not remove ineligible pending unlock from staker substore', () => {
-			expect(storedData.pendingUnlocks).toContainEqual(nonUnlockableObject);
+			expect(stakerData.pendingUnlocks).toContainEqual(nonUnlockableObject2);
 		});
 	});
 
@@ -203,24 +203,29 @@ describe('UnlockCommand', () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
-				initRounds: 1,
+				initRounds,
 				initValidators: [],
 			});
 			await validatorSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				...defaultValidatorInfo,
-				name: 'nonpunishedselfstaker',
+				name: 'nonpunishedselfstaker1',
 			});
+			await validatorSubstore.set(createStoreGetter(stateStore), validator1.address, {
+				...defaultValidatorInfo,
+				name: 'nonpunishedselfstaker2',
+			});
+
 			unlockableObject = {
 				validatorAddress: transaction.senderAddress,
 				amount: validator1.amount,
 				unstakeHeight: blockHeight - config.lockingPeriodSelfStaking,
 			};
-			nonUnlockableObject = {
-				validatorAddress: transaction.senderAddress,
+			nonUnlockableObject2 = {
+				validatorAddress: validator1.address,
 				amount: validator2.amount,
 				unstakeHeight: blockHeight,
 			};
-			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
+			await stakerStore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
@@ -228,12 +233,12 @@ describe('UnlockCommand', () => {
 						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
-						validatorAddress: nonUnlockableObject.validatorAddress,
+						validatorAddress: nonUnlockableObject2.validatorAddress,
 						amount: validator2.amount,
 						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
-				pendingUnlocks: [unlockableObject, nonUnlockableObject],
+				pendingUnlocks: [unlockableObject, nonUnlockableObject2],
 			});
 			context = testing
 				.createTransactionContext({
@@ -244,18 +249,15 @@ describe('UnlockCommand', () => {
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
-			storedData = await stakerSubstore.get(
-				createStoreGetter(stateStore),
-				transaction.senderAddress,
-			);
+			stakerData = await stakerStore.get(createStoreGetter(stateStore), transaction.senderAddress);
 		});
 
 		it('should remove eligible pending unlock from staker substore', () => {
-			expect(storedData.pendingUnlocks).not.toContainEqual(unlockableObject);
+			expect(stakerData.pendingUnlocks).not.toContainEqual(unlockableObject);
 		});
 
 		it('should not remove ineligible pending unlock from staker substore', () => {
-			expect(storedData.pendingUnlocks).toContainEqual(nonUnlockableObject);
+			expect(stakerData.pendingUnlocks).toContainEqual(nonUnlockableObject2);
 		});
 	});
 
@@ -263,7 +265,7 @@ describe('UnlockCommand', () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
-				initRounds: 1,
+				initRounds,
 				initValidators: [],
 			});
 			await validatorSubstore.set(createStoreGetter(stateStore), validator1.address, {
@@ -277,11 +279,11 @@ describe('UnlockCommand', () => {
 				name: 'punishedstaker2',
 				reportMisbehaviorHeights: [blockHeight],
 			});
-			// This covers scenario: has not waited pomHeight + 260,000 blocks but waited unstakeHeight + 2000 blocks and pomHeight is equal to unstakeHeight + 2000 blocks
+			// This covers scenario: has not waited pomHeight + 260,000 blocks but waited unstakeHeight + 2000 blocks and pomHeight is less than unstakeHeight + 2000 blocks
 			await validatorSubstore.set(createStoreGetter(stateStore), validator3.address, {
 				...defaultValidatorInfo,
 				name: 'punishedstaker3',
-				reportMisbehaviorHeights: [blockHeight - 1000],
+				reportMisbehaviorHeights: [blockHeight - 1001],
 			});
 			await validatorSubstore.set(createStoreGetter(stateStore), validator4.address, {
 				...defaultValidatorInfo,
@@ -298,17 +300,17 @@ describe('UnlockCommand', () => {
 				amount: validator2.amount,
 				unstakeHeight: blockHeight - config.lockingPeriodStaking - 1000,
 			};
-			unlockableObject3 = {
+			nonUnlockableObject1 = {
 				validatorAddress: validator3.address,
 				amount: validator3.amount,
 				unstakeHeight: blockHeight - config.lockingPeriodStaking - 1000,
 			};
-			nonUnlockableObject = {
+			nonUnlockableObject2 = {
 				validatorAddress: validator4.address,
 				amount: validator4.amount,
 				unstakeHeight: blockHeight,
 			};
-			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
+			await stakerStore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
@@ -321,21 +323,21 @@ describe('UnlockCommand', () => {
 						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
-						validatorAddress: unlockableObject3.validatorAddress,
-						amount: unlockableObject3.amount,
+						validatorAddress: nonUnlockableObject1.validatorAddress,
+						amount: nonUnlockableObject1.amount,
 						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
-						validatorAddress: nonUnlockableObject.validatorAddress,
-						amount: nonUnlockableObject.amount,
+						validatorAddress: nonUnlockableObject2.validatorAddress,
+						amount: nonUnlockableObject2.amount,
 						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
 				pendingUnlocks: [
 					unlockableObject,
 					unlockableObject2,
-					unlockableObject3,
-					nonUnlockableObject,
+					nonUnlockableObject1,
+					nonUnlockableObject2,
 				],
 			});
 			context = testing
@@ -347,20 +349,17 @@ describe('UnlockCommand', () => {
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
-			storedData = await stakerSubstore.get(
-				createStoreGetter(stateStore),
-				transaction.senderAddress,
-			);
+			stakerData = await stakerStore.get(createStoreGetter(stateStore), transaction.senderAddress);
 		});
 
 		it('should remove eligible pending unlock from staker substore', () => {
-			expect(storedData.pendingUnlocks).not.toContainEqual(unlockableObject);
-			expect(storedData.pendingUnlocks).not.toContainEqual(unlockableObject2);
-			expect(storedData.pendingUnlocks).not.toContainEqual(unlockableObject3);
+			expect(stakerData.pendingUnlocks).not.toContainEqual(unlockableObject);
+			expect(stakerData.pendingUnlocks).not.toContainEqual(unlockableObject2);
+			expect(stakerData.pendingUnlocks).toContainEqual(nonUnlockableObject1);
 		});
 
 		it('should not remove ineligible pending unlock from staker substore', () => {
-			expect(storedData.pendingUnlocks).toContainEqual(nonUnlockableObject);
+			expect(stakerData.pendingUnlocks).toContainEqual(nonUnlockableObject2);
 		});
 	});
 
@@ -368,7 +367,7 @@ describe('UnlockCommand', () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
-				initRounds: 1,
+				initRounds,
 				initValidators: [],
 			});
 			await validatorSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
@@ -381,12 +380,12 @@ describe('UnlockCommand', () => {
 				amount: validator1.amount,
 				unstakeHeight: blockHeight - config.lockingPeriodSelfStaking,
 			};
-			nonUnlockableObject = {
+			nonUnlockableObject2 = {
 				validatorAddress: transaction.senderAddress,
 				amount: validator2.amount,
 				unstakeHeight: blockHeight,
 			};
-			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
+			await stakerStore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
@@ -394,12 +393,12 @@ describe('UnlockCommand', () => {
 						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 					{
-						validatorAddress: nonUnlockableObject.validatorAddress,
-						amount: nonUnlockableObject.amount,
+						validatorAddress: nonUnlockableObject2.validatorAddress,
+						amount: nonUnlockableObject2.amount,
 						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
-				pendingUnlocks: [unlockableObject, nonUnlockableObject],
+				pendingUnlocks: [unlockableObject, nonUnlockableObject2],
 			});
 			context = testing
 				.createTransactionContext({
@@ -410,18 +409,15 @@ describe('UnlockCommand', () => {
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
-			storedData = await stakerSubstore.get(
-				createStoreGetter(stateStore),
-				transaction.senderAddress,
-			);
+			stakerData = await stakerStore.get(createStoreGetter(stateStore), transaction.senderAddress);
 		});
 
 		it('should remove eligible pending unlock from staker substore', () => {
-			expect(storedData.pendingUnlocks).not.toContainEqual(unlockableObject);
+			expect(stakerData.pendingUnlocks).not.toContainEqual(unlockableObject);
 		});
 
 		it('should not remove ineligible pending unlock from staker substore', () => {
-			expect(storedData.pendingUnlocks).toContainEqual(nonUnlockableObject);
+			expect(stakerData.pendingUnlocks).toContainEqual(nonUnlockableObject2);
 		});
 	});
 
@@ -429,7 +425,7 @@ describe('UnlockCommand', () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
-				initRounds: 1,
+				initRounds,
 				initValidators: [],
 			});
 			await validatorSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
@@ -437,20 +433,20 @@ describe('UnlockCommand', () => {
 				name: 'punishedselfstaker',
 				reportMisbehaviorHeights: [blockHeight - 1],
 			});
-			nonUnlockableObject = {
+			nonUnlockableObject2 = {
 				validatorAddress: transaction.senderAddress,
 				amount: validator1.amount,
 				unstakeHeight: blockHeight - config.lockingPeriodSelfStaking,
 			};
-			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
+			await stakerStore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				stakes: [
 					{
-						validatorAddress: nonUnlockableObject.validatorAddress,
-						amount: nonUnlockableObject.amount,
+						validatorAddress: nonUnlockableObject2.validatorAddress,
+						amount: nonUnlockableObject2.amount,
 						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
-				pendingUnlocks: [nonUnlockableObject],
+				pendingUnlocks: [nonUnlockableObject2],
 			});
 			context = testing
 				.createTransactionContext({
@@ -473,7 +469,7 @@ describe('UnlockCommand', () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 10,
-				initRounds: 1,
+				initRounds,
 				initValidators: [],
 			});
 			await validatorSubstore.set(createStoreGetter(stateStore), validator1.address, {
@@ -484,12 +480,12 @@ describe('UnlockCommand', () => {
 				name: validator2.name,
 				...defaultValidatorInfo,
 			});
-			nonUnlockableObject = {
+			nonUnlockableObject2 = {
 				validatorAddress: validator2.address,
 				amount: validator2.amount,
 				unstakeHeight: blockHeight,
 			};
-			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
+			await stakerStore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
@@ -497,7 +493,7 @@ describe('UnlockCommand', () => {
 						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
-				pendingUnlocks: [nonUnlockableObject],
+				pendingUnlocks: [nonUnlockableObject2],
 			});
 		});
 
@@ -529,7 +525,7 @@ describe('UnlockCommand', () => {
 		beforeEach(async () => {
 			await genesisSubstore.set(createStoreGetter(stateStore), EMPTY_KEY, {
 				height: 8760000,
-				initRounds: 1,
+				initRounds,
 				initValidators: [],
 			});
 			await validatorSubstore.set(createStoreGetter(stateStore), validator1.address, {
@@ -546,12 +542,12 @@ describe('UnlockCommand', () => {
 				amount: validator1.amount,
 				unstakeHeight: blockHeight - config.lockingPeriodStaking,
 			};
-			nonUnlockableObject = {
+			nonUnlockableObject2 = {
 				validatorAddress: validator2.address,
 				amount: validator2.amount,
 				unstakeHeight: blockHeight,
 			};
-			await stakerSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
+			await stakerStore.set(createStoreGetter(stateStore), transaction.senderAddress, {
 				stakes: [
 					{
 						validatorAddress: unlockableObject.validatorAddress,
@@ -559,7 +555,7 @@ describe('UnlockCommand', () => {
 						sharingCoefficients: [{ tokenID: Buffer.alloc(8), coefficient: Buffer.alloc(24) }],
 					},
 				],
-				pendingUnlocks: [unlockableObject, nonUnlockableObject],
+				pendingUnlocks: [unlockableObject, nonUnlockableObject2],
 			});
 			context = testing
 				.createTransactionContext({
@@ -570,18 +566,15 @@ describe('UnlockCommand', () => {
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
-			storedData = await stakerSubstore.get(
-				createStoreGetter(stateStore),
-				transaction.senderAddress,
-			);
+			stakerData = await stakerStore.get(createStoreGetter(stateStore), transaction.senderAddress);
 		});
 
 		it('should remove eligible pending unlock from staker substore', () => {
-			expect(storedData.pendingUnlocks).not.toContainEqual(unlockableObject);
+			expect(stakerData.pendingUnlocks).not.toContainEqual(unlockableObject);
 		});
 
 		it('should not remove ineligible pending unlock from staker substore', () => {
-			expect(storedData.pendingUnlocks).toContainEqual(nonUnlockableObject);
+			expect(stakerData.pendingUnlocks).toContainEqual(nonUnlockableObject2);
 		});
 	});
 });
