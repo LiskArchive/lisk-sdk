@@ -1,7 +1,12 @@
 {
 	"system": {
-		"dataPath": "~/.lisk/pos-mainchain-node-two",
-		"logLevel": "info"
+		"dataPath": "~/.lisk/mainchain-node-two",
+		"logLevel": "debug",
+		"keepEventsForHeights": -1,
+		"keepInclusionProofsForHeights": -1,
+		"inclusionProofKeys": [
+			"83ed0d250000ac894ab085f50b81fe000e99ccb27e5543de69f63d4f9105daab15dce90f81b3"
+		]
 	},
 	"rpc": {
 		"modes": ["ipc"],
