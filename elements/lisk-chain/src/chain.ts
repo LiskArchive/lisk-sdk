@@ -18,6 +18,7 @@ import * as createDebug from 'debug';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import {
 	DEFAULT_KEEP_EVENTS_FOR_HEIGHTS,
+	DEFAULT_KEEP_INCLUSION_PROOFS_FOR_HEIGHTS,
 	DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	DEFAULT_MIN_BLOCK_HEADER_CACHE,
 	GENESIS_BLOCK_VERSION,
@@ -40,6 +41,7 @@ interface ChainConstructor {
 	readonly maxTransactionsSize: number;
 	readonly minBlockHeaderCache?: number;
 	readonly maxBlockHeaderCache?: number;
+	readonly keepInclusionProofsForHeights: number;
 }
 
 interface ChainInitArgs {
@@ -61,6 +63,7 @@ export class Chain {
 		readonly minBlockHeaderCache: number;
 		readonly maxBlockHeaderCache: number;
 		readonly keepEventsForHeights: number;
+		readonly keepInclusionProofsForHeights: number;
 	};
 
 	private _lastBlock?: Block;
@@ -74,6 +77,7 @@ export class Chain {
 		keepEventsForHeights = DEFAULT_KEEP_EVENTS_FOR_HEIGHTS,
 		minBlockHeaderCache = DEFAULT_MIN_BLOCK_HEADER_CACHE,
 		maxBlockHeaderCache = DEFAULT_MAX_BLOCK_HEADER_CACHE,
+		keepInclusionProofsForHeights = DEFAULT_KEEP_INCLUSION_PROOFS_FOR_HEIGHTS,
 	}: ChainConstructor) {
 		// Register codec schema
 		codec.addSchema(blockSchema);
@@ -86,6 +90,7 @@ export class Chain {
 			maxBlockHeaderCache,
 			minBlockHeaderCache,
 			keepEventsForHeights,
+			keepInclusionProofsForHeights,
 		};
 	}
 
@@ -118,6 +123,7 @@ export class Chain {
 			minBlockHeaderCache: this.constants.minBlockHeaderCache,
 			maxBlockHeaderCache: this.constants.maxBlockHeaderCache,
 			keepEventsForHeights: this.constants.keepEventsForHeights,
+			keepInclusionProofsForHeights: this.constants.keepInclusionProofsForHeights,
 		});
 	}
 

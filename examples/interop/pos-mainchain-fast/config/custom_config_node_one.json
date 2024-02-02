@@ -2,7 +2,10 @@
 	"system": {
 		"dataPath": "~/.lisk/pos-mainchain-node-one",
 		"keepEventsForHeights": 300,
-		"logLevel": "info"
+		"logLevel": "info",
+		"inclusionProofKeys": [
+			"83ed0d250000160811fdaf692ba77eabfbfc3a6bb3c4cf6a87beafd28cfe90b5dc64cb20ab46"
+		]
 	},
 	"rpc": {
 		"modes": ["ipc"],

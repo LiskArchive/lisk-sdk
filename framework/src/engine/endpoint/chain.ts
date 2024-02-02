@@ -198,6 +198,23 @@ export class ChainEndpoint {
 		return events.map(e => e.toJSON());
 	}
 
+	public async getInclusionProofsAtHeight(context: RequestContext): Promise<JSONObject<Proof>> {
+		const { height } = context.params;
+		if (typeof height !== 'number' || height < 0) {
+			throw new Error('Invalid parameters. height must be zero or a positive number.');
+		}
+		const inclusionProof = await this._chain.dataAccess.getInclusionProofs(height);
+
+		return {
+			queries: inclusionProof.queries.map(q => ({
+				bitmap: q.bitmap.toString('hex'),
+				key: q.key.toString('hex'),
+				value: q.value.toString('hex'),
+			})),
+			siblingHashes: inclusionProof.siblingHashes.map(h => h.toString('hex')),
+		};
+	}
+
 	public async proveEvents(context: RequestContext): Promise<JSONObject<Proof>> {
 		validator.validate(proveEventsRequestSchema, context.params);
 

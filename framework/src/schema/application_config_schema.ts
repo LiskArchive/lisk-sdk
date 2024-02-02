@@ -30,7 +30,15 @@ export const applicationConfigSchema = {
 	properties: {
 		system: {
 			type: 'object',
-			required: ['version', 'dataPath', 'logLevel', 'keepEventsForHeights', 'backup'],
+			required: [
+				'version',
+				'dataPath',
+				'logLevel',
+				'keepEventsForHeights',
+				'keepInclusionProofsForHeights',
+				'inclusionProofKeys',
+				'backup',
+			],
 			properties: {
 				version: {
 					type: 'string',
@@ -45,6 +53,14 @@ export const applicationConfigSchema = {
 				},
 				keepEventsForHeights: {
 					type: 'integer',
+				},
+				keepInclusionProofsForHeights: {
+					type: 'integer',
+				},
+				inclusionProofKeys: {
+					type: 'array',
+					items: { type: 'string' },
+					uniqueItems: true,
 				},
 				backup: {
 					type: 'object',
@@ -314,6 +330,8 @@ export const applicationConfigSchema = {
 			dataPath: '~/.lisk/beta-sdk-app',
 			version: '0.1.0',
 			keepEventsForHeights: 300,
+			keepInclusionProofsForHeights: 300,
+			inclusionProofKeys: [],
 			logLevel: 'info',
 			enableMetrics: false,
 			backup: {

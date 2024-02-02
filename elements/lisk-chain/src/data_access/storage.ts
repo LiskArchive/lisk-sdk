@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
+import { Batch, Database, NotFoundError, Proof } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { RawBlock, StateDiff } from '../types';
@@ -26,11 +26,16 @@ import {
 	DB_KEY_FINALIZED_HEIGHT,
 	DB_KEY_BLOCK_ASSETS_BLOCK_ID,
 	DB_KEY_BLOCK_EVENTS,
+	DB_KEY_INCLUSION_PROOFS,
 } from '../db_keys';
 import { concatDBKeys, uint32BE } from '../utils';
-import { stateDiffSchema } from '../schema';
+import { inclusionProofSchema, stateDiffSchema } from '../schema';
 import { CurrentState } from '../state_store';
-import { DEFAULT_KEEP_EVENTS_FOR_HEIGHTS, MAX_UINT32 } from '../constants';
+import {
+	DEFAULT_KEEP_EVENTS_FOR_HEIGHTS,
+	DEFAULT_KEEP_INCLUSION_PROOFS_FOR_HEIGHTS,
+	MAX_UINT32,
+} from '../constants';
 
 const bytesArraySchema = {
 	$id: '/liskChain/bytesarray',
@@ -61,15 +66,19 @@ export const encodeByteArray = (val: Buffer[]): Buffer =>
 
 interface StorageOption {
 	keepEventsForHeights?: number;
+	keepInclusionProofsForHeights?: number;
 }
 
 export class Storage {
 	private readonly _db: Database;
 	private readonly _keepEventsForHeights: number;
+	private readonly _keepInclusionProofsForHeights: number;
 
 	public constructor(db: Database, options?: StorageOption) {
 		this._db = db;
 		this._keepEventsForHeights = options?.keepEventsForHeights ?? DEFAULT_KEEP_EVENTS_FOR_HEIGHTS;
+		this._keepInclusionProofsForHeights =
+			options?.keepInclusionProofsForHeights ?? DEFAULT_KEEP_INCLUSION_PROOFS_FOR_HEIGHTS;
 	}
 
 	/*
@@ -257,6 +266,29 @@ export class Storage {
 		}
 	}
 
+	public async setInclusionProofs(proof: Proof, height: number): Promise<void> {
+		const proofBytes = codec.encode(inclusionProofSchema, proof);
+		await this._db.set(concatDBKeys(DB_KEY_INCLUSION_PROOFS, uint32BE(height)), proofBytes);
+	}
+
+	public async getInclusionProofs(height: number): Promise<Proof> {
+		try {
+			const proofBytes = await this._db.get(
+				concatDBKeys(DB_KEY_INCLUSION_PROOFS, uint32BE(height)),
+			);
+
+			return codec.decode(inclusionProofSchema, proofBytes);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			return {
+				queries: [],
+				siblingHashes: [],
+			};
+		}
+	}
+
 	public async getTempBlocks(): Promise<Buffer[]> {
 		const stream = this._db.createReadStream({
 			gte: concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(0)),
@@ -419,6 +451,7 @@ export class Storage {
 			batch.del(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, id));
 		}
 		batch.del(concatDBKeys(DB_KEY_BLOCK_EVENTS, heightBuf));
+		batch.del(concatDBKeys(DB_KEY_INCLUSION_PROOFS, heightBuf));
 		if (assets.length > 0) {
 			batch.del(concatDBKeys(DB_KEY_BLOCK_ASSETS_BLOCK_ID, id));
 		}
@@ -483,6 +516,22 @@ export class Storage {
 				await this._clear(
 					Buffer.concat([DB_KEY_BLOCK_EVENTS, Buffer.alloc(4, 0)]),
 					Buffer.concat([DB_KEY_BLOCK_EVENTS, endHeight]),
+				);
+			}
+		}
+
+		if (this._keepEventsForHeights > -1) {
+			// events are removed only if finalized and below height - keepEventsForHeights
+			const minInclusionProofDeleteHeight = Math.min(
+				finalizedHeight,
+				Math.max(0, currentHeight - this._keepInclusionProofsForHeights),
+			);
+			if (minInclusionProofDeleteHeight > 0) {
+				const endHeight = Buffer.alloc(4);
+				endHeight.writeUInt32BE(minInclusionProofDeleteHeight - 1, 0);
+				await this._clear(
+					Buffer.concat([DB_KEY_INCLUSION_PROOFS, Buffer.alloc(4, 0)]),
+					Buffer.concat([DB_KEY_INCLUSION_PROOFS, endHeight]),
 				);
 			}
 		}

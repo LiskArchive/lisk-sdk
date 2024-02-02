@@ -21,6 +21,8 @@ export const defaultConfig: ApplicationConfig = {
 		version: '0.1.0',
 		logLevel: 'none',
 		keepEventsForHeights: -1,
+		keepInclusionProofsForHeights: -1,
+		inclusionProofKeys: [],
 		dataPath: '~/.lisk/default',
 		backup: {
 			height: 0,
