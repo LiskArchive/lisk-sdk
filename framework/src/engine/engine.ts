@@ -100,14 +100,10 @@ export class Engine {
 	private _blockchainDB!: Database;
 	private _legacyDB!: Database;
 	private _chainID!: Buffer;
-	private readonly _inclusionProofKeys: Buffer[];
 
 	public constructor(abi: ABI, config: EngineConfig) {
 		this._abi = abi;
 		this._config = config;
-		this._inclusionProofKeys = this._config.system.inclusionProofKeys.map(k =>
-			Buffer.from(k, 'hex'),
-		);
 	}
 
 	public async generateBlock(input: BlockGenerateInput): Promise<Block> {
