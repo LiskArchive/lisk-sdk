@@ -81,6 +81,7 @@ describe('block_synchronization_mechanism', () => {
 		chainModule = new Chain({
 			maxTransactionsSize: 15000,
 			keepEventsForHeights: -1,
+			keepInclusionProofsForHeights: -1,
 		});
 		chainModule.init({
 			db: new InMemoryDatabase(),

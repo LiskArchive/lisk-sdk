@@ -44,6 +44,7 @@ import {
 	CONSENSUS_EVENT_BLOCK_BROADCAST,
 	NETWORK_EVENT_POST_BLOCK,
 } from '../../../../src/engine/consensus/constants';
+import { applicationConfigSchema } from '../../../../src';
 
 describe('consensus', () => {
 	const genesis = genesisBlock() as unknown as Block;
@@ -128,6 +129,7 @@ describe('consensus', () => {
 			genesisConfig: {
 				blockTime: 10,
 			} as any,
+			systemConfig: applicationConfigSchema.default.system,
 		});
 		dbMock = {
 			get: jest.fn(),

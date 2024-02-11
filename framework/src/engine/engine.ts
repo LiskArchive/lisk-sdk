@@ -100,14 +100,10 @@ export class Engine {
 	private _blockchainDB!: Database;
 	private _legacyDB!: Database;
 	private _chainID!: Buffer;
-	private readonly _inclusionProofKeys: Buffer[];
 
 	public constructor(abi: ABI, config: EngineConfig) {
 		this._abi = abi;
 		this._config = config;
-		this._inclusionProofKeys = this._config.system.inclusionProofKeys.map(k =>
-			Buffer.from(k, 'hex'),
-		);
 	}
 
 	public async generateBlock(input: BlockGenerateInput): Promise<Block> {
@@ -169,6 +165,7 @@ export class Engine {
 			network: this._network,
 			chain: this._chain,
 			genesisConfig: this._config.genesis,
+			systemConfig: this._config.system,
 			bft: this._bftModule,
 		});
 		this._generator = new Generator({
@@ -304,18 +301,6 @@ export class Engine {
 	private _registerEventListeners() {
 		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_NEW, ({ block }: { block: Block }) => {
 			this._generator.onNewBlock(block);
-
-			if (this._config.system.inclusionProofKeys.length > 0) {
-				this._abi
-					.prove({ keys: this._inclusionProofKeys, stateRoot: block.header.stateRoot as Buffer })
-					.then(result => {
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-						this._chain.dataAccess
-							.setInclusionProofs(result.proof, block.header.height)
-							.catch((err: Error) => this._logger.error({ err }, 'Failed to set inclusion proof'));
-					})
-					.catch(err => this._logger.error({ err: err as Error }, 'Failed to query prove'));
-			}
 
 			Promise.all([
 				this._rpcServer.publish(EVENT_CHAIN_BLOCK_NEW, { blockHeader: block.header.toJSON() }),

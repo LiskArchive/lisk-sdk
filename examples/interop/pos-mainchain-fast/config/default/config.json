@@ -1,7 +1,8 @@
 {
 	"system": {
 		"dataPath": "~/.lisk/pos-mainchain-fast",
-		"keepEventsForHeights": 300,
+		"keepEventsForHeights": -1,
+		"keepInclusionProofsForHeights": -1,
 		"inclusionProofKeys": [
 			"83ed0d250000160811fdaf692ba77eabfbfc3a6bb3c4cf6a87beafd28cfe90b5dc64cb20ab46"
 		],
