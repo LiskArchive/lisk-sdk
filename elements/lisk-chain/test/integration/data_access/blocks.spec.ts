@@ -63,6 +63,7 @@ describe('dataAccess.blocks', () => {
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
 			keepEventsForHeights: -1,
+			keepInclusionProofsForHeights: -1,
 		});
 		// Prepare sample data
 		const block300 = await createValidDefaultBlock({
