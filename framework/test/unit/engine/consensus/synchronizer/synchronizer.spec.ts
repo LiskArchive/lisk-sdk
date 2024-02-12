@@ -51,6 +51,8 @@ describe('Synchronizer', () => {
 		chainModule = new Chain({
 			maxTransactionsSize: applicationConfigSchema.default.genesis.maxTransactionsSize,
 			keepEventsForHeights: applicationConfigSchema.default.system.keepEventsForHeights,
+			keepInclusionProofsForHeights:
+				applicationConfigSchema.default.system.keepInclusionProofsForHeights,
 		});
 		chainModule.init({
 			db: new InMemoryDatabase(),
