@@ -20,61 +20,66 @@ import {
 	BlockHeaderJSON,
 	validator as liskValidator,
 } from 'lisk-sdk';
-import { ChainConnectorStore } from './db';
 import {
 	AggregateCommitJSON,
-	CCMsFromEventsJSON,
+	CCMWithHeight,
 	ChainConnectorPluginConfig,
 	LastSentCCMWithHeightJSON,
 	SentCCUsJSON,
 	ValidatorsDataJSON,
 } from './types';
-import { aggregateCommitToJSON, ccmsFromEventsToJSON, validatorsHashPreimagetoJSON } from './utils';
+import { aggregateCommitToJSON, validatorsHashPreimagetoJSON } from './utils';
 import { authorizeRequestSchema } from './schemas';
+import { ChainConnectorDB } from './db';
 
 // disabled for type annotation
 // eslint-disable-next-line prefer-destructuring
 const validator: liskValidator.LiskValidator = liskValidator.validator;
 
-export class Endpoint extends BasePluginEndpoint {
-	private _chainConnectorStore!: ChainConnectorStore;
+export class ChainConnectorEndpoint extends BasePluginEndpoint {
+	private db!: ChainConnectorDB;
 	private _config!: ChainConnectorPluginConfig;
 
-	public load(config: ChainConnectorPluginConfig, store: ChainConnectorStore) {
+	public load(config: ChainConnectorPluginConfig, store: ChainConnectorDB) {
 		this._config = config;
-		this._chainConnectorStore = store;
+		this.db = store;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getSentCCUs(_context: PluginEndpointContext): Promise<SentCCUsJSON> {
-		const sentCCUs = await this._chainConnectorStore.getListOfCCUs();
+		const sentCCUs = await this.db.getListOfCCUs();
 		return sentCCUs.map(transaction => new chain.Transaction(transaction).toJSON());
 	}
 
-	public async getAggregateCommits(
-		_context: PluginEndpointContext,
-	): Promise<AggregateCommitJSON[]> {
-		const aggregateCommits = await this._chainConnectorStore.getAggregateCommits();
+	public async getAggregateCommits(context: PluginEndpointContext): Promise<AggregateCommitJSON[]> {
+		const { from, to } = context.params as { from: number; to: number };
+		const aggregateCommits = await this.db.getAggregateCommitBetweenHeights(from, to);
 		return aggregateCommits.map(aggregateCommit => aggregateCommitToJSON(aggregateCommit));
 	}
 
-	public async getBlockHeaders(_context: PluginEndpointContext): Promise<BlockHeaderJSON[]> {
-		const blockHeaders = await this._chainConnectorStore.getBlockHeaders();
+	public async getBlockHeaders(context: PluginEndpointContext): Promise<BlockHeaderJSON[]> {
+		const { from, to } = context.params as { from: number; to: number };
+		const blockHeaders = await this.db.getBlockHeadersBetweenHeights(from, to);
 
 		return blockHeaders.map(blockHeader => new BlockHeader(blockHeader).toJSON());
 	}
 
-	public async getCrossChainMessages(
-		_context: PluginEndpointContext,
-	): Promise<CCMsFromEventsJSON[]> {
-		const ccmsAndInclusionProofs = await this._chainConnectorStore.getCrossChainMessages();
-		return ccmsAndInclusionProofs.map(ccmsAndInclusionProof =>
-			ccmsFromEventsToJSON(ccmsAndInclusionProof),
-		);
+	public async getBlockHeaderByHeight(context: PluginEndpointContext): Promise<BlockHeaderJSON> {
+		const { height } = context.params as { height: number };
+		const blockHeader = await this.db.getBlockHeaderByHeight(height);
+
+		return new BlockHeader(blockHeader as BlockHeader).toJSON();
+	}
+	public async getCrossChainMessages(context: PluginEndpointContext): Promise<CCMWithHeight[]> {
+		const { from, to } = context.params as { from: number; to: number };
+
+		const ccms = await this.db.getCCMsBetweenHeight(from, to);
+
+		return ccms;
 	}
 
 	public async getLastSentCCM(_context: PluginEndpointContext): Promise<LastSentCCMWithHeightJSON> {
-		const lastSentCCM = await this._chainConnectorStore.getLastSentCCM();
+		const lastSentCCM = await this.db.getLastSentCCM();
 		if (!lastSentCCM) {
 			throw new Error('No CCM was sent so far.');
 		}
@@ -89,10 +94,8 @@ export class Endpoint extends BasePluginEndpoint {
 		};
 	}
 
-	public async getValidatorsInfoFromPreimage(
-		_context: PluginEndpointContext,
-	): Promise<ValidatorsDataJSON[]> {
-		const validatorsHashPreimage = await this._chainConnectorStore.getValidatorsHashPreimage();
+	public async getValidatorsdata(_context: PluginEndpointContext): Promise<ValidatorsDataJSON[]> {
+		const validatorsHashPreimage = await this.db.getAllValidatorsData();
 		return validatorsHashPreimagetoJSON(validatorsHashPreimage);
 	}
 
@@ -107,13 +110,13 @@ export class Endpoint extends BasePluginEndpoint {
 		const result = `Successfully ${enable ? 'enabled' : 'disabled'} the chain connector plugin.`;
 
 		if (!enable) {
-			await this._chainConnectorStore.deletePrivateKey(this._config.encryptedPrivateKey, password);
+			await this.db.deletePrivateKey(this._config.encryptedPrivateKey, password);
 			return {
 				result,
 			};
 		}
 
-		await this._chainConnectorStore.setPrivateKey(this._config.encryptedPrivateKey, password);
+		await this.db.setPrivateKey(this._config.encryptedPrivateKey, password);
 		return {
 			result,
 		};
