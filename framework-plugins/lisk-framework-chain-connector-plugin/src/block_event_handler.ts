@@ -230,7 +230,6 @@ export class BlockEventHandler {
 				if (ccuSubmitResult) {
 					this._lastSentCCUTxID = ccuSubmitResult;
 					// If CCU was sent successfully then save the lastSentCCM if any
-					// TODO: Add function to check on the receiving chain whether last sent CCM was accepted or not
 					if (computedCCUParams.lastCCMToBeSent) {
 						this._lastSentCCM = computedCCUParams.lastCCMToBeSent;
 					}
