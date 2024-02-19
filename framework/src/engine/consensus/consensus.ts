@@ -359,30 +359,6 @@ export class Consensus {
 			await this._abi.clear({});
 			this._logger.error({ err: error as Error }, 'Fail to execute block.');
 		}
-
-		try {
-			// Save inclusion proof when keys are provided
-			if (
-				(this._systemConfig.keepInclusionProofsForHeights > 0 ||
-					this._systemConfig.keepInclusionProofsForHeights === -1) &&
-				this._inclusionProofKeys.length > 0
-			) {
-				this._logger.info(`Starting saving inclusion proof at height ${block.header.height}`);
-				const result = await this._abi.prove({
-					keys: this._inclusionProofKeys,
-					stateRoot: block.header.stateRoot as Buffer,
-				});
-
-				await this._chain.dataAccess.setInclusionProofs(result.proof, block.header.height);
-				this._logger.info(`Successfully set inclusion proof at height ${block.header.height}`);
-			}
-		} catch (error) {
-			// Handle the error so that it doesn't affect block execute as it's outside block execution process
-			this._logger.error(
-				{ err: error as Error },
-				'Failed to save inclusion proof for the given keys.',
-			);
-		}
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -598,6 +574,30 @@ export class Consensus {
 			this._metrics.finalizedHeight.set(this._chain.finalizedHeight);
 			this._metrics.maxHeightCertified.set(block.header.aggregateCommit.height);
 			this._metrics.maxHeightPrevoted.set(block.header.maxHeightPrevoted);
+
+			try {
+				// Save inclusion proof when keys are provided
+				if (
+					(this._systemConfig.keepInclusionProofsForHeights > 0 ||
+						this._systemConfig.keepInclusionProofsForHeights === -1) &&
+					this._inclusionProofKeys.length > 0
+				) {
+					this._logger.info(`Starting saving inclusion proof at height ${block.header.height}`);
+					const result = await this._abi.prove({
+						keys: this._inclusionProofKeys,
+						stateRoot: block.header.stateRoot as Buffer,
+					});
+
+					await this._chain.dataAccess.setInclusionProofs(result.proof, block.header.height);
+					this._logger.info(`Successfully set inclusion proof at height ${block.header.height}`);
+				}
+			} catch (error) {
+				// Handle the error so that it doesn't affect block execute as it's outside block execution process
+				this._logger.error(
+					{ err: error as Error },
+					'Failed to save inclusion proof for the given keys.',
+				);
+			}
 		});
 	}
 
