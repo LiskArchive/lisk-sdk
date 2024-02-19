@@ -33,14 +33,15 @@ import {
 	listOfCCUsSchema,
 	validatorsDataSchema,
 } from './schemas';
-import { BlockHeader, CCMWithHeight, LastSentCCM, ValidatorsData } from './types';
+import { BlockHeader, CCMWithHeight, LastSentCCM, ValidatorsDataWithHeight } from './types';
 
 const { Database } = liskDB;
 type KVStore = liskDB.Database;
 
 const DB_KEY_BLOCK_HEADER_BY_HEIGHT = Buffer.from([10]);
 const DB_KEY_AGGREGATE_COMMIT_BY_HEIGHT = Buffer.from([20]);
-const DB_KEY_VALIDATORS_DATA = Buffer.from([30]);
+const DB_KEY_VALIDATORS_DATA_BY_HASH = Buffer.from([30]);
+const DB_KEY_VALIDATORS_DATA_BY_HEIGHT = Buffer.from([40]);
 
 export const getDBInstance = async (
 	dataPath: string,
@@ -81,7 +82,7 @@ export class ChainConnectorDB {
 		return this._privateKey;
 	}
 
-	public async saveOnNewBlock(blockHeader: BlockHeader) {
+	public async saveToDBOnNewBlock(blockHeader: BlockHeader) {
 		const heightBuf = uint32BE(blockHeader.height);
 		const batch = new liskDB.Batch();
 		const newBlockHeaderBytes = codec.encode(blockHeaderSchemaWithID, blockHeader);
@@ -253,9 +254,11 @@ export class ChainConnectorDB {
 
 	public async getValidatorsDataByHash(validatorsHash: Buffer) {
 		try {
-			const bytes = await this._db.get(concatDBKeys(DB_KEY_VALIDATORS_DATA, validatorsHash));
+			const bytes = await this._db.get(
+				concatDBKeys(DB_KEY_VALIDATORS_DATA_BY_HASH, validatorsHash),
+			);
 
-			return codec.decode<ValidatorsData>(validatorsDataSchema, bytes);
+			return codec.decode<ValidatorsDataWithHeight>(validatorsDataSchema, bytes);
 		} catch (error) {
 			if (!(error instanceof liskDB.NotFoundError)) {
 				throw error;
@@ -265,15 +268,84 @@ export class ChainConnectorDB {
 		}
 	}
 
-	public async setValidatorsDataByHash(validatorsHash: Buffer, validatorsData: ValidatorsData) {
+	public async setValidatorsDataByHash(
+		validatorsHash: Buffer,
+		validatorsData: ValidatorsDataWithHeight,
+		height: number,
+	) {
 		const bytes = codec.encode(validatorsDataSchema, validatorsData);
-		await this._db.set(concatDBKeys(DB_KEY_VALIDATORS_DATA, validatorsHash), bytes);
+		await this._db.set(concatDBKeys(DB_KEY_VALIDATORS_DATA_BY_HASH, validatorsHash), bytes);
+		await this._db.set(
+			concatDBKeys(DB_KEY_VALIDATORS_DATA_BY_HEIGHT, uint32BE(height)),
+			validatorsHash,
+		);
+	}
+	public async getValidatorsDataByHeight(height: number) {
+		try {
+			const validatorHash = await this._db.get(
+				concatDBKeys(DB_KEY_VALIDATORS_DATA_BY_HEIGHT, uint32BE(height)),
+			);
+
+			return this.getValidatorsDataByHash(
+				concatDBKeys(DB_KEY_VALIDATORS_DATA_BY_HASH, validatorHash),
+			);
+		} catch (error) {
+			if (!(error instanceof liskDB.NotFoundError)) {
+				throw error;
+			}
+
+			return undefined;
+		}
+	}
+
+	public async deleteValidatorsHashByHeight(height: number) {
+		const validatorHash = await this._db.get(
+			concatDBKeys(DB_KEY_VALIDATORS_DATA_BY_HEIGHT, uint32BE(height)),
+		);
+		await this.deleteValidatorsDataByHash(concatDBKeys(validatorHash));
+	}
+
+	public async deleteValidatorsHashBetweenHeights(fromHeight: number, toHeight: number) {
+		const stream = this._db.createReadStream({
+			gte: concatDBKeys(DB_KEY_VALIDATORS_DATA_BY_HEIGHT, uint32BE(fromHeight)),
+			lte: concatDBKeys(DB_KEY_VALIDATORS_DATA_BY_HEIGHT, uint32BE(toHeight)),
+			reverse: true,
+		});
+		const validatorsHashes = await new Promise<Buffer[]>((resolve, reject) => {
+			const list: Buffer[] = [];
+			stream
+				.on('data', ({ key }: { key: Buffer }) => {
+					list.push(key);
+				})
+				.on('error', error => {
+					reject(error);
+				})
+				.on('end', () => {
+					resolve(list);
+				});
+		});
+
+		for (const hash of validatorsHashes) {
+			await this.deleteValidatorsDataByHash(hash);
+		}
+	}
+
+	public async deleteValidatorsDataByHash(validatorsHash: Buffer) {
+		const validatorData = await this.getValidatorsDataByHash(validatorsHash);
+
+		if (!validatorData) {
+			return;
+		}
+		await this._db.del(concatDBKeys(DB_KEY_VALIDATORS_DATA_BY_HASH, validatorsHash));
+		await this._db.del(
+			concatDBKeys(DB_KEY_VALIDATORS_DATA_BY_HEIGHT, uint32BE(validatorData.height)),
+		);
 	}
 
 	public async getAllValidatorsData() {
 		const stream = this._db.createReadStream({
-			gte: concatDBKeys(DB_KEY_VALIDATORS_DATA, Buffer.alloc(4, 0)),
-			lte: concatDBKeys(DB_KEY_VALIDATORS_DATA, Buffer.alloc(4, 255)),
+			gte: concatDBKeys(DB_KEY_VALIDATORS_DATA_BY_HASH, Buffer.alloc(4, 0)),
+			lte: concatDBKeys(DB_KEY_VALIDATORS_DATA_BY_HASH, Buffer.alloc(4, 255)),
 			reverse: true,
 		});
 		const validatorsData = await new Promise<Buffer[]>((resolve, reject) => {
@@ -290,7 +362,7 @@ export class ChainConnectorDB {
 				});
 		});
 
-		return validatorsData.map(v => codec.decode<ValidatorsData>(validatorsDataSchema, v));
+		return validatorsData.map(v => codec.decode<ValidatorsDataWithHeight>(validatorsDataSchema, v));
 	}
 
 	public async getCCMsByHeight(height: number): Promise<CCMsg[]> {

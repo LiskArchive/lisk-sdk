@@ -26,7 +26,7 @@ import {
 	ChainConnectorPluginConfig,
 	LastSentCCMWithHeightJSON,
 	SentCCUsJSON,
-	ValidatorsDataJSON,
+	ValidatorsDataHeightJSON,
 } from './types';
 import { aggregateCommitToJSON, ccmsWithHeightToJSON, validatorsHashPreimagetoJSON } from './utils';
 import { authorizeRequestSchema } from './schemas';
@@ -94,7 +94,9 @@ export class ChainConnectorEndpoint extends BasePluginEndpoint {
 		};
 	}
 
-	public async getValidatorsdata(_context: PluginEndpointContext): Promise<ValidatorsDataJSON[]> {
+	public async getValidatorsdata(
+		_context: PluginEndpointContext,
+	): Promise<ValidatorsDataHeightJSON[]> {
 		const validatorsHashPreimage = await this.db.getAllValidatorsData();
 		return validatorsHashPreimagetoJSON(validatorsHashPreimage);
 	}

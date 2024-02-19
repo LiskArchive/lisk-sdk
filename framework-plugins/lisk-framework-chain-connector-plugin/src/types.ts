@@ -116,10 +116,11 @@ export interface BFTParametersWithoutGeneratorKey extends Omit<BFTParameters, 'v
 	}[];
 }
 
-export interface ValidatorsData {
+export interface ValidatorsDataWithHeight {
 	certificateThreshold: bigint;
 	validators: ActiveValidatorWithAddress[];
 	validatorsHash: Buffer;
+	height: number;
 }
 
 export interface LastSentCCMWithHeight extends CCMsg {
@@ -162,7 +163,7 @@ export type AggregateCommitJSON = JSONObject<AggregateCommit>;
 
 export type BFTValidatorJSON = JSONObject<BFTValidator>;
 
-export type ValidatorsDataJSON = JSONObject<ValidatorsData>;
+export type ValidatorsDataHeightJSON = JSONObject<ValidatorsDataWithHeight>;
 
 export type ProofJSON = JSONObject<Proof>;
 

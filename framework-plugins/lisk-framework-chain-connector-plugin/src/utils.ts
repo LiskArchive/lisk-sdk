@@ -33,7 +33,7 @@ import {
 	CCMsFromEvents,
 	CCMsFromEventsJSON,
 	ProveResponseJSON,
-	ValidatorsData,
+	ValidatorsDataWithHeight,
 } from './types';
 
 import { CHAIN_ID_LENGTH } from './constants';
@@ -84,7 +84,9 @@ export const ccmsWithHeightToJSON = (ccmsWithHeight: CCMWithHeight[]): CCMWithHe
 		height: ccm.height,
 	}));
 
-export const validatorsHashPreimagetoJSON = (validatorsHashPreimage: ValidatorsData[]) => {
+export const validatorsHashPreimagetoJSON = (
+	validatorsHashPreimage: ValidatorsDataWithHeight[],
+) => {
 	const validatorsHashPreimageJSON = [];
 	for (const validatorData of validatorsHashPreimage) {
 		const validatorsJSON = validatorData.validators.map(v => ({
@@ -96,6 +98,7 @@ export const validatorsHashPreimagetoJSON = (validatorsHashPreimage: ValidatorsD
 			certificateThreshold: validatorData.certificateThreshold.toString(),
 			validators: validatorsJSON,
 			validatorsHash: validatorData.validatorsHash.toString('hex'),
+			height: validatorData.height,
 		});
 	}
 	return validatorsHashPreimageJSON;

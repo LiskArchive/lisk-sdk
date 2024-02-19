@@ -13,15 +13,15 @@
  */
 /* eslint-disable no-bitwise */
 import { ActiveValidator, utils, ActiveValidatorsUpdate } from 'lisk-sdk';
-import { ValidatorsData } from './types';
+import { ValidatorsDataWithHeight } from './types';
 
 /**
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#computing-the-validators-update
  */
 
 export const calculateActiveValidatorsUpdate = (
-	validatorsDataAtLastCertificate: ValidatorsData,
-	validatorsDataAtNewCertificate: ValidatorsData,
+	validatorsDataAtLastCertificate: ValidatorsDataWithHeight,
+	validatorsDataAtNewCertificate: ValidatorsDataWithHeight,
 ): { activeValidatorsUpdate: ActiveValidatorsUpdate; certificateThreshold: bigint } => {
 	let certificateThreshold;
 	// If the certificate threshold is not changed from last certificate then we assign zero

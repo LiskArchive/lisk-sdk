@@ -26,7 +26,7 @@ import {
 import { ChainAPIClient } from './chain_api_client';
 import { ChainConnectorDB } from './db';
 import { BlockHeader, LastSentCCM, Logger, ModuleMetadata } from './types';
-import { CCM_PROCESSED, CCM_SEND_SUCCESS } from './constants';
+import { CCM_PROCESSED, CCM_SEND_SUCCESS, DEFAULT_SENT_CCU_TIMEOUT } from './constants';
 import { CCUHandler } from './ccu_handler';
 
 export interface NewBlockHandlerConfig {
@@ -54,6 +54,10 @@ type FinalizedHeightInfo = { inboxSize: number; lastCertificateHeight: number };
 export class BlockEventHandler {
 	private readonly _ownChainID!: Buffer;
 	private readonly _ccuHandler!: CCUHandler;
+	private readonly _ccuFrequency!: number;
+	private readonly _ccuSaveLimit: number;
+	private readonly _receivingChainID: Buffer;
+	private readonly _isReceivingChainMainchain!: boolean;
 	private _db!: ChainConnectorDB;
 	private _logger!: Logger;
 	private _sendingChainAPIClient!: ChainAPIClient;
@@ -61,16 +65,13 @@ export class BlockEventHandler {
 	private _lastCertificate!: LastCertificate;
 	private _interoperabilityMetadata!: ModuleMetadata;
 	private _heightToDeleteIndex!: Map<number, FinalizedHeightInfo>;
-	private readonly _ccuFrequency!: number;
 	private _receivingChainFinalizedHeight!: number;
-	private readonly _ccuSaveLimit: number;
-	private readonly _receivingChainID: Buffer;
 	private _isReceivingChainRegistered = false;
 	private _lastSentCCUTxID = '';
 	private _lastSentCCM!: LastSentCCM;
 	private _lastIncludedCCMOnReceivingChain!: LastSentCCM | undefined;
-	private readonly _isReceivingChainMainchain!: boolean;
 	private _lastDeletionHeight!: number;
+	private _sentCCUTxTimeout!: NodeJS.Timer;
 
 	public constructor(config: NewBlockHandlerConfig) {
 		this._ownChainID = config.ownChainID;
@@ -94,11 +95,10 @@ export class BlockEventHandler {
 		this._db = args.db;
 		this._sendingChainAPIClient = args.sendingChainAPIClient;
 		this._receivingChainAPIClient = args.receivingChainAPIClient;
-		await this._receivingChainAPIClient.connect();
+		this._heightToDeleteIndex = new Map();
 		this._interoperabilityMetadata = await this._sendingChainAPIClient.getMetadataByModuleName(
 			MODULE_NAME_INTEROPERABILITY,
 		);
-
 		this._ccuHandler.load({
 			db: args.db,
 			lastCertificate: this._lastCertificate,
@@ -107,7 +107,8 @@ export class BlockEventHandler {
 			sendingChainAPIClient: args.sendingChainAPIClient,
 			interoperabilityMetadata: this._interoperabilityMetadata,
 		});
-		this._heightToDeleteIndex = new Map();
+
+		await this._receivingChainAPIClient.connect();
 		this._lastIncludedCCMOnReceivingChain = await this._db.getLastSentCCM();
 		// On a new block start with CCU creation process
 		this._sendingChainAPIClient.subscribe(
@@ -125,17 +126,26 @@ export class BlockEventHandler {
 
 	public async handleNewBlock(data?: Record<string, unknown>) {
 		const { blockHeader: receivedBlock } = data as unknown as Data;
-
 		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock).toObject();
+
+		try {
+			await this._saveOnNewBlock(newBlockHeader);
+		} catch (error) {
+			this._logger.error({ err: error as Error }, 'Error occurred while saving data on new block.');
+			return;
+		}
+		const nodeInfo = await this._sendingChainAPIClient.getNodeInfo();
+
+		if (nodeInfo.syncing) {
+			return;
+		}
 		let chainAccount: ChainAccount | undefined;
 		// Save blockHeader, aggregateCommit, validatorsData and cross chain messages if any.
-		const nodeInfo = await this._sendingChainAPIClient.getNodeInfo();
 		// Fetch last certificate from the receiving chain and update the _lastCertificate
 		try {
 			chainAccount = await this._receivingChainAPIClient.getChainAccount(this._ownChainID);
 		} catch (error) {
 			// If receivingChainAPIClient is not ready then still save data on new block
-			await this._saveOnNewBlock(newBlockHeader);
 			await this._initializeReceivingChainClient();
 			this._logger.error(
 				{ err: error as Error },
@@ -150,15 +160,6 @@ export class BlockEventHandler {
 			this._logger.info(
 				'Sending chain is not registered to the receiving chain yet and has no chain data.',
 			);
-			try {
-				await this._saveOnNewBlock(newBlockHeader);
-			} catch (error) {
-				this._logger.error(
-					{ err: error as Error },
-					'Error occurred while saving data on new block.',
-				);
-			}
-
 			return;
 		}
 
@@ -167,8 +168,6 @@ export class BlockEventHandler {
 			this._logger.debug(
 				`Last certificate value has been set with height ${this._lastCertificate.height}`,
 			);
-
-			await this._saveOnNewBlock(newBlockHeader);
 
 			const numOfBlocksSinceLastCertificate = newBlockHeader.height - this._lastCertificate.height;
 			if (nodeInfo.syncing || this._ccuFrequency > numOfBlocksSinceLastCertificate) {
@@ -229,6 +228,11 @@ export class BlockEventHandler {
 				);
 				if (ccuSubmitResult) {
 					this._lastSentCCUTxID = ccuSubmitResult;
+					// Wait until 1 hour
+					this._sentCCUTxTimeout = setTimeout(() => {
+						this._lastSentCCUTxID = '';
+						clearTimeout(this._sentCCUTxTimeout);
+					}, DEFAULT_SENT_CCU_TIMEOUT);
 					// If CCU was sent successfully then save the lastSentCCM if any
 					if (computedCCUParams.lastCCMToBeSent) {
 						this._lastSentCCM = computedCCUParams.lastCCMToBeSent;
@@ -249,9 +253,7 @@ export class BlockEventHandler {
 
 	public async _saveOnNewBlock(newBlockHeader: BlockHeader) {
 		// Save block header if a new block header arrives
-		await this._db.saveOnNewBlock(newBlockHeader);
-
-		this._logger.info('Saved data on new block');
+		await this._db.saveToDBOnNewBlock(newBlockHeader);
 		// Check for events if any and store them
 		const events = await this._sendingChainAPIClient.getEvents(newBlockHeader.height);
 
@@ -328,8 +330,11 @@ export class BlockEventHandler {
 			newBlockHeader.height,
 		);
 
-		await this._db.setValidatorsDataByHash(validatorsData.validatorsHash, validatorsData);
-		this._logger.info('set getBFTParametersAtHeight');
+		await this._db.setValidatorsDataByHash(
+			validatorsData.validatorsHash,
+			{ ...validatorsData, height: newBlockHeader.height },
+			newBlockHeader.height,
+		);
 	}
 
 	private async _initializeReceivingChainClient() {
@@ -349,7 +354,11 @@ export class BlockEventHandler {
 
 	private async _newBlockReceivingChainHandler(_?: Record<string, unknown>) {
 		try {
-			const { finalizedHeight } = await this._receivingChainAPIClient.getNodeInfo();
+			const { finalizedHeight, syncing } = await this._receivingChainAPIClient.getNodeInfo();
+			// If receiving node is syncing then return
+			if (syncing) {
+				return;
+			}
 			this._receivingChainFinalizedHeight = finalizedHeight;
 			const { inbox } = await this._receivingChainAPIClient.getChannelAccount(this._ownChainID);
 			if (!inbox) {
@@ -371,6 +380,7 @@ export class BlockEventHandler {
 					);
 					// Reset last sent CCU to be blank
 					this._lastSentCCUTxID = '';
+					clearTimeout(this._sentCCUTxTimeout);
 					// Update last included CCM if there was any in the last sent CCU
 					if (this._lastSentCCM) {
 						this._lastIncludedCCMOnReceivingChain = this._lastSentCCM;
@@ -436,7 +446,12 @@ export class BlockEventHandler {
 					this._lastDeletionHeight,
 					endDeletionHeightByLastCertificate - 1,
 				);
+
 				// Delete validatorsHashPreimage
+				await this._db.deleteValidatorsHashBetweenHeights(
+					this._lastDeletionHeight,
+					endDeletionHeightByLastCertificate - 1,
+				);
 
 				this._lastDeletionHeight = endDeletionHeightByLastCertificate;
 			}
