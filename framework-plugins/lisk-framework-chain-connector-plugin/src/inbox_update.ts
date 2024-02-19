@@ -52,10 +52,8 @@ export const calculateMessageWitnesses = (
 	let totalSize = 0;
 	// Make an array of ccms with nonce greater than last sent ccm nonce
 	for (const ccm of ccmsToBeIncluded) {
-		if (ccm.height !== 0 && lastSentCCM.height === ccm.height) {
-			if (ccm.nonce === lastSentCCM.nonce) {
-				continue;
-			}
+		if (ccm.height !== 0 && lastSentCCM.height === ccm.height && ccm.nonce === lastSentCCM.nonce) {
+			continue;
 		}
 		if (inboxSizeOnReceivingChain < outboxSizeOnSendingChain) {
 			const ccmBytes = codec.encode(ccmSchema, ccm);
@@ -82,7 +80,10 @@ export const calculateMessageWitnesses = (
 		return {
 			crossChainMessages: includedSerializedCCMs,
 			messageWitnessHashes: [],
-			lastCCMToBeSent: { ...(lastCCMWithHeight as LastSentCCM), outboxSize: -1 },
+			lastCCMToBeSent: {
+				...(lastCCMWithHeight as LastSentCCM),
+				outboxSize: outboxSizeOnSendingChain,
+			},
 		};
 	}
 
@@ -96,6 +97,9 @@ export const calculateMessageWitnesses = (
 	return {
 		crossChainMessages: includedSerializedCCMs,
 		messageWitnessHashes,
-		lastCCMToBeSent: { ...(lastCCMWithHeight as LastSentCCM), outboxSize: -1 },
+		lastCCMToBeSent: {
+			...(lastCCMWithHeight as LastSentCCM),
+			outboxSize: outboxSizeOnSendingChain,
+		},
 	};
 };

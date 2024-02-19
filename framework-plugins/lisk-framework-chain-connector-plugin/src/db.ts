@@ -310,7 +310,7 @@ export class ChainConnectorDB {
 		await this._db.del(concatDBKeys(DB_KEY_CROSS_CHAIN_MESSAGES, heightBuf));
 	}
 
-	public async getCCMsBetweenHeight(
+	public async getCCMsBetweenHeights(
 		fromHeight: number,
 		toHeight: number,
 	): Promise<CCMWithHeight[]> {
@@ -384,6 +384,8 @@ export class ChainConnectorDB {
 			lastSentCCM = codec.decode<LastSentCCM>(lastSentCCMSchema, encodedInfo);
 		} catch (error) {
 			checkDBError(error);
+
+			return undefined;
 		}
 		return lastSentCCM;
 	}

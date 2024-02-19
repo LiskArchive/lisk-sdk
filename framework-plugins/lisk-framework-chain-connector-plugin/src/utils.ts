@@ -28,6 +28,8 @@ import {
 import {
 	BFTParametersJSON,
 	BFTParametersWithoutGeneratorKey,
+	CCMWithHeight,
+	CCMWithHeightJSON,
 	CCMsFromEvents,
 	CCMsFromEventsJSON,
 	ProveResponseJSON,
@@ -70,6 +72,17 @@ export const ccmsFromEventsToJSON = (ccmsFromEvents: CCMsFromEvents): CCMsFromEv
 	},
 	outboxSize: ccmsFromEvents.outboxSize,
 });
+
+export const ccmsWithHeightToJSON = (ccmsWithHeight: CCMWithHeight[]): CCMWithHeightJSON[] =>
+	ccmsWithHeight.map(ccm => ({
+		...ccm,
+		fee: ccm.fee.toString(),
+		nonce: ccm.nonce.toString(),
+		params: ccm.params.toString('hex'),
+		receivingChainID: ccm.receivingChainID.toString('hex'),
+		sendingChainID: ccm.sendingChainID.toString('hex'),
+		height: ccm.height,
+	}));
 
 export const validatorsHashPreimagetoJSON = (validatorsHashPreimage: ValidatorsData[]) => {
 	const validatorsHashPreimageJSON = [];

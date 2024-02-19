@@ -22,13 +22,13 @@ import {
 } from 'lisk-sdk';
 import {
 	AggregateCommitJSON,
-	CCMWithHeight,
+	CCMWithHeightJSON,
 	ChainConnectorPluginConfig,
 	LastSentCCMWithHeightJSON,
 	SentCCUsJSON,
 	ValidatorsDataJSON,
 } from './types';
-import { aggregateCommitToJSON, validatorsHashPreimagetoJSON } from './utils';
+import { aggregateCommitToJSON, ccmsWithHeightToJSON, validatorsHashPreimagetoJSON } from './utils';
 import { authorizeRequestSchema } from './schemas';
 import { ChainConnectorDB } from './db';
 
@@ -70,12 +70,12 @@ export class ChainConnectorEndpoint extends BasePluginEndpoint {
 
 		return new BlockHeader(blockHeader as BlockHeader).toJSON();
 	}
-	public async getCrossChainMessages(context: PluginEndpointContext): Promise<CCMWithHeight[]> {
+	public async getCCMsBetweenHeights(context: PluginEndpointContext): Promise<CCMWithHeightJSON[]> {
 		const { from, to } = context.params as { from: number; to: number };
 
-		const ccms = await this.db.getCCMsBetweenHeight(from, to);
+		const ccms = await this.db.getCCMsBetweenHeights(from, to);
 
-		return ccms;
+		return ccmsWithHeightToJSON(ccms);
 	}
 
 	public async getLastSentCCM(_context: PluginEndpointContext): Promise<LastSentCCMWithHeightJSON> {

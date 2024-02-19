@@ -154,6 +154,8 @@ export type JSONObject<T> = Replaced<T, bigint | Buffer, string>;
 
 export type CCMsFromEventsJSON = JSONObject<CCMsFromEvents>;
 
+export type CCMWithHeightJSON = JSONObject<CCMWithHeight>;
+
 export type LastSentCCMWithHeightJSON = JSONObject<LastSentCCMWithHeight>;
 
 export type AggregateCommitJSON = JSONObject<AggregateCommit>;

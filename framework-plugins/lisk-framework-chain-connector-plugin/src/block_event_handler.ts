@@ -21,11 +21,11 @@ import {
 	MODULE_NAME_INTEROPERABILITY,
 	codec,
 	ChainAccount,
-	EMPTY_BYTES,
+	getMainchainID,
 } from 'lisk-sdk';
 import { ChainAPIClient } from './chain_api_client';
 import { ChainConnectorDB } from './db';
-import { BlockHeader, Logger, ModuleMetadata } from './types';
+import { BlockHeader, LastSentCCM, Logger, ModuleMetadata } from './types';
 import { CCM_PROCESSED, CCM_SEND_SUCCESS } from './constants';
 import { CCUHandler } from './ccu_handler';
 
@@ -66,12 +66,19 @@ export class BlockEventHandler {
 	private readonly _ccuSaveLimit: number;
 	private readonly _receivingChainID: Buffer;
 	private _isReceivingChainRegistered = false;
+	private _lastSentCCUTxID = '';
+	private _lastSentCCM!: LastSentCCM;
+	private _lastIncludedCCMOnReceivingChain!: LastSentCCM | undefined;
+	private readonly _isReceivingChainMainchain!: boolean;
+	private _lastDeletionHeight!: number;
 
 	public constructor(config: NewBlockHandlerConfig) {
 		this._ownChainID = config.ownChainID;
 		this._ccuSaveLimit = config.ccuSaveLimit;
 		this._receivingChainFinalizedHeight = 0;
 		this._receivingChainID = config.receivingChainID;
+		// If the running node is mainchain then receiving chain will be sidechain or vice verse.
+		this._isReceivingChainMainchain = !getMainchainID(this._ownChainID).equals(this._ownChainID);
 		this._ccuHandler = new CCUHandler({
 			maxCCUSize: config.maxCCUSize,
 			ownChainID: config.ownChainID,
@@ -91,12 +98,6 @@ export class BlockEventHandler {
 		this._interoperabilityMetadata = await this._sendingChainAPIClient.getMetadataByModuleName(
 			MODULE_NAME_INTEROPERABILITY,
 		);
-		this._lastCertificate = {
-			height: 0,
-			stateRoot: EMPTY_BYTES,
-			timestamp: 0,
-			validatorsHash: EMPTY_BYTES,
-		};
 
 		this._ccuHandler.load({
 			db: args.db,
@@ -107,6 +108,7 @@ export class BlockEventHandler {
 			interoperabilityMetadata: this._interoperabilityMetadata,
 		});
 		this._heightToDeleteIndex = new Map();
+		this._lastIncludedCCMOnReceivingChain = await this._db.getLastSentCCM();
 		// On a new block start with CCU creation process
 		this._sendingChainAPIClient.subscribe(
 			'chain_newBlock',
@@ -117,6 +119,8 @@ export class BlockEventHandler {
 			'chain_deleteBlock',
 			async (data?: Record<string, unknown>) => this._deleteBlockHandler(data),
 		);
+
+		this._initializeReceivingChainClient().catch(this._logger.error);
 	}
 
 	public async handleNewBlock(data?: Record<string, unknown>) {
@@ -128,12 +132,7 @@ export class BlockEventHandler {
 		const nodeInfo = await this._sendingChainAPIClient.getNodeInfo();
 		// Fetch last certificate from the receiving chain and update the _lastCertificate
 		try {
-			// eslint-disable-next-line no-console
-			console.log('this._ownChainID>>>', this._ownChainID);
-
 			chainAccount = await this._receivingChainAPIClient.getChainAccount(this._ownChainID);
-			// eslint-disable-next-line no-console
-			console.log('chainAccount>>>>>>>>>>>', chainAccount);
 		} catch (error) {
 			// If receivingChainAPIClient is not ready then still save data on new block
 			await this._saveOnNewBlock(newBlockHeader);
@@ -165,6 +164,10 @@ export class BlockEventHandler {
 
 		try {
 			this._lastCertificate = chainAccount.lastCertificate;
+			this._logger.debug(
+				`Last certificate value has been set with height ${this._lastCertificate.height}`,
+			);
+
 			await this._saveOnNewBlock(newBlockHeader);
 
 			const numOfBlocksSinceLastCertificate = newBlockHeader.height - this._lastCertificate.height;
@@ -195,19 +198,49 @@ export class BlockEventHandler {
 			}
 			this._isReceivingChainRegistered = true;
 		}
-		// When all the relevant data is saved successfully then try to create CCU
-		const computedCCUParams = await this._ccuHandler.computeCCU();
+		let computedCCUParams;
+		try {
+			// Compute CCU when there is no pending CCU that was sent earlier
+			if (this._lastSentCCUTxID === '') {
+				// When all the relevant data is saved successfully then try to create CCU
+				computedCCUParams = await this._ccuHandler.computeCCU(
+					this._lastCertificate,
+					this._lastIncludedCCMOnReceivingChain,
+				);
+			} else {
+				this._logger.info(
+					`Still pending CCU on the receiving CCU with tx ID ${this._lastSentCCUTxID}`,
+				);
+			}
+		} catch (error) {
+			this._logger.error(
+				{ err: error },
+				`Error occured while computing CCU for the blockHeader at height: ${newBlockHeader.height}`,
+			);
+
+			return;
+		}
 
 		if (computedCCUParams) {
 			try {
-				await this._ccuHandler.submitCCU(computedCCUParams.ccuParams);
-				// If CCU was sent successfully then save the lastSentCCM if any
-				// TODO: Add function to check on the receiving chain whether last sent CCM was accepted or not
-				if (computedCCUParams.lastCCMToBeSent) {
-					await this._db.setLastSentCCM(computedCCUParams.lastCCMToBeSent);
+				const ccuSubmitResult = await this._ccuHandler.submitCCU(
+					computedCCUParams.ccuParams,
+					this._lastSentCCUTxID,
+				);
+				if (ccuSubmitResult) {
+					this._lastSentCCUTxID = ccuSubmitResult;
+					// If CCU was sent successfully then save the lastSentCCM if any
+					// TODO: Add function to check on the receiving chain whether last sent CCM was accepted or not
+					if (computedCCUParams.lastCCMToBeSent) {
+						this._lastSentCCM = computedCCUParams.lastCCMToBeSent;
+					}
+					return;
 				}
+				this._logger.debug(
+					`Last sent CCU tx with ID ${this._lastSentCCUTxID} was not yet included in the receiving chain.`,
+				);
 			} catch (error) {
-				this._logger.info(
+				this._logger.error(
 					{ err: error },
 					`Error occured while submitting CCU for the blockHeader at height: ${newBlockHeader.height}`,
 				);
@@ -281,20 +314,20 @@ export class BlockEventHandler {
 				}
 			}
 		}
-		this._logger.info('Collected CCMs');
 
 		await this._db.setCCMsByHeight(
-			ccmsFromEvents.map(ccm => ({ ...ccm, height: newBlockHeader.height })),
+			ccmsFromEvents
+				.map(ccm => ({ ...ccm, height: newBlockHeader.height }))
+				.filter(
+					ccm =>
+						this._isReceivingChainMainchain || ccm.receivingChainID.equals(this._receivingChainID),
+				),
 			newBlockHeader.height,
 		);
-
-		this._logger.info('Set CCMs');
 
 		const validatorsData = await this._sendingChainAPIClient.getBFTParametersAtHeight(
 			newBlockHeader.height,
 		);
-
-		this._logger.info('get getBFTParametersAtHeight');
 
 		await this._db.setValidatorsDataByHash(validatorsData.validatorsHash, validatorsData);
 		this._logger.info('set getBFTParametersAtHeight');
@@ -331,6 +364,23 @@ export class BlockEventHandler {
 				inboxSize: inbox.size,
 				lastCertificateHeight: chainAccount.lastCertificate?.height,
 			});
+			try {
+				if (this._lastSentCCUTxID !== '') {
+					await this._receivingChainAPIClient.getTransactionByID(this._lastSentCCUTxID);
+					this._logger.info(
+						`CCU transaction with ${this._lastSentCCUTxID} was included on the receiving chain`,
+					);
+					// Reset last sent CCU to be blank
+					this._lastSentCCUTxID = '';
+					// Update last included CCM if there was any in the last sent CCU
+					if (this._lastSentCCM) {
+						this._lastIncludedCCMOnReceivingChain = this._lastSentCCM;
+						await this._db.setLastSentCCM(this._lastIncludedCCMOnReceivingChain);
+					}
+				}
+			} catch (error) {
+				throw new Error(`Failed to get transaction with ID ${this._lastSentCCUTxID}`);
+			}
 			await this._cleanup();
 		} catch (error) {
 			this._logger.debug(
@@ -365,27 +415,36 @@ export class BlockEventHandler {
 				}
 			}
 
+			const endDeletionHeightByLastCertificate = finalizedInfoAtHeight
+				? finalizedInfoAtHeight.lastCertificateHeight
+				: 0;
+
 			if (this._lastCertificate.height > 0) {
 				// Delete CCMs
 				await this._db.deleteCCMsBetweenHeight(
-					1,
-					finalizedInfoAtHeight ? finalizedInfoAtHeight.inboxSize : 0,
+					this._lastDeletionHeight,
+					endDeletionHeightByLastCertificate - 1,
 				);
 
 				// Delete blockHeaders
 				await this._db.deleteBlockHeadersBetweenHeight(
-					1,
-					finalizedInfoAtHeight ? finalizedInfoAtHeight.lastCertificateHeight : 0,
+					this._lastDeletionHeight,
+					endDeletionHeightByLastCertificate - 1,
 				);
 
 				// Delete aggregateCommits
 				await this._db.deleteAggregateCommitsBetweenHeight(
-					1,
-					finalizedInfoAtHeight ? finalizedInfoAtHeight.lastCertificateHeight : 0,
+					this._lastDeletionHeight,
+					endDeletionHeightByLastCertificate - 1,
 				);
 				// Delete validatorsHashPreimage
+
+				this._lastDeletionHeight = endDeletionHeightByLastCertificate;
 			}
 
+			this._logger.debug(
+				`Deleted data on cleanup between heights 1 and ${endDeletionHeightByLastCertificate}`,
+			);
 			// Delete info less than finalized height
 			this._heightToDeleteIndex.forEach((_, key) => {
 				if (key < this._receivingChainFinalizedHeight) {

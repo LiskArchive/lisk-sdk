@@ -24,7 +24,7 @@ import {
 	DEFAULT_LAST_CCM_SENT_NONCE,
 } from './constants';
 import { calculateMessageWitnesses } from './inbox_update';
-import { LastSentCCM, Logger, ModuleMetadata, ValidatorsData } from './types';
+import { LastSentCCM, Logger, ModuleMetadata } from './types';
 import { calculateActiveValidatorsUpdate } from './active_validators_update';
 
 interface ComputeCCUConfig {
@@ -90,25 +90,29 @@ export class CCUHandler {
 		]);
 	}
 
-	public async computeCCU(): Promise<
+	public async computeCCU(
+		lastCertificate: LastCertificate,
+		lastIncludedCCM?: LastSentCCM,
+	): Promise<
 		| {
 				ccuParams: CrossChainUpdateTransactionParams;
 				lastCCMToBeSent: LastSentCCM | undefined;
 		  }
 		| undefined
 	> {
+		this._lastCertificate = lastCertificate;
 		const newCertificate = await this._findCertificate();
 		if (!newCertificate && this._lastCertificate.height === 0) {
 			return undefined;
 		}
 
-		const lastSentCCM = (await this._db.getLastSentCCM()) ?? {
+		const lastSentCCM = lastIncludedCCM ?? {
 			nonce: DEFAULT_LAST_CCM_SENT_NONCE,
 			height: this._lastCertificate.height,
 		};
 
 		// Get range of CCMs and update the DB accordingly
-		const ccmsRange = await this._db.getCCMsBetweenHeight(
+		const ccmsRange = await this._db.getCCMsBetweenHeights(
 			lastSentCCM.height,
 			newCertificate ? newCertificate.height : this._lastCertificate.height,
 		);
@@ -174,13 +178,28 @@ export class CCUHandler {
 		const validatorsDataAtLastCertificate = await this._db.getValidatorsDataByHash(
 			this._lastCertificate.validatorsHash,
 		);
+
+		if (!validatorsDataAtLastCertificate) {
+			throw new Error(
+				`No validators data at last certificate with hash at ${this._lastCertificate.validatorsHash.toString(
+					'hex',
+				)}`,
+			);
+		}
 		if (!this._lastCertificate.validatorsHash.equals(newCertificate.validatorsHash)) {
 			const validatorsDataAtNewCertificate = await this._db.getValidatorsDataByHash(
 				newCertificate.validatorsHash,
 			);
+			if (!validatorsDataAtNewCertificate) {
+				throw new Error(
+					`No validators data at new certificate with hash at ${this._lastCertificate.validatorsHash.toString(
+						'hex',
+					)}`,
+				);
+			}
 			const validatorsUpdateResult = calculateActiveValidatorsUpdate(
-				validatorsDataAtLastCertificate as ValidatorsData,
-				validatorsDataAtNewCertificate as ValidatorsData,
+				validatorsDataAtLastCertificate,
+				validatorsDataAtNewCertificate,
 			);
 			activeValidatorsUpdate = validatorsUpdateResult.activeValidatorsUpdate;
 			certificateThreshold = validatorsUpdateResult.certificateThreshold;
@@ -200,6 +219,7 @@ export class CCUHandler {
 			const inclusionProofs = await this._sendingChainAPIClient.getSavedInclusionProofAtHeight(
 				newCertificate.height,
 			);
+
 			const foundInclusionProof = inclusionProofs.proof.queries.find(q =>
 				q.key.equals(this._outboxKeyForInclusionProof),
 			);
@@ -289,7 +309,10 @@ export class CCUHandler {
 		return computedMinFee;
 	}
 
-	public async submitCCU(ccuParams: CrossChainUpdateTransactionParams): Promise<void> {
+	public async submitCCU(
+		ccuParams: CrossChainUpdateTransactionParams,
+		lastSentCCUTxID: string,
+	): Promise<string | undefined> {
 		if (!this._db.privateKey) {
 			throw new Error('There is no key enabled to submit CCU');
 		}
@@ -320,6 +343,9 @@ export class CCUHandler {
 		});
 
 		tx.sign(this._receivingChainID, this._db.privateKey);
+		if (tx.id.equals(Buffer.from(lastSentCCUTxID, 'hex'))) {
+			return undefined;
+		}
 		let result: { transactionId: string };
 		if (this._isSaveCCU) {
 			result = { transactionId: tx.id.toString('hex') };
@@ -336,5 +362,7 @@ export class CCUHandler {
 		await this._db.setListOfCCUs(listOfCCUs);
 		// Update logs
 		this._logger.info({ transactionID: result.transactionId }, 'Sent CCU transaction');
+
+		return result.transactionId;
 	}
 }

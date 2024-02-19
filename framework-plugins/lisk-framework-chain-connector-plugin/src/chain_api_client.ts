@@ -23,6 +23,7 @@ import {
 	apiClient,
 	cryptography,
 	chain,
+	TransactionJSON,
 } from 'lisk-sdk';
 import {
 	bftParametersJSONToObj,
@@ -92,6 +93,14 @@ export class ChainAPIClient {
 		return result as { transactionId: string };
 	}
 
+	public async getTransactionByID(id: string): Promise<TransactionJSON> {
+		const result = await this._client?.invoke<TransactionJSON>('chain_getTransactionByID', {
+			id,
+		});
+
+		return result;
+	}
+
 	public async getAuthAccountNonceFromPublicKey(publicKey: Buffer): Promise<string> {
 		return (
 			await this._client.invoke<{ nonce: string }>('auth_getAuthAccount', {
@@ -119,8 +128,6 @@ export class ChainAPIClient {
 				chainID: chainID.toString('hex'),
 			},
 		);
-		// eslint-disable-next-line no-console
-		console.log('?>>>>getChainAccount', chainAccount);
 
 		if (!chainAccount || chainAccount?.lastCertificate === undefined) {
 			return undefined;
