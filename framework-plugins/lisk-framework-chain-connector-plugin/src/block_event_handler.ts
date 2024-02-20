@@ -22,6 +22,7 @@ import {
 	codec,
 	ChainAccount,
 	getMainchainID,
+	TransactionJSON,
 } from 'lisk-sdk';
 import { ChainAPIClient } from './chain_api_client';
 import { ChainConnectorDB } from './db';
@@ -121,6 +122,7 @@ export class BlockEventHandler {
 			async (data?: Record<string, unknown>) => this._deleteBlockHandler(data),
 		);
 
+		// Initialize the receiving chain client in the end of load so not to miss the initial new blocks
 		this._initializeReceivingChainClient().catch(this._logger.error);
 	}
 
@@ -140,7 +142,7 @@ export class BlockEventHandler {
 			return;
 		}
 		let chainAccount: ChainAccount | undefined;
-		// Save blockHeader, aggregateCommit, validatorsData and cross chain messages if any.
+
 		// Fetch last certificate from the receiving chain and update the _lastCertificate
 		try {
 			chainAccount = await this._receivingChainAPIClient.getChainAccount(this._ownChainID);
@@ -163,27 +165,21 @@ export class BlockEventHandler {
 			return;
 		}
 
-		try {
-			this._lastCertificate = chainAccount.lastCertificate;
+		this._lastCertificate = chainAccount.lastCertificate;
+		this._logger.debug(
+			`Last certificate value has been set with height ${this._lastCertificate.height}`,
+		);
+
+		const numOfBlocksSinceLastCertificate = newBlockHeader.height - this._lastCertificate.height;
+		if (this._ccuFrequency > numOfBlocksSinceLastCertificate) {
 			this._logger.debug(
-				`Last certificate value has been set with height ${this._lastCertificate.height}`,
+				{
+					ccuFrequency: this._ccuFrequency,
+					nextPossibleCCUHeight: this._ccuFrequency - numOfBlocksSinceLastCertificate,
+				},
+				'No attempt to create CCU either due to provided ccuFrequency',
 			);
 
-			const numOfBlocksSinceLastCertificate = newBlockHeader.height - this._lastCertificate.height;
-			if (nodeInfo.syncing || this._ccuFrequency > numOfBlocksSinceLastCertificate) {
-				this._logger.debug(
-					{
-						syncing: nodeInfo.syncing,
-						ccuFrequency: this._ccuFrequency,
-						nextPossibleCCUHeight: this._ccuFrequency - numOfBlocksSinceLastCertificate,
-					},
-					'No attempt to create CCU either due to ccuFrequency or the node is syncing',
-				);
-
-				return;
-			}
-		} catch (error) {
-			this._logger.error(error, 'Failed while saving on new block');
 			return;
 		}
 
@@ -201,7 +197,6 @@ export class BlockEventHandler {
 		try {
 			// Compute CCU when there is no pending CCU that was sent earlier
 			if (this._lastSentCCUTxID === '') {
-				// When all the relevant data is saved successfully then try to create CCU
 				computedCCUParams = await this._ccuHandler.computeCCU(
 					this._lastCertificate,
 					this._lastIncludedCCMOnReceivingChain,
@@ -252,7 +247,6 @@ export class BlockEventHandler {
 	}
 
 	public async _saveOnNewBlock(newBlockHeader: BlockHeader) {
-		// Save block header if a new block header arrives
 		await this._db.saveToDBOnNewBlock(newBlockHeader);
 		// Check for events if any and store them
 		const events = await this._sendingChainAPIClient.getEvents(newBlockHeader.height);
@@ -392,10 +386,7 @@ export class BlockEventHandler {
 			}
 			await this._cleanup();
 		} catch (error) {
-			this._logger.debug(
-				error,
-				'No Channel or Chain Data: Sending chain is not registered yet on receiving chain.',
-			);
+			this._logger.debug(error, 'Error occured while receiving block from receiving chain.');
 		}
 	}
 
@@ -403,69 +394,69 @@ export class BlockEventHandler {
 		// Delete CCUs
 		// When given -1 then there is no limit
 		if (this._ccuSaveLimit !== -1) {
-			const listOfCCUs = await this._db.getListOfCCUs();
-			if (listOfCCUs.length > this._ccuSaveLimit) {
-				await this._db.setListOfCCUs(
-					// Takes the last ccuSaveLimit elements
-					listOfCCUs.slice(-this._ccuSaveLimit),
-				);
-			}
-			let finalizedInfoAtHeight = this._heightToDeleteIndex.get(
-				this._receivingChainFinalizedHeight,
-			);
-			if (!finalizedInfoAtHeight) {
-				for (let i = 1; i < this._heightToDeleteIndex.size; i += 1) {
-					if (this._heightToDeleteIndex.get(this._receivingChainFinalizedHeight - i)) {
-						finalizedInfoAtHeight = this._heightToDeleteIndex.get(
-							this._receivingChainFinalizedHeight - i,
-						);
-						break;
-					}
+			const { list: listOfCCUs, total } = await this._db.getListOfCCUs();
+			if (total > this._ccuSaveLimit) {
+				// listOfCCUs is a descending list of CCUs by nonce
+				for (let i = total; i > this._ccuSaveLimit; i -= 1) {
+					await this._db.deleteCCUTransaction(
+						chain.Transaction.fromJSON(listOfCCUs[i] as TransactionJSON).toObject(),
+					);
 				}
 			}
-
-			const endDeletionHeightByLastCertificate = finalizedInfoAtHeight
-				? finalizedInfoAtHeight.lastCertificateHeight
-				: 0;
-
-			if (this._lastCertificate.height > 0) {
-				// Delete CCMs
-				await this._db.deleteCCMsBetweenHeight(
-					this._lastDeletionHeight,
-					endDeletionHeightByLastCertificate - 1,
-				);
-
-				// Delete blockHeaders
-				await this._db.deleteBlockHeadersBetweenHeight(
-					this._lastDeletionHeight,
-					endDeletionHeightByLastCertificate - 1,
-				);
-
-				// Delete aggregateCommits
-				await this._db.deleteAggregateCommitsBetweenHeight(
-					this._lastDeletionHeight,
-					endDeletionHeightByLastCertificate - 1,
-				);
-
-				// Delete validatorsHashPreimage
-				await this._db.deleteValidatorsHashBetweenHeights(
-					this._lastDeletionHeight,
-					endDeletionHeightByLastCertificate - 1,
-				);
-
-				this._lastDeletionHeight = endDeletionHeightByLastCertificate;
-			}
-
-			this._logger.debug(
-				`Deleted data on cleanup between heights 1 and ${endDeletionHeightByLastCertificate}`,
-			);
-			// Delete info less than finalized height
-			this._heightToDeleteIndex.forEach((_, key) => {
-				if (key < this._receivingChainFinalizedHeight) {
-					this._heightToDeleteIndex.delete(key);
-				}
-			});
 		}
+		let finalizedInfoAtHeight = this._heightToDeleteIndex.get(this._receivingChainFinalizedHeight);
+		if (!finalizedInfoAtHeight) {
+			for (let i = 1; i < this._heightToDeleteIndex.size; i += 1) {
+				if (this._heightToDeleteIndex.get(this._receivingChainFinalizedHeight - i)) {
+					finalizedInfoAtHeight = this._heightToDeleteIndex.get(
+						this._receivingChainFinalizedHeight - i,
+					);
+					break;
+				}
+			}
+		}
+
+		const endDeletionHeightByLastCertificate = finalizedInfoAtHeight
+			? finalizedInfoAtHeight.lastCertificateHeight
+			: 0;
+
+		if (this._lastCertificate.height > 0) {
+			// Delete CCMs
+			await this._db.deleteCCMsBetweenHeight(
+				this._lastDeletionHeight,
+				endDeletionHeightByLastCertificate - 1,
+			);
+
+			// Delete blockHeaders
+			await this._db.deleteBlockHeadersBetweenHeight(
+				this._lastDeletionHeight,
+				endDeletionHeightByLastCertificate - 1,
+			);
+
+			// Delete aggregateCommits
+			await this._db.deleteAggregateCommitsBetweenHeight(
+				this._lastDeletionHeight,
+				endDeletionHeightByLastCertificate - 1,
+			);
+
+			// Delete validatorsHashPreimage
+			await this._db.deleteValidatorsHashBetweenHeights(
+				this._lastDeletionHeight,
+				endDeletionHeightByLastCertificate - 1,
+			);
+
+			this._lastDeletionHeight = endDeletionHeightByLastCertificate;
+		}
+
+		this._logger.debug(
+			`Deleted data on cleanup between heights 1 and ${endDeletionHeightByLastCertificate}`,
+		);
+		// Delete info less than finalized height
+		this._heightToDeleteIndex.forEach((_, key) => {
+			if (key < this._receivingChainFinalizedHeight) {
+				this._heightToDeleteIndex.delete(key);
+			}
+		});
 	}
 
 	private async _deleteBlockHandler(data?: Record<string, unknown>) {
@@ -477,5 +468,6 @@ export class BlockEventHandler {
 		await this._db.deleteCCMsByHeight(deletedBlockHeader.height);
 		await this._db.deleteBlockHeaderByHeight(deletedBlockHeader.height);
 		await this._db.deleteAggregateCommitByHeight(deletedBlockHeader.height);
+		await this._db.deleteValidatorsHashByHeight(deletedBlockHeader.height);
 	}
 }

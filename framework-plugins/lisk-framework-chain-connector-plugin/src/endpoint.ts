@@ -15,7 +15,6 @@
 import {
 	BasePluginEndpoint,
 	PluginEndpointContext,
-	chain,
 	BlockHeader,
 	BlockHeaderJSON,
 	validator as liskValidator,
@@ -25,7 +24,6 @@ import {
 	CCMWithHeightJSON,
 	ChainConnectorPluginConfig,
 	LastSentCCMWithHeightJSON,
-	SentCCUsJSON,
 	ValidatorsDataHeightJSON,
 } from './types';
 import { aggregateCommitToJSON, ccmsWithHeightToJSON, validatorsHashPreimagetoJSON } from './utils';
@@ -46,9 +44,10 @@ export class ChainConnectorEndpoint extends BasePluginEndpoint {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getSentCCUs(_context: PluginEndpointContext): Promise<SentCCUsJSON> {
-		const sentCCUs = await this.db.getListOfCCUs();
-		return sentCCUs.map(transaction => new chain.Transaction(transaction).toJSON());
+	public async getSentCCUs(
+		_context: PluginEndpointContext,
+	): Promise<{ list: Record<string, unknown>[]; total: number }> {
+		return this.db.getListOfCCUs();
 	}
 
 	public async getAggregateCommits(context: PluginEndpointContext): Promise<AggregateCommitJSON[]> {
@@ -70,7 +69,7 @@ export class ChainConnectorEndpoint extends BasePluginEndpoint {
 
 		return new BlockHeader(blockHeader as BlockHeader).toJSON();
 	}
-	public async getCCMsBetweenHeights(context: PluginEndpointContext): Promise<CCMWithHeightJSON[]> {
+	public async getCrossChainMessages(context: PluginEndpointContext): Promise<CCMWithHeightJSON[]> {
 		const { from, to } = context.params as { from: number; to: number };
 
 		const ccms = await this.db.getCCMsBetweenHeights(from, to);
@@ -94,7 +93,7 @@ export class ChainConnectorEndpoint extends BasePluginEndpoint {
 		};
 	}
 
-	public async getValidatorsdata(
+	public async getAllValidatorsData(
 		_context: PluginEndpointContext,
 	): Promise<ValidatorsDataHeightJSON[]> {
 		const validatorsHashPreimage = await this.db.getAllValidatorsData();

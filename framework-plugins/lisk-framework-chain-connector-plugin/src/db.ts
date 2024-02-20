@@ -21,27 +21,39 @@ import {
 	EMPTY_BYTES,
 	aggregateCommitSchema,
 	CCMsg,
+	ccuParamsSchema,
+	certificateSchema,
+	Certificate,
+	ccmSchema,
 } from 'lisk-sdk';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
-import { DB_KEY_CROSS_CHAIN_MESSAGES, DB_KEY_LAST_SENT_CCM, DB_KEY_LIST_OF_CCU } from './constants';
+import {
+	DB_KEY_AGGREGATE_COMMIT_BY_HEIGHT,
+	DB_KEY_BLOCK_HEADER_BY_HEIGHT,
+	DB_KEY_CROSS_CHAIN_MESSAGES,
+	DB_KEY_LAST_SENT_CCM,
+	DB_KEY_LIST_OF_CCU,
+	DB_KEY_VALIDATORS_DATA_BY_HASH,
+	DB_KEY_VALIDATORS_DATA_BY_HEIGHT,
+} from './constants';
 import {
 	blockHeaderSchemaWithID,
 	ccmsAtHeightSchema,
 	lastSentCCMSchema,
-	listOfCCUsSchema,
 	validatorsDataSchema,
 } from './schemas';
-import { BlockHeader, CCMWithHeight, LastSentCCM, ValidatorsDataWithHeight } from './types';
+import {
+	BlockHeader,
+	CCMWithHeight,
+	CCUpdateParams,
+	LastSentCCM,
+	ValidatorsDataWithHeight,
+} from './types';
 
 const { Database } = liskDB;
 type KVStore = liskDB.Database;
-
-const DB_KEY_BLOCK_HEADER_BY_HEIGHT = Buffer.from([10]);
-const DB_KEY_AGGREGATE_COMMIT_BY_HEIGHT = Buffer.from([20]);
-const DB_KEY_VALIDATORS_DATA_BY_HASH = Buffer.from([30]);
-const DB_KEY_VALIDATORS_DATA_BY_HEIGHT = Buffer.from([40]);
 
 export const getDBInstance = async (
 	dataPath: string,
@@ -112,9 +124,7 @@ export class ChainConnectorDB {
 
 			return codec.decode<BlockHeader>(blockHeaderSchemaWithID, blockBytes);
 		} catch (error) {
-			if (!(error instanceof liskDB.NotFoundError)) {
-				throw error;
-			}
+			checkDBError(error);
 
 			return undefined;
 		}
@@ -186,9 +196,7 @@ export class ChainConnectorDB {
 
 			return codec.decode<AggregateCommit>(aggregateCommitSchema, bytes);
 		} catch (error) {
-			if (!(error instanceof liskDB.NotFoundError)) {
-				throw error;
-			}
+			checkDBError(error);
 
 			return undefined;
 		}
@@ -260,9 +268,7 @@ export class ChainConnectorDB {
 
 			return codec.decode<ValidatorsDataWithHeight>(validatorsDataSchema, bytes);
 		} catch (error) {
-			if (!(error instanceof liskDB.NotFoundError)) {
-				throw error;
-			}
+			checkDBError(error);
 
 			return undefined;
 		}
@@ -290,9 +296,7 @@ export class ChainConnectorDB {
 				concatDBKeys(DB_KEY_VALIDATORS_DATA_BY_HASH, validatorHash),
 			);
 		} catch (error) {
-			if (!(error instanceof liskDB.NotFoundError)) {
-				throw error;
-			}
+			checkDBError(error);
 
 			return undefined;
 		}
@@ -466,24 +470,97 @@ export class ChainConnectorDB {
 		await this._db.set(DB_KEY_LAST_SENT_CCM, codec.encode(lastSentCCMSchema, ccm));
 	}
 
-	public async getListOfCCUs(): Promise<chain.TransactionAttrs[]> {
-		let listOfCCUs: chain.TransactionAttrs[] = [];
-		try {
-			const encodedInfo = await this._db.get(DB_KEY_LIST_OF_CCU);
-			listOfCCUs = codec.decode<{ listOfCCUs: chain.TransactionAttrs[] }>(
-				listOfCCUsSchema,
-				encodedInfo,
-			).listOfCCUs;
-		} catch (error) {
-			checkDBError(error);
-		}
-		return listOfCCUs;
+	public async getListOfCCUs(): Promise<{ list: Record<string, unknown>[]; total: number }> {
+		const stream = this._db.createReadStream({
+			gte: concatDBKeys(DB_KEY_LIST_OF_CCU, Buffer.alloc(4, 0)),
+			lte: concatDBKeys(DB_KEY_LIST_OF_CCU, Buffer.alloc(4, 255)),
+			reverse: true,
+		});
+		const ccuBytes = await new Promise<Buffer[]>((resolve, reject) => {
+			const list: Buffer[] = [];
+			stream
+				.on('data', ({ value }: { value: Buffer }) => {
+					list.push(value);
+				})
+				.on('error', error => {
+					reject(error);
+				})
+				.on('end', () => {
+					resolve(list);
+				});
+		});
+
+		return {
+			list: ccuBytes
+				.map(b => {
+					const tx = chain.Transaction.fromBytes(b);
+					const params = codec.decode<CCUpdateParams>(ccuParamsSchema, tx.params);
+					const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
+
+					return {
+						...tx.toJSON(),
+						params: {
+							activeValidatorsUpdate: {
+								bftWeightsUpdate: params.activeValidatorsUpdate.bftWeightsUpdate.map(w =>
+									w.toString(),
+								),
+								bftWeightsUpdateBitmap:
+									params.activeValidatorsUpdate.bftWeightsUpdateBitmap.toString('hex'),
+								blsKeysUpdate: params.activeValidatorsUpdate.blsKeysUpdate.map(key =>
+									key.toString('hex'),
+								),
+							},
+							certificate: {
+								aggregationBits: certificate.aggregationBits.toString('hex'),
+								blockID: certificate.blockID.toString('hex'),
+								height: certificate.height,
+								signature: certificate.signature.toString('hex'),
+								stateRoot: certificate.stateRoot.toString('hex'),
+								timestamp: certificate.timestamp,
+								validatorsHash: certificate.validatorsHash.toString('hex'),
+							},
+							inboxUpdate: {
+								crossChainMessages: params.inboxUpdate.crossChainMessages.map(ccmBytes => {
+									const ccm = codec.decode<CCMsg>(ccmSchema, ccmBytes);
+
+									return {
+										...ccm,
+										fee: ccm.fee.toString(),
+										nonce: ccm.nonce.toString(),
+										params: ccm.params.toString('hex'),
+										receivingChainID: ccm.receivingChainID.toString('hex'),
+										sendingChainID: ccm.sendingChainID.toString('hex'),
+									};
+								}),
+								messageWitnessHashes: params.inboxUpdate.messageWitnessHashes.map(h =>
+									h.toString('hex'),
+								),
+								outboxRootWitness: {
+									bitmap: params.inboxUpdate.outboxRootWitness.bitmap.toString('hex'),
+									siblingHashes: params.inboxUpdate.outboxRootWitness.siblingHashes.map(h =>
+										h.toString('hex'),
+									),
+								},
+							},
+							certificateThreshold: params.certificateThreshold.toString(),
+							sendingChainID: params.sendingChainID.toString('hex'),
+						},
+					};
+				})
+				.sort((a, b) => Number(BigInt(b.nonce) - BigInt(a.nonce))),
+			total: ccuBytes.length,
+		};
 	}
 
-	public async setListOfCCUs(listOfCCUs: chain.TransactionAttrs[]) {
-		listOfCCUs.sort((a, b) => Number(b.nonce) - Number(a.nonce));
+	public async setCCUTransaction(ccu: chain.TransactionAttrs) {
+		await this._db.set(
+			concatDBKeys(DB_KEY_LIST_OF_CCU, ccu?.id as Buffer),
+			codec.encode(chain.transactionSchema, ccu),
+		);
+	}
 
-		await this._db.set(DB_KEY_LIST_OF_CCU, codec.encode(listOfCCUsSchema, { listOfCCUs }));
+	public async deleteCCUTransaction(ccu: chain.TransactionAttrs) {
+		await this._db.del(concatDBKeys(DB_KEY_LIST_OF_CCU, ccu?.id as Buffer));
 	}
 
 	public async setPrivateKey(encryptedPrivateKey: string, password: string) {

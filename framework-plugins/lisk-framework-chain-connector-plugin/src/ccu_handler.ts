@@ -60,20 +60,20 @@ interface ComputeCCUInitArgs {
 }
 
 export class CCUHandler {
+	private readonly _registrationHeight: number;
+	private readonly _ownChainID: Buffer;
+	private readonly _receivingChainID: Buffer;
+	private readonly _maxCCUSize: number;
+	private readonly _isReceivingChainMainchain: boolean;
+	private readonly _isSaveCCU: boolean;
+	private readonly _ccuFee: string;
 	private _db!: ChainConnectorDB;
 	private _logger!: Logger;
 	private _sendingChainAPIClient!: ChainAPIClient;
 	private _receivingChainAPIClient!: ChainAPIClient;
 	private _lastCertificate!: LastCertificate;
-	private readonly _registrationHeight: number;
-	private readonly _ownChainID!: Buffer;
-	private readonly _receivingChainID!: Buffer;
-	private readonly _maxCCUSize!: number;
-	private readonly _isReceivingChainMainchain!: boolean;
 	private _interoperabilityMetadata!: ModuleMetadata;
 	private _outboxKeyForInclusionProof!: Buffer;
-	private readonly _isSaveCCU!: boolean;
-	private readonly _ccuFee!: string;
 
 	public constructor(config: ComputeCCUConfig) {
 		this._registrationHeight = config.registrationHeight;
@@ -167,7 +167,6 @@ export class CCUHandler {
 			};
 
 			// Use the old certificateThreshold
-
 			const validatorsDataAtLastCertificate = await this._db.getValidatorsDataByHash(
 				this._lastCertificate.validatorsHash,
 			);
@@ -222,8 +221,6 @@ export class CCUHandler {
 			certificateThreshold = validatorsDataAtLastCertificate?.certificateThreshold;
 		}
 
-		// Get the inclusionProof for outboxRoot on stateRoot
-
 		if (crossChainMessages.length === 0) {
 			outboxRootWitness = {
 				bitmap: EMPTY_BYTES,
@@ -252,7 +249,6 @@ export class CCUHandler {
 
 		certificate = codec.encode(certificateSchema, newCertificate);
 
-		// eslint-disable-next-line consistent-return
 		return {
 			ccuParams: {
 				sendingChainID: this._ownChainID,
@@ -270,7 +266,7 @@ export class CCUHandler {
 	}
 
 	private async _findCertificate() {
-		// Find certificate
+		// First certificate can be picked directly from first valid aggregateCommit taking registration height into account
 		if (this._lastCertificate.height === 0) {
 			const aggreggateCommits = await this._db.getAggregateCommitBetweenHeights(
 				this._registrationHeight,
@@ -366,14 +362,8 @@ export class CCUHandler {
 		} else {
 			result = await this._receivingChainAPIClient.postTransaction(tx.getBytes());
 		}
-		/**
-		 * TODO: As of now we save it in memory but going forward it should be saved in DB,
-		 * as the array size can grow after sometime.
-		 */
 		// Save the sent CCU
-		const listOfCCUs = await this._db.getListOfCCUs();
-		listOfCCUs.push(tx.toObject());
-		await this._db.setListOfCCUs(listOfCCUs);
+		await this._db.setCCUTransaction(tx.toObject());
 		// Update logs
 		this._logger.info({ transactionID: result.transactionId }, 'Sent CCU transaction');
 

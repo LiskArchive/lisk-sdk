@@ -24,6 +24,8 @@ import {
 	ProveResponse,
 	BFTValidator,
 	Schema,
+	ActiveValidatorsUpdate,
+	InboxUpdate,
 } from 'lisk-sdk';
 
 export interface BlockHeader extends chain.BlockHeaderAttrs {
@@ -140,6 +142,14 @@ export interface CCMsFromEvents {
 	height: number;
 	inclusionProof: OutboxRootWitness;
 	outboxSize: number;
+}
+
+export interface CCUpdateParams {
+	sendingChainID: Buffer;
+	certificate: Buffer;
+	activeValidatorsUpdate: ActiveValidatorsUpdate;
+	certificateThreshold: bigint;
+	inboxUpdate: InboxUpdate;
 }
 
 type Primitive = string | number | bigint | boolean | null | undefined;

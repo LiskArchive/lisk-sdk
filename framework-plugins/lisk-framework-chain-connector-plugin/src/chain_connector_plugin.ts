@@ -26,7 +26,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	public configSchema = configSchema;
 
 	private _chainConnectorPluginDB!: liskDB.Database;
-	private _chainConnectorStore!: ChainConnectorDB;
+	private _chainConnectorDB!: ChainConnectorDB;
 	private _receivingChainClient!: ChainAPIClient;
 	private _sendingChainClient!: ChainAPIClient;
 	private _ownChainID!: Buffer;
@@ -37,7 +37,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		return __filename;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(context: PluginInitContext): Promise<void> {
 		await super.init(context);
 		if (this.config.maxCCUSize > CCU_TOTAL_CCM_SIZE) {
@@ -57,8 +56,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 	public async load(): Promise<void> {
 		this._chainConnectorPluginDB = await getDBInstance(this.dataPath);
-		this._chainConnectorStore = new ChainConnectorDB(this._chainConnectorPluginDB);
-		this.endpoint.load(this.config, this._chainConnectorStore);
+		this._chainConnectorDB = new ChainConnectorDB(this._chainConnectorPluginDB);
+		this.endpoint.load(this.config, this._chainConnectorDB);
 
 		this._sendingChainClient = new ChainAPIClient({
 			ipcPath: this.appConfig.system.dataPath,
@@ -75,7 +74,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			wsConnectionString: this.config.receivingChainWsURL,
 		});
 		await this._blockEventHandler.load({
-			db: this._chainConnectorStore,
+			db: this._chainConnectorDB,
 			logger: this.logger,
 			receivingChainAPIClient: this._receivingChainClient,
 			sendingChainAPIClient: this._sendingChainClient,
@@ -90,6 +89,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			await this._sendingChainClient.disconnect();
 		}
 
-		this._chainConnectorStore.close();
+		this._chainConnectorDB.close();
 	}
 }
