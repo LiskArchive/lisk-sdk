@@ -521,7 +521,7 @@ export class Storage {
 		}
 
 		if (this._keepInclusionProofsForHeights > -1) {
-			// events are removed only if finalized and below height - keepEventsForHeights
+			// inclusion proofs are removed only if finalized and below height - keepInclusionProofsForHeights
 			const minInclusionProofDeleteHeight = Math.min(
 				finalizedHeight,
 				Math.max(0, currentHeight - this._keepInclusionProofsForHeights),

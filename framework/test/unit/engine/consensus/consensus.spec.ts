@@ -120,6 +120,7 @@ describe('consensus', () => {
 				precommitThreshold: 0,
 				certificateThreshold: 0,
 			}),
+			prove: jest.fn(),
 		} as never;
 		consensus = new Consensus({
 			abi,
@@ -643,6 +644,46 @@ describe('consensus', () => {
 					event: NETWORK_EVENT_POST_BLOCK,
 					data: expect.any(Buffer),
 				});
+			});
+
+			it('should save inclusion proofs for the given keys', async () => {
+				jest.spyOn(abi, 'prove').mockResolvedValue({
+					proof: {
+						queries: [
+							{
+								bitmap: Buffer.alloc(2),
+								key: Buffer.alloc(2),
+								value: Buffer.alloc(2),
+							},
+						],
+						siblingHashes: [Buffer.alloc(2)],
+					},
+				});
+				(consensus as any)['_inclusionProofKeys'] = [Buffer.alloc(32)];
+				consensus['_systemConfig'].keepInclusionProofsForHeights = 300;
+
+				await consensus['_execute'](block, '127.0.0.1:7667');
+
+				expect(abi.prove).toHaveBeenCalledWith({
+					keys: [Buffer.alloc(32)],
+					stateRoot: block.header.stateRoot,
+				});
+			});
+
+			it('should throw error when saving of inclusions fail', async () => {
+				jest.spyOn(abi, 'prove').mockRejectedValue(new Error('Failed to save inclusion'));
+				jest.spyOn(loggerMock, 'error');
+				(consensus as any)['_inclusionProofKeys'] = [Buffer.alloc(32)];
+				consensus['_systemConfig'].keepInclusionProofsForHeights = 300;
+
+				await consensus['_execute'](block, '127.0.0.1:7667');
+
+				expect(loggerMock.error).toHaveBeenCalledWith(
+					{
+						err: new Error('Failed to save inclusion'),
+					},
+					'Failed to save inclusion proof for the given keys.',
+				);
 			});
 
 			it('should emit CONSENSUS_EVENT_BLOCK_BROADCAST event', async () => {
