@@ -265,6 +265,57 @@ export class CCUHandler {
 		};
 	}
 
+	public async submitCCU(
+		ccuParams: CrossChainUpdateTransactionParams,
+		lastSentCCUTxID: string,
+	): Promise<string | undefined> {
+		if (!this._db.privateKey) {
+			throw new Error('There is no key enabled to submit CCU');
+		}
+		const relayerPublicKey = cryptography.ed.getPublicKeyFromPrivateKey(this._db.privateKey);
+		const targetCommand = this._isReceivingChainMainchain
+			? COMMAND_NAME_SUBMIT_MAINCHAIN_CCU
+			: COMMAND_NAME_SUBMIT_SIDECHAIN_CCU;
+
+		const nonce = await this._receivingChainAPIClient.getAuthAccountNonceFromPublicKey(
+			relayerPublicKey,
+		);
+
+		const txWithoutFee = {
+			module: MODULE_NAME_INTEROPERABILITY,
+			command: targetCommand,
+			nonce: BigInt(nonce),
+			senderPublicKey: relayerPublicKey,
+			params: codec.encode(ccuParamsSchema, ccuParams),
+			signatures: [],
+		};
+
+		const tx = new Transaction({
+			...txWithoutFee,
+			fee: await this._getCcuFee({
+				...txWithoutFee,
+				params: ccuParams,
+			}),
+		});
+
+		tx.sign(this._receivingChainID, this._db.privateKey);
+		if (tx.id.equals(Buffer.from(lastSentCCUTxID, 'hex'))) {
+			return undefined;
+		}
+		let result: { transactionId: string };
+		if (this._isSaveCCU) {
+			result = { transactionId: tx.id.toString('hex') };
+		} else {
+			result = await this._receivingChainAPIClient.postTransaction(tx.getBytes());
+		}
+		// Save the sent CCU
+		await this._db.setCCUTransaction(tx.toObject());
+		// Update logs
+		this._logger.info({ transactionID: result.transactionId }, 'Sent CCU transaction');
+
+		return result.transactionId;
+	}
+
 	private async _findCertificate() {
 		// First certificate can be picked directly from first valid aggregateCommit taking registration height into account
 		if (this._lastCertificate.height === 0) {
@@ -317,56 +368,5 @@ export class CCUHandler {
 			return ccuFee;
 		}
 		return computedMinFee;
-	}
-
-	public async submitCCU(
-		ccuParams: CrossChainUpdateTransactionParams,
-		lastSentCCUTxID: string,
-	): Promise<string | undefined> {
-		if (!this._db.privateKey) {
-			throw new Error('There is no key enabled to submit CCU');
-		}
-		const relayerPublicKey = cryptography.ed.getPublicKeyFromPrivateKey(this._db.privateKey);
-		const targetCommand = this._isReceivingChainMainchain
-			? COMMAND_NAME_SUBMIT_MAINCHAIN_CCU
-			: COMMAND_NAME_SUBMIT_SIDECHAIN_CCU;
-
-		const nonce = await this._receivingChainAPIClient.getAuthAccountNonceFromPublicKey(
-			relayerPublicKey,
-		);
-
-		const txWithoutFee = {
-			module: MODULE_NAME_INTEROPERABILITY,
-			command: targetCommand,
-			nonce: BigInt(nonce),
-			senderPublicKey: relayerPublicKey,
-			params: codec.encode(ccuParamsSchema, ccuParams),
-			signatures: [],
-		};
-
-		const tx = new Transaction({
-			...txWithoutFee,
-			fee: await this._getCcuFee({
-				...txWithoutFee,
-				params: ccuParams,
-			}),
-		});
-
-		tx.sign(this._receivingChainID, this._db.privateKey);
-		if (tx.id.equals(Buffer.from(lastSentCCUTxID, 'hex'))) {
-			return undefined;
-		}
-		let result: { transactionId: string };
-		if (this._isSaveCCU) {
-			result = { transactionId: tx.id.toString('hex') };
-		} else {
-			result = await this._receivingChainAPIClient.postTransaction(tx.getBytes());
-		}
-		// Save the sent CCU
-		await this._db.setCCUTransaction(tx.toObject());
-		// Update logs
-		this._logger.info({ transactionID: result.transactionId }, 'Sent CCU transaction');
-
-		return result.transactionId;
 	}
 }

@@ -121,6 +121,19 @@ export const blockHeaderSchemaWithID = {
 	},
 };
 
+export const transactionSchemaWithID = {
+	$id: `${pluginSchemaIDPrefix}/transactionSchemaWithID`,
+	type: 'object',
+	required: [...chain.transactionSchema.required, 'id'],
+	properties: {
+		...chain.transactionSchema.properties,
+		id: {
+			dataType: 'bytes',
+			fieldNumber: Object.keys(chain.transactionSchema.properties).length + 1,
+		},
+	},
+};
+
 export const blockHeadersInfoSchema = {
 	$id: `${pluginSchemaIDPrefix}/blockHeaders`,
 	type: 'object',

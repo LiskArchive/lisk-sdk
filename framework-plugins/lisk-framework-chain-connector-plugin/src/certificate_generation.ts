@@ -46,6 +46,7 @@ export const checkChainOfTrust = async (
 	db: ChainConnectorDB,
 ): Promise<boolean> => {
 	const blockHeader = await db.getBlockHeaderByHeight(aggregateCommit.height - 1);
+
 	if (!blockHeader) {
 		throw new Error(
 			`No block header found for the given the previous height ${

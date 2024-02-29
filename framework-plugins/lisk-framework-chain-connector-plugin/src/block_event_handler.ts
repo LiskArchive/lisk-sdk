@@ -22,7 +22,6 @@ import {
 	codec,
 	ChainAccount,
 	getMainchainID,
-	TransactionJSON,
 } from 'lisk-sdk';
 import { ChainAPIClient } from './chain_api_client';
 import { ChainConnectorDB } from './db';
@@ -30,7 +29,7 @@ import { BlockHeader, LastSentCCM, Logger, ModuleMetadata } from './types';
 import { CCM_PROCESSED, CCM_SEND_SUCCESS, DEFAULT_SENT_CCU_TIMEOUT } from './constants';
 import { CCUHandler } from './ccu_handler';
 
-export interface NewBlockHandlerConfig {
+interface NewBlockHandlerConfig {
 	registrationHeight: number;
 	ownChainID: Buffer;
 	receivingChainID: Buffer;
@@ -114,7 +113,7 @@ export class BlockEventHandler {
 		// On a new block start with CCU creation process
 		this._sendingChainAPIClient.subscribe(
 			'chain_newBlock',
-			async (data?: Record<string, unknown>) => this.handleNewBlock(data),
+			async (data?: Record<string, unknown>) => this._handleNewBlock(data),
 		);
 
 		this._sendingChainAPIClient.subscribe(
@@ -126,7 +125,7 @@ export class BlockEventHandler {
 		this._initializeReceivingChainClient().catch(this._logger.error);
 	}
 
-	public async handleNewBlock(data?: Record<string, unknown>) {
+	private async _handleNewBlock(data?: Record<string, unknown>) {
 		const { blockHeader: receivedBlock } = data as unknown as Data;
 		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock).toObject();
 
@@ -189,6 +188,9 @@ export class BlockEventHandler {
 				this._receivingChainID,
 			);
 			if (!receivingChainAccount) {
+				this._logger.info(
+					'Receiving chain is not registered on the sending chain yet and has no chain data.',
+				);
 				return;
 			}
 			this._isReceivingChainRegistered = true;
@@ -205,11 +207,13 @@ export class BlockEventHandler {
 				this._logger.info(
 					`Still pending CCU on the receiving CCU with tx ID ${this._lastSentCCUTxID}`,
 				);
+
+				return;
 			}
 		} catch (error) {
 			this._logger.error(
 				{ err: error },
-				`Error occured while computing CCU for the blockHeader at height: ${newBlockHeader.height}`,
+				`Error occurred while computing CCU for the blockHeader at height: ${newBlockHeader.height}`,
 			);
 
 			return;
@@ -246,7 +250,7 @@ export class BlockEventHandler {
 		}
 	}
 
-	public async _saveOnNewBlock(newBlockHeader: BlockHeader) {
+	private async _saveOnNewBlock(newBlockHeader: BlockHeader) {
 		await this._db.saveToDBOnNewBlock(newBlockHeader);
 		// Check for events if any and store them
 		const events = await this._sendingChainAPIClient.getEvents(newBlockHeader.height);
@@ -366,8 +370,8 @@ export class BlockEventHandler {
 				inboxSize: inbox.size,
 				lastCertificateHeight: chainAccount.lastCertificate?.height,
 			});
-			try {
-				if (this._lastSentCCUTxID !== '') {
+			if (this._lastSentCCUTxID !== '') {
+				try {
 					await this._receivingChainAPIClient.getTransactionByID(this._lastSentCCUTxID);
 					this._logger.info(
 						`CCU transaction with ${this._lastSentCCUTxID} was included on the receiving chain`,
@@ -380,9 +384,9 @@ export class BlockEventHandler {
 						this._lastIncludedCCMOnReceivingChain = this._lastSentCCM;
 						await this._db.setLastSentCCM(this._lastIncludedCCMOnReceivingChain);
 					}
+				} catch (error) {
+					throw new Error(`Failed to get transaction with ID ${this._lastSentCCUTxID}`);
 				}
-			} catch (error) {
-				throw new Error(`Failed to get transaction with ID ${this._lastSentCCUTxID}`);
 			}
 			await this._cleanup();
 		} catch (error) {
@@ -398,9 +402,7 @@ export class BlockEventHandler {
 			if (total > this._ccuSaveLimit) {
 				// listOfCCUs is a descending list of CCUs by nonce
 				for (let i = total; i > this._ccuSaveLimit; i -= 1) {
-					await this._db.deleteCCUTransaction(
-						chain.Transaction.fromJSON(listOfCCUs[i] as TransactionJSON).toObject(),
-					);
+					await this._db.deleteCCUTransaction(Buffer.from(listOfCCUs[i]?.id as string, 'hex'));
 				}
 			}
 		}

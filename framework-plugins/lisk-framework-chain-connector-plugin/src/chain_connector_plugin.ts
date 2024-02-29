@@ -12,21 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BasePlugin, PluginInitContext, db as liskDB } from 'lisk-sdk';
+import { BasePlugin, PluginInitContext } from 'lisk-sdk';
 import { CCU_TOTAL_CCM_SIZE } from './constants';
 import { configSchema } from './schemas';
 import { ChainConnectorPluginConfig } from './types';
 import { ChainAPIClient } from './chain_api_client';
 import { BlockEventHandler } from './block_event_handler';
-import { ChainConnectorDB, getDBInstance } from './db';
+import { ChainConnectorDB } from './db';
 import { ChainConnectorEndpoint } from './endpoint';
 
 export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig> {
-	public endpoint = new ChainConnectorEndpoint();
+	public readonly endpoint = new ChainConnectorEndpoint();
 	public configSchema = configSchema;
 
-	private _chainConnectorPluginDB!: liskDB.Database;
-	private _chainConnectorDB!: ChainConnectorDB;
+	private readonly _chainConnectorDB = new ChainConnectorDB();
 	private _receivingChainClient!: ChainAPIClient;
 	private _sendingChainClient!: ChainAPIClient;
 	private _ownChainID!: Buffer;
@@ -52,17 +51,16 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			isSaveCCU: this.config.isSaveCCU,
 			ccuSaveLimit: this.config.ccuSaveLimit,
 		});
-	}
-
-	public async load(): Promise<void> {
-		this._chainConnectorPluginDB = await getDBInstance(this.dataPath);
-		this._chainConnectorDB = new ChainConnectorDB(this._chainConnectorPluginDB);
-		this.endpoint.load(this.config, this._chainConnectorDB);
-
 		this._sendingChainClient = new ChainAPIClient({
 			ipcPath: this.appConfig.system.dataPath,
 			logger: this.logger,
 		});
+	}
+
+	public async load(): Promise<void> {
+		await this._chainConnectorDB.load(this.dataPath);
+		this.endpoint.load(this.config.encryptedPrivateKey, this._chainConnectorDB);
+
 		await this._sendingChainClient.connect(this.apiClient);
 		this._ownChainID = Buffer.from(this.appConfig.genesis.chainID, 'hex');
 		if (this._receivingChainID[0] !== this._ownChainID[0]) {

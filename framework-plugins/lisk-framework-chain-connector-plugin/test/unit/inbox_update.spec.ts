@@ -12,39 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { CCMsg, tree } from 'lisk-sdk';
+import { tree } from 'lisk-sdk';
 import { CCU_TOTAL_CCM_SIZE } from '../../src/constants';
-import { CCMsFromEvents } from '../../src/types';
+import { CCMWithHeight } from '../../src/types';
 import { calculateMessageWitnesses } from '../../src/inbox_update';
 import { getSampleCCM } from '../utils/sampleCCM';
 
 describe('inboxUpdate', () => {
-	let sampleCCMs: CCMsg[];
-	let sampleCCMsFromEvents: CCMsFromEvents[];
+	let sampleCCMsFromEvents: CCMWithHeight[];
 
 	beforeEach(() => {
-		sampleCCMs = new Array(4).fill(0).map((_, index) => getSampleCCM(index + 1));
-
-		sampleCCMsFromEvents = [
-			{
-				ccms: sampleCCMs.slice(0, 1),
-				height: 60,
-				inclusionProof: {
-					bitmap: Buffer.alloc(1),
-					siblingHashes: [],
-				},
-				outboxSize: 1,
-			},
-			{
-				ccms: sampleCCMs.slice(2, 3),
-				height: 64,
-				inclusionProof: {
-					bitmap: Buffer.alloc(1),
-					siblingHashes: [Buffer.alloc(1)],
-				},
-				outboxSize: 2,
-			},
-		];
+		sampleCCMsFromEvents = new Array(4)
+			.fill(0)
+			.map((_, index) => ({ ...getSampleCCM(index + 1), height: index + 100 }));
 	});
 
 	describe('calculateMessageWitnesses', () => {
@@ -72,15 +52,8 @@ describe('inboxUpdate', () => {
 				.mockReturnValue([Buffer.alloc(1)]);
 			const ccmListWithBigSize = [
 				...sampleCCMsFromEvents,
-				{
-					ccms: [getSampleCCM(5, 8000), getSampleCCM(6, 8000)],
-					height: 60,
-					inclusionProof: {
-						bitmap: Buffer.alloc(1),
-						siblingHashes: [Buffer.from('01')],
-					},
-					outboxSize: 2,
-				},
+				{ ...getSampleCCM(5, 8000), height: 60 },
+				{ ...getSampleCCM(6, 8000), height: 60 },
 			];
 
 			const messageWitnessHashesForCCMs = calculateMessageWitnesses(

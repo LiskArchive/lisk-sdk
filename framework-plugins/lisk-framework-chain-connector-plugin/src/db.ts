@@ -42,6 +42,7 @@ import {
 	blockHeaderSchemaWithID,
 	ccmsAtHeightSchema,
 	lastSentCCMSchema,
+	transactionSchemaWithID,
 	validatorsDataSchema,
 } from './schemas';
 import {
@@ -79,11 +80,11 @@ export const uint32BE = (val: number): Buffer => {
 };
 
 export class ChainConnectorDB {
-	private readonly _db: KVStore;
+	private _db!: KVStore;
 	private _privateKey?: Buffer;
 
-	public constructor(db: KVStore) {
-		this._db = db;
+	public async load(dataPath: string) {
+		this._db = await getDBInstance(dataPath);
 	}
 
 	public close() {
@@ -493,23 +494,48 @@ export class ChainConnectorDB {
 		return {
 			list: ccuBytes
 				.map(b => {
-					const tx = chain.Transaction.fromBytes(b);
+					const tx = codec.decode<chain.TransactionAttrs>(transactionSchemaWithID, b);
+					const txJSON = new chain.Transaction(tx).toJSON();
 					const params = codec.decode<CCUpdateParams>(ccuParamsSchema, tx.params);
 					const certificate = codec.decode<Certificate>(certificateSchema, params.certificate);
 
+					const inboxUpdate = {
+						crossChainMessages: params.inboxUpdate.crossChainMessages.map(ccmBytes => {
+							const ccm = codec.decode<CCMsg>(ccmSchema, ccmBytes);
+
+							return {
+								...ccm,
+								fee: ccm.fee.toString(),
+								nonce: ccm.nonce.toString(),
+								params: ccm.params.toString('hex'),
+								receivingChainID: ccm.receivingChainID.toString('hex'),
+								sendingChainID: ccm.sendingChainID.toString('hex'),
+							};
+						}),
+						messageWitnessHashes: params.inboxUpdate.messageWitnessHashes.map(h =>
+							h.toString('hex'),
+						),
+						outboxRootWitness: {
+							bitmap: params.inboxUpdate.outboxRootWitness.bitmap.toString('hex'),
+							siblingHashes: params.inboxUpdate.outboxRootWitness.siblingHashes.map(h =>
+								h.toString('hex'),
+							),
+						},
+					};
+
+					const activeValidatorsUpdate = {
+						bftWeightsUpdate: params.activeValidatorsUpdate.bftWeightsUpdate.map(w => w.toString()),
+						bftWeightsUpdateBitmap:
+							params.activeValidatorsUpdate.bftWeightsUpdateBitmap.toString('hex'),
+						blsKeysUpdate: params.activeValidatorsUpdate.blsKeysUpdate.map(key =>
+							key.toString('hex'),
+						),
+					};
+
 					return {
-						...tx.toJSON(),
+						...txJSON,
 						params: {
-							activeValidatorsUpdate: {
-								bftWeightsUpdate: params.activeValidatorsUpdate.bftWeightsUpdate.map(w =>
-									w.toString(),
-								),
-								bftWeightsUpdateBitmap:
-									params.activeValidatorsUpdate.bftWeightsUpdateBitmap.toString('hex'),
-								blsKeysUpdate: params.activeValidatorsUpdate.blsKeysUpdate.map(key =>
-									key.toString('hex'),
-								),
-							},
+							activeValidatorsUpdate,
 							certificate: {
 								aggregationBits: certificate.aggregationBits.toString('hex'),
 								blockID: certificate.blockID.toString('hex'),
@@ -519,29 +545,7 @@ export class ChainConnectorDB {
 								timestamp: certificate.timestamp,
 								validatorsHash: certificate.validatorsHash.toString('hex'),
 							},
-							inboxUpdate: {
-								crossChainMessages: params.inboxUpdate.crossChainMessages.map(ccmBytes => {
-									const ccm = codec.decode<CCMsg>(ccmSchema, ccmBytes);
-
-									return {
-										...ccm,
-										fee: ccm.fee.toString(),
-										nonce: ccm.nonce.toString(),
-										params: ccm.params.toString('hex'),
-										receivingChainID: ccm.receivingChainID.toString('hex'),
-										sendingChainID: ccm.sendingChainID.toString('hex'),
-									};
-								}),
-								messageWitnessHashes: params.inboxUpdate.messageWitnessHashes.map(h =>
-									h.toString('hex'),
-								),
-								outboxRootWitness: {
-									bitmap: params.inboxUpdate.outboxRootWitness.bitmap.toString('hex'),
-									siblingHashes: params.inboxUpdate.outboxRootWitness.siblingHashes.map(h =>
-										h.toString('hex'),
-									),
-								},
-							},
+							inboxUpdate,
 							certificateThreshold: params.certificateThreshold.toString(),
 							sendingChainID: params.sendingChainID.toString('hex'),
 						},
@@ -555,12 +559,12 @@ export class ChainConnectorDB {
 	public async setCCUTransaction(ccu: chain.TransactionAttrs) {
 		await this._db.set(
 			concatDBKeys(DB_KEY_LIST_OF_CCU, ccu?.id as Buffer),
-			codec.encode(chain.transactionSchema, ccu),
+			codec.encode(transactionSchemaWithID, ccu),
 		);
 	}
 
-	public async deleteCCUTransaction(ccu: chain.TransactionAttrs) {
-		await this._db.del(concatDBKeys(DB_KEY_LIST_OF_CCU, ccu?.id as Buffer));
+	public async deleteCCUTransaction(ccuID: Buffer) {
+		await this._db.del(concatDBKeys(DB_KEY_LIST_OF_CCU, ccuID));
 	}
 
 	public async setPrivateKey(encryptedPrivateKey: string, password: string) {

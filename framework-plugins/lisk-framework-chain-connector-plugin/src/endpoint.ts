@@ -22,7 +22,6 @@ import {
 import {
 	AggregateCommitJSON,
 	CCMWithHeightJSON,
-	ChainConnectorPluginConfig,
 	LastSentCCMWithHeightJSON,
 	ValidatorsDataHeightJSON,
 } from './types';
@@ -36,10 +35,10 @@ const validator: liskValidator.LiskValidator = liskValidator.validator;
 
 export class ChainConnectorEndpoint extends BasePluginEndpoint {
 	private db!: ChainConnectorDB;
-	private _config!: ChainConnectorPluginConfig;
+	private _encryptedPrivateKey!: string;
 
-	public load(config: ChainConnectorPluginConfig, store: ChainConnectorDB) {
-		this._config = config;
+	public load(encryptedPrivateKey: string, store: ChainConnectorDB) {
+		this._encryptedPrivateKey = encryptedPrivateKey;
 		this.db = store;
 	}
 
@@ -63,12 +62,6 @@ export class ChainConnectorEndpoint extends BasePluginEndpoint {
 		return blockHeaders.map(blockHeader => new BlockHeader(blockHeader).toJSON());
 	}
 
-	public async getBlockHeaderByHeight(context: PluginEndpointContext): Promise<BlockHeaderJSON> {
-		const { height } = context.params as { height: number };
-		const blockHeader = await this.db.getBlockHeaderByHeight(height);
-
-		return new BlockHeader(blockHeader as BlockHeader).toJSON();
-	}
 	public async getCrossChainMessages(context: PluginEndpointContext): Promise<CCMWithHeightJSON[]> {
 		const { from, to } = context.params as { from: number; to: number };
 
@@ -111,13 +104,13 @@ export class ChainConnectorEndpoint extends BasePluginEndpoint {
 		const result = `Successfully ${enable ? 'enabled' : 'disabled'} the chain connector plugin.`;
 
 		if (!enable) {
-			await this.db.deletePrivateKey(this._config.encryptedPrivateKey, password);
+			await this.db.deletePrivateKey(this._encryptedPrivateKey, password);
 			return {
 				result,
 			};
 		}
 
-		await this.db.setPrivateKey(this._config.encryptedPrivateKey, password);
+		await this.db.setPrivateKey(this._encryptedPrivateKey, password);
 		return {
 			result,
 		};
