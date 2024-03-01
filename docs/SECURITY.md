@@ -21,7 +21,7 @@ involving the following steps:
 
 ## Comments on this Policy
 
-If you have suggestions on how this process could be improved please submit a pull request, use this [template](PULL_REQUEST_TEMPLATE.md).
+If you have suggestions on how this process could be improved please submit a pull request, use this [template](./PULL_REQUEST_TEMPLATE.md).
 
 ## Security Is Everyone's Responsibility
 
