@@ -113,12 +113,18 @@ export class ChainAPIClient {
 		return this._client.node.getNodeInfo();
 	}
 
-	public async getChannelAccount(chainID: Buffer): Promise<ChannelData> {
-		return channelDataJSONToObj(
-			await this._client.invoke<ChannelDataJSON>('interoperability_getChannel', {
+	public async getChannelAccount(chainID: Buffer): Promise<ChannelData | undefined> {
+		const channelAccount = await this._client.invoke<ChannelDataJSON>(
+			'interoperability_getChannel',
+			{
 				chainID: chainID.toString('hex'),
-			}),
+			},
 		);
+		if (!channelAccount || channelAccount?.inbox === undefined) {
+			return undefined;
+		}
+
+		return channelDataJSONToObj(channelAccount);
 	}
 
 	public async getChainAccount(chainID: Buffer): Promise<ChainAccount | undefined> {

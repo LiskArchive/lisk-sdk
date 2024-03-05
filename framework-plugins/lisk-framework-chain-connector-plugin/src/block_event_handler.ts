@@ -138,6 +138,7 @@ export class BlockEventHandler {
 		const nodeInfo = await this._sendingChainAPIClient.getNodeInfo();
 
 		if (nodeInfo.syncing) {
+			this._logger.debug('No CCU generation is possible as the node is syncing.');
 			return;
 		}
 		let chainAccount: ChainAccount | undefined;
@@ -355,19 +356,22 @@ export class BlockEventHandler {
 			const { finalizedHeight, syncing } = await this._receivingChainAPIClient.getNodeInfo();
 			// If receiving node is syncing then return
 			if (syncing) {
+				this._logger.debug('Receiving chain is syncing.');
 				return;
 			}
 			this._receivingChainFinalizedHeight = finalizedHeight;
-			const { inbox } = await this._receivingChainAPIClient.getChannelAccount(this._ownChainID);
-			if (!inbox) {
+			const channelDataOnReceivingChain = await this._receivingChainAPIClient.getChannelAccount(
+				this._ownChainID,
+			);
+			if (!channelDataOnReceivingChain) {
 				throw new Error('No channel data available on receiving chain.');
 			}
 			const chainAccount = await this._receivingChainAPIClient.getChainAccount(this._ownChainID);
-			if (!chainAccount?.lastCertificate) {
+			if (!chainAccount) {
 				throw new Error('No chain data available on receiving chain.');
 			}
 			this._heightToDeleteIndex.set(finalizedHeight, {
-				inboxSize: inbox.size,
+				inboxSize: channelDataOnReceivingChain.inbox.size,
 				lastCertificateHeight: chainAccount.lastCertificate?.height,
 			});
 			if (this._lastSentCCUTxID !== '') {
@@ -401,7 +405,7 @@ export class BlockEventHandler {
 			const { list: listOfCCUs, total } = await this._db.getListOfCCUs();
 			if (total > this._ccuSaveLimit) {
 				// listOfCCUs is a descending list of CCUs by nonce
-				for (let i = total; i > this._ccuSaveLimit; i -= 1) {
+				for (let i = total - 1; i >= this._ccuSaveLimit; i -= 1) {
 					await this._db.deleteCCUTransaction(Buffer.from(listOfCCUs[i]?.id as string, 'hex'));
 				}
 			}
@@ -448,11 +452,12 @@ export class BlockEventHandler {
 			);
 
 			this._lastDeletionHeight = endDeletionHeightByLastCertificate;
+
+			this._logger.debug(
+				`Deleted data on cleanup between heights 1 and ${endDeletionHeightByLastCertificate}`,
+			);
 		}
 
-		this._logger.debug(
-			`Deleted data on cleanup between heights 1 and ${endDeletionHeightByLastCertificate}`,
-		);
 		// Delete info less than finalized height
 		this._heightToDeleteIndex.forEach((_, key) => {
 			if (key < this._receivingChainFinalizedHeight) {

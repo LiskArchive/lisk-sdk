@@ -130,16 +130,21 @@ export class CCUHandler {
 			lastSentCCM.height,
 			newCertificate ? newCertificate.height : this._lastCertificate.height,
 		);
-		const { inbox: inboxOnReceivingChain } = await this._receivingChainAPIClient.getChannelAccount(
+		const channelDataOnReceivingChain = await this._receivingChainAPIClient.getChannelAccount(
 			this._ownChainID,
 		);
-		const { outbox: outboxOnSendingChain } = await this._sendingChainAPIClient.getChannelAccount(
+		if (!channelDataOnReceivingChain) {
+			return undefined;
+		}
+		const channelDataOnSendingChain = await this._sendingChainAPIClient.getChannelAccount(
 			this._receivingChainID,
 		);
-
+		if (!channelDataOnSendingChain) {
+			return undefined;
+		}
 		const { crossChainMessages, lastCCMToBeSent, messageWitnessHashes } = calculateMessageWitnesses(
-			inboxOnReceivingChain.size,
-			outboxOnSendingChain.size,
+			channelDataOnReceivingChain.inbox.size,
+			channelDataOnSendingChain?.outbox.size,
 			lastSentCCM,
 			ccmsRange,
 			this._maxCCUSize,

@@ -414,7 +414,9 @@ describe('endpoints', () => {
 			const allValidatorsData = await endpoint.getAllValidatorsData(endpointContext);
 			expect(allValidatorsData).toHaveLength(sampleValidatorsData.length);
 			expect(allValidatorsData).toEqual(
-				validatorsHashPreimagetoJSON(sampleValidatorsData.reverse()),
+				validatorsHashPreimagetoJSON(
+					sampleValidatorsData.sort((a, b) => b.validatorsHash.compare(a.validatorsHash)),
+				),
 			);
 		});
 	});
