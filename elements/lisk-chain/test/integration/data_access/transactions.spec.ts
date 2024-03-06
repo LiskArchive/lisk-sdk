@@ -34,6 +34,7 @@ describe('dataAccess.transactions', () => {
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
 			keepEventsForHeights: -1,
+			keepInclusionProofsForHeights: -1,
 		});
 	});
 

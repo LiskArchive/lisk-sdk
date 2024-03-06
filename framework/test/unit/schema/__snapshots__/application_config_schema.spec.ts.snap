@@ -43,7 +43,9 @@ exports[`schema/application_config_schema.js application config schema must matc
       },
       "dataPath": "~/.lisk/beta-sdk-app",
       "enableMetrics": false,
+      "inclusionProofKeys": [],
       "keepEventsForHeights": 300,
+      "keepInclusionProofsForHeights": 300,
       "logLevel": "info",
       "version": "0.1.0",
     },
@@ -348,7 +350,17 @@ exports[`schema/application_config_schema.js application config schema must matc
         "enableMetrics": {
           "type": "boolean",
         },
+        "inclusionProofKeys": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+          "uniqueItems": true,
+        },
         "keepEventsForHeights": {
+          "type": "integer",
+        },
+        "keepInclusionProofsForHeights": {
           "type": "integer",
         },
         "logLevel": {
@@ -373,6 +385,8 @@ exports[`schema/application_config_schema.js application config schema must matc
         "dataPath",
         "logLevel",
         "keepEventsForHeights",
+        "keepInclusionProofsForHeights",
+        "inclusionProofKeys",
         "backup",
       ],
       "type": "object",

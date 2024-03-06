@@ -15,6 +15,7 @@
 import { utils } from '@liskhq/lisk-cryptography';
 
 export const DEFAULT_KEEP_EVENTS_FOR_HEIGHTS = 300;
+export const DEFAULT_KEEP_INCLUSION_PROOFS_FOR_HEIGHTS = 300;
 export const DEFAULT_MIN_BLOCK_HEADER_CACHE = 309;
 export const DEFAULT_MAX_BLOCK_HEADER_CACHE = 515;
 

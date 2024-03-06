@@ -40,6 +40,11 @@ export interface UpdatedDiff {
 	readonly value: Buffer;
 }
 
+export interface InclusionProofConfig {
+	keysForInclusionProof: Buffer[];
+	keepInclusionProofsForHeights: number;
+}
+
 type Primitive = string | number | bigint | boolean | null | undefined;
 type Replaced<T, TReplace, TWith, TKeep = Primitive> = T extends TReplace | TKeep
 	? T extends TReplace

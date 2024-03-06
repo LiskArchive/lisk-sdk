@@ -16,7 +16,7 @@ import { Chain } from '@liskhq/lisk-chain';
 import { address } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../src/testing';
 import { createTransferTransaction, defaultTokenID } from '../../utils/mocks/transaction';
-import { TokenModule } from '../../../src';
+import { TokenModule, applicationConfigSchema } from '../../../src';
 import { genesisTokenStoreSchema } from '../../../src/modules/token';
 import { GenesisTokenStore } from '../../../src/modules/token/types';
 import { Consensus } from '../../../src/engine/consensus';
@@ -131,6 +131,7 @@ describe('genesis block', () => {
 				const chain = new Chain({
 					maxTransactionsSize: 15 * 1024,
 					keepEventsForHeights: -1,
+					keepInclusionProofsForHeights: -1,
 				});
 				const newConsensus = new Consensus({
 					abi: consensus['_abi'],
@@ -141,6 +142,7 @@ describe('genesis block', () => {
 						registerEndpoint: () => {},
 						registerHandler: () => {},
 					} as unknown as Network,
+					systemConfig: applicationConfigSchema.default.system,
 				});
 				chain.init({
 					db: processEnv.getBlockchainDB(),

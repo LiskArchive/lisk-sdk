@@ -137,6 +137,42 @@ export const blockAssetSchema = {
 	},
 };
 
+export const inclusionProofSchema = {
+	$id: '/storage/inclusionProof',
+	type: 'object',
+	required: ['siblingHashes', 'queries'],
+	properties: {
+		siblingHashes: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'bytes',
+			},
+		},
+		queries: {
+			type: 'array',
+			fieldNumber: 2,
+			items: {
+				type: 'object',
+				properties: {
+					key: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					value: {
+						dataType: 'bytes',
+						fieldNumber: 2,
+					},
+					bitmap: {
+						dataType: 'bytes',
+						fieldNumber: 3,
+					},
+				},
+			},
+		},
+	},
+};
+
 export const stateDiffSchema = {
 	$id: '/state/diff',
 	type: 'object',

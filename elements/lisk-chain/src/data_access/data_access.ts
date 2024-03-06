@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Database, NotFoundError } from '@liskhq/lisk-db';
+import { Database, NotFoundError, Proof } from '@liskhq/lisk-db';
 import { Transaction } from '../transaction';
 import { RawBlock } from '../types';
 import { BlockHeader } from '../block_header';
@@ -29,6 +29,7 @@ interface DAConstructor {
 	readonly minBlockHeaderCache: number;
 	readonly maxBlockHeaderCache: number;
 	readonly keepEventsForHeights: number;
+	readonly keepInclusionProofsForHeights: number;
 }
 
 export class DataAccess {
@@ -40,8 +41,9 @@ export class DataAccess {
 		minBlockHeaderCache,
 		maxBlockHeaderCache,
 		keepEventsForHeights,
+		keepInclusionProofsForHeights,
 	}: DAConstructor) {
-		this._storage = new StorageAccess(db, { keepEventsForHeights });
+		this._storage = new StorageAccess(db, { keepEventsForHeights, keepInclusionProofsForHeights });
 		this._blocksCache = new BlockCache(minBlockHeaderCache, maxBlockHeaderCache);
 	}
 
@@ -241,6 +243,16 @@ export class DataAccess {
 		const events = await this._storage.getEvents(height);
 
 		return events;
+	}
+
+	public async getInclusionProofs(height: number): Promise<Proof> {
+		const proofs = await this._storage.getInclusionProofs(height);
+
+		return proofs;
+	}
+
+	public async setInclusionProofs(proof: Proof, height: number): Promise<void> {
+		await this._storage.setInclusionProofs(proof, height);
 	}
 
 	public async isBlockPersisted(blockId: Buffer): Promise<boolean> {

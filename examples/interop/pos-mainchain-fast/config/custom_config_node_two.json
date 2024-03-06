@@ -1,7 +1,6 @@
 {
 	"system": {
 		"dataPath": "~/.lisk/pos-mainchain-node-two",
-		"keepEventsForHeights": 300,
 		"logLevel": "info"
 	},
 	"rpc": {

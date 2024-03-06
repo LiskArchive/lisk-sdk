@@ -13,7 +13,8 @@
  */
 import { Readable } from 'stream';
 import { when } from 'jest-when';
-import { NotFoundError, InMemoryDatabase } from '@liskhq/lisk-db';
+import { NotFoundError, InMemoryDatabase, Proof } from '@liskhq/lisk-db';
+import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { DataAccess } from '../../../src/data_access';
 import { createFakeBlockHeader, createValidDefaultBlock } from '../../utils/block';
@@ -24,11 +25,13 @@ import {
 	DB_KEY_BLOCKS_ID,
 	DB_KEY_TRANSACTIONS_ID,
 	DB_KEY_BLOCK_EVENTS,
+	DB_KEY_INCLUSION_PROOFS,
 } from '../../../src/db_keys';
 import { Block } from '../../../src/block';
 import { Event } from '../../../src/event';
 import { BlockAssets, BlockHeader } from '../../../src';
 import { encodeByteArray } from '../../../src/data_access/storage';
+import { inclusionProofSchema } from '../../../src/schema';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -45,6 +48,7 @@ describe('data_access', () => {
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
 			keepEventsForHeights: 1,
+			keepInclusionProofsForHeights: 1,
 		});
 		block = await createValidDefaultBlock({ header: { height: 1 } });
 	});
@@ -397,6 +401,57 @@ describe('data_access', () => {
 			const resp = await dataAccess.getEvents(30);
 			expect(db.get).toHaveBeenCalledWith(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(30)));
 			expect(resp).toEqual(original);
+		});
+	});
+
+	describe('#getInclusionProofs', () => {
+		it('should get empty array if the inclusionProofs does not exist', async () => {
+			db.get.mockRejectedValue(new NotFoundError());
+
+			const resp = await dataAccess.getInclusionProofs(30);
+			expect(db.get).toHaveBeenCalledWith(concatDBKeys(DB_KEY_INCLUSION_PROOFS, uint32BE(30)));
+			expect(resp).toEqual({
+				siblingHashes: [],
+				queries: [],
+			});
+		});
+
+		it('should get the inclusion proofs related to heights', async () => {
+			const original = {
+				siblingHashes: [Buffer.alloc(3)],
+				queries: [
+					{
+						key: Buffer.alloc(2),
+						value: Buffer.alloc(2),
+						bitmap: Buffer.alloc(1),
+					},
+				],
+			};
+			db.get.mockResolvedValue(codec.encode(inclusionProofSchema, original) as never);
+
+			const resp = await dataAccess.getInclusionProofs(30);
+			expect(db.get).toHaveBeenCalledWith(concatDBKeys(DB_KEY_INCLUSION_PROOFS, uint32BE(30)));
+			expect(resp).toEqual(original);
+		});
+	});
+
+	describe('#setInclusionProofs', () => {
+		it('should set inclusionProofs for a given height', async () => {
+			const proofs: Proof = {
+				siblingHashes: [Buffer.alloc(3)],
+				queries: [
+					{
+						key: Buffer.alloc(2),
+						value: Buffer.alloc(2),
+						bitmap: Buffer.alloc(1),
+					},
+				],
+			};
+			await dataAccess.setInclusionProofs(proofs, 30);
+			expect(db.set).toHaveBeenCalledWith(
+				concatDBKeys(DB_KEY_INCLUSION_PROOFS, uint32BE(30)),
+				codec.encode(inclusionProofSchema, proofs),
+			);
 		});
 	});
 

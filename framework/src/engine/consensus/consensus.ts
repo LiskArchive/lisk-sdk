@@ -54,7 +54,7 @@ import {
 	NETWORK_RPC_GET_LAST_BLOCK,
 	NETWORK_LEGACY_GET_BLOCKS_FROM_ID,
 } from './constants';
-import { GenesisConfig } from '../../types';
+import { GenesisConfig, SystemConfig } from '../../types';
 import { AggregateCommit } from './types';
 import { forkChoice, ForkStatus } from './fork_choice/fork_choice_rule';
 import { CommitPool } from './certificate_generation/commit_pool';
@@ -69,6 +69,7 @@ interface ConsensusArgs {
 	chain: Chain;
 	network: Network;
 	genesisConfig: GenesisConfig;
+	systemConfig: SystemConfig;
 	abi: ABI;
 	bft: BFTModule;
 }
@@ -107,6 +108,8 @@ export class Consensus {
 	private readonly _mutex: jobHandlers.Mutex;
 	private readonly _bft: BFTModule;
 	private readonly _genesisConfig: GenesisConfig;
+	private readonly _systemConfig: SystemConfig;
+	private readonly _inclusionProofKeys: Buffer[];
 
 	// init parameters
 	private _logger!: Logger;
@@ -139,6 +142,8 @@ export class Consensus {
 		this._mutex = new jobHandlers.Mutex();
 		this._bft = args.bft;
 		this._genesisConfig = args.genesisConfig;
+		this._systemConfig = args.systemConfig;
+		this._inclusionProofKeys = args.systemConfig.inclusionProofKeys.map(k => Buffer.from(k, 'hex'));
 	}
 
 	public async init(args: InitArgs): Promise<void> {
@@ -569,6 +574,30 @@ export class Consensus {
 			this._metrics.finalizedHeight.set(this._chain.finalizedHeight);
 			this._metrics.maxHeightCertified.set(block.header.aggregateCommit.height);
 			this._metrics.maxHeightPrevoted.set(block.header.maxHeightPrevoted);
+
+			try {
+				// Save inclusion proof when keys are provided
+				if (
+					(this._systemConfig.keepInclusionProofsForHeights > 0 ||
+						this._systemConfig.keepInclusionProofsForHeights === -1) &&
+					this._inclusionProofKeys.length > 0
+				) {
+					this._logger.info(`Starting saving inclusion proof at height ${block.header.height}`);
+					const result = await this._abi.prove({
+						keys: this._inclusionProofKeys,
+						stateRoot: block.header.stateRoot as Buffer,
+					});
+
+					await this._chain.dataAccess.setInclusionProofs(result.proof, block.header.height);
+					this._logger.info(`Successfully set inclusion proof at height ${block.header.height}`);
+				}
+			} catch (error) {
+				// Handle the error so that it doesn't affect block execute as it's outside block execution process
+				this._logger.error(
+					{ err: error as Error },
+					'Failed to save inclusion proof for the given keys.',
+				);
+			}
 		});
 	}
 

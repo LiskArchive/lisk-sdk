@@ -156,6 +156,7 @@ export class Engine {
 		this._chain = new Chain({
 			maxTransactionsSize: this._config.genesis.maxTransactionsSize,
 			keepEventsForHeights: this._config.system.keepEventsForHeights,
+			keepInclusionProofsForHeights: this._config.system.keepInclusionProofsForHeights,
 		});
 
 		this._bftModule = new BFTModule();
@@ -164,6 +165,7 @@ export class Engine {
 			network: this._network,
 			chain: this._chain,
 			genesisConfig: this._config.genesis,
+			systemConfig: this._config.system,
 			bft: this._bftModule,
 		});
 		this._generator = new Generator({
@@ -299,6 +301,7 @@ export class Engine {
 	private _registerEventListeners() {
 		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_NEW, ({ block }: { block: Block }) => {
 			this._generator.onNewBlock(block);
+
 			Promise.all([
 				this._rpcServer.publish(EVENT_CHAIN_BLOCK_NEW, { blockHeader: block.header.toJSON() }),
 				this._rpcServer.publish(EVENT_NETWORK_BLOCK_NEW, { blockHeader: block.header.toJSON() }),

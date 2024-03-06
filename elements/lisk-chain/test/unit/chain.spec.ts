@@ -38,6 +38,7 @@ describe('chain', () => {
 	const constants = {
 		maxTransactionsSize: 15 * 1024,
 		keepEventsForHeights: 300,
+		keepInclusionProofsForHeights: 300,
 	};
 	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
 		created: [],

@@ -80,6 +80,8 @@ export interface SystemConfig {
 	dataPath: string;
 	logLevel: string;
 	keepEventsForHeights: number;
+	keepInclusionProofsForHeights: number;
+	inclusionProofKeys: string[];
 	backup: {
 		height: number;
 	};
