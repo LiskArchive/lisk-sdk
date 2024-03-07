@@ -210,7 +210,7 @@ export class CCUHandler {
 			);
 			if (!validatorsDataAtNewCertificate) {
 				throw new Error(
-					`No validators data at new certificate with hash at ${this._lastCertificate.validatorsHash.toString(
+					`No validators data at new certificate with hash at ${newCertificate.validatorsHash.toString(
 						'hex',
 					)}`,
 				);
@@ -275,7 +275,7 @@ export class CCUHandler {
 		lastSentCCUTxID: string,
 	): Promise<string | undefined> {
 		if (!this._db.privateKey) {
-			throw new Error('There is no key enabled to submit CCU');
+			throw new Error('There is no key enabled to submit CCU.');
 		}
 		const relayerPublicKey = cryptography.ed.getPublicKeyFromPrivateKey(this._db.privateKey);
 		const targetCommand = this._isReceivingChainMainchain
@@ -350,7 +350,7 @@ export class CCUHandler {
 		return getNextCertificateFromAggregateCommits(this._db, bftHeights, this._lastCertificate);
 	}
 
-	public async _getCcuFee(tx: Record<string, unknown>): Promise<bigint> {
+	private async _getCcuFee(tx: Record<string, unknown>): Promise<bigint> {
 		let additionalFee = BigInt(0);
 
 		const userBalance = await this._receivingChainAPIClient.hasUserTokenAccount(
