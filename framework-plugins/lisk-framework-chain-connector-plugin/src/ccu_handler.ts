@@ -277,6 +277,10 @@ export class CCUHandler {
 		if (!this._db.privateKey) {
 			throw new Error('There is no key enabled to submit CCU.');
 		}
+		const { syncing } = await this._receivingChainAPIClient.getNodeInfo();
+		if (syncing) {
+			throw new Error('Receiving node is syncing.');
+		}
 		const relayerPublicKey = cryptography.ed.getPublicKeyFromPrivateKey(this._db.privateKey);
 		const targetCommand = this._isReceivingChainMainchain
 			? COMMAND_NAME_SUBMIT_MAINCHAIN_CCU

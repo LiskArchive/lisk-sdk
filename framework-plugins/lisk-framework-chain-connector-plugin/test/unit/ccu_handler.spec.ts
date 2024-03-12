@@ -775,6 +775,7 @@ describe('CCUHandler', () => {
 			receivingChainAPIClientMock.postTransaction.mockResolvedValue({
 				transactionId: cryptography.utils.hash(Buffer.from('txID')).toString('hex'),
 			});
+			receivingChainAPIClientMock.getNodeInfo.mockResolvedValue({ syncing: false });
 			jest.spyOn(initArgs.logger as Logger, 'info');
 
 			const { activeValidatorsUpdate, certificateThreshold } = calculateActiveValidatorsUpdate(
@@ -810,6 +811,13 @@ describe('CCUHandler', () => {
 			(ccuHandler['_db'] as any).privateKey = undefined;
 			await expect(ccuHandler['submitCCU'](ccuParams, 'txID')).rejects.toThrow(
 				'There is no key enabled to submit CCU.',
+			);
+		});
+
+		it('should throw error when receiving chain is syncing', async () => {
+			receivingChainAPIClientMock.getNodeInfo.mockResolvedValue({ syncing: true });
+			await expect(ccuHandler['submitCCU'](ccuParams, 'txID')).rejects.toThrow(
+				'Receiving node is syncing.',
 			);
 		});
 
