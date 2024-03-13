@@ -104,6 +104,33 @@ export const validatorsDataSchema = {
 		},
 		certificateThreshold: { dataType: 'uint64', fieldNumber: 2 },
 		validatorsHash: { dataType: 'bytes', fieldNumber: 3 },
+		height: { dataType: 'uint32', fieldNumber: 4 },
+	},
+};
+
+export const blockHeaderSchemaWithID = {
+	$id: `${pluginSchemaIDPrefix}/blockHeaderWithID`,
+	type: 'object',
+	required: [...chain.blockHeaderSchema.required, 'id'],
+	properties: {
+		...chain.blockHeaderSchema.properties,
+		id: {
+			dataType: 'bytes',
+			fieldNumber: Object.keys(chain.blockHeaderSchema.properties).length + 1,
+		},
+	},
+};
+
+export const transactionSchemaWithID = {
+	$id: `${pluginSchemaIDPrefix}/transactionSchemaWithID`,
+	type: 'object',
+	required: [...chain.transactionSchema.required, 'id'],
+	properties: {
+		...chain.transactionSchema.properties,
+		id: {
+			dataType: 'bytes',
+			fieldNumber: Object.keys(chain.transactionSchema.properties).length + 1,
+		},
 	},
 };
 
@@ -159,6 +186,17 @@ export const lastSentCCMWithHeight = {
 	},
 };
 
+export const lastSentCCMSchema = {
+	$id: `${pluginSchemaIDPrefix}/lastSentCCM`,
+	type: 'object',
+	required: [...ccmSchema.required, 'height', 'outboxSize'],
+	properties: {
+		...ccmSchema.properties,
+		height: { dataType: 'uint32', fieldNumber: Object.keys(ccmSchema.properties).length + 1 },
+		outboxSize: { dataType: 'uint32', fieldNumber: Object.keys(ccmSchema.properties).length + 2 },
+	},
+};
+
 export const listOfCCUsSchema = {
 	$id: `${pluginSchemaIDPrefix}/listOfCCUs`,
 	type: 'object',
@@ -168,6 +206,26 @@ export const listOfCCUsSchema = {
 			fieldNumber: 1,
 			items: {
 				...chain.transactionSchema,
+			},
+		},
+	},
+};
+
+export const ccmsAtHeightSchema = {
+	$id: `${pluginSchemaIDPrefix}/ccmsAtHeight`,
+	type: 'object',
+	required: ['ccms'],
+	properties: {
+		ccms: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: [...ccmSchema.required, 'height'],
+				properties: {
+					...ccmSchema.properties,
+					height: { dataType: 'uint32', fieldNumber: Object.keys(ccmSchema.properties).length + 1 },
+				},
 			},
 		},
 	},

@@ -23,11 +23,72 @@ import {
 	Proof,
 	ProveResponse,
 	BFTValidator,
+	Schema,
+	ActiveValidatorsUpdate,
+	InboxUpdate,
 } from 'lisk-sdk';
 
 export interface BlockHeader extends chain.BlockHeaderAttrs {
 	validatorsHash: Buffer;
 }
+
+export interface Logger {
+	readonly trace: (data?: Record<string, unknown> | unknown, message?: string) => void;
+	readonly debug: (data?: Record<string, unknown> | unknown, message?: string) => void;
+	readonly info: (data?: Record<string, unknown> | unknown, message?: string) => void;
+	readonly warn: (data?: Record<string, unknown> | unknown, message?: string) => void;
+	readonly error: (data?: Record<string, unknown> | unknown, message?: string) => void;
+	readonly fatal: (data?: Record<string, unknown> | unknown, message?: string) => void;
+	readonly level: () => number;
+}
+
+export interface GenesisConfig {
+	[key: string]: unknown;
+	readonly bftBatchSize: number;
+	readonly chainID: string;
+	readonly blockTime: number;
+	readonly maxTransactionsSize: number;
+}
+
+export interface NodeInfo {
+	readonly version: string;
+	readonly networkVersion: string;
+	readonly chainID: string;
+	readonly lastBlockID: string;
+	readonly height: number;
+	readonly genesisHeight: number;
+	readonly finalizedHeight: number;
+	readonly syncing: boolean;
+	readonly unconfirmedTransactions: number;
+	readonly genesis: GenesisConfig;
+	readonly network: {
+		readonly port: number;
+		readonly hostIp?: string;
+		readonly seedPeers: {
+			readonly ip: string;
+			readonly port: number;
+		}[];
+		readonly blacklistedIPs?: string[];
+		readonly fixedPeers?: string[];
+		readonly whitelistedPeers?: {
+			readonly ip: string;
+			readonly port: number;
+		}[];
+	};
+}
+
+export type ModuleMetadata = {
+	stores: {
+		key: string;
+		data: Schema;
+	}[];
+	events: {
+		name: string;
+		data: Schema;
+	}[];
+	name: string;
+};
+export type ModulesMetadata = ModuleMetadata[];
 
 export interface ChainConnectorPluginConfig {
 	receivingChainID: string;
@@ -49,21 +110,46 @@ export interface ActiveValidatorWithAddress extends ActiveValidator {
 	address: Buffer;
 }
 
-export interface ValidatorsData {
+export interface BFTParametersWithoutGeneratorKey extends Omit<BFTParameters, 'validators'> {
+	validators: {
+		address: Buffer;
+		bftWeight: bigint;
+		blsKey: Buffer;
+	}[];
+}
+
+export interface ValidatorsDataWithHeight {
 	certificateThreshold: bigint;
 	validators: ActiveValidatorWithAddress[];
 	validatorsHash: Buffer;
+	height: number;
 }
 
 export interface LastSentCCMWithHeight extends CCMsg {
 	height: number;
 }
 
+export interface LastSentCCM extends CCMsg {
+	height: number;
+	outboxSize: number;
+}
+
+export interface CCMWithHeight extends CCMsg {
+	height: number;
+}
 export interface CCMsFromEvents {
 	ccms: CCMsg[];
 	height: number;
 	inclusionProof: OutboxRootWitness;
 	outboxSize: number;
+}
+
+export interface CCUpdateParams {
+	sendingChainID: Buffer;
+	certificate: Buffer;
+	activeValidatorsUpdate: ActiveValidatorsUpdate;
+	certificateThreshold: bigint;
+	inboxUpdate: InboxUpdate;
 }
 
 type Primitive = string | number | bigint | boolean | null | undefined;
@@ -79,13 +165,15 @@ export type JSONObject<T> = Replaced<T, bigint | Buffer, string>;
 
 export type CCMsFromEventsJSON = JSONObject<CCMsFromEvents>;
 
+export type CCMWithHeightJSON = JSONObject<CCMWithHeight>;
+
 export type LastSentCCMWithHeightJSON = JSONObject<LastSentCCMWithHeight>;
 
 export type AggregateCommitJSON = JSONObject<AggregateCommit>;
 
 export type BFTValidatorJSON = JSONObject<BFTValidator>;
 
-export type ValidatorsDataJSON = JSONObject<ValidatorsData>;
+export type ValidatorsDataHeightJSON = JSONObject<ValidatorsDataWithHeight>;
 
 export type ProofJSON = JSONObject<Proof>;
 

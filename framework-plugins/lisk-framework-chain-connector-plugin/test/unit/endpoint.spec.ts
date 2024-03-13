@@ -12,132 +12,43 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { removeSync } from 'fs-extra';
-import { when } from 'jest-when';
 import {
-	ApplicationConfigForPlugin,
-	GenesisConfig,
 	testing,
 	cryptography,
-	apiClient,
 	db,
+	chain,
+	codec,
+	certificateSchema,
+	SubmitMainchainCrossChainUpdateCommand,
+	MODULE_NAME_INTEROPERABILITY,
+	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+	BLS_PUBLIC_KEY_LENGTH,
+	PluginEndpointContext,
 } from 'lisk-sdk';
-import { ChainConnectorPlugin } from '../../src/chain_connector_plugin';
 import * as chainConnectorDB from '../../src/db';
-import { CCMsFromEvents, CCMsFromEventsJSON, LastSentCCMWithHeightJSON } from '../../src/types';
-import { ccmsFromEventsToJSON, getMainchainID } from '../../src/utils';
+import { BlockHeader, CCMWithHeight, LastSentCCM, ValidatorsDataWithHeight } from '../../src/types';
+import { ChainConnectorEndpoint } from '../../src/endpoint';
+import { ADDRESS_LENGTH } from '../../src/constants';
+import {
+	aggregateCommitToJSON,
+	ccmsWithHeightToJSON,
+	validatorsHashPreimagetoJSON,
+} from '../../src/utils';
 
 describe('endpoints', () => {
-	const ownChainID = Buffer.from('10000000', 'hex');
-	const appConfigForPlugin: ApplicationConfigForPlugin = {
-		...testing.fixtures.defaultConfig,
-		genesis: {
-			chainID: ownChainID.toString('hex'),
-		} as GenesisConfig,
-		generator: {
-			keys: {
-				fromFile: '',
-			},
-		},
-		modules: {},
-		legacy: {
-			brackets: [],
-			sync: false,
-		},
-	};
-
-	const validators = [
-		{
-			address: cryptography.utils.getRandomBytes(20),
-			bftWeight: BigInt(2),
-			blsKey: cryptography.utils.getRandomBytes(20),
-		},
-	];
-	const validatorsJSON = [
-		{
-			address: validators[0].address.toString('hex'),
-			bftWeight: BigInt(2).toString(),
-			blsKey: validators[0].blsKey.toString('hex'),
-		},
-	];
-	const validatorsData = {
-		certificateThreshold: BigInt(70),
-		validators,
-		validatorsHash: cryptography.utils.getRandomBytes(20),
-	};
-	const validatorsDataJSON = {
-		certificateThreshold: validatorsData.certificateThreshold.toString(),
-		validators: validatorsJSON,
-		validatorsHash: validatorsData.validatorsHash.toString('hex'),
-	};
-	const aggregateCommit = {
-		height: 0,
-		aggregationBits: Buffer.alloc(0),
-		certificateSignature: Buffer.alloc(0),
-	};
-	const aggregateCommitJSON = {
-		height: 0,
-		aggregationBits: Buffer.alloc(0).toString('hex'),
-		certificateSignature: Buffer.alloc(0).toString('hex'),
-	};
-	const lastSentCCM = {
-		crossChainCommand: 'transfer',
-		fee: BigInt(0),
-		module: 'token',
-		nonce: BigInt(0),
-		params: Buffer.alloc(2),
-		receivingChainID: Buffer.from('04000001', 'hex'),
-		sendingChainID: Buffer.from('04000000', 'hex'),
-		status: 1,
-	};
 	const defaultPrivateKey =
 		'6c5e2b24ff1cc99da7a49bd28420b93b2a91e2e2a3b0a0ce07676966b707d3c2859bbd02747cf8e26dab592c02155dfddd4a16b0fe83fd7e7ffaec0b5391f3f7';
 	const defaultPassword = '123';
-	const defaultCCUFee = '500000';
 
-	let chainConnectorPlugin: ChainConnectorPlugin;
+	let connectorDB: chainConnectorDB.ChainConnectorDB;
+	let inMemoryDB: db.Database;
+	let endpoint: ChainConnectorEndpoint;
+	let endpointContext: PluginEndpointContext;
 
 	beforeEach(async () => {
-		chainConnectorPlugin = new ChainConnectorPlugin();
-		const sendingChainAPIClientMock = {
-			subscribe: jest.fn(),
-			invoke: jest.fn(),
-		};
-
-		const receivingChainAPIClientMock = {
-			subscribe: jest.fn(),
-			invoke: jest.fn(),
-		};
-
-		jest
-			.spyOn(apiClient, 'createIPCClient')
-			.mockResolvedValue(receivingChainAPIClientMock as never);
-		when(sendingChainAPIClientMock.invoke)
-			.calledWith('interoperability_getOwnChainAccount')
-			.mockResolvedValue({
-				chainID: ownChainID.toString('hex'),
-			});
-		when(receivingChainAPIClientMock.invoke)
-			.calledWith('interoperability_getOwnChainAccount')
-			.mockResolvedValue({
-				chainID: getMainchainID(ownChainID).toString('hex'),
-			});
-		when(receivingChainAPIClientMock.invoke)
-			.calledWith('interoperability_getChainAccount', { chainID: ownChainID.toString('hex') })
-			.mockResolvedValue({
-				lastCertificate: {
-					height: 10,
-					stateRoot: cryptography.utils.getRandomBytes(32).toString('hex'),
-					timestamp: Date.now(),
-					validatorsHash: cryptography.utils.getRandomBytes(32).toString('hex'),
-				},
-				name: 'chain1',
-				status: 1,
-			});
-		jest
-			.spyOn(chainConnectorDB, 'getDBInstance')
-			.mockResolvedValue(new db.InMemoryDatabase() as never);
-
+		inMemoryDB = new db.InMemoryDatabase() as any;
+		connectorDB = new chainConnectorDB.ChainConnectorDB();
+		connectorDB['_db'] = inMemoryDB;
 		const encryptedKey = await cryptography.encrypt.encryptMessageWithPassword(
 			Buffer.from(defaultPrivateKey, 'hex'),
 			defaultPassword,
@@ -150,182 +61,363 @@ describe('endpoints', () => {
 			},
 		);
 		const defaultEncryptedPrivateKey = cryptography.encrypt.stringifyEncryptedMessage(encryptedKey);
-
-		await chainConnectorPlugin.init({
-			config: {
-				receivingChainIPCPath: '~/.lisk/mainchain',
-				sendingChainIPCPath: '~/.lisk/sidechain',
-				ccuFee: defaultCCUFee,
-				encryptedPrivateKey: defaultEncryptedPrivateKey,
-				ccuFrequency: 10,
-				password: defaultPassword,
-				receivingChainID: getMainchainID(ownChainID).toString('hex'),
-			},
-			appConfig: appConfigForPlugin,
-			logger: testing.mocks.loggerMock,
-		});
-		(chainConnectorPlugin as any)['_apiClient'] = sendingChainAPIClientMock;
-
-		await chainConnectorPlugin.load();
-		await chainConnectorPlugin['_chainConnectorStore'].setAggregateCommits([aggregateCommit]);
-		await chainConnectorPlugin['_chainConnectorStore'].setValidatorsHashPreimage([validatorsData]);
-	});
-
-	afterEach(async () => {
-		(chainConnectorPlugin as any)['_sidechainAPIClient'] = {
-			disconnect: jest.fn(),
-		};
-		(chainConnectorPlugin as any)['_mainchainAPIClient'] = {
-			disconnect: jest.fn(),
-		};
-
-		await chainConnectorPlugin['_chainConnectorStore']['_db'].clear();
+		endpoint = new ChainConnectorEndpoint();
+		endpoint.load(defaultEncryptedPrivateKey, connectorDB);
 	});
 
 	afterAll(() => {
-		chainConnectorPlugin['_chainConnectorStore']['_db'].close();
-
-		removeSync(chainConnectorPlugin['dataPath']);
+		connectorDB.close();
 	});
 
 	describe('getSentCCUs', () => {
-		it('should return sent ccus', async () => {
-			const response = await chainConnectorPlugin.endpoint.getSentCCUs({} as any);
+		let listOfCCUs: chain.TransactionAttrs[];
+		let listOfCCUsJSON: Record<string, unknown>[];
 
-			expect(response).toStrictEqual([]);
+		beforeEach(() => {
+			const sampleBlockHeader = testing.createFakeBlockHeader({});
+			const certificate = {
+				aggregationBits: Buffer.alloc(2),
+				blockID: sampleBlockHeader.id,
+				height: sampleBlockHeader.height,
+				signature: sampleBlockHeader.signature,
+				stateRoot: sampleBlockHeader.stateRoot,
+				timestamp: sampleBlockHeader.timestamp,
+				validatorsHash: sampleBlockHeader.validatorsHash,
+			};
+
+			const params = {
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [],
+					bftWeightsUpdate: [],
+					bftWeightsUpdateBitmap: Buffer.alloc(0),
+				},
+				certificate: codec.encode(certificateSchema, certificate),
+				certificateThreshold: BigInt(1),
+				inboxUpdate: {
+					crossChainMessages: [],
+					messageWitnessHashes: [],
+					outboxRootWitness: {
+						bitmap: Buffer.alloc(1),
+						siblingHashes: [],
+					},
+				},
+				sendingChainID: Buffer.from('04000001', 'hex'),
+			};
+
+			const paramsJSON = {
+				activeValidatorsUpdate: {
+					blsKeysUpdate: [],
+					bftWeightsUpdate: [],
+					bftWeightsUpdateBitmap: '',
+				},
+				certificate: {
+					aggregationBits: Buffer.alloc(2).toString('hex'),
+					blockID: sampleBlockHeader.id.toString('hex'),
+					height: sampleBlockHeader.height,
+					signature: sampleBlockHeader.signature.toString('hex'),
+					stateRoot: sampleBlockHeader.stateRoot?.toString('hex'),
+					timestamp: sampleBlockHeader.timestamp,
+					validatorsHash: sampleBlockHeader.validatorsHash?.toString('hex'),
+				},
+				certificateThreshold: '1',
+				inboxUpdate: {
+					crossChainMessages: [],
+					messageWitnessHashes: [],
+					outboxRootWitness: {
+						bitmap: '00',
+						siblingHashes: [],
+					},
+				},
+				sendingChainID: '04000001',
+			};
+
+			const ccuOne = testing.createTransaction({
+				commandClass: SubmitMainchainCrossChainUpdateCommand as any,
+				module: MODULE_NAME_INTEROPERABILITY,
+				params,
+				chainID: Buffer.from('04000001', 'hex'),
+			});
+
+			const ccuTwo = testing.createTransaction({
+				commandClass: SubmitMainchainCrossChainUpdateCommand as any,
+				module: MODULE_NAME_INTEROPERABILITY,
+				params,
+				chainID: Buffer.from('04000005', 'hex'),
+				fee: BigInt(100000),
+				nonce: BigInt(2),
+			});
+
+			listOfCCUs = [
+				{ ...ccuOne.toObject(), id: ccuOne.id },
+				{ ...ccuTwo.toObject(), id: ccuTwo.id },
+			].sort((a, b) => Number(BigInt(b.nonce) - BigInt(a.nonce)));
+
+			listOfCCUsJSON = [
+				{ ...ccuTwo.toJSON(), params: { ...paramsJSON }, id: ccuTwo.id.toString('hex') },
+				{ ...ccuOne.toJSON(), params: { ...paramsJSON }, id: ccuOne.id.toString('hex') },
+			].sort((a, b) => Number(BigInt(b.nonce) - BigInt(a.nonce)));
+		});
+
+		it('should return sent ccus', async () => {
+			for (const ccu of listOfCCUs) {
+				await connectorDB.setCCUTransaction(ccu);
+			}
+
+			const { list, total } = await endpoint.getSentCCUs(endpointContext);
+
+			expect(list).toEqual(listOfCCUsJSON);
+			expect(total).toBe(2);
 		});
 	});
 
 	describe('getAggregateCommits', () => {
-		it('should return aggregate commits', async () => {
-			const response = await chainConnectorPlugin.endpoint.getAggregateCommits({} as any);
+		let sampleBlockHeaders: BlockHeader[];
 
-			expect(response).toStrictEqual([aggregateCommitJSON]);
+		beforeEach(async () => {
+			sampleBlockHeaders = [10, 11, 12, 13].map(index =>
+				testing
+					.createFakeBlockHeader({
+						height: index,
+						aggregateCommit: {
+							aggregationBits: Buffer.alloc(1),
+							certificateSignature: cryptography.utils.hash(Buffer.alloc(2)),
+							height: index - 4,
+						},
+					})
+					.toObject(),
+			);
+			for (const blockHeader of sampleBlockHeaders) {
+				await connectorDB.saveToDBOnNewBlock(blockHeader);
+			}
 		});
-	});
 
-	describe('getValidatorsInfoFromPreimage', () => {
-		it('should return list of validators info', async () => {
-			const response = await chainConnectorPlugin.endpoint.getValidatorsInfoFromPreimage({} as any);
+		it('should return aggregateCommit between the given heights', async () => {
+			const fromHeight = 7;
+			const toHeight = 9;
+			endpointContext = testing.createTransientModuleEndpointContext({
+				params: { from: fromHeight, to: toHeight },
+			});
+			const aggregateCommits = await endpoint.getAggregateCommits(endpointContext);
 
-			expect(response).toStrictEqual([validatorsDataJSON]);
+			expect(aggregateCommits).toHaveLength(toHeight + 1 - fromHeight);
+			expect(aggregateCommits.reverse()).toEqual(
+				sampleBlockHeaders
+					.map(h => h.aggregateCommit)
+					.map(a => aggregateCommitToJSON(a))
+					.filter(b => b.height >= fromHeight && b.height <= toHeight),
+			);
 		});
 	});
 
 	describe('getBlockHeaders', () => {
-		let blockHeadersObj: any;
-		let blockHeadersJSON: any;
+		let sampleBlockHeaders: BlockHeader[];
 
 		beforeEach(async () => {
-			const blockHeaders = new Array(5).fill(0).map(_ => testing.createFakeBlockHeader());
-			blockHeadersObj = blockHeaders.map(b => b.toObject());
-			blockHeadersJSON = blockHeaders.map(b => b.toJSON());
-			await chainConnectorPlugin['_chainConnectorStore'].setBlockHeaders(blockHeadersObj);
+			sampleBlockHeaders = [1, 2, 3, 4].map(index =>
+				testing.createFakeBlockHeader({ height: index }).toObject(),
+			);
+
+			for (const blockHeader of sampleBlockHeaders) {
+				await connectorDB.saveToDBOnNewBlock(blockHeader);
+			}
 		});
 
-		it('should return list of block headers', async () => {
-			const response = await chainConnectorPlugin.endpoint.getBlockHeaders({} as any);
+		it('should return block headers between the given heights', async () => {
+			const fromHeight = 2;
+			const toHeight = 4;
+			endpointContext = testing.createTransientModuleEndpointContext({
+				params: { from: fromHeight, to: toHeight },
+			});
+			const blockHeaders = await endpoint.getBlockHeaders(endpointContext);
 
-			expect(response).toStrictEqual(blockHeadersJSON);
+			expect(blockHeaders).toHaveLength(toHeight + 1 - fromHeight);
+			expect(
+				sampleBlockHeaders
+					.map(blockHeader => new chain.BlockHeader(blockHeader).toJSON())
+					.filter(a => a.height >= 2)
+					.reverse(),
+			).toEqual(blockHeaders);
 		});
 	});
 
 	describe('getCrossChainMessages', () => {
-		let ccmsFromEvents: CCMsFromEvents;
-		let ccmsFromEventsJSON: CCMsFromEventsJSON;
+		let sampleCrossChainMessages: Record<string, CCMWithHeight[]>;
 
 		beforeEach(async () => {
-			ccmsFromEvents = {
-				ccms: [
+			sampleCrossChainMessages = {
+				'10': [
 					{
-						...lastSentCCM,
+						crossChainCommand: 'transfer',
+						fee: BigInt(1),
+						module: 'token',
+						nonce: BigInt(10),
+						params: Buffer.alloc(2),
+						receivingChainID: Buffer.from('10000000', 'hex'),
+						sendingChainID: Buffer.from('10000001', 'hex'),
+						status: 1,
+						height: 10,
 					},
 				],
-				height: 1,
-				inclusionProof: {
-					bitmap: Buffer.alloc(0),
-					siblingHashes: [],
-				},
-				outboxSize: 2,
+				'11': [
+					{
+						crossChainCommand: 'transfer',
+						fee: BigInt(2),
+						module: 'token',
+						nonce: BigInt(12),
+						params: Buffer.alloc(2),
+						receivingChainID: Buffer.from('01000000', 'hex'),
+						sendingChainID: Buffer.from('00000001', 'hex'),
+						status: 1,
+						height: 11,
+					},
+					{
+						crossChainCommand: 'transfer',
+						fee: BigInt(2),
+						module: 'token',
+						nonce: BigInt(13),
+						params: Buffer.alloc(1),
+						receivingChainID: Buffer.from('01000000', 'hex'),
+						sendingChainID: Buffer.from('00000001', 'hex'),
+						status: 1,
+						height: 11,
+					},
+				],
+				'12': [
+					{
+						crossChainCommand: 'transfer',
+						fee: BigInt(2),
+						module: 'token',
+						nonce: BigInt(12),
+						params: Buffer.alloc(2),
+						receivingChainID: Buffer.from('01000000', 'hex'),
+						sendingChainID: Buffer.from('00000001', 'hex'),
+						status: 1,
+						height: 12,
+					},
+				],
+				'13': [
+					{
+						crossChainCommand: 'transfer',
+						fee: BigInt(2),
+						module: 'token',
+						nonce: BigInt(13),
+						params: Buffer.alloc(1),
+						receivingChainID: Buffer.from('01000000', 'hex'),
+						sendingChainID: Buffer.from('00000001', 'hex'),
+						status: 1,
+						height: 13,
+					},
+				],
 			};
-			ccmsFromEventsJSON = ccmsFromEventsToJSON(ccmsFromEvents);
-			await chainConnectorPlugin['_chainConnectorStore'].setCrossChainMessages([ccmsFromEvents]);
+			await connectorDB.setCCMsByHeight(sampleCrossChainMessages['10'], 10);
+			await connectorDB.setCCMsByHeight(sampleCrossChainMessages['11'], 11);
+			await connectorDB.setCCMsByHeight(sampleCrossChainMessages['12'], 12);
+			await connectorDB.setCCMsByHeight(sampleCrossChainMessages['13'], 13);
 		});
 
-		it('should return list of ccms from events', async () => {
-			const response = await chainConnectorPlugin.endpoint.getCrossChainMessages({} as any);
-
-			expect(response).toStrictEqual([ccmsFromEventsJSON]);
+		it('should return all the ccms between then given heights', async () => {
+			const fromHeight = 10;
+			const toHeight = 12;
+			endpointContext = testing.createTransientModuleEndpointContext({
+				params: { from: fromHeight, to: toHeight },
+			});
+			const ccms = await endpoint.getCrossChainMessages(endpointContext);
+			expect(ccms).toHaveLength(
+				sampleCrossChainMessages['10'].length +
+					sampleCrossChainMessages['11'].length +
+					sampleCrossChainMessages['12'].length,
+			);
+			expect(ccms).toEqual(
+				ccmsWithHeightToJSON([
+					...sampleCrossChainMessages['10'],
+					...sampleCrossChainMessages['11'].reverse(),
+					...sampleCrossChainMessages['12'],
+				]).reverse(),
+			);
 		});
 	});
 
 	describe('getLastSentCCM', () => {
-		let lastSentCCMJSON: LastSentCCMWithHeightJSON;
+		let sampleLastSentCCM: LastSentCCM;
 
-		beforeEach(async () => {
-			lastSentCCMJSON = {
-				...lastSentCCM,
+		beforeEach(() => {
+			sampleLastSentCCM = {
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+				fee: BigInt(1000),
 				height: 1,
-				fee: lastSentCCM.fee.toString(),
-				nonce: lastSentCCM.nonce.toString(),
-				params: lastSentCCM.params.toString('hex'),
-				receivingChainID: lastSentCCM.receivingChainID.toString('hex'),
-				sendingChainID: lastSentCCM.sendingChainID.toString('hex'),
+				module: 'token',
+				nonce: BigInt(1),
+				params: Buffer.alloc(1),
+				receivingChainID: Buffer.from('04000000', 'hex'),
+				sendingChainID: Buffer.from('04000001', 'hex'),
+				status: 1,
+				outboxSize: 2,
 			};
-			await chainConnectorPlugin['_chainConnectorStore'].setLastSentCCM({
-				...lastSentCCM,
-				height: lastSentCCMJSON.height,
-			});
 		});
 
-		it('should return list of ccms from events', async () => {
-			const response = await chainConnectorPlugin.endpoint.getLastSentCCM({} as any);
-
-			expect(response).toStrictEqual(lastSentCCMJSON);
-		});
-	});
-
-	describe('authorize', () => {
-		it('should reject when invalid params is given', async () => {
-			await expect(chainConnectorPlugin.endpoint.authorize({ params: {} } as any)).rejects.toThrow(
-				"must have required property 'password'",
+		it('should return undefined when there is no record', async () => {
+			endpointContext = testing.createTransientModuleEndpointContext({});
+			await expect(endpoint.getLastSentCCM(endpointContext)).rejects.toThrow(
+				'No CCM was sent so far',
 			);
 		});
 
-		it('should enable when correct password is given', async () => {
-			await expect(
-				chainConnectorPlugin.endpoint.authorize({
-					params: { enable: true, password: defaultPassword },
-				} as any),
-			).resolves.toEqual({
-				result: 'Successfully enabled the chain connector plugin.',
+		it('should return lastSentCCM', async () => {
+			endpointContext = testing.createTransientModuleEndpointContext({});
+
+			await connectorDB.setLastSentCCM(sampleLastSentCCM);
+
+			await expect(endpoint.getLastSentCCM(endpointContext)).resolves.toEqual({
+				...sampleLastSentCCM,
+				fee: sampleLastSentCCM.fee.toString(),
+				nonce: sampleLastSentCCM.nonce.toString(),
+				params: sampleLastSentCCM.params.toString('hex'),
+				receivingChainID: sampleLastSentCCM.receivingChainID.toString('hex'),
+				sendingChainID: sampleLastSentCCM.sendingChainID.toString('hex'),
 			});
 		});
+	});
 
-		it('should not enable when incorrect password is given', async () => {
-			await expect(
-				chainConnectorPlugin.endpoint.authorize({
-					params: { enable: true, password: 'invalid' },
-				} as any),
-			).rejects.toThrow('Unsupported state or unable to authenticate data');
+	describe('getAllValidatorsData', () => {
+		let sampleValidatorsData: ValidatorsDataWithHeight[];
+
+		beforeEach(async () => {
+			sampleValidatorsData = [20, 21].map(index => ({
+				certificateThreshold: BigInt(68),
+				validators: [
+					{
+						address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+						bftWeight: BigInt(1),
+						blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+					},
+					{
+						address: cryptography.utils.getRandomBytes(ADDRESS_LENGTH),
+						bftWeight: BigInt(1),
+						blsKey: cryptography.utils.getRandomBytes(BLS_PUBLIC_KEY_LENGTH),
+					},
+				],
+				validatorsHash: cryptography.utils.getRandomBytes(54),
+				height: index,
+			}));
+
+			for (const validatorData of sampleValidatorsData) {
+				await connectorDB.setValidatorsDataByHash(
+					validatorData.validatorsHash,
+					validatorData,
+					validatorData.height,
+				);
+			}
 		});
 
-		it('should not disable when incorrect password is given', async () => {
-			await expect(
-				chainConnectorPlugin.endpoint.authorize({
-					params: { enable: false, password: defaultPassword },
-				} as any),
-			).resolves.toEqual({
-				result: 'Successfully disabled the chain connector plugin.',
-			});
-		});
-
-		it('should disable when incorrect password is given', async () => {
-			await expect(
-				chainConnectorPlugin.endpoint.authorize({
-					params: { enable: false, password: 'invalid' },
-				} as any),
-			).rejects.toThrow('Unsupported state or unable to authenticate data');
+		it('should return all the validators data present in the db', async () => {
+			endpointContext = testing.createTransientModuleEndpointContext({});
+			const allValidatorsData = await endpoint.getAllValidatorsData(endpointContext);
+			expect(allValidatorsData).toHaveLength(sampleValidatorsData.length);
+			expect(allValidatorsData).toEqual(
+				validatorsHashPreimagetoJSON(
+					sampleValidatorsData.sort((a, b) => b.validatorsHash.compare(a.validatorsHash)),
+				),
+			);
 		});
 	});
 });

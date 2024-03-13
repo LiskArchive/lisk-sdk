@@ -12,53 +12,31 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable no-bitwise */
-import {
-	ActiveValidator,
-	Certificate,
-	LastCertificate,
-	utils,
-	ActiveValidatorsUpdate,
-} from 'lisk-sdk';
-import { ValidatorsData } from './types';
+import { ActiveValidator, utils, ActiveValidatorsUpdate } from 'lisk-sdk';
+import { ValidatorsDataWithHeight } from './types';
 
 /**
  * @see https://github.com/LiskHQ/lips/blob/main/proposals/lip-0053.md#computing-the-validators-update
  */
+
 export const calculateActiveValidatorsUpdate = (
-	certificate: Certificate,
-	validatorsHashPreimage: ValidatorsData[],
-	lastCertificate: LastCertificate,
+	validatorsDataAtLastCertificate: ValidatorsDataWithHeight,
+	validatorsDataAtNewCertificate: ValidatorsDataWithHeight,
 ): { activeValidatorsUpdate: ActiveValidatorsUpdate; certificateThreshold: bigint } => {
 	let certificateThreshold;
-	const validatorDataAtCertificate = validatorsHashPreimage.find(validatorsData =>
-		validatorsData.validatorsHash.equals(certificate.validatorsHash),
-	);
-
-	if (!validatorDataAtCertificate) {
-		throw new Error('No validators data found for the certificate height.');
-	}
-
-	const validatorDataAtLastCertificate = validatorsHashPreimage.find(validatorsData =>
-		validatorsData.validatorsHash.equals(lastCertificate.validatorsHash),
-	);
-
-	if (!validatorDataAtLastCertificate) {
-		throw new Error('No validators data found for the given last certificate height.');
-	}
-
 	// If the certificate threshold is not changed from last certificate then we assign zero
 	if (
-		validatorDataAtCertificate.certificateThreshold ===
-		validatorDataAtLastCertificate.certificateThreshold
+		validatorsDataAtNewCertificate.certificateThreshold ===
+		validatorsDataAtLastCertificate.certificateThreshold
 	) {
-		certificateThreshold = validatorDataAtLastCertificate.certificateThreshold;
+		certificateThreshold = validatorsDataAtLastCertificate.certificateThreshold;
 	} else {
-		certificateThreshold = validatorDataAtCertificate.certificateThreshold;
+		certificateThreshold = validatorsDataAtNewCertificate.certificateThreshold;
 	}
 
 	const activeValidatorsUpdate = getActiveValidatorsUpdate(
-		validatorDataAtLastCertificate.validators,
-		validatorDataAtCertificate.validators,
+		validatorsDataAtLastCertificate.validators,
+		validatorsDataAtNewCertificate.validators,
 	);
 
 	return { activeValidatorsUpdate, certificateThreshold };

@@ -30,13 +30,15 @@ export const CHAIN_ID_LENGTH = 4;
 export const DEFAULT_REGISTRATION_HEIGHT = 1;
 export const DEFAULT_LAST_CCM_SENT_NONCE = BigInt(-1);
 export const DEFAULT_CCU_SAVE_LIMIT = 300;
+export const DEFAULT_SENT_CCU_TIMEOUT = 3600000; // 1 hour
 
-export const DB_KEY_CROSS_CHAIN_MESSAGES = Buffer.from([1]);
-export const DB_KEY_BLOCK_HEADERS = Buffer.from([2]);
-export const DB_KEY_AGGREGATE_COMMITS = Buffer.from([3]);
-export const DB_KEY_VALIDATORS_HASH_PREIMAGE = Buffer.from([4]);
-export const DB_KEY_LAST_SENT_CCM = Buffer.from([5]);
-export const DB_KEY_LIST_OF_CCU = Buffer.from([6]);
+export const DB_KEY_BLOCK_HEADER_BY_HEIGHT = Buffer.from([1]);
+export const DB_KEY_AGGREGATE_COMMIT_BY_HEIGHT = Buffer.from([2]);
+export const DB_KEY_VALIDATORS_DATA_BY_HASH = Buffer.from([3]);
+export const DB_KEY_VALIDATORS_DATA_BY_HEIGHT = Buffer.from([4]);
+export const DB_KEY_CROSS_CHAIN_MESSAGES = Buffer.from([5]);
+export const DB_KEY_LAST_SENT_CCM = Buffer.from([6]);
+export const DB_KEY_LIST_OF_CCU = Buffer.from([7]);
 
 /**
  * It’s not really MAX_CCU_SIZE, coz CCU includes other properties
