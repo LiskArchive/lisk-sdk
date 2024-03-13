@@ -35,7 +35,7 @@ The following dependencies need to be installed in order to run blockchain clien
 If you are using NVM, install the correct version as shown below:
 
 ```sh
-nvm install v18.16.0
+nvm install v18.19.1
 ```
 
 #### Lisk Commander
@@ -50,7 +50,7 @@ To check the successful installation of Lisk Commander, run the following comman
 
 ```sh
 $ lisk --version
-lisk-commander/6.0.0 darwin-arm64 node-v18.16.0
+lisk-commander/6.0.0 darwin-arm64 node-v18.19.1
 ```
 
 #### Toolchain dependencies
