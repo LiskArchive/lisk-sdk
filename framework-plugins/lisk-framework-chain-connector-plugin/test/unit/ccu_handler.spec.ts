@@ -837,10 +837,6 @@ describe('CCUHandler', () => {
 
 			expect(result).toEqual(ccuTx.id.toString('hex'));
 			expect(chainConnectorDBMock.setCCUTransaction).toHaveBeenCalledWith(ccuTx.toObject());
-			expect((initArgs.logger as Logger).info).toHaveBeenCalledWith(
-				{ transactionID: result },
-				'Sent CCU transaction',
-			);
 		});
 	});
 

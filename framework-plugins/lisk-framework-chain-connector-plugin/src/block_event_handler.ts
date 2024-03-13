@@ -113,12 +113,24 @@ export class BlockEventHandler {
 		// On a new block start with CCU creation process
 		this._sendingChainAPIClient.subscribe(
 			'chain_newBlock',
-			async (data?: Record<string, unknown>) => this._handleNewBlock(data),
+			async (data?: Record<string, unknown>) => {
+				try {
+					await this._handleNewBlock(data);
+				} catch (error) {
+					this._logger.error({ err: error as Error }, 'Failed to handle new block.');
+				}
+			},
 		);
 
 		this._sendingChainAPIClient.subscribe(
 			'chain_deleteBlock',
-			async (data?: Record<string, unknown>) => this._deleteBlockHandler(data),
+			async (data?: Record<string, unknown>) => {
+				try {
+					await this._deleteBlockHandler(data);
+				} catch (error) {
+					this._logger.error({ err: error as Error }, 'Failed to handle delete block.');
+				}
+			},
 		);
 
 		// Initialize the receiving chain client in the end of load so not to miss the initial new blocks
@@ -129,12 +141,8 @@ export class BlockEventHandler {
 		const { blockHeader: receivedBlock } = data as unknown as Data;
 		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock).toObject();
 
-		try {
-			await this._saveOnNewBlock(newBlockHeader);
-		} catch (error) {
-			this._logger.error({ err: error as Error }, 'Error occurred while saving data on new block.');
-			return;
-		}
+		await this._saveOnNewBlock(newBlockHeader);
+
 		const nodeInfo = await this._sendingChainAPIClient.getNodeInfo();
 
 		if (nodeInfo.syncing) {
@@ -148,6 +156,7 @@ export class BlockEventHandler {
 			chainAccount = await this._receivingChainAPIClient.getChainAccount(this._ownChainID);
 		} catch (error) {
 			// If receivingChainAPIClient is not ready then still save data on new block
+			// Error is handled within this function so need to have try/catch
 			await this._initializeReceivingChainClient();
 			this._logger.error(
 				{ err: error as Error },
@@ -166,13 +175,13 @@ export class BlockEventHandler {
 		}
 
 		this._lastCertificate = chainAccount.lastCertificate;
-		this._logger.debug(
+		this._logger.info(
 			`Last certificate value has been set with height ${this._lastCertificate.height}`,
 		);
 
 		const numOfBlocksSinceLastCertificate = newBlockHeader.height - this._lastCertificate.height;
 		if (this._ccuFrequency > numOfBlocksSinceLastCertificate) {
-			this._logger.debug(
+			this._logger.info(
 				{
 					ccuFrequency: this._ccuFrequency,
 					nextPossibleCCUHeight: this._ccuFrequency - numOfBlocksSinceLastCertificate,
@@ -196,59 +205,53 @@ export class BlockEventHandler {
 			}
 			this._isReceivingChainRegistered = true;
 		}
-		let computedCCUParams;
-		try {
-			// Compute CCU when there is no pending CCU that was sent earlier
-			if (this._lastSentCCUTxID === '') {
-				computedCCUParams = await this._ccuHandler.computeCCU(
-					this._lastCertificate,
-					this._lastIncludedCCMOnReceivingChain,
-				);
-			} else {
-				this._logger.info(
-					`Still pending CCU on the receiving CCU with tx ID ${this._lastSentCCUTxID}`,
-				);
 
-				return;
-			}
-		} catch (error) {
-			this._logger.error(
-				{ err: error },
-				`Error occurred while computing CCU for the blockHeader at height: ${newBlockHeader.height}`,
+		let computedCCUParams;
+
+		// Compute CCU when there is no pending CCU that was sent earlier
+		if (this._lastSentCCUTxID === '') {
+			computedCCUParams = await this._ccuHandler.computeCCU(
+				this._lastCertificate,
+				this._lastIncludedCCMOnReceivingChain,
+			);
+		} else {
+			this._logger.info(
+				`Still pending CCU on the receiving CCU with tx ID ${this._lastSentCCUTxID}`,
 			);
 
 			return;
 		}
 
-		if (computedCCUParams) {
-			try {
-				const ccuSubmitResult = await this._ccuHandler.submitCCU(
-					computedCCUParams.ccuParams,
-					this._lastSentCCUTxID,
-				);
-				if (ccuSubmitResult) {
-					this._lastSentCCUTxID = ccuSubmitResult;
-					// Wait until 1 hour
-					this._sentCCUTxTimeout = setTimeout(() => {
-						this._lastSentCCUTxID = '';
-						clearTimeout(this._sentCCUTxTimeout);
-					}, DEFAULT_SENT_CCU_TIMEOUT);
-					// If CCU was sent successfully then save the lastSentCCM if any
-					if (computedCCUParams.lastCCMToBeSent) {
-						this._lastSentCCM = computedCCUParams.lastCCMToBeSent;
-					}
-					return;
-				}
-				this._logger.debug(
-					`Last sent CCU tx with ID ${this._lastSentCCUTxID} was not yet included in the receiving chain.`,
-				);
-			} catch (error) {
-				this._logger.error(
-					{ err: error },
-					`Error occured while submitting CCU for the blockHeader at height: ${newBlockHeader.height}`,
+		if (!computedCCUParams) {
+			this._logger.info(`No CCU params were generated for block height ${newBlockHeader.height}`);
+
+			return;
+		}
+
+		const ccuSubmitResult = await this._ccuHandler.submitCCU(
+			computedCCUParams.ccuParams,
+			this._lastSentCCUTxID,
+		);
+		if (ccuSubmitResult) {
+			this._lastSentCCUTxID = ccuSubmitResult;
+			// Wait until 1 hour
+			this._sentCCUTxTimeout = setTimeout(() => {
+				this._lastSentCCUTxID = '';
+				clearTimeout(this._sentCCUTxTimeout);
+			}, DEFAULT_SENT_CCU_TIMEOUT);
+			// If CCU was sent successfully then save the lastSentCCM if any
+			if (computedCCUParams.lastCCMToBeSent) {
+				this._lastSentCCM = computedCCUParams.lastCCMToBeSent;
+				this._logger.info(
+					`Last sent CCM with nonce ${this._lastSentCCM.nonce.toString()} is saved.`,
 				);
 			}
+			this._logger.info(`CCU transaction was successfully sent with Tx ID ${ccuSubmitResult}.`);
+			return;
 		}
+		this._logger.info(
+			`Last sent CCU tx with ID ${this._lastSentCCUTxID} was not yet included in the receiving chain.`,
+		);
 	}
 
 	private async _saveOnNewBlock(newBlockHeader: BlockHeader) {

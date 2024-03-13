@@ -319,8 +319,6 @@ export class CCUHandler {
 		}
 		// Save the sent CCU
 		await this._db.setCCUTransaction(tx.toObject());
-		// Update logs
-		this._logger.info({ transactionID: result.transactionId }, 'Sent CCU transaction');
 
 		return result.transactionId;
 	}

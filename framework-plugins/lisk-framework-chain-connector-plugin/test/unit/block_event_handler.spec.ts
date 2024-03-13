@@ -225,17 +225,14 @@ describe('BlockEventHandler', () => {
 			clearTimeout(blockEventHandler['_sentCCUTxTimeout']);
 		});
 
-		it('should log error and return when _saveOnNewBlock fails', async () => {
+		it('should throw when _saveOnNewBlock fails', async () => {
 			const fakeError = new Error('Error occurred while save on new block');
 			saveOnNewBlockMock.mockRejectedValue(fakeError);
 			jest.spyOn(initArgs.logger as Logger, 'error');
 
-			await blockEventHandler['_handleNewBlock']({ blockHeader: sampleBlockHeader });
-
-			expect((initArgs.logger as Logger).error).toHaveBeenCalledWith(
-				{ err: fakeError },
-				'Error occurred while saving data on new block.',
-			);
+			await expect(
+				blockEventHandler['_handleNewBlock']({ blockHeader: sampleBlockHeader }),
+			).rejects.toThrow(fakeError);
 		});
 
 		it('should return after getNodeInfo when the node is syncing', async () => {
@@ -283,14 +280,14 @@ describe('BlockEventHandler', () => {
 			saveOnNewBlockMock.mockResolvedValue({});
 			receivingChainAPIClientMock.getChainAccount.mockResolvedValue(sidechainChainAccount);
 			sendingChainAPIClientMock.getNodeInfo.mockResolvedValue({ syncing: false });
-			jest.spyOn(initArgs.logger as Logger, 'debug');
+			jest.spyOn(initArgs.logger as Logger, 'info');
 			(blockEventHandler as any)['_ccuFrequency'] = 100;
 
 			await blockEventHandler['_handleNewBlock']({ blockHeader: sampleBlockHeader });
-			expect((initArgs.logger as Logger).debug).toHaveBeenCalledWith(
+			expect((initArgs.logger as Logger).info).toHaveBeenCalledWith(
 				`Last certificate value has been set with height ${sidechainLastCertificate.height}`,
 			);
-			expect((initArgs.logger as Logger).debug).toHaveBeenCalledWith(
+			expect((initArgs.logger as Logger).info).toHaveBeenCalledWith(
 				{
 					ccuFrequency: 100,
 					nextPossibleCCUHeight:
@@ -298,6 +295,19 @@ describe('BlockEventHandler', () => {
 				},
 				'No attempt to create CCU either due to provided ccuFrequency',
 			);
+		});
+
+		it('should throw error when getChainAccount fails on sending chain client', async () => {
+			const fakeError = new Error('Failed to get chain account');
+			saveOnNewBlockMock.mockResolvedValue({});
+			receivingChainAPIClientMock.getChainAccount.mockResolvedValue(sidechainChainAccount);
+			sendingChainAPIClientMock.getNodeInfo.mockResolvedValue({ syncing: false });
+			sendingChainAPIClientMock.getChainAccount.mockRejectedValue(fakeError);
+			jest.spyOn(initArgs.logger as Logger, 'error');
+
+			await expect(
+				blockEventHandler['_handleNewBlock']({ blockHeader: sampleBlockHeader }),
+			).rejects.toThrow(fakeError);
 		});
 
 		it('should log message and return when receiving chain is not registered yet', async () => {
@@ -340,15 +350,11 @@ describe('BlockEventHandler', () => {
 			blockEventHandler['_isReceivingChainRegistered'] = true;
 			blockEventHandler['_lastSentCCUTxID'] = lastSentCCUTxID;
 
-			await blockEventHandler['_handleNewBlock']({ blockHeader: sampleBlockHeader });
-
-			expect((initArgs.logger as Logger).error).toHaveBeenCalledWith(
-				{ err: fakeError },
-				`Error occurred while computing CCU for the blockHeader at height: ${
-					sampleBlockHeader.height as number
-				}`,
-			);
+			await expect(
+				blockEventHandler['_handleNewBlock']({ blockHeader: sampleBlockHeader }),
+			).rejects.toThrow(fakeError);
 		});
+
 		it('should log error when submitCCU fails', async () => {
 			const lastSentCCUTxID = '';
 			const fakeError = new Error('Failed at computeCCU');
@@ -365,21 +371,17 @@ describe('BlockEventHandler', () => {
 			blockEventHandler['_isReceivingChainRegistered'] = true;
 			blockEventHandler['_lastSentCCUTxID'] = lastSentCCUTxID;
 
-			await blockEventHandler['_handleNewBlock']({ blockHeader: sampleBlockHeader });
-
-			expect((initArgs.logger as Logger).error).toHaveBeenCalledWith(
-				{ err: fakeError },
-				`Error occured while submitting CCU for the blockHeader at height: ${
-					sampleBlockHeader.height as number
-				}`,
-			);
+			await expect(
+				blockEventHandler['_handleNewBlock']({ blockHeader: sampleBlockHeader }),
+			).rejects.toThrow(fakeError);
 		});
+
 		it('should log message when submitCCU returns undefined', async () => {
 			const lastSentCCUTxID = '';
 			saveOnNewBlockMock.mockResolvedValue({});
 			receivingChainAPIClientMock.getChainAccount.mockResolvedValue(sidechainChainAccount);
 			sendingChainAPIClientMock.getNodeInfo.mockResolvedValue({ syncing: false });
-			jest.spyOn(initArgs.logger as Logger, 'debug');
+			jest.spyOn(initArgs.logger as Logger, 'info');
 			jest.spyOn(blockEventHandler['_ccuHandler'], 'computeCCU').mockResolvedValue({
 				ccuParams: {} as any,
 				lastCCMToBeSent: {} as any,
@@ -391,7 +393,7 @@ describe('BlockEventHandler', () => {
 
 			await blockEventHandler['_handleNewBlock']({ blockHeader: sampleBlockHeader });
 
-			expect((initArgs.logger as Logger).debug).toHaveBeenCalledWith(
+			expect((initArgs.logger as Logger).info).toHaveBeenCalledWith(
 				`Last sent CCU tx with ID ${lastSentCCUTxID} was not yet included in the receiving chain.`,
 			);
 		});
@@ -401,10 +403,12 @@ describe('BlockEventHandler', () => {
 			saveOnNewBlockMock.mockResolvedValue({});
 			receivingChainAPIClientMock.getChainAccount.mockResolvedValue(sidechainChainAccount);
 			sendingChainAPIClientMock.getNodeInfo.mockResolvedValue({ syncing: false });
-			jest.spyOn(initArgs.logger as Logger, 'debug');
+			jest.spyOn(initArgs.logger as Logger, 'info');
 			jest.spyOn(blockEventHandler['_ccuHandler'], 'computeCCU').mockResolvedValue({
 				ccuParams: {} as any,
-				lastCCMToBeSent: {} as any,
+				lastCCMToBeSent: {
+					nonce: BigInt(1),
+				} as any,
 			});
 			jest.spyOn(blockEventHandler['_ccuHandler'], 'submitCCU').mockResolvedValue('txID');
 
@@ -413,7 +417,9 @@ describe('BlockEventHandler', () => {
 
 			await blockEventHandler['_handleNewBlock']({ blockHeader: sampleBlockHeader });
 			expect(blockEventHandler['_lastSentCCUTxID']).toBe('txID');
-			expect(blockEventHandler['_lastSentCCM']).toEqual({});
+			expect(blockEventHandler['_lastSentCCM']).toEqual({
+				nonce: BigInt(1),
+			});
 		});
 	});
 
