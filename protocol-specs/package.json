@@ -23,7 +23,7 @@
 		"@liskhq/lisk-cryptography": "^4.1.0",
 		"@liskhq/lisk-passphrase": "4.1.0",
 		"@liskhq/lisk-validator": "^0.9.0",
-		"protobufjs": "7.2.4"
+		"protobufjs": "7.2.5"
 	},
 	"devDependencies": {
 		"eslint": "8.28.0",
