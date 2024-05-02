@@ -35,6 +35,7 @@ import { ChainEndpoint } from './endpoint/chain';
 import { SystemEndpoint } from './endpoint/system';
 import { ABI } from '../abi';
 import {
+	CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED,
 	CONSENSUS_EVENT_FORK_DETECTED,
 	CONSENSUS_EVENT_NETWORK_BLOCK_NEW,
 	CONSENSUS_EVENT_VALIDATORS_CHANGED,
@@ -351,6 +352,17 @@ export class Engine {
 				})
 				.catch(err => this._logger.error({ err: err as Error }, 'Fail to publish event'));
 		});
+
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		this._consensus.events.on(CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED, async (finalizedHeightChangeRange: {
+			from: number;
+			to: number;
+		}) => {
+			if (finalizedHeightChangeRange.to >= this._config.system.backup.height) {
+				await this._generator.stop();
+				this._logger.info(`Generator is stopped as blockchain reached its final snapshot height: ${this._config.system.backup.height}`);
+			}
+		})
 		this._generator.events.on(
 			GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT,
 			(event: { transactionIds: Buffer[] }) => {

@@ -119,6 +119,8 @@ export class Consensus {
 	private _legacyEndpoint!: LegacyNetworkEndpoint;
 	private _synchronizer!: Synchronizer;
 
+	public _stopBlockchain = false;
+
 	private readonly _metrics = {
 		height: defaultMetrics.gauge('consensus_height'),
 		finalizedHeight: defaultMetrics.gauge('consensus_finalizedHeight'),
@@ -266,6 +268,10 @@ export class Consensus {
 	}
 
 	public async onBlockReceive(data: unknown, peerId: string): Promise<void> {
+		if (this._stopBlockchain) {
+			this._logger.debug("Blockchain reached its final height, no new block will be processed.");
+			return;
+		}
 		// Should ignore received block if syncing
 		if (this.syncing()) {
 			this._logger.debug("Client is syncing. Can't process new block at the moment.");
@@ -667,6 +673,9 @@ export class Consensus {
 			await this._abi.finalize({
 				finalizedHeight,
 			});
+			if (finalizedHeight >= this._systemConfig.backup.height) {
+				this._stopBlockchain = true;
+			}
 			this.events.emit(CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED, finalizedHeightChangeRange);
 		}
 

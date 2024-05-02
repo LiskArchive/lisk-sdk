@@ -6,7 +6,10 @@
 		"keepInclusionProofsForHeights": -1,
 		"inclusionProofKeys": [
 			"83ed0d250000160811fdaf692ba77eabfbfc3a6bb3c4cf6a87beafd28cfe90b5dc64cb20ab46"
-		]
+		],
+		"backup": {
+			"height": 20
+		}
 	},
 	"rpc": {
 		"modes": ["ipc"],
@@ -26,7 +29,7 @@
 	},
 	"generator": {
 		"keys": {
-			"fromFile": "./config/dev-validators.json"
+			"fromFile": "./config/first_three_validators.json"
 		}
 	},
 	"plugins": {

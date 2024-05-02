@@ -6,7 +6,10 @@
 		"keepInclusionProofsForHeights": -1,
 		"inclusionProofKeys": [
 			"83ed0d250000ac894ab085f50b81fe000e99ccb27e5543de69f63d4f9105daab15dce90f81b3"
-		]
+		],
+		"backup": {
+			"height": 20
+		}
 	},
 	"rpc": {
 		"modes": ["ipc"],
@@ -23,6 +26,11 @@
 			}
 		],
 		"port": 7662
+	},
+	"generator": {
+		"keys": {
+			"fromFile": "./config/last_two_validators.json"
+		}
 	},
 	"plugins": {
 		"chainConnector": {
